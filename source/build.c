@@ -90,7 +90,7 @@ void Build_Destroy(int xpos, int ypos)
     BuildCount[COUNT_POWERPLANTS] -= (type == 60);
     BuildCount[COUNT_NUCLEARPLANTS] -= (type == 61);
     BuildCount[COUNT_POWERLINES] -= ((type == 7) || (type == 6) || (type == 5));
-
+    updatePowerGrid = 1; // to make sure the powergrid is uptodate
     SetWorld(WORLDPOS(xpos,ypos),0);
     UnlockWorld();
 
