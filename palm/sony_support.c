@@ -195,6 +195,15 @@ _WinScreenMode(WinScreenModeOperation op, UInt32 *width, UInt32 *height,
 }
 
 void
+_WinDrawRectangle(RectangleType *r, UInt16 cornerDiam)
+{
+	if (hires)
+		HRWinDrawRectangle(hires, r, cornerDiam);
+	else
+		WinDrawRectangle(r, cornerDiam);
+}
+
+void
 _WinEraseRectangle(RectangleType *r, UInt16 cornerDiam)
 {
 	if (hires)

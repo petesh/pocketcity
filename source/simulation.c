@@ -92,24 +92,6 @@ static UInt8 ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what);
  */
 static void DoDistribute(Int16 grid);
 
-void
-Sim_Distribute(void)
-{
-	int paint = 0;
-	if (NeedsUpdate(GRID_POWER)) {
-		paint = 1;
-		DoDistribute(GRID_POWER | DONTPAINT);
-		ClearUpdate(GRID_POWER);
-	}
-	if (NeedsUpdate(GRID_WATER)) {
-		paint = 1;
-		DoDistribute(GRID_WATER | DONTPAINT);
-		ClearUpdate(GRID_WATER);
-	}
-	if (paint)
-		UIDrawPlayArea();
-}
-
 /*!
  * \brief Do a grid distribution for the grid(s) specified
  * \param gridonly the grid to do
@@ -127,8 +109,9 @@ Sim_Distribute_Specific(Int16 gridonly)
 		DoDistribute(GRID_WATER);
 		ClearUpdate(GRID_WATER);
 	}
-	if (!(gridonly & DONTPAINT))
-		UIDrawPlayArea();
+	LockZone(lz_world);
+	UIDrawPlayArea();
+	UnlockZone(lz_world);
 }
 
 /*!
@@ -256,7 +239,6 @@ DoDistribute(Int16 grid)
 			andWorldFlags(j,
 			    ~(distrib->flagToSet | SCRATCHBIT | PAINTEDBIT));
 	}
-
 	for (i = 0; i < MapMul(); i++) {
 		gw = getWorld(i);
 		if (!getScratch(i)) {

@@ -14,6 +14,7 @@
 #include <NotifyMgr.h>
 #include <SysEvtMgr.h>
 #include <ui.h>
+#include <simcity.h>
 
 #define	_HIRESSOURCE_
 #include <resCompat.h>
@@ -155,8 +156,12 @@ void
 StartHiresFontDraw(void)
 {
 	if (hdfs) {
-		BmpSetDensity(WinGetBitmap(WinGetDrawWindow()),
-		    kDensityLow);
+		if (IsScaleModes()) 
+			WinSetScalingMode(kBitmapScalingOff | kTextScalingOff |
+			    kTextPaddingOff);
+		else
+			BmpSetDensity(WinGetBitmap(WinGetDrawWindow()),
+			    kDensityLow);
 	}
 }
 
@@ -170,7 +175,10 @@ void
 EndHiresFontDraw(void)
 {
 	if (hdfs) {
-		BmpSetDensity(WinGetBitmap(WinGetDrawWindow()), hdfs);
+		if (IsScaleModes())
+			WinSetScalingMode(0);
+		else
+			BmpSetDensity(WinGetBitmap(WinGetDrawWindow()), hdfs);
 	}
 }
 
@@ -335,8 +343,9 @@ collapseMove(FormPtr form, UInt8 stretchy, Int16 *roffsetX, Int16 *roffsetY)
 	Int16		offX, offY;
 	WinHandle	frmH;
 
-	if (!hasVirtualSilk())
+	if (!hasVirtualSilk()) {
 		return (false);
+	}
 
 	WinGetDisplayExtent(&dispWidth, &dispHeight);
 	WriteLog("extend = %d, %d\n", (int)dispWidth, (int)dispHeight);

@@ -35,13 +35,6 @@ typedef enum {
 #include <compilerpragmas.h>
 
 /*!
- * \brief Distribute to the grids.
- *
- * Does all the grids needed
- */
-EXPORT void Sim_Distribute(void);
-
-/*!
  * \brief Perform a phase of the simulation
  * \param nPhase the phase number to do
  * \return the next phase to go to

@@ -28,6 +28,7 @@
 #include <palmutils.h>
 #include <simcity_resconsts.h>
 #include <mem_compat.h>
+#include <minimap.h>
 
 #ifdef DEBUG
 #include <HostControl.h>
@@ -406,6 +407,7 @@ _PalmInit(void)
 	UInt16		i;
 	MemHandle	bitmaphandle;
 	BitmapPtr	bitmap;
+	//BitmapPtrV3	bmpv3;
 	WinHandle	winHandle = NULL;
 	WinHandle	privhandle;
 	UInt16		prefSize;
@@ -458,6 +460,7 @@ _PalmInit(void)
 	/* Section (5); */
 	/* create an offscreen window, and copy the zones to be used later */
 	for (i = 0; i < (sizeof (handles) / sizeof (handles[0])); i++) {
+
 		bitmaphandle = DmGetResource(TBMP, handles[i].resourceID);
 		if (bitmaphandle == NULL) {
 			WriteLog("could not get bitmap handle[%d:%ld]\n",
@@ -490,7 +493,13 @@ _PalmInit(void)
 			winHandle = WinSetDrawWindow(privhandle);
 		else
 			WinSetDrawWindow(privhandle);
+#if defined(HRSUPPORT)
+		if (IsScaleModes()) StartHiresDraw();
+#endif
 		_WinDrawBitmap(bitmap, 0, 0);
+#if defined(HRSUPPORT)
+		if (IsScaleModes()) EndHiresDraw();
+#endif
 		MemHandleUnlock(bitmaphandle);
 		DmReleaseResource(bitmaphandle);
 		*(handles[i].handle) = privhandle;
@@ -683,14 +692,25 @@ static void
 doPocketCityOpen(FormPtr form)
 {
 #if defined(HRSUPPORT)
-	Int16 hOff, vOff;
+	Int16 hOff = 0, vOff = 0;
 #endif
+	RectangleType rect;
 
 	FrmDrawForm(form);
 	SetSilkResizable(form, true);
 
-	collapseMove(form, CM_DEFAULT, &hOff, &vOff);
-	pcResizeDisplay(form, hOff, vOff, false);
+	rect.topLeft.x = normalizeCoord(GETWIDTH()) - 2 * gameTileSize();
+	rect.topLeft.y = normalizeCoord(GETHEIGHT()) - 2 * gameTileSize();
+	rect.extent.x = 2 * gameTileSize();
+	rect.extent.y = rect.extent.x;
+
+	minimapPlace(&rect);
+	minimapSetShowing(1);
+
+#if defined(HRSUPPORT)
+	if (collapseMove(form, CM_DEFAULT, &hOff, &vOff))
+		pcResizeDisplay(form, hOff, vOff, false);
+#endif
 	SetGameInProgress();
 	ResumeGame();
 	FrmDrawForm(form);
@@ -789,7 +809,8 @@ hPocketCity(EventPtr event)
 #endif
 		redraw = collapseMove(FrmGetActiveForm(), CM_DEFAULT,
 		    &hOff, &vOff);
-		pcResizeDisplay(FrmGetActiveForm(), hOff, vOff, redraw);
+		if (redraw)
+			pcResizeDisplay(FrmGetActiveForm(), hOff, vOff, redraw);
 		handled = true;
 		break;
 #endif
@@ -1185,6 +1206,7 @@ BUILD_STATEBITACCESSOR(8, SetOutWaterNotShown, SetOutWaterShown, \
 BUILD_STATEBITACCESSOR(9, ClearNewROM, SetNewROM, IsNewROM, GLOBAL)
 BUILD_STATEBITACCESSOR(10, SetDrawing, SetDeferDrawing, IsDeferDrawing, static)
 BUILD_STATEBITACCESSOR(11, ClearDirectBmps, SetDirectBmps, IsDirectBmps, GLOBAL)
+BUILD_STATEBITACCESSOR(12, ClearScaleModes, SetScaleModes, IsScaleModes, GLOBAL)
 
 /*!
  * \brief clear the low and out of power flags
@@ -1627,6 +1649,7 @@ UIDrawPlayArea()
 			DrawFieldWithoutInit(x, y);
 		}
 	}
+	minimapPaint();
 }
 
 /*
@@ -2106,18 +2129,18 @@ MapHasJumped(void)
 static Err
 RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
 {
-	UInt32 romVersion;
+	UInt32 version;
 
 	/* See if we're on in minimum required version of the ROM or later. */
-	FtrGet(sysFtrCreator, sysFtrNumROMVersion, &romVersion);
+	FtrGet(sysFtrCreator, sysFtrNumROMVersion, &version);
 
-	WriteLog("Rom Version: 0x%lx\n", (unsigned long)romVersion);
+	WriteLog("Rom Version: 0x%lx\n", (unsigned long)version);
 
-	if (romVersion < requiredVersion) {
+	if (version < requiredVersion) {
 		if ((launchFlags &
 		    (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp)) ==
 		    (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp)) {
-			if (romVersion > sysMakeROMVersion(3, 1, 0, 0, 0) &&
+			if (version > sysMakeROMVersion(3, 1, 0, 0, 0) &&
 			    FrmAlert(alertID_RomIncompatible) == 1) {
 				ClearNewROM();
 				return (0);
@@ -2127,7 +2150,7 @@ RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
 			 * Pilot 1.0 will continuously relaunch this app
 			 * unless we switch to another safe one.
 			 */
-			if (romVersion < sysMakeROMVersion(2, 0, 0, 0, 0)) {
+			if (version < sysMakeROMVersion(2, 0, 0, 0, 0)) {
 				AppLaunchWithCommand(sysFileCDefaultApp,
 				    sysAppLaunchCmdNormalLaunch, NULL);
 			}
@@ -2136,10 +2159,16 @@ RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
 	}
 	SetNewROM();
 
-	if (romVersion >= sysMakeROMVersion(4, 0, 0, sysROMStageRelease, 0))
+	if (version >= sysMakeROMVersion(4, 0, 0, sysROMStageRelease, 0))
 		ClearDirectBmps();
 	else
 		SetDirectBmps();
+
+	ClearScaleModes();
+	if (errNone == FtrGet(sysFtrCreator, sysFtrNumWinVersion, &version)) {
+		if (version >= 5)
+			SetScaleModes();
+	}
 
 	return (0);
 }
@@ -2472,7 +2501,7 @@ UIDrawToolBar(void)
 
 		pToolbarBitmap = _BmpCreate(tbWidth, bHeight, getDepth(),
 		    NULL, &err);
-		if (pToolbarBitmap  != NULL && highDensityFeatureSet()) {
+		if (highDensityFeatureSet() && pToolbarBitmap != NULL) {
 			pOldBitmap = pToolbarBitmap;
 			pToolbarBitmap = (BitmapPtr)BmpCreateBitmapV3(
 			    pToolbarBitmap, kDensityLow, 
@@ -2579,6 +2608,12 @@ pcResizeDisplay(FormPtr form, Int16 hOff, Int16 vOff, Boolean draw)
 	/* XXX: Resize the gadgets */
 	rPlayGround.extent.x = normalizeCoord(GETWIDTH());
 	rPlayGround.extent.y = normalizeCoord(GETHEIGHT()) - 2 * 10;
+
+	disRect.topLeft.x = normalizeCoord(GETWIDTH()) - scaleCoord(32);
+	disRect.topLeft.y = normalizeCoord(GETHEIGHT()) - scaleCoord(32);
+	disRect.extent.x = scaleCoord(32);
+	disRect.extent.y = scaleCoord(32);
+	minimapPlace(&disRect);
 
 	WriteLog("Playground: (%d, %d)\n", (int)rPlayGround.extent.x,
     	    (int)rPlayGround.extent.y);

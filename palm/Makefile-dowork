@@ -5,7 +5,8 @@ OBJECTS := stack.o simcity.o handler.o drawing.o globals.o build.o \
 	simulation.o HiRes.o disaster.o palmutils.o savegame_be.o \
 	palm_locking.o \
 	sony_support.o mem_compat.o pcity-sections.o \
-	options.o map.o budget.o query.o savegame.o repeathandler.o
+	options.o map.o budget.o query.o savegame.o repeathandler.o \
+	minimap.o
 
 BUILDENDS=nd d nd5 d5 nds ds dc
 BUILDDIRS:=$(BUILDENDS:%=.out-%)

@@ -104,11 +104,18 @@ Err _WinScreenMode(WinScreenModeOperation op, UInt32 *width, UInt32 *height,
     UInt32 *depth, Boolean *enableColor);
 
 /*!
- * \brief Erase arectangle
+ * \brief Erase a rectangle
  * \param r the rectangle
  * \param cornerDiam diameter of corner
  */
 void _WinEraseRectangle(RectangleType *r, UInt16 cornerDiam);
+
+/*!
+ * \brief Fill a rectangle
+ * \param r the rectangle
+ * \param cornerDiam the diameter of the corner
+ */
+void _WinDrawRectangle(RectangleType *rect, UInt16 cornerDiam);
 
 /*!
  * \brief create a bitmap
@@ -201,6 +208,7 @@ void _FntSetFont(FontID font);
 
 #define	_WinScreenMode WinScreenMode
 #define	_WinEraseRectangle WinEraseRectangle
+#define	_WinDrawRectangle WinDrawRectangle
 #define	_WinDrawBitmap WinDrawBitmap
 #define	_BmpCreate BmpCreate
 #define	_WinCopyRectangle WinCopyRectangle

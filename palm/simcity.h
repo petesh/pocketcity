@@ -41,6 +41,10 @@ void ClearDirectBmps(void);
 void SetDirectBmps(void);
 UInt16 IsDirectBmps(void);
 
+void ClearScaleModes(void);
+void SetScaleModes(void);
+UInt16 IsScaleModes(void);
+
 void clearProblemFlags(void);
 void ResGetString(UInt16 index, char *string, UInt16 length);
 
