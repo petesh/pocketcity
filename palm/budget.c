@@ -43,6 +43,12 @@ extern Boolean hBudget(EventPtr event)
                     break;
             }
             break;
+        case popSelectEvent:
+            if (event->data.popSelect.controlID == listID_shifter_popup) {
+                UIGotoForm(event->data.popSelect.selection);
+                handled = 1;
+            }
+            break;
         default:
             break;
     }

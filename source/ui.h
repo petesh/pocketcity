@@ -13,6 +13,7 @@ extern void UIDrawBorder(void);
 extern void UISetUpGraphic(void);
 extern void UIDrawCredits(void);
 extern void UIUpdateBuildIcon(void);
+extern void UIGotoForm(int);
 
 extern void UICheckMoney(void);
 extern void UIScrollMap(int direction);

@@ -11,6 +11,10 @@ Legend:
 Version 0.12
 ==========================
 Kean Pedersen:
+  + A list to quickly change between map/budget
+  * When you create a new game, it's loaded right-away
+    (Suggested by Robert Schouwenburg)
+  * More infrequent disasters - they happende a little too much
 
 Aaron Krill:
 

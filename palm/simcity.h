@@ -34,6 +34,8 @@ extern void UIWriteLog(char * s);
 #define menuID_PauseSpeed                1056
 
 #define poplabel                         1055
+#define listID_shifter_popup             5000
+#define listID_shifter                   5001
 
 #define menuitemID_removeDefence         1057
 

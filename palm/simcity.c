@@ -486,6 +486,22 @@ static Boolean hPocketCity(EventPtr event)
     return handled;
 }
 
+
+extern void UIGotoForm(int n)
+{
+    switch (n)
+    {
+        case 0:
+            FrmGotoForm(formID_budget);
+            break;
+        case 1:
+            FrmGotoForm(formID_map);
+            break;
+        default:
+            break;
+    }
+}
+
 void UIPopUpExtraBuildList(void)
 {
     FormType * ftList;
