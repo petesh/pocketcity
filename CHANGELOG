@@ -15,6 +15,7 @@ Kean Pedersen:
   + Map coordinates shown
   + population cap - prevents insane population in the early years
   + Simulation pauses while user builds (gives faster response time)
+  + Speed indicator (tap to pause)
   * Temporary fix for PalmOS 3.1 (powerloss icon is not shown on OS < 3.5)
   - Removed the 32x32 tiles, was too ugly/big/unused
 
@@ -24,7 +25,7 @@ Aaron Kill (new developer):
   + Alert to notify when you have 0 credits
   + Speed control
   + Population display
-  + Taxes paid each month
+  + Taxes collected each month
   + Upkeep on roads, powerlines, powerplants paid each month
-  + Pause/Unpause feature added (Unpause doesn't work right, will be fixed)
+  + Pause feature added
   * Fixed powerplants so they generate more realistic amounts of power
