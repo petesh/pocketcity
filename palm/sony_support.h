@@ -7,7 +7,7 @@
 #if !defined(_SONY_SUPPORT_H_)
 #define	_SONY_SUPPORT_H_
 
-#ifdef	SONY_CLIE
+#ifdef SONY_HIGH
 
 #include <Font.h>
 #include <FontSelect.h>

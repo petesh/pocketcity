@@ -202,7 +202,8 @@ WriteCityRecord(MemHandle rec, GameStruct *gs, MemPtr wp, MemPtr fp)
 	DmWrite(pRec, 0, gs, sizeof (GameStruct));
 	DmWrite(pRec, sizeof (GameStruct), (void *)wp,
 	    gs->mapx * gs->mapy);
-	size = (gs->mapx * gs->mapy + ((8 / 2) - 1)) / (8 / 2);
+	size = (gs->mapx * gs->mapy + (((sizeof (selem_t) * 8) / 2) - 1)) /
+	    ((sizeof (selem_t) * 8) / 2);
 	pRec2 = gMalloc(size);
 	PackBits(fp, pRec2, 2, gs->mapx * gs->mapy);
 	DmWrite(pRec, sizeof (GameStruct) + gs->mapx * gs->mapy,

@@ -2,7 +2,7 @@
 include Makefile-include
 
 BIN=PocketCity
-TILE=pc_tile
+TILE=$(BIN)
 
 NDTARGETS=lores palm5 sony
 DTARGETS=dlores dpalm5 dsony cheat
@@ -23,25 +23,25 @@ TARGETS=$(NDTARGETS)
 
 BINNAME=$(BIN)
 
-lores: TDIR =nd
+lores: TDIR =standard
 #lores: BINNAME=$(BIN)
 
-dlores: TDIR =d
+dlores: TDIR =debug
 #dlores: BINNAME=$(BIN)
 
-palm5: TDIR =nd5
+palm5: TDIR =palm5
 #palm5: BINNAME=$(BIN)
 
-dpalm5: TDIR =d5
+dpalm5: TDIR =debug-palm5
 #dpalm5: BINNAME=$(BIN)
 
-sony: TDIR =nds
+sony: TDIR =sony
 #sony: BINNAME=$(BIN)
 
-dsony: TDIR =ds
+dsony: TDIR =debug-sony
 #dsony: BINNAME=$(BIN)
 
-cheat: TDIR =dc
+cheat: TDIR =cheat
 #cheat: BINNAME=$(BIN)
 
 OBJDIR = out-$(TDIR)
@@ -64,8 +64,7 @@ $(TARGETS) $(DTARGETS): VER $(COLORTARGETS)
 
 clean: clean-graphic
 	rm -rf *.ro $(BIN)-*.rcp *.pdb *.prc
-	$(MAKE) -f Makefile-dowork BINARY=$(BINNAME) \
-		OBJDIR=out-$(TDIR) $@
+	rm -rf out-*
 
 clean-%:
 	cd $(@:clean-%=%) && $(MAKE) clean
@@ -99,7 +98,12 @@ full: $(TARGETS)
 
 dist nearlylive: all-nextdir $(NDTARGETS)
 	@mkdir -p $(DDIR)
-	@cp $(DISTFILES) *.pdb *.prc $(DDIR)
+	@cp $(DISTFILES) *.pdb $(DDIR)
+	@for dir in out-*; do \
+		for file in $$dir/*.prc; do \
+			cp $$file $(DDIR)/`echo $$file | sed -e 's/out-//' -e 's/\//-/'`; \
+		done; \
+	done
 	@tar cvf - $(DDIR) | gzip -9c >$(DDIR).tar.gz
 	@zip -9R $(DDIR).zip $(DDIR)/*
 	@rm -rf $(DDIR)

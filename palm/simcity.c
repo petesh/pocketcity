@@ -76,7 +76,7 @@ static void UIPopUpExtraBuildList(void);
 static void CleanUpExtraBuildForm(void);
 static FieldType * UpdateDescription(Int16 sel);
 
-static void _UIGetFieldToBuildOn(Int16 x, Int16 y);
+void _UIGetFieldToBuildOn(Int16 x, Int16 y);
 static Err RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags);
 static void EventLoop(void);
 static void cycleSpeed(void);
@@ -497,8 +497,9 @@ _PalmInit(void)
 	/* The 'playground'... built by the size of the screen */
 	rPlayGround.topLeft.x = XOFFSET;
 	rPlayGround.topLeft.y = YOFFSET; /* Padding for the menubar */
-	rPlayGround.extent.x = GETWIDTH();
-	rPlayGround.extent.y = GETHEIGHT() - 2*16; /* Space on the bottom */
+	rPlayGround.extent.x = normalizeCoord(GETWIDTH());
+	/* Space on the bottom */
+	rPlayGround.extent.y = normalizeCoord(GETHEIGHT() - 2*16);
 
 	/* section (4) */
 
@@ -792,7 +793,6 @@ hPocketCity(EventPtr event)
 		SetSilkResizable(NULL, false);
 		break;
 	case penDownEvent:
-
 		if (GETMINIMAPVISIBLE()) {
 			minimperc.x = event->screenX;
 			minimperc.y = event->screenY;
@@ -804,14 +804,15 @@ hPocketCity(EventPtr event)
 				break;
 			}
 		}
-		scaleEvent(event);
 		if (RctPtInRectangle(event->screenX, event->screenY,
 		    &rPlayGround)) {
+			scaleEvent(event);
 			/* click was on the playground */
 			_UIGetFieldToBuildOn(event->screenX, event->screenY);
 			handled = true;
 			break;
 		}
+		scaleEvent(event);
 		if (event->screenY < 12) {
 			handled = true;
 			if (event->screenX >= (GETWIDTH() - 12)) {
@@ -1338,8 +1339,8 @@ void
 _UIGetFieldToBuildOn(Int16 x, Int16 y)
 {
 	RectangleType rect;
-	rect.extent.x = (Coord)(getVisibleX() * gameTileSize());
-	rect.extent.y = (Coord)(getVisibleY() * gameTileSize());
+	rect.extent.x = scaleCoord((Coord)(getVisibleX() * gameTileSize()));
+	rect.extent.y = scaleCoord((Coord)(getVisibleY() * gameTileSize()));
 	rect.topLeft.x = XOFFSET;
 	rect.topLeft.y = YOFFSET;
 
@@ -1506,7 +1507,6 @@ _UIDrawRect(Int16 nTop, Int16 nLeft, Int16 nHeight, Int16 nWidth)
 	rect.topLeft.y = nTop;
 	rect.extent.x = nWidth;
 	rect.extent.y = nHeight;
-
 	
 	StartHiresDraw();
 	_WinDrawRectangleFrame(1, &rect);

@@ -45,7 +45,7 @@ static UInt16 blockSize(welem_t type) BUILD_SECTION;
 static void Doff(welem_t base, welem_t node, UInt16 *x, UInt16 *y) BUILD_SECTION;
 static Int16 IsBulldozable(welem_t zone) BUILD_SECTION;
 
-static Int16 SpendMoney(UInt32 howMuch);
+static Int16 SpendMoney(UInt32 howMuch) BUILD_SECTION;
 
 /*!
  * \brief array mapping build requests to reactions.

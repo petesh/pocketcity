@@ -10,7 +10,7 @@ RC = pilrc
 RCFLAGS = -q -ro
 
 OPTFLAGS = -O2
-WARNFLAGS = -W -Wall -Werror -Wno-multichar
+WARNFLAGS = -W -Wall -Werror -Wno-multichar -fconserve-space
 INCLUDES = -I . -I ../source -I ../graphic
 DEFINES =
 

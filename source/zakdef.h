@@ -401,7 +401,7 @@ typedef enum {
 
 /*! \brief The type of a defence unit */
 typedef enum {
-	DuFireman = 0, DuPolice, DuMilitary
+	DuFireman = 0, DuPolice, DuMilitary, DuPadding = 512
 } DefenceUnitTypes;
 
 /*! \brief a defence unit structure */

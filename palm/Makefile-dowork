@@ -60,7 +60,7 @@ palm5 dpalm5: BXCFLAGS = -DPALM_HIGH
 palm5 dpalm5: HIRES=1
 
 # Sony app also contains all the hires functionality
-sony dsony: CXCFLAGS = -DSONY_CLIE -DPALM_HIGH
+sony dsony: CXCFLAGS = -DSONY_CLIE -DPALM_HIGH -DSONY_HIGH
 sony dsony: SONY=1
 
 CFLAGS += $(AXCFLAGS) $(BXCFLAGS) $(CXCFLAGS) -DPROGTOKEN="'$(PROGTOKEN)'"
