@@ -2,21 +2,24 @@ VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 CC = gcc
 GFLAGS := $(shell pkg-config --cflags gtk+-2.0) \
 	-DGTK_DISABLE_COMPAT_H -DGDK_DISABLE_DEPRECATED
-OPTFLAGS = -O2 -Wall -Werror
-CFLAGS = $(OPTFLAGS) -DLINUX $(GFLAGS) -I . -I ../source -I ../nix-common
+GCCFLAGS = -Wall -Werror
+INCLUDEDIRS = -I . -I ../source -I ../nix-common
+OPTFLAGS = -O2
+CFLAGS = $(GCCFLAGS) $(OPTFLAGS) -DLINUX $(GFLAGS) $(INCLUDEDIRS)
 GLFLAGS = $(shell pkg-config --libs gtk+-2.0) 
 LIBS =
 LDLIBS = $(LIBS) $(GLFLAGS)
 
 OBJECTS = main.o savegame_fe.o budget.o \
 	handler.o build.o disaster.o drawing.o globals.o simulation.o \
-	stack.o savegame_be.o
+	stack.o savegame_be.o pglobals.o
 
 .PHONY: all debug clean
 
 all: pocketcity
 
 debug: CFLAGS += -g -DDEBUG
+debug: OPTFLAGS=
 debug: all
 
 pocketcity: $(OBJECTS)
@@ -32,6 +35,9 @@ pocketcity: $(OBJECTS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 %.o: ../nix-common/%.c ../source/%.h ../source/zakdef.h ../source/ui.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+%.o: ../nix-common/%.c ../source/zakdef.h ../source/ui.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:

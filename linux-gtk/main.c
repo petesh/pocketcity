@@ -36,10 +36,6 @@ static GtkWidget *timelabel;
 static GtkObject *playscrollerh;
 /*! \brief handle to the vertical scroll bar for moving the map around */
 static GtkObject *playscrollerv;
-/*! \brief handle to the contents of the world */
-void *worldPtr;
-/*! \brief handle to the contents of the world flags */
-void *worldFlagsPtr;
 /*! \brief handle to the bitmaps for rendering the zones */
 static GdkPixmap *zones;
 /*! \brief handle to the bitmaps for rendering the monsters */
@@ -52,6 +48,8 @@ static GdkPixmap *zones_mask;
 static GdkPixmap *monsters_mask;
 /*! \brief handle to the bitmap masks for rendering the units */
 static GdkPixmap *units_mask;
+
+static char *exec_dir;
 
 static void SetUpMainWindow(void);
 static gint mainloop_callback(gpointer data);
@@ -90,6 +88,16 @@ int
 main(int argc, char *argv[])
 {
 	gint timerID;
+	char *px;
+	
+	exec_dir = strdup(argv[0]);
+	px = strrchr(exec_dir, '/');
+	if (px != NULL) {
+		*px = '\0';
+	} else {
+		/* Trouble at't mine, is it windows? */
+		g_print("Windows??\n");
+	}
 
 	gtk_init(&argc, &argv);
 	srand(time(0));
@@ -101,9 +109,9 @@ main(int argc, char *argv[])
 	gtk_main();
 	WriteLog("Cleaning up\n");
 	g_source_remove(timerID);
-	free(worldPtr);
-	free(worldFlagsPtr);
-
+	PurgeWorld();
+	free(exec_dir);
+	
 	return (0);
 }
 
@@ -122,7 +130,7 @@ SetSpeed(GtkWidget *w __attribute__((unused)), gpointer data)
 {
 	int result = GPOINTER_TO_INT(data);
 
-	WriteLog("Setting speed to %i\n", resul);
+	WriteLog("Setting speed to %i\n", result);
 	game.gameLoopSeconds = result;
 }
 
@@ -362,7 +370,7 @@ setupToolBox(void)
 	GtkWidget *button;
 	GtkWidget *handle;
 	int i;
-	char image_path[40];
+	char image_path[MAXPATHLEN];
 	/* If you change the order here you need to change the xpm... */
 	/*! \todo make the file names related to the items */
 	struct gaa {
@@ -402,7 +410,8 @@ setupToolBox(void)
 			continue;
 
 		button = gtk_button_new();
-		sprintf(image_path, "graphic/icons/interface_%02i.png", i);
+		sprintf(image_path, "%s/graphic/icons/interface_%02i.png",
+			exec_dir, i);
 		button_image = gtk_image_new_from_file(image_path);
 		gtk_container_add(GTK_CONTAINER(button), button_image);
 		gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), button,
@@ -543,12 +552,17 @@ SetUpMainWindow(void)
 void
 UISetUpGraphic(void)
 {
+	char image_path[MAXPATHLEN];
+	
+	sprintf(image_path, "%s/graphic/zones_16x16-color.png", exec_dir);
 	zones = gdk_pixmap_create_from_xpm(drawingarea->window,
-	    &zones_mask, NULL, "graphic/zones_16x16-color.png");
+	    &zones_mask, NULL, image_path);
+	sprintf(image_path, "%s/graphic/monsters_16x16-color.png", exec_dir);
 	monsters = gdk_pixmap_create_from_xpm(drawingarea->window,
-	    &monsters_mask, NULL, "graphic/monsters_16x16-color.png");
+	    &monsters_mask, NULL, image_path);
+	sprintf(image_path, "%s/graphic/units_16x16-color.png", exec_dir);
 	units = gdk_pixmap_create_from_xpm(drawingarea->window,
-	    &units_mask, NULL, "graphic/units_16x16-color.png");
+	    &units_mask, NULL, image_path);
 }
 
 /*!
@@ -851,50 +865,6 @@ UIGetSelectedBuildItem(void)
 	return (selectedBuildItem);
 }
 
-/*!
- * \brief initialize the world variables
- * \return 1 if the allocation succeeded, 0 otherwise
- */
-Int16
-InitWorld(void)
-{
-	worldPtr = malloc(10);
-	worldFlagsPtr = malloc(10);
-
-	if (worldPtr == NULL || worldFlagsPtr == NULL) {
-		UIDisplayError(0);
-		if (worldPtr != NULL)
-			free(worldPtr);
-		if (worldFlagsPtr)
-			free(worldFlagsPtr)
-		WriteLog("malloc failed - initworld\n");
-		return (0);
-	}
-	return (1);
-}
-
-/*!
- * \brief make the world of a certain size
- * \param size the new size of the world (x*y)
- * \return 0 if it all went pear shaped.
- */
-Int16
-ResizeWorld(UInt32 size)
-{
-	worldPtr = realloc(worldPtr, size);
-	worldFlagsPtr = realloc(worldFlagsPtr, size);
-
-	if (worldPtr == NULL || worldFlagsPtr == NULL) {
-		UIDisplayError(0);
-		WriteLog("realloc failed - resizeworld\n");
-		return (0);
-	}
-	memset(worldPtr, 0, size);
-	memset(worldFlagsPtr, 0, size);
-
-	return (1);
-}
-
 /*! unused */
 void
 LockWorld(void)
@@ -907,98 +877,6 @@ void
 UnlockWorld(void)
 {
 	/* not used on this platform */
-}
-
-/*!
- * \brief get the item on the surface of the world
- * \param pos the position in the world map to obtain
- * \return the item at that position.
- */
-UInt8
-GetWorld(UInt32 pos)
-{
-	if (pos > GetMapMul())
-		return (0);
-	return (((UInt8 *)worldPtr)[pos]);
-}
-
-/*!
- * \brief set the object at the position to the value in question
- * \param pos the position of the item
- * \param value the value of the item
- */
-void
-SetWorld(UInt32 pos, UInt8 value)
-{
-	if (pos > GetMapMul())
-		return;
-	((UInt8 *)worldPtr)[pos] = value;
-}
-
-/*! unused */
-void
-LockWorldFlags(void)
-{
-	/* not used on this platform */
-}
-
-/*! unused */
-void
-UnlockWorldFlags(void)
-{
-	/* not used on this platform */
-}
-
-/*!
- * \brief get the flag corresponding to the game location
- * \param pos the position of the location
- * \return the value at that position
- */
-UInt8
-GetWorldFlags(UInt32 pos)
-{
-	if (pos > GetMapMul())
-		return (0);
-	return (((UInt8 *)worldFlagsPtr)[pos]);
-}
-
-/*!
- * \brief set the flag corresponding to the game location
- * \param pos the position of the location
- * \param value the value at that position
- */
-void
-SetWorldFlags(UInt32 pos, UInt8 value)
-{
-	if (pos > GetMapMul())
-		return;
-	((UInt8 *)worldFlagsPtr)[pos] = value;
-}
-
-/*!
- * \brief and the value with the current location of the map world flags
- * \param pos the position on the map
- * \param value the value to and the current value with.
- */
-void
-AndWorldFlags(UInt32 pos, UInt8 value)
-{
-	if (pos > GetMapMul())
-		return;
-	((UInt8 *)worldFlagsPtr)[pos] &= value;
-}
-
-/*!
- * \brief or the value with the current location of the map world flags
- * \param pos the position on the map
- * \param value the value to or the current value with.
- */
-void
-OrWorldFlags(UInt32 pos, UInt8 value)
-{
-	if (pos > GetMapMul())
-		return;
-	((UInt8 *)worldFlagsPtr)[pos] |= value;
 }
 
 /*!
