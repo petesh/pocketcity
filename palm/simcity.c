@@ -152,6 +152,8 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
         if (game_in_progress) {
             UISaveGame(0);
         }
+        // clean up
+        WinDeleteWindow(winZones,0);
     }
 
     return 0;
