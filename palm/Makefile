@@ -109,7 +109,7 @@ game.stm: game.rcp simcity_resconsts.h
 	@$(AWK) -v DEBUG=$(DEBUG) -v HIRES=$(HIRES) -f filter.awk \
 		game.rcp > ngame.rcp
 	@pilrc -q ngame.rcp temp
-	@cat ngame.rcp > $@
+	@cat ngame.rcp > $@ && rm -f ngame.rcp
 
 touch.stm:
 	@echo "#include \"simcity_resconsts.h\"" > touch.rcp
@@ -202,5 +202,5 @@ dist: all hires
 clean:
 	rm -f *.bin *.o *.grc *.stm simcity *.prc \
 		tempbw/*.bin tempcolor/*.bin temp/*.bin tempgrey/*.bin sy/* \
-		mg/* *.zip *.gz
+		mg/* *.zip *.gz pcity-sections.s pcity-sections.ld
 	rm -rf mg/ sy/
