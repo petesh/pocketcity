@@ -21,11 +21,21 @@
 #include <simulation.h>
 #include <resCompat.h>
 #include <palmutils.h>
+#include <repeathandler.h>
 
 static void UpdateSaveGameList(void) SAVE_SECTION;
 static void CleanSaveGameList(void) SAVE_SECTION;
 static void DeleteFromList(void) SAVE_SECTION;
 static int  LoadFromList(void) SAVE_SECTION;
+
+static FormPtr filesSetup(FormPtr form) SAVE_SECTION;
+
+static void cnCancelButtonPressed(void) SAVE_SECTION;
+static void cnCreateButtonPressed(void) SAVE_SECTION;
+static FormPtr cityNewSetup(FormPtr form) SAVE_SECTION;
+static void cityNewCleanup(FormPtr form) SAVE_SECTION;
+static void cnFieldContentChanged(UInt16 fieldID) SAVE_SECTION;
+static void cnRepeatPressed(EventPtr event) SAVE_SECTION;
 
 #if defined(HRSUPPORT)
 static Boolean resizeSavegameForm(FormPtr form, Int16 hOff,
@@ -82,96 +92,6 @@ UISaveAutoGame(void)
 }
 
 /*
- * The cancel button is pressed in the new city form
- * Note the use of the returntoform api, this is means the last
- * form is reopened, and the frmcloseevent isn't sent to the
- * form that's being closed.
- */
-static void
-cnCancelButtonPressed(void)
-{
-	game.cityname[0] = '\0';
-	FrmReturnToForm(0);
-}
-
-/*
- * the create button is pressed in the new city form
- */
-static void
-cnCreateButtonPressed(void)
-{
-	char *pGameName;
-	FormPtr form;
-	Int8 level = 0;
-
-	form = FrmGetActiveForm();
-	if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Easy)))
-		level = 0;
-	if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Medium)))
-		level = 1;
-	if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Hard)))
-		level = 2;
-	SetDifficultyLevel(level);
-
-	if (FrmGetControlValue(form, FrmGetObjectIndex(form,
-	    buttonID_dis_off)))
-		level = 0;
-	if (FrmGetControlValue(form, FrmGetObjectIndex(form,
-	    buttonID_dis_one)))
-		level = 1;
-	if (FrmGetControlValue(form, FrmGetObjectIndex(form,
-	    buttonID_dis_two)))
-		level = 2;
-	if (FrmGetControlValue(form, FrmGetObjectIndex(form,
-	    buttonID_dis_three)))
-		level = 3;
-	SetDisasterLevel(level);
-
-	pGameName = FldGetTextPtr((FieldPtr)GetObjectPtr(form,
-	    fieldID_newGameName));
-	if (pGameName != NULL) {
-		MemSet(game.cityname, CITYNAMELEN, '\0');
-		StrNCopy((char *)game.cityname, pGameName, CITYNAMELEN);
-		while (GameExists(game.cityname)) {
-			int slen = StrLen(game.cityname);
-			if (slen < CITYNAMELEN-1) {
-				game.cityname[slen-1] = '0' - 1;
-				game.cityname[slen] = '\0';
-				slen++;
-			}
-			game.cityname[slen - 1]++;
-		}
-		CreateNewSaveGame(game.cityname);
-		CleanSaveGameList();
-		if (LoadGameByName(game.cityname) != -1) {
-			FrmEraseForm(form);
-			form = FrmGetFormPtr(formID_files);
-			if (form != NULL)
-				FrmEraseForm(form);
-			FrmGotoForm(formID_pocketCity);
-		} else {
-			UpdateSaveGameList();
-		}
-	} else {
-		game.cityname[0] = '\0';
-		WriteLog("No name specified\n");
-	}
-}
-
-/*
- * Set up the new file form.
- */
-static FormPtr
-cityNewSetup(FormPtr form)
-{
-	FrmSetFocus(form, FrmGetObjectIndex(form, fieldID_newGameName));
-	FrmSetControlValue(form, FrmGetObjectIndex(form, buttonID_Easy), 1);
-	FrmSetControlValue(form, FrmGetObjectIndex(form, buttonID_dis_one), 1);
-
-	return (form);
-}
-
-/*
  * Handler for the new file form.
  * Makes sure that the text field is given focus.
  */
@@ -180,6 +100,8 @@ hFilesNew(EventPtr event)
 {
 	Boolean handled = false;
 	FormPtr form;
+	UInt16 fieldID;
+	WChar chr;
 
 	switch (event->eType) {
 	case frmOpenEvent:
@@ -191,6 +113,26 @@ hFilesNew(EventPtr event)
 		handled = true;
 		break;
 	case frmCloseEvent:
+		cityNewCleanup(FrmGetActiveForm());
+		break;
+	case keyDownEvent:
+		form = FrmGetActiveForm();
+		fieldID = FrmGetObjectId(form, FrmGetFocus(form));
+		if (fieldID < fieldID_width || fieldID > fieldID_width)
+			break;
+
+		chr = event->data.keyDown.chr;
+		if (((chr >= chrDigitZero) && (chr <= chrDigitNine)) ||
+			(chr == chrBackspace)) {
+			EvtEnqueueKey(chrTilde, 0, 0);
+			break;
+		}
+		if (chr == chrTilde)
+			cnFieldContentChanged(fieldID);
+		break;
+
+	case ctlRepeatEvent:
+		cnRepeatPressed(event);
 		break;
 	case ctlSelectEvent:
 		switch (event->data.ctlSelect.controlID) {
@@ -224,14 +166,163 @@ hFilesNew(EventPtr event)
 	return (handled);
 }
 
+/*!
+ * \brief structure for the map size manipulation
+ */
+static buttonmapping_t mapsize_map[] = {
+	{ rbutton_widthdown, rbutton_widthup, fieldID_width, 50, 120, 0, 0 },
+	{ rbutton_heightdown, rbutton_heightup, fieldID_height, 50, 120, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0 }
+};
+
+/*!
+ * \brief deal with the repeat buttons being pressed
+ * \param event the event that came from the repeater
+ */
+static void
+cnRepeatPressed(EventPtr event)
+{
+	UInt16 control = event->data.ctlRepeat.controlID;
+	(void) processRepeater(mapsize_map, control, true, NULL);
+}
+
+/*!
+ * \brief deal with the width or height being changed directly
+ * \param fieldID the field that changed
+ */
+static void
+cnFieldContentChanged(UInt16 fieldID)
+{
+	(void) processRepeater(mapsize_map, fieldID, false, NULL);
+}
+
 /*
- * set up the files form
+ * The cancel button is pressed in the new city form
+ * Note the use of the returntoform api, this is means the last
+ * form is reopened, and the frmcloseevent isn't sent to the
+ * form that's being closed.
+ */
+static void
+cnCancelButtonPressed(void)
+{
+	game.cityname[0] = '\0';
+	FrmReturnToForm(0);
+}
+
+/*
+ * the create button is pressed in the new city form
+ */
+static void
+cnCreateButtonPressed(void)
+{
+	char *pGameName;
+	FormPtr form;
+	Int8 level = 0;
+	UInt8 width;
+	UInt8 height;
+	FieldPtr fp;
+	MemHandle mh;
+	MemPtr mp;
+
+	InitGameStruct();
+
+	form = FrmGetActiveForm();
+	if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Easy)))
+		level = 0;
+	if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Medium)))
+		level = 1;
+	if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Hard)))
+		level = 2;
+	SetDifficultyLevel(level);
+
+	if (FrmGetControlValue(form, FrmGetObjectIndex(form,
+	    buttonID_dis_off)))
+		level = 0;
+	if (FrmGetControlValue(form, FrmGetObjectIndex(form,
+	    buttonID_dis_one)))
+		level = 1;
+	if (FrmGetControlValue(form, FrmGetObjectIndex(form,
+	    buttonID_dis_two)))
+		level = 2;
+	if (FrmGetControlValue(form, FrmGetObjectIndex(form,
+	    buttonID_dis_three)))
+		level = 3;
+	SetDisasterLevel(level);
+
+	fp = (FieldPtr)GetObjectPtr(form, fieldID_width);
+	mh = FldGetTextHandle(fp);
+	mp = MemHandleLock(mh);
+	width = (UInt8)StrAToI(mp);
+	MemHandleUnlock(mh);
+	fp = (FieldPtr)GetObjectPtr(form, fieldID_height);
+	mh = FldGetTextHandle(fp);
+	mp = MemHandleLock(mh);
+	height = (UInt8)StrAToI(mp);
+	MemHandleUnlock(mh);
+	SetMapSize(width, height);
+	ConfigureNewGame();
+
+	pGameName = FldGetTextPtr((FieldPtr)GetObjectPtr(form,
+	    fieldID_newGameName));
+	if (pGameName != NULL) {
+		MemSet(game.cityname, CITYNAMELEN, '\0');
+		StrNCopy((char *)game.cityname, pGameName, CITYNAMELEN);
+		while (GameExists(game.cityname)) {
+			int slen = StrLen(game.cityname);
+			if (slen < CITYNAMELEN-1) {
+				game.cityname[slen-1] = '0' - 1;
+				game.cityname[slen] = '\0';
+				slen++;
+			}
+			game.cityname[slen - 1]++;
+		}
+		CreateNewSaveGame(game.cityname);
+		CleanSaveGameList();
+		if (LoadGameByName(game.cityname) != -1) {
+			FrmEraseForm(form);
+			form = FrmGetFormPtr(formID_files);
+			if (form != NULL) {
+				FrmEraseForm(form);
+				FrmDeleteForm(form);
+			}
+			FrmGotoForm(formID_pocketCity);
+		} else {
+			UpdateSaveGameList();
+		}
+	} else {
+		game.cityname[0] = '\0';
+		WriteLog("No name specified\n");
+	}
+}
+
+static void
+cityNewCleanup(FormPtr form __attribute__((unused)))
+{
+	
+}
+
+/*
+ * Set up the new file form.
  */
 static FormPtr
-filesSetup(FormPtr form)
+cityNewSetup(FormPtr form)
 {
-	SetGameNotInProgress();
-	UpdateSaveGameList();
+	int i;
+	MemHandle hText;
+	MemPtr pText;
+
+	FrmSetFocus(form, FrmGetObjectIndex(form, fieldID_newGameName));
+	FrmSetControlValue(form, FrmGetObjectIndex(form, buttonID_Easy), 1);
+	FrmSetControlValue(form, FrmGetObjectIndex(form, buttonID_dis_one), 1);
+
+	for (i = 0; i < 2; i++) {
+		hText = MemHandleNew(5);
+		pText = MemHandleLock(hText);
+		StrPrintF((char *)pText, "%u", 100);
+		MemHandleUnlock(hText);
+		FldSetTextHandle((FieldPtr)GetObjectPtr(form,
+		    fieldID_width + i), hText);
+	}
 
 	return (form);
 }
@@ -247,7 +338,7 @@ hFiles(EventPtr event)
 	Boolean handled = false;
 	FormPtr form;
 #if defined(HRSUPPORT)
-	Int16 hOff, vOff;
+	Int16 hOff = 0, vOff = 0;
 #endif
 
 	switch (event->eType) {
@@ -305,6 +396,18 @@ hFiles(EventPtr event)
 	return (handled);
 }
 
+/*
+ * set up the files form
+ */
+static FormPtr
+filesSetup(FormPtr form)
+{
+	SetGameNotInProgress();
+	UpdateSaveGameList();
+
+	return (form);
+}
+
 #if defined(HRSUPPORT)
 /*!
  * \brief Resize the savegame form.
@@ -312,7 +415,7 @@ hFiles(EventPtr event)
  * Deal with the change of the dimensions of the old form
  * \param form the pointer to the form that is to be resized
  */
-Boolean
+static Boolean
 resizeSavegameForm(FormPtr form, Int16 hOff, Int16 vOff)
 {
 	if (!(hOff || vOff))

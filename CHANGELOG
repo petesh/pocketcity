@@ -15,8 +15,13 @@ Version 0.17dev
   + Changed savegame format to include power/water details
   + Power plants and defence stations (Fire, Police, Army) are now 4 zone items
   + Power lines and Water pipes can now overlap
+  + Map is resizeable between 25x25 -> 120x120 (palmOS memory limitation)
   * Fix annoying winScreenLock issue
-
+  * 818171 Hard Crash on Sony Clie SL10
+  * 818172 Index out of range (0.16)
+  * 873010 Graphics look horrible on sony palm5
+  * 873809 key-repeat scrolling on v0.17 is broken (can't reproduce)
+  * 880086 The display coordinates don't update
 
 Version 0.16
   * bug # 655848 crash after money warning

@@ -7,10 +7,10 @@
 extern "C" {
 #endif
 
-void NewGame(GtkWidget *w, gpointer data);
-void SaveGameAs(GtkWidget *w, gpointer data);
-void SaveGame(GtkWidget *w, gpointer data);
-void OpenGame(GtkWidget *w, gpointer data);
+void newgame_handler(GtkWidget *w, gpointer data);
+void savegameas_handler(GtkWidget *w, gpointer data);
+void savegame_handler(GtkWidget *w, gpointer data);
+void opengame_handler(GtkWidget *w, gpointer data);
 
 #ifdef __cplusplus
 }

@@ -130,7 +130,7 @@ static gint
 close_budget(GtkWidget *widget __attribute__((unused)),
     gpointer data __attribute__((unused)))
 {
-	dlg = 0;
+	dlg = NULL;
 	return (FALSE);
 }
 
@@ -258,7 +258,6 @@ ViewBudget(GtkWidget *w __attribute__((unused)),
 	gtk_table_attach_defaults(GTK_TABLE(table), spinner, 1, 2, 8, 9);
 	g_signal_connect(G_OBJECT(spinner), "value_changed",
 	    G_CALLBACK(budget_defence), NULL);
-
 
 	UIUpdateBudget();
 

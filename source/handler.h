@@ -11,7 +11,8 @@ extern "C" {
 #endif
 
 void PCityMain(void);
-void SetupNewGame(void);
+void ConfigureNewGame(void);
+void InitGameStruct(void);
 void DrawGame(Int8 full);
 void PostLoadGame(void);
 

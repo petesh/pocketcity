@@ -136,7 +136,6 @@ SetDifficultyLevel(UInt8 value)
 Int16
 ResizeWorld(UInt32 size)
 {
-	
 	LockWorld();
 	worldPtr = gRealloc(worldPtr, size);
 
@@ -145,6 +144,8 @@ ResizeWorld(UInt32 size)
 		WriteLog("realloc failed - resizeworld\n");
 		return (0);
 	}
+	WriteLog("Resize World = %ld\n", (long)size);
+
 	gMemSet(worldPtr, size, 0);
 	UnlockWorld();
 

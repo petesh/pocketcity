@@ -31,7 +31,10 @@ UInt8 IsGameInProgress(void);
 void ClearNewROM(void);
 void SetNewROM(void);
 UInt8 IsNewROM(void);
-void *GetObjectPtr(FormType *form, UInt16 index);
+
+void ClearDirectBmps(void);
+void SetDirectBmps(void);
+UInt8 IsDirectBmps(void);
 void ResGetString(UInt16 index, char *string, UInt16 length);
 
 #endif

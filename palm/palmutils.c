@@ -1,3 +1,4 @@
+#define ALLOW_ACCESS_TO_INTERNALS_OF_BITMAPS
 #include <PalmTypes.h>
 #include <FeatureMgr.h>
 #include <ErrorBase.h>
@@ -36,6 +37,8 @@ RearrangeObjectOnly(FormPtr form, UInt16 oID, Int16 offsetX, Int16 offsetY,
 {
 	RectangleType objrect;
 
+	WriteLog("Move/resize: %d -> delta:%d,%d grow:%d,%d\n", (int)oID,
+	    (int)offsetX, (int)offsetY, (int)resizeX, (int)resizeY);
 	FrmGetObjectBounds(form, FrmGetObjectIndex(form, oID), &objrect);
 
 	objrect.topLeft.x += offsetX;
@@ -337,3 +340,36 @@ FreeStringList(Char **list)
 	MemPtrFree(list[0]);
 	MemPtrFree(list);
 }
+
+/*!
+ * \brief get an object pointer from an item index
+ * \param form the form to obtain the pointer from
+ * \param index the index of the item on the form
+ * \return the pointer
+ */
+void *
+GetObjectPtr(FormType *form, UInt16 index)
+{
+	return (FrmGetObjectPtr(form,
+	    FrmGetObjectIndex(form, index)));
+}
+
+/*!
+ * \brief get a bitmap's dimensions
+ * \param pBmp pointer to the bitmap
+ * \param pWidth pointer to the width
+ * \param pHeight pointer to the height
+ * \param pRowBytes pointer to # of bytes in a  row
+ */
+void
+compatBmpGetDimensions(BitmapPtr pBmp, Coord *pWidth, Coord *pHeight,
+    UInt16 *pRowBytes)
+{
+	if (IsDirectBmps()) {
+		if (pWidth != NULL) *pWidth = (Coord)pBmp->width;
+		if (pHeight != NULL) *pHeight = (Coord)pBmp->height;
+		if (pRowBytes != NULL) *pRowBytes = pBmp->rowBytes;
+	} else
+		BmpGetDimensions(pBmp, pWidth, pHeight, pRowBytes);
+}
+

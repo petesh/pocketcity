@@ -11,9 +11,12 @@ Boolean isZireOld(void);
 Boolean isHandEra(void);
 Char **FillStringList(UInt16 resID, UInt16 *length);
 void FreeStringList(Char **list);
+void *GetObjectPtr(FormType *form, UInt16 index);
 void RearrangeBitmap(FormPtr form, UInt16 oID, Int16 offsetX, Int16 offsetY);
 void RearrangeObjectOnly(FormPtr form, UInt16 oID, Int16 offsetX,
     Int16 offsetY, Int16 resizeX, Int16 resizeY);
+void compatBmpGetDimensions(BitmapPtr pBmp, Coord *pWidth, Coord *pHeight,
+    UInt16 *pRowBytes);
 
 #if defined(DEBUG)
 void DangerWillRobinson(char *, char *, int);

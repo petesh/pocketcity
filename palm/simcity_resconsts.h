@@ -157,8 +157,14 @@
 #define	fieldID_newGameName 1010
 #define	buttonID_FilesNewCreate 1011
 #define	buttonID_FilesNewCancel 1012
+#define	fieldID_width	1013
+#define	fieldID_height	1014
+#define rbutton_widthdown 1015
+#define rbutton_widthup 1016
+#define rbutton_heightdown 1017
+#define rbutton_heightup 1018
 
-/* controls for options form */
+/* controls for options form  - double up on create game form */
 #define	buttonID_dis_off 1000
 #define	buttonID_dis_one 1001
 #define	buttonID_dis_two 1002

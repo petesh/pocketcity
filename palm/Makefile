@@ -50,8 +50,8 @@ nearlylive: VERSION = $(shell date +%Y.%m.%d)
 
 DSTAMP := $(shell date "+%Y/%m/%d@%H:%M")
 
-all: all-nextdir $(TARGETS)
 debug: debug-nextdir $(DTARGETS)
+all: all-nextdir $(TARGETS)
 nearlylive: all-nextdir
 dist: all-nextdir
 
@@ -115,7 +115,9 @@ dist nearlylive: all-nextdir $(NDTARGETS)
 %.rcp: $(STUBS)
 	@cols=$(word 2, $(subst -, ,$*)); \
 	dens=$(word 3, $(subst -, ,$*)); \
-	if [ ! -d .temp-$$cols-$$dens ]; then mkdir -p .temp-$$cols-$$dens; fi; \
+	if [ ! -d .temp-$$cols-$$dens ]; then \
+		mkdir -p .temp-$$cols-$$dens; \
+	fi; \
 	./generatercp.sh -c $$cols -d $$dens $(STUBS) $@
 
 # The tile databases

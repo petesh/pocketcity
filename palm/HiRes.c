@@ -205,7 +205,7 @@ scaleEvent(EventPtr event)
 		if (sonyHires())
 			mul = kDensityDouble;
 		else
-			mul = hdfs;
+			mul = hdfs ? hdfs : kDensityLow;
 		event->screenX  = (Coord)((UInt32)event->screenX * mul /
 		    kDensityLow);
 		event->screenY = (Coord)((UInt32)event->screenY * mul /
@@ -221,7 +221,8 @@ scaleEvent(EventPtr event)
 Coord
 scaleCoord(Coord x)
 {
-	UInt32 mul = sonyHires() ? kDensityDouble : hdfs;
+	UInt32 mul = sonyHires() ? kDensityDouble :
+	    ( hdfs ? hdfs : kDensityLow );
 	return ((Coord)((UInt32)x * mul / kDensityLow));
 }
 
@@ -325,6 +326,9 @@ collapseMove(FormPtr form, UInt8 stretchy, Int16 *roffsetX, Int16 *roffsetY)
 	RectangleType	dwRect;
 	Int16		offX, offY;
 	WinHandle	frmH;
+
+	if (!hasVirtualSilk())
+		return (false);
 
 	WinGetDisplayExtent(&dispWidth, &dispHeight);
 	WriteLog("extend = %d, %d\n", (int)dispWidth, (int)dispHeight);

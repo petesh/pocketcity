@@ -1,5 +1,6 @@
 #include <PalmOS.h>
 #include <unix_stdlib.h>
+#include <palmutils.h>
 #include <simcity.h>
 #include <simcity_resconsts.h>
 #include <globals.h>
@@ -9,132 +10,53 @@
 #include <budget.h>
 #include <stddef.h>
 #include <rescompat.h>
+#include <repeathandler.h>
 
 #define	MILLION 1000000
 
 static FormPtr budgetSetup(FormPtr form) BUDGET_SECTION;
 static void dealRepeats(EventPtr event) BUDGET_SECTION;
 static void dealFieldContentChange(UInt16 fieldID) BUDGET_SECTION;
-static const struct buttonmapping *getIndex(UInt16 buttonControl,
-    Boolean isButton) BUDGET_SECTION;
 static void updateBudgetValue(FormPtr form, UInt16 label, const Char *format,
     long value) BUDGET_SECTION;
 static void updateBudgetNumber(BudgetNumber bn) BUDGET_SECTION;
+static void post_fieldhandler(UInt16 field, buttonmapping_t *map,
+    UInt32 newValue) BUDGET_SECTION;
 
-static const struct buttonmapping {
-	UInt16		down;
-	UInt16		up;
-	UInt16		field;
-	BudgetNumber	affects;
-	Int16		min;
-	Int16		max;
-	UInt32		fldOffset;
-} buttonmappings[] = {
-	{ rbutton_taxdown, rbutton_taxup, fieldID_taxrate, bnIncome,
-		0, 20, offsetof(GameStruct, tax) },
+static buttonmapping_t budget_map[] = {
+	{ rbutton_taxdown, rbutton_taxup, fieldID_taxrate,
+		0, 20, bnIncome, offsetof(GameStruct, tax) },
 	{ rbutton_trafdown, rbutton_trafup, fieldID_budget_tra,
-		bnTraffic, 0, 100, offsetof(GameStruct, upkeep[0]) },
+		0, 100, bnTraffic, offsetof(GameStruct, upkeep[0]) },
 	{ rbutton_powdown, rbutton_powup, fieldID_budget_pow,
-		bnPower, 0, 100, offsetof(GameStruct, upkeep[1]) },
+		0, 100, bnPower, offsetof(GameStruct, upkeep[1]) },
 	{ rbutton_defdown, rbutton_defup, fieldID_budget_def,
-		bnDefence, 0, 100, offsetof(GameStruct, upkeep[2]) }
+		0, 100, bnDefence, offsetof(GameStruct, upkeep[2]) },
+	{ 0, 0, 0, 0, 0, 0, 0 }
 };
 
-#define BUTTONMAPLEN	(sizeof (buttonmappings) / sizeof (buttonmappings[0]))
-
-static const struct buttonmapping *
-getIndex(UInt16 buttonControl, Boolean isButton)
+static void
+post_fieldhandler(UInt16 field __attribute__((unused)), buttonmapping_t *map,
+    UInt32 newValue)
 {
-	UInt16 i = 0;
-	for (i = 0; i < BUTTONMAPLEN; i++) {
-		if (isButton) {
-			if (buttonControl == buttonmappings[i].down ||
-			    buttonControl == buttonmappings[i].up)
-				return (&buttonmappings[i]);
-		} else {
-			if (buttonControl == buttonmappings[i].field)
-				return (&buttonmappings[i]);
-		}
-	}
-	return (NULL);
+	((UInt8 *)(&game))[map->special2] = (UInt8)newValue;
+	if ((BudgetNumber)map->special1 != bnChange)
+		updateBudgetNumber(bnChange);
+	updateBudgetNumber((BudgetNumber)map->special1);
+	updateBudgetNumber(bnNextMonth);
 }
 
 static void
 dealRepeats(EventPtr event)
 {
 	UInt16 control = event->data.ctlRepeat.controlID;
-	const struct buttonmapping *bm = getIndex(control, true);
-	FieldPtr fp;
-	MemHandle mh;
-	MemPtr mp;
-	Int32 fld;
-
-	if (bm == NULL) return;
-
-	fp = (FieldPtr)GetObjectPtr(FrmGetActiveForm(), bm->field);
-	mh = FldGetTextHandle(fp);
-
-	FldSetTextHandle(fp, NULL);
-	mp = MemHandleLock(mh);
-	fld = StrAToI(mp);
-
-	if (control == bm->down)
-		fld--;
-	else
-		fld++;
-	if (fld < bm->min)
-		fld = bm->min;
-	else if (fld > bm->max)
-		fld = bm->max;
-	StrPrintF(mp, "%ld", fld);
-	MemHandleUnlock(mh);
-	FldSetTextHandle(fp, mh);
-	FldDrawField(fp);
-	((UInt8 *)(&game))[bm->fldOffset] = (UInt8)fld;
-	if (bm->affects != bnChange)
-		updateBudgetNumber(bnChange);
-	updateBudgetNumber(bm->affects);
-	updateBudgetNumber(bnNextMonth);
+	(void) processRepeater(budget_map, control, true, post_fieldhandler);
 }
 
 static void
 dealFieldContentChange(UInt16 fieldID)
 {
-	FieldPtr fp;
-	MemHandle mh;
-	MemPtr mp;
-	Boolean limited = false;
-	Int32 fld;
-	const struct buttonmapping *bm = getIndex(fieldID, false);
-
-	if (bm == NULL) return;
-	fp = (FieldPtr)GetObjectPtr(FrmGetActiveForm(), bm->field);
-	mh = FldGetTextHandle(fp);
-	mp = MemHandleLock(mh);
-	fld = StrAToI(mp);
-	if (fld < bm->min) {
-		limited = true;
-		fld = bm->min;
-	} else if (fld > bm->max) {
-		limited = true;
-		fld = bm->max;
-	}
-
-	if (limited) {
-		FldSetTextHandle(fp, NULL);
-		StrPrintF(mp, "%ld", fld);
-	}
-	MemHandleUnlock(mh);
-
-	if (limited) {
-		FldSetTextHandle(fp, mh);
-		FldDrawField(fp);
-	}
-
-	((UInt8 *)(&game))[bm->fldOffset] = (UInt8)fld;
-	updateBudgetNumber(bnChange);
-	updateBudgetNumber(bnNextMonth);
-	updateBudgetNumber(bm->affects);
+	(void) processRepeater(budget_map, fieldID, false, post_fieldhandler);
 }
 /*
  * Handler for the budget form.
@@ -274,7 +196,8 @@ updateBudgetNumber(const BudgetNumber item)
 			entityp++;
 			continue;
 		}
-		updateBudgetValue(form, entityp->label, entityp->formatstr, value);
+		updateBudgetValue(form, entityp->label, entityp->formatstr,
+		    value);
 		break;
 	}
 }
@@ -311,7 +234,7 @@ budgetSetup(FormPtr form)
 		StrPrintF((char *)text, "%u", game.upkeep[i]);
 		MemHandleUnlock(texthandle);
 		FldSetTextHandle((FieldPtr)GetObjectPtr(form,
-		    fieldID_budget_tra+i), texthandle);
+		    fieldID_budget_tra + i), texthandle);
 	}
 	texthandle = MemHandleNew(5);
 	text = MemHandleLock(texthandle);

@@ -32,7 +32,9 @@ static GtkWidget *drawingarea;
 static GtkWidget *window;
 /*! \brief the handle to the label containing the amount of money you have */
 static GtkWidget *creditslabel;
-/*! \brief the handle to the label containing the population in the city */
+/*! \brief the handle to the label containing the location on the map */
+static GtkWidget *locationlabel;
+/*! \brief the handle to the label containing the date in the city */
 static GtkWidget *poplabel;
 /*! \brief the handle to the label containing the date in the city */
 static GtkWidget *timelabel;
@@ -63,11 +65,11 @@ static void SetSpeed(GtkWidget *w, gpointer data);
 /*! \brief the menu items for the main application */
 GtkItemFactoryEntry menu_items[] = {
 	{ "/_File", NULL, NULL, 0, "<Branch>", 0 },
-	{ "/File/_New", "<control>N", NewGame, 0, NULL, 0 },
-	{ "/File/_Open", "<control>O", OpenGame, 0, NULL, 0 },
-	{ "/File/_Open Palm Game", NULL, OpenGame, 1, NULL, 0 },
-	{ "/File/_Save", "<control>S", SaveGame, 0, NULL, 0 },
-	{ "/File/Save _As", NULL, SaveGameAs, 0, NULL, 0 },
+	{ "/File/_New", "<control>N", newgame_handler, 0, NULL, 0 },
+	{ "/File/_Open", "<control>O", opengame_handler, 0, NULL, 0 },
+	{ "/File/_Open Palm Game", NULL, opengame_handler, 1, NULL, 0 },
+	{ "/File/_Save", "<control>S", savegame_handler, 0, NULL, 0 },
+	{ "/File/Save _As", NULL, savegameas_handler, 0, NULL, 0 },
 	{ "/File/sep1",	NULL, NULL, 0, "<Separator>", 0 },
 	{ "/File/_Quit", NULL, QuitGame, 0, NULL, 0 },
 	{ "/_View", NULL, NULL,	0, "<Branch>", 0 },
@@ -294,7 +296,7 @@ drawing_realized_callback(GtkWidget *widget __attribute__((unused)),
     gpointer data __attribute__((unused)))
 {
 	PCityMain();
-	NewGame(NULL, 0);
+	NewGame();
 	ResizeCheck(320, 240);
 	return (FALSE);
 }
@@ -423,7 +425,7 @@ setupToolBox(void)
 		}
 		gtk_container_add(GTK_CONTAINER(button), button_image);
 		gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), button,
-		    actions[i].text, "test2");
+		    actions[i].text, NULL);
 		g_signal_connect(G_OBJECT(button), "clicked",
 		    G_CALLBACK(toolbox_callback),
 		GINT_TO_POINTER(actions[i].entry));
@@ -490,6 +492,7 @@ SetUpMainWindow(void)
 	gtk_container_add(GTK_CONTAINER(window), main_box);
 
 	creditslabel = gtk_label_new("Credits");
+	locationlabel = gtk_label_new("Location");
 	poplabel = gtk_label_new("Population");
 	timelabel = gtk_label_new("Game Time");
 
@@ -523,6 +526,7 @@ SetUpMainWindow(void)
 
 	gtk_box_pack_start(GTK_BOX(fieldbox), headerbox, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(fieldbox), playingbox, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(fieldbox), locationlabel, FALSE, TRUE, 0);
 	gtk_box_pack_end(GTK_BOX(fieldbox), poplabel, FALSE, TRUE, 0);
 
 	gtk_box_pack_start(GTK_BOX(headerbox), creditslabel, TRUE, TRUE, 0);
@@ -684,12 +688,69 @@ UIDrawBorder(void)
 void
 UIDrawCredits(void)
 {
-	char temp[23];
+	char temp[24];
 
 	sprintf(temp, "$: %ld", (long)getCredits());
 	gtk_label_set_text((GtkLabel *)creditslabel, temp);
+}
+
+/*!
+ * \brief update/draw the date on screen
+ */
+void
+UIDrawDate(void)
+{
+	char temp[24];
+
 	GetDate((char *)temp);
 	gtk_label_set_text((GtkLabel *)timelabel, temp);
+}
+
+/*!
+ * \brief Draw the Location on screen
+ */
+void
+UIDrawLoc(void)
+{
+	char temp[50];
+
+	WriteLog("Draw Location\n");
+	sprintf(temp, "(%02u, %02u)", (int)getMapXPos(), (int)getMapYPos());
+
+	gtk_label_set_text((GtkLabel*)locationlabel, temp);
+}
+
+/*!
+ * \brief draw the population
+ *
+ * Actually simply set the population label to the appropriate value.
+ */
+void
+UIDrawPop(void)
+{
+	char temp[50];
+	sprintf(temp, "Population: %-9li", (long)getPopulation());
+
+	gtk_label_set_text((GtkLabel*)poplabel, temp);
+}
+
+/*!
+ * \brief Draw the speed/update the seed icon on screen
+ * \todo Implement this for the platform
+ */
+void
+UIDrawSpeed(void)
+{
+}
+
+/*!
+ * \brief Draw the build icon on the display
+ * \todo Impement this for this platform
+ */
+void
+UIDrawBuildIcon(void)
+{
+
 }
 
 /*! unused */
@@ -935,21 +996,6 @@ void
 UISetTileSize(Int16 size __attribute__((unused)))
 {
 	WriteLog("UISetTileSize\n");
-}
-
-/*!
- * \brief draw the population
- *
- * Actually simply set the population label to the appropriate value.
- */
-void
-UIDrawPop(void)
-{
-	char temp[50];
-	sprintf(temp, "(%02u, %02u) Population: %-9li",
-	    getMapXPos(), getMapYPos(), (long)getPopulation());
-
-	gtk_label_set_text((GtkLabel*)poplabel, temp);
 }
 
 /*!

@@ -100,13 +100,6 @@ static UInt8 IsDeferDrawing(void);
 
 void UIDrawSpeed(void);
 
-void *
-GetObjectPtr(FormType *form, UInt16 index)
-{
-	return (FrmGetObjectPtr(form,
-	    FrmGetObjectIndex(form, index)));
-}
-
 void
 ResGetString(UInt16 index, char *buffer, UInt16 length)
 {
@@ -440,7 +433,7 @@ _PalmInit(void)
 			rv = 5;
 			goto returnWV;
 		}
-		BmpGetDimensions(bitmap, &width, &height, NULL);
+		compatBmpGetDimensions(bitmap, &width, &height, NULL);
 
 		privhandle = _WinCreateOffscreenWindow(width,
 		    height, nativeFormat, (UInt16 *)&err);
@@ -658,6 +651,7 @@ hPocketCity(EventPtr event)
 	switch (event->eType) {
 	case frmOpenEvent:
 		form = FrmGetActiveForm();
+		FrmDrawForm(form);
 		SetSilkResizable(form, true);
 		collapseMove(form, CM_DEFAULT, NULL, NULL);
 		pcResizeDisplay(false);
@@ -1107,6 +1101,7 @@ BUILD_STATEBITACCESSOR(3, SetLowNotShown, SetLowShown, IsLowShown, static)
 BUILD_STATEBITACCESSOR(4, SetOutNotShown, SetOutShown, IsOutShown, static)
 BUILD_STATEBITACCESSOR(5, ClearNewROM, SetNewROM, IsNewROM, GLOBAL)
 BUILD_STATEBITACCESSOR(6, SetDrawing, SetDeferDrawing, IsDeferDrawing, static)
+BUILD_STATEBITACCESSOR(7, ClearDirectBmps, SetDirectBmps, IsDirectBmps, GLOBAL)
 
 /*
  * Memory of what was clicked under the pen
@@ -1505,8 +1500,7 @@ UIScrollMap(dirType direction)
 	}
 
 	UIDrawCursor(vgame.cursor_xpos - mapx, vgame.cursor_ypos - mapy);
-	UIDrawCredits();
-	UIDrawPop();
+	UIDrawLoc();
 
 	UIFinishDrawing();
 	UnlockWorld();
@@ -1990,6 +1984,12 @@ RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
 		return (sysErrRomIncompatible);
 	}
 	SetNewROM();
+
+	if (romVersion >= sysMakeROMVersion(4, 0, 0, sysROMStageRelease, 0))
+		ClearDirectBmps();
+	else
+		SetDirectBmps();
+
 	return (0);
 }
 
@@ -2239,7 +2239,7 @@ GetBitmapDimensions(UInt16 resID, Coord *width, Coord *height)
 		return (1);
 	}
 
-	BmpGetDimensions(bmp, width, height, NULL);
+	compatBmpGetDimensions(bmp, width, height, NULL);
 	MemHandleUnlock(mh);
 	DmReleaseResource(mh);
 	return (0);
@@ -2327,7 +2327,7 @@ pcResizeDisplay(Boolean draw)
 	Coord nHeight;
 	Int16 loc;
 
-	WinGetBounds(WinGetDisplayWindow(), &disRect);
+	WinGetDrawWindowBounds(&disRect);
 
 	WriteLog("WinBounds (%d,%d) [%d,%d]\n", (int)disRect.topLeft.x,
 	    (int)disRect.topLeft.y, (int)disRect.extent.x,
@@ -2338,6 +2338,8 @@ pcResizeDisplay(Boolean draw)
 
 	if (nWidth == sWidth && nHeight == sHeight)
 		return;
+
+	WriteLog("old wh = (%d, %d)\n", (int)sWidth, (int)sHeight);
 
 	SETWIDTH(nWidth);
 	SETHEIGHT(nHeight);

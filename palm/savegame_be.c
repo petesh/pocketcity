@@ -29,7 +29,6 @@ static int ReadCityRecord(MemHandle rec, GameStruct *gs,
 static void WriteCityRecord(MemHandle rec, GameStruct *gs,
     MemPtr wp) SAVE_SECTION;
 static int SaveGameByIndex(UInt16 index) SAVE_SECTION;
-static void NewGame(void) SAVE_SECTION;
 static int LoadGameByIndex(UInt16 index) SAVE_SECTION;
 static void getAutoSaveName(char *name) SAVE_SECTION;
 static void DeleteGameByIndex(UInt16 index) SAVE_SECTION;
@@ -80,7 +79,8 @@ FindGameByName(char *name)
 		if (rec == NULL)
 			continue;
 		pRec = (GameStruct *)MemHandleLock(rec);
-		if (StrCompare((const Char *)pRec->cityname, name) == 0) {
+		if (StrCaselessCompare((const Char *)pRec->cityname,
+		    name) == 0) {
 			MemHandleUnlock(rec);
 			break;
 		}
@@ -219,18 +219,6 @@ SaveGameByName(char *name)
 }
 
 /*
- * Set up a new game.
- * Hands off everything to other routines
- */
-static void
-NewGame(void)
-{
-	SetupNewGame();
-	ResetViewable();
-	ResumeGame();
-}
-
-/*
  * Create a new save game slot.
  * Save the city into it using a special save-game mode that says it is to
  * be reconfigured
@@ -269,7 +257,8 @@ CreateNewSaveGame(char *name)
 		rec = DmNewRecord(db, &index,
 		    WorldSize() + sizeof (game));
 		if (rec) {
-			NewGame();
+			ResetViewable();
+			ResumeGame();
 			LockWorld();
 			WriteCityRecord(rec, &game, worldPtr);
 			UnlockWorld();

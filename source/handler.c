@@ -37,19 +37,41 @@ PCityMain(void)
 }
 
 /*!
- * \brief set up a game
- *
- * Setting up a new game ... initialize the variables
- * the difficulty level should be set before calling this.
+ * \brief initialize the game structure.
+ * 
+ * This is just prior to, say, making a new savegame.
+ * It makes sure that all the variables are set to the correct values
  */
 void
-SetupNewGame(void)
+InitGameStruct(void)
 {
 	memset((void *)&vgame, 0, sizeof (vgame));
+	memset((void *)&game, 0, sizeof (game));
+	setGameVersion(SAVEGAMEVERSION);
 	AddGridUpdate(GRID_ALL);
 	setTimeElapsed(0);
 	setMapXPos(50);
 	setMapYPos(50);
+	SetDifficultyLevel(0);
+	SetDisasterLevel(1);
+	setUpkeep(0, 100);
+	setUpkeep(1, 100);
+	setUpkeep(2, 100);
+	SetMapSize(100, 100);
+	setTax(8);
+	setLoopSeconds(SPEED_PAUSED);
+	setAutoBulldoze(1);
+}
+
+/*!
+ * \brief set up a game
+ *
+ * Setting up a new game ... initialize the variables.
+ * the difficulty level should be set before calling this.
+ */
+void
+ConfigureNewGame(void)
+{
 	switch (GetDifficultyLevel()) {
 	case 0:
 		setCredits(50000);
@@ -64,20 +86,9 @@ SetupNewGame(void)
 		setCredits(10000);
 		break;
 	}
-	memset((void *)game.objects, 0,
-	    sizeof (MoveableObject) * NUM_OF_OBJECTS);
-	memset((void *)game.units, 0, sizeof (DefenceUnit) * NUM_OF_UNITS);
-	setGameVersion(SAVEGAMEVERSION);
-	setUpkeep(0, 100);
-	setUpkeep(1, 100);
-	setUpkeep(2, 100);
-	SetMapSize(100, 100);
-	setTax(8);
 	LockWorld();
 	ResizeWorld(WorldSize());
 	UnlockWorld();
-	setLoopSeconds(SPEED_PAUSED);
-	setAutoBulldoze(1);
 	CreateFullRiver();
 	CreateForests();
 	DrawGame(1);

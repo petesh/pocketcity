@@ -21,6 +21,7 @@ PATH=/usr/local/bin:$PATH
 function cleanup {
 	rm -rf $remove
 }
+
 # check and convert a string of the form <width>x<height> into the passed
 # variables.
 # usage: checkwh <string> <width var> <height var>
@@ -64,15 +65,18 @@ function mktmpdir {
 	[ $? -eq 0 ] && echo $temp
 }
 
+# print a define output line, with cast if needed.
+# usage: print_define <definition> <value>
+#
 function print_define {
-        typeset define=$1
-        typeset value=$2
+	typeset define=$1
+	typeset value=$2
 
-        if [ -z "$cast_to" ]; then
-                printf "#define\t%s\t%s\n" $define $value >&4
-        else
-                printf "#define\t%s\t((%s)(%s))\n" $define $cast_to $value >&4
-        fi
+	if [ -z "$cast_to" ]; then
+		printf "#define\t%s\t%s\n" $define $value >&4
+	else
+		printf "#define\t%s\t((%s)(%s))\n" $define $cast_to $value >&4
+	fi
 
 }
 
@@ -138,10 +142,12 @@ function sliceimage {
 	eval "$variable=$val"
 }
 
+# print a usage message
+# usage: usage <exit value>
 function usage {
 	cat <<EOM
 usage: $me [ -d <width>x<height> ] [ -r <width>x<height> ] [ -t <types> ]
-        [ -c <cast> ] <input file> <output file> [ <headerfile> ]
+	[ -c <cast> ] <input file> <output file> [ <headerfile> ]
 
 Mashes the files referred to in the input file (bw,grey,color) into
 the combined tile file for use in the game. It also creates the include
@@ -162,8 +168,8 @@ Options are:
 	-s <width>x<height> - shape the tile format to this
 	-d <width>x<height> - make the tiles of this x and y dimension
 	-r <width>x<height> - resize tiles to this size (after the fact)
-        -t <type> - types to do (color, bw, grey)
-        -c <type> - cast all thed efines to this type
+	-t <type> - types to do (color, bw, grey)
+	-c <type> - cast all thed efines to this type
 	<input file> - the input file for reading the information
 	<output file> - the output file for writing the information
 	<headerfile> - the name of the header file to receive the output,
@@ -181,9 +187,9 @@ EOM
 typeset o=
 while getopts "c:d:r:s:t:h?" o; do
 	case $o in
-                c)
-                cast_to=$OPTARG
-                ;;
+		c)
+		cast_to=$OPTARG
+		;;
 		d)
 		checkwh "$OPTARG" width height
 		if [ $? -ne 0 ]; then
@@ -205,9 +211,9 @@ while getopts "c:d:r:s:t:h?" o; do
 			bad=1
 		fi
 		;;
-                t)
-                types=($OPTARG)
-                ;;
+		t)
+		types=($OPTARG)
+		;;
 		h|\?)
 		usage 1;;
 	esac
@@ -298,22 +304,22 @@ readonly rx=$((rwidth * nx))
 readonly ry=$((rheight * ny))
 
 for col in ${types[@]}; do
-        typeset cols=
-        typeset typ=
-        case $col in
-        bw)
-                cols=2
-                typ=bilevel
-                ;;
-        grey)
-                cols=16
-                typ=grayscale
-                ;;
-        color)
-                cols=98
-                typ=Optimize
-                ;;
-        esac
+	typeset cols=
+	typeset typ=
+	case $col in
+	bw)
+		cols=2
+		typ=bilevel
+		;;
+	grey)
+		cols=16
+		typ=grayscale
+		;;
+	color)
+		cols=98
+		typ=Optimize
+		;;
+	esac
 	dir=dir${col}
 	eval "dir=\$$dir"
 	eval "outfile=$outfile"
@@ -332,19 +338,19 @@ for col in ${types[@]}; do
 		continue
 	fi
 	# initial force creation of blank
-        typeset bag=
-        typeset tap=
-        if [ $cols -gt 2 ]; then
-                bag="-background #ffffff"
-                tap="-transparent #ffffff"
-        else
-                bag=""
-                tap=""
-        fi
+	typeset bag=
+	typeset tap=
+	if [ $cols -gt 2 ]; then
+		bag="-background #ffffff"
+		tap="-transparent #ffffff"
+	else
+		bag=""
+		tap=""
+	fi
 	montage $bag -geometry ${rwidth}x${rheight}+0+0 \
 		-tile ${nx}x${ny} -adjoin ${ifiles[@]} $dfile.miff
 	convert -type Optimize $tap $dfile.miff \
-                -colors $cols $dfile.png
+		-colors $cols $dfile.png
 	convert $dfile.miff +compress -type $typ -colors $cols $dfile.bmp
 	rm $dfile.miff
 done

@@ -28,9 +28,6 @@
 #include <savegame_be.h>
 #include <compilerpragmas.h>
 
-/*! \brief the savegame name */
-gchar *savegamename;
-
 /*! \brief set the tile size */
 void
 UIResetViewable(void)
@@ -48,12 +45,12 @@ UIResetViewable(void)
 static void
 doOpen(gchar *filename, int palm)
 {
-	if (0 == open_filename(filename, palm)) {
+	setCityFileName(filename);
+	if (0 == load_defaultfilename(palm)) {
 		UIResetViewable();
 		PostLoadGame();
 		DrawGame(1);
 		MapHasJumped();
-		savegamename = g_strdup(filename);
 	}
 }
 
@@ -102,7 +99,7 @@ free_object(GtkObject *obj __attribute__((unused)), gpointer data)
  * \todo save any game in progress
  */
 void
-OpenGame(GtkWidget *w __attribute__((unused)), gpointer data)
+opengame_handler(GtkWidget *w __attribute__((unused)), gpointer data)
 {
 	fsh_data *handler = g_malloc(sizeof (fsh_data));
 
@@ -123,6 +120,16 @@ OpenGame(GtkWidget *w __attribute__((unused)), gpointer data)
 	gtk_widget_show(GTK_WIDGET(handler->file_sel));
 }
 
+static GtkWidget *ng_form;
+
+static gint
+close_newgame(GtkWidget *widget __attribute__((unused)),
+    gpointer data __attribute__((unused)))
+{
+	ng_form = NULL;
+	return (FALSE);
+}
+
 /*!
  * \brief start a new game
  * \param w unused
@@ -130,12 +137,28 @@ OpenGame(GtkWidget *w __attribute__((unused)), gpointer data)
  * \todo save the game before starting a new one
  */
 void
-NewGame(GtkWidget *w __attribute__((unused)),
+newgame_handler(GtkWidget *w __attribute__((unused)),
     gpointer data __attribute__((unused)))
 {
-	SetupNewGame();
-	UIResetViewable();
-	setLoopSeconds(SPEED_FAST);
+	GtkWidget *table, *mainbox;
+
+	//SetupNewGame();
+	//UIResetViewable();
+	//setLoopSeconds(SPEED_PAUSED);
+	ng_form = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_title(GTK_WINDOW(ng_form), "Create New City");
+
+	mainbox = gtk_vbox_new(FALSE, 10);
+	table = gtk_table_new(12, 3, TRUE);
+	gtk_container_set_border_width(GTK_CONTAINER(mainbox), 3);
+
+	g_signal_connect(G_OBJECT(ng_form), "delete_event",
+	    G_CALLBACK(close_newgame), 0);
+
+	gtk_container_add(GTK_CONTAINER(ng_form), mainbox);
+	gtk_box_pack_start(GTK_BOX(mainbox), table, TRUE, TRUE, 0);
+
+	gtk_widget_show_all(ng_form);
 }
 
 /*!
@@ -148,18 +171,16 @@ store_filename(GtkFileSelection *sel, gpointer data __attribute((unused)))
 {
 	gchar *name = (gchar*)gtk_file_selection_get_filename(sel);
 
-	if (name != NULL) {
-		if (savegamename != NULL) {
-			g_free(savegamename);
-		}
-		savegamename = name;
-	}
-	WriteLog("This game will be saved as %s from now on\n", savegamename);
-	SaveGame(NULL, 0);
+	if (name != NULL)
+		setCityFileName(name);
+	else
+		return;
+	WriteLog("This game will be saved as %s from now on\n", name);
+	save_defaultfilename(0);
 }
 
 void
-SaveGameAs(GtkWidget *w __attribute__((unused)),
+savegameas_handler(GtkWidget *w __attribute__((unused)),
     gpointer data __attribute__((unused)))
 {
 	GtkWidget *fileSel;
@@ -179,13 +200,13 @@ SaveGameAs(GtkWidget *w __attribute__((unused)),
 }
 
 void
-SaveGame(GtkWidget *w __attribute__((unused)),
+savegame_handler(GtkWidget *w __attribute__((unused)),
     gpointer data __attribute__((unused)))
 {
-	if (savegamename == NULL) {
-		SaveGameAs(NULL, 0);
+	if (getCityFileName() == NULL) {
+		savegameas_handler(NULL, 0);
 		return;
 	}
 
-	save_filename(savegamename, 0);
+	save_defaultfilename(0);
 }

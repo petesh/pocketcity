@@ -87,6 +87,9 @@ BEGIN
     "L_NAME"    = "Name:"
 
     "CREATE"    = "Create"
+    "L_MAPSIZE" = "Map Size"
+    "L_WIDTH"   = "Width:"
+    "L_HEIGHT"  = "Height:"
 
     /* Quicklist */
     "T_QUICKLIST" = "Quick List"

@@ -15,6 +15,7 @@
 #include <inttypes.h>
 #include <strings.h>
 #include <mem_compat.h>
+#include <savegame_be.h>
 
 /*
 static Int8
@@ -198,7 +199,7 @@ write_palmstructure(GameStruct *new, int fd)
 */
 
 int
-open_filename(char *sel, int palm)
+load_filename(char *sel, int palm)
 {
 	int fd, ret;
 	char tempversion[4];
@@ -260,6 +261,18 @@ open_filename(char *sel, int palm)
 }
 
 int
+load_defaultfilename(int palm)
+{
+	return (load_filename(getCityFileName(), palm));
+}
+
+int
+save_defaultfilename(int palm)
+{
+	return(save_filename(getCityFileName(), palm));
+}
+
+int
 save_filename(char *sel, int palm)
 {
 	int fd, ret;
@@ -306,4 +319,30 @@ save_filename(char *sel, int palm)
 		return (-1);
 	}
 	return (0);
+}
+
+void
+NewGame(void)
+{
+	InitGameStruct();
+	SetDifficultyLevel(0);
+	SetDisasterLevel(GetDifficultyLevel() + 1);
+	SetMapSize(100, 100);
+	ConfigureNewGame();
+}
+
+static char *cityfile;
+
+char *
+getCityFileName(void)
+{
+	return (cityfile);
+}
+
+void
+setCityFileName(char *newName)
+{
+	if (cityfile != NULL)
+		free(cityfile);
+	cityfile = strdup(newName);
 }

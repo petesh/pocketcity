@@ -5,6 +5,7 @@
 #include <StringMgr.h>
 #include <SysUtils.h>
 #include <query.h>
+#include <palmutils.h>
 #include <simcity.h>
 #include <ui.h>
 #include <simcity_resconsts.h>

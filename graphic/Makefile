@@ -1,7 +1,10 @@
 
 ICONFILE=tile
 COLORS=bw grey color
-DIM=16x16
+OSIZE=16
+DIM=$(OSIZE)x$(OSIZE)
+MSIZE=4
+MDIM=$(MSIZE)x$(MSIZE)
 SHAPE=32x32
 MAPFILE=tilemapping.txt
 HEADERFILE=tileheader.h
@@ -17,6 +20,13 @@ all: $(ALLFILES)
 $(ICONFILE)-%: $(DEPPNGS:%=$$*/%) $(MAPFILE)
 	./dotilezones.sh -t $* -d $(DIM) -s $(SHAPE) -c welem_t $(MAPFILE) \
 		$(ICONFILE)-$(DIM) tileheader.h
+	eval `identify -format "w=%w;h=%h" $(ICONFILE)-$(DIM)-$*.bmp`; \
+	w=`expr $$w / $(MSIZE)`; \
+	h=`expr $$h / $(MSIZE)`; \
+	convert $(ICONFILE)-$(DIM)-$*.bmp -resize $${w}x$${h} \
+	    $(ICONFILE)-$(MDIM)-$*.bmp; \
+	convert $(ICONFILE)-$(DIM)-$*.png -resize $${w}x$${h} \
+	    $(ICONFILE)-$(MDIM)-$*.png
 	touch $@
 
 clean:
