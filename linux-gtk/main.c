@@ -61,7 +61,7 @@ gint mainloop_callback(gpointer data)
         }
     }
     
-    if (timekeeper >= game.gameLoopSeconds || 1) {
+    if (timekeeper >= game.gameLoopSeconds) {
         g_print("A month has gone by - total months: %lu\n", game.TimeElapsed);
         timekeeper = 0;
         do {
