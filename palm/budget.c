@@ -11,6 +11,7 @@
 #include <simcity.h>
 #include <simcity_resconsts.h>
 #include <globals.h>
+#include <logging.h>
 #include <ui.h>
 #include <simulation.h>
 #include <sections.h>

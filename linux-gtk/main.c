@@ -15,6 +15,8 @@
 #include <main.h>
 #include <savegame_fe.h>
 #include <budget.h>
+#include <logging.h>
+#include <locking.h>
 #include <ui.h>
 #include <handler.h>
 #include <drawing.h>

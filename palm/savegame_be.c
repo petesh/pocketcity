@@ -11,7 +11,8 @@
 #include <simcity.h>
 #include <globals.h>
 #include <handler.h>
-#include <ui.h>
+#include <locking.h>
+#include <logging.h>
 #include <palmutils.h>
 #include <simcity_resconsts.h>
 #include <resCompat.h>
@@ -33,20 +34,54 @@ static void getAutoSaveName(char *name) SAVE_SECTION;
 static void DeleteGameByIndex(UInt16 index) SAVE_SECTION;
 static Int16 comparator(void *p1, void *p2, Int32 other) SAVE_SECTION;
 
+static DmOpenRef sgref = 0;
+
 DmOpenRef
 OpenMyDB(void)
 {
 	Err err = 0;
-	DmOpenRef db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(),
+	
+	if (sgref != NULL)
+		return (sgref);
+	sgref = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(),
 	    dmModeReadWrite);
-	if (!db) {
+	if (!sgref) {
 		err = DmCreateDatabase(0, SGNAME, GetCreatorID(), SGTYP, false);
 		if (err)
 			return (NULL); /* couldn't create */
-		db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(),
+		sgref = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(),
 		    dmModeReadWrite);
 	}
-	return (db);
+	if (!sgref) {
+		/* Could not open savegame database */
+	}
+	if (DmNumRecords(sgref) == 0) {
+		/*
+		 * create a record in slot 0 if it's not there.
+		 * This is used for autosaves. It takes the name
+		 * of the city
+		 */
+		UInt16 index = dmMaxRecordIndex;
+		Char name[CITYNAMELEN];
+		MemHandle rec = DmNewRecord(sgref, &index, CITYNAMELEN);
+		MemSet(name, CITYNAMELEN, 0);
+		if (rec) {
+			MemPtr mp = MemHandleLock(rec);
+			DmWrite(mp, 0, name, CITYNAMELEN);
+			MemHandleUnlock(rec);
+			DmReleaseRecord(sgref, index, true);
+		}
+	}
+	return (sgref);
+}
+
+void
+CloseMyDB(void)
+{
+	if (sgref) {
+		DmCloseDatabase(sgref);
+		sgref = 0;
+	}
 }
 
 UInt16
@@ -77,7 +112,6 @@ FindGameByName(char *name)
 		}
 		MemHandleUnlock(rec);
 	}
-	if (db != NULL) DmCloseDatabase(db);
 
 	if (gameindex >= nRec)
 		return (LASTGAME);
@@ -105,7 +139,6 @@ saveGameSize(GameStruct *gs)
 	UInt32 size = (sizeof (GameStruct) +
 	    gs->mapx * gs->mapy +
 	    ((gs->mapx * gs->mapy + ( (8 / 2) - 1)) / ( 8 / 2 )));
-	WriteLog("Size=%ld\n", (long)size);
 	return (size);
 }
 
@@ -216,7 +249,6 @@ SaveGameByIndex(UInt16 index)
 	DmSetDatabaseInfo(0, DmFindDatabase(0, SGNAME), NULL, &attr, NULL,
 	    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
-	DmCloseDatabase(db);
 	return ((int)index);
 }
 
@@ -235,8 +267,9 @@ SaveGameByName(char *name)
 	SaveGameByIndex(index);
 }
 
+/*
 void
-CreateNewSaveGame(char *name)
+CreateNewSaveGame(void)
 {
 	DmOpenRef db;
 	MemHandle rec;
@@ -245,26 +278,12 @@ CreateNewSaveGame(char *name)
 
 	db = OpenMyDB();
 
-	/* no, this should NOT be an "else if" */
+	/ * no, this should NOT be an "else if" * /
 	if (db == NULL)
 		return;
 	if (DmNumRecords(db) >= MAXSAVEGAMECOUNT) {
-		/* TODO: alert user - max is 50 savegames */
+		/ * TODO: alert user - max is 50 savegames * /
 	} else {
-		if (DmNumRecords(db) == 0) {
-			/*
-			 * create a record in slot 0 if it's not there.
-			 * This is used for autosaves. It takes the name
-			 * of the city
-			 */
-			rec = DmNewRecord(db, &index, CITYNAMELEN);
-			if (rec) {
-				MemPtr mp = MemHandleLock(rec);
-				DmWrite(mp, 0, name, CITYNAMELEN);
-				MemHandleUnlock(rec);
-				DmReleaseRecord(db, index, true);
-			}
-		}
 		index = dmMaxRecordIndex;
 		WriteLog("Newbie\n");
 		rec = DmNewRecord(db, &index, saveGameSize(&game));
@@ -279,8 +298,7 @@ CreateNewSaveGame(char *name)
 			DmReleaseRecord(db, index, true);
 		}
 	}
-	DmCloseDatabase(db);
-}
+}*/
 
 /*!
  * \brief Load a game by index from the savegames.
@@ -294,7 +312,7 @@ LoadGameByIndex(UInt16 index)
 	MemHandle rec;
 	short int loaded = -1;
 
-	db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(), dmModeReadOnly);
+	db = OpenMyDB();
 
 	if (!db)
 		return (-1); /* no database */
@@ -316,7 +334,6 @@ LoadGameByIndex(UInt16 index)
 		game.objects[NUM_OF_OBJECTS - 1].dir = 0x3333;
 		ResetViewable();
 	}
-	DmCloseDatabase(db);
 
 	return (loaded);
 }
@@ -357,9 +374,7 @@ BeamCityByName(Char *cityName)
 	rv = BeamSend((UInt8 *)rp);
 exit_me:
 	if (rp)
-		MemHandleUnlock(rp);
-	if (db)
-		DmCloseDatabase(db);
+		MemHandleUnlock(rec);
 	return (rv);
 }
 
@@ -384,8 +399,6 @@ getAutoSaveName(char *name)
 		MemMove(name, ptr, CITYNAMELEN);
 		MemHandleUnlock(rec);
 	}
-
-	DmCloseDatabase(db);
 }
 
 int
@@ -417,11 +430,11 @@ SetAutoSave(char *name)
 		return;
 
 	if (DmNumRecords(db) < 1)
-		goto close_me;
+		return;
 
 	mh = DmGetRecord(db, 0);
 	if (mh == NULL) {
-		goto close_me;
+		return;
 	} else {
 		mh = DmResizeRecord(db, 0, CITYNAMELEN);
 	}
@@ -437,8 +450,6 @@ SetAutoSave(char *name)
 
 release:
 	DmReleaseRecord(db, 0, true);
-close_me:
-	DmCloseDatabase(db);
 }
 
 void
@@ -467,15 +478,11 @@ DeleteGameByIndex(UInt16 index)
 		return;
 	}
 
-	if (DmNumRecords(db) < index) {
-		goto close_me; /* index doesn't exist */
-	}
+	if (DmNumRecords(db) < index)
+		return;
 
 	if (index > 0)
 		DmRemoveRecord(db, index);
-
-close_me:
-	DmCloseDatabase(db);
 }
 
 void
@@ -516,9 +523,6 @@ RenameCity(char *oldname, char *newname)
 		if (dirty)
 			break;
 	}
-	
-	DmCloseDatabase(db);
-
 	return (dirty);
 }
 
@@ -568,9 +572,6 @@ CopyCity(Char *name)
 		if (dirty)
 			break;
 	}
-	
-	DmCloseDatabase(db);
-
 	return (dirty);
 }
 
@@ -599,16 +600,14 @@ CityNames(int *count)
 	char **cities;
 	char *citystring;
 
-	db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(), dmModeReadOnly);
+	db = OpenMyDB();
 	if (db == NULL) {
 		return (NULL); /* no database */
 	}
 	nRec = DmNumRecords(db);
 
-	if (nRec < 2) {
-		DmCloseDatabase(db);
-	return (NULL);
-	}
+	if (nRec < 2)
+		return (NULL);
 
 	cities = (char **)MemPtrNew(nRec * sizeof (*cities));
 	citystring = (char *)MemPtrNew(nRec * CITYNAMELEN);
@@ -633,9 +632,6 @@ CityNames(int *count)
 	else if (nsIndex >= 2)
 		SysInsertionSort(cities, nsIndex, sizeof (*cities),
     		    comparator, CITYNAMELEN);
-
-	DmCloseDatabase(db);
-
 	return (cities);
 }
 

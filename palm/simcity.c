@@ -33,7 +33,7 @@
 #include <logging.h>
 #include <locking.h>
 
-#ifdef DEBUG
+#ifdef LOGGING
 #include <HostControl.h>
 #endif
 
@@ -123,8 +123,8 @@ ResGetString(UInt16 index, char *buffer, UInt16 length)
 
 /*
  * The PilotMain routine.
- * Needed by all palm applications. It checks the rom version and
- * Throws out to the user of it's too old.
+ * Needed by all palm applications.
+ * It checks the rom version and throws out to the user of it's too old.
  * Handles the auto-saving of the application at the end.
  */
 UInt32
@@ -132,38 +132,35 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 {
 	UInt16 error;
 	Int16 pir;
-	Boolean running;
 
 	switch (cmd) {
 	case sysAppLaunchCmdNormalLaunch:
 		break;
-	case sysAppLaunchCmdSyncNotify:
-		BeamRegister();
+	case sysAppLaunchCmdGoTo:
+		break;
+	case sysAppLaunchCmdSystemReset:
+		if (((SysAppLaunchCmdSystemResetType *)cmdPBP)->createDefaultDB)
+			BeamRegister();
+		return (0);
+	case sysAppLaunchCmdExgAskUser:
+		if (launchFlags & sysAppLaunchFlagSubCall) {
+			((ExgAskParamPtr)cmdPBP)->result = exgAskOk;
+		}
+		return (0);
 		break;
 	case sysAppLaunchCmdExgReceiveData:
-		running = launchFlags & sysAppLaunchFlagSubCall;
-		if (running && GameInProgress()) {
-			/* Save current game */
-			UISaveMyCity();
-			SetGameNotInProgress();
-		}
 		if (errNone == BeamReceive((ExgSocketPtr)cmdPBP)) {
-			if (running) {
-				FrmGotoForm(formID_files);
+			if (launchFlags & sysAppLaunchFlagSubCall) {
+				if (IsGameInProgress())
+					SaveGameByName(game.cityname);
+				UILoadAutoGame();
+				FrmGotoForm(formID_pocketCity);
 			} else {
-				LocalID id;
-				UInt16 card;
-				DmSearchStateType state;
-
-				if (errNone == DmGetNextDatabaseByTypeCreator(
-				    true, &state, 'appl', GetCreatorID(),
-				    true, &card, &id)) {
-					SysUIAppSwitch(card, id,
-					    sysAppLaunchCmdNormalLaunch,
-					    NULL);
-				}
+				((ExgSocketPtr)cmdPBP)->goToCreator =
+				    GetCreatorID();
 			}
 		}
+		return (0);
 		break;
 	default:
 		return (0);
@@ -172,6 +169,9 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 
 	error = RomVersionCompatible(
 	    sysMakeROMVersion(3, 5, 0, sysROMStageRelease, 0), launchFlags);
+
+	BeamRegister();
+
 	if (error)
 		return (error);
 
@@ -281,7 +281,7 @@ AppEvent(EventPtr event)
 	return (false);
 }
 
-#if defined(DEBUG)
+#if defined(LOGGING)
 static char *cstrings[] = {
 	"bc_count_residential", /*!< count of residential areas */
 	"bc_value_residential", /*!< values of residential units */
@@ -389,11 +389,11 @@ EventLoop(void)
 		timeTemp = TimGetSeconds();
 
 		if (timeTemp >= (timeStampDisaster + SIM_GAME_LOOP_DISASTER)) {
-#ifdef DEBUG
+#ifdef LOGGING
 			Int16 q, pc = 0;
 #endif
 			MoveAllObjects();
-#ifdef DEBUG
+#ifdef LOGGING
 			/*
 			 * This will print the BuildCount array
 			 * don't forget to keep an eye on it
@@ -482,7 +482,7 @@ _PalmInit(void)
 	StartSilk();
 
 	/* set screen mode to colors if supported */
-	if (IsNewROM()) {  /* must be v3.5+ for some functions in here */
+	if (Is35ROM()) {  /* must be v3.5+ for some functions in here */
 		WinScreenMode(winScreenModeGetSupportedDepths, 0, 0, &depth, 0);
 		if ((depth & (1 << (8-1))) != 0) {
 			/* 8bpp (color) is supported */
@@ -587,6 +587,7 @@ _PalmFini(void)
 	    &gameConfig, sizeof (AppConfig_t), true);
 	/* Close the forms */
 	FrmCloseAllForms();
+	CloseMyDB();
 
 	EndSilk();
 }
@@ -1126,7 +1127,7 @@ UIDoQuickList(void)
 {
 	FormType * ftList;
 
-	if (IsNewROM()) {
+	if (Is35ROM()) {
 		ftList = FrmInitForm(formID_quickList);
 		FrmSetEventHandler(ftList, hQuickList);
 		UISetSelectedBuildItem((BuildCode)(FrmDoDialog(ftList) -
@@ -1267,9 +1268,9 @@ BUILD_STATEBITACCESSOR(7, SetLowWaterNotShown, SetLowWaterShown, \
     IsLowWaterShown, static)
 BUILD_STATEBITACCESSOR(8, SetOutWaterNotShown, SetOutWaterShown, \
     IsOutWaterShown, static)
-BUILD_STATEBITACCESSOR(9, ClearNewROM, SetNewROM, IsNewROM, GLOBAL)
+BUILD_STATEBITACCESSOR(9, Clear35ROM, Set35ROM, Is35ROM, GLOBAL)
 BUILD_STATEBITACCESSOR(10, SetDrawing, SetDeferDrawing, IsDeferDrawing, static)
-BUILD_STATEBITACCESSOR(11, ClearDirectBmps, SetDirectBmps, IsDirectBmps, GLOBAL)
+BUILD_STATEBITACCESSOR(11, Clear40ROM, Set40ROM, Is40ROM, GLOBAL)
 BUILD_STATEBITACCESSOR(12, ClearScaleModes, SetScaleModes, IsScaleModes, GLOBAL)
 BUILD_STATEBITACCESSOR(13, ClearScrolling, SetScrolling, IsScrolling, static)
 
@@ -1458,7 +1459,7 @@ static UInt8 lockCalls = 0;
 void
 UILockScreen(void)
 {
-	if (!IsNewROM()) return;
+	if (!Is35ROM()) return;
 	ErrFatalDisplayIf(lockCalls > 0, "double lock on screen attempted");
 	if (!didLock)
 		didLock = WinScreenLock(winLockCopy);
@@ -1472,7 +1473,7 @@ UILockScreen(void)
 void
 UIUnlockScreen(void)
 {
-	if (!IsNewROM()) return;
+	if (!Is35ROM()) return;
 	ErrFatalDisplayIf(lockCalls == 0, "double free on screen attempted");
 	if (didLock != NULL) {
 		WinScreenUnlock();
@@ -2292,6 +2293,7 @@ RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
 	FtrGet(sysFtrCreator, sysFtrNumROMVersion, &version);
 
 	WriteLog("Rom Version: 0x%lx\n", (unsigned long)version);
+	Clear35ROM();
 
 	if (version < requiredVersion) {
 		if ((launchFlags &
@@ -2299,7 +2301,6 @@ RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
 		    (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp)) {
 			if (version > sysMakeROMVersion(3, 1, 0, 0, 0) &&
 			    FrmAlert(alertID_RomIncompatible) == 1) {
-				ClearNewROM();
 				return (0);
 			}
 
@@ -2314,12 +2315,12 @@ RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
 		}
 		return (sysErrRomIncompatible);
 	}
-	SetNewROM();
+	Set35ROM();
 
 	if (version >= sysMakeROMVersion(4, 0, 0, sysROMStageRelease, 0))
-		ClearDirectBmps();
+		Set40ROM();
 	else
-		SetDirectBmps();
+		Clear40ROM();
 
 	ClearScaleModes();
 	if (errNone == FtrGet(sysFtrCreator, sysFtrNumWinVersion, &version)) {
@@ -2474,16 +2475,20 @@ static struct _silkKeys {
 } silky[] = {
 	{ pageUpChr, BkHardUp },
 	{ pageDownChr, BkHardDown },
+	{ vchrRockerUp, BkHardUp },
+	{ vchrRockerDown, BkHardDown },
 	{ vchrHard1, BkCalendar },
 	{ vchrHard2, BkAddress },
 	{ vchrHard3, BkToDo },
 	{ vchrHard4, BkMemo },
 	{ vchrFind, BkFind },
 	{ 1, BkCalc },
+#ifdef HIRES
 #ifdef SONY_CLIE
 	{ vchrJogUp, BkJogUp },
 	{ vchrJogDown, BkJogDown },
 	{ vchrJogRelease, BkJogRelease },
+#endif
 #endif
 	{ 0, BkEnd }
 };
@@ -2786,10 +2791,9 @@ HoldHook(UInt32 held)
 
 #endif
 
-#ifdef DEBUG
+#ifdef LOGGING
 
 #include <unix_stdarg.h>
-
 
 void
 WriteLog(char *s, ...)

@@ -6,7 +6,7 @@
 #include <PalmOS.h>
 #include <StringMgr.h>
 #include <globals.h>
-#include <ui.h>
+#include <locking.h>
 #include <mem_compat.h>
 
 /*! \brief items to be locked/unlocked */

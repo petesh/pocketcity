@@ -4,7 +4,7 @@ include Makefile-include
 OBJECTS := stack.o simcity.o handler.o drawing.o globals.o build.o \
 	simulation.o HiRes.o disaster.o palmutils.o \
 	palm_locking.o beam.o \
-	sony_support.o mem_compat.o pcity-sections.o \
+	sony_support.o mem_compat.o pocketcity-sections.o \
 	options.o map.o budget.o query.o savegame.o repeathandler.o \
 	minimap.o \
 	savegame_be.o pack.o \
@@ -20,7 +20,7 @@ SONY := 0
 LANGUAGES := EN
 
 DESTOBJS = $(OBJECTS:%=$(OBJDIR)/%)
-PRCTARGETS = $(LANGUAGES:%=$(BINARY)-%.prc)
+PRCTARGETS = $(LANGUAGES:%=$(OBJDIR)/$(BINARY)-%.prc)
 
 LANGDIRS = $(LANGUAGES:%=(OBJDIR)/%)
 
@@ -53,7 +53,7 @@ cheat: dlores
 
 # you can add: -DMEM_DEBUG to add logging of most palm memory allocation calls
 # -mdebug-labels
-dlores dpalm5 dsony: AXCFLAGS = -g -DDEBUG
+dlores dpalm5 dsony: AXCFLAGS = -g -DDEBUG -DLOGGING
 dlores dpalm5 dsony: DEBUG=1
 
 palm5 dpalm5: BXCFLAGS = -DPALM_HIGH
@@ -66,15 +66,16 @@ sony dsony: SONY=1
 CFLAGS += $(AXCFLAGS) $(BXCFLAGS) $(CXCFLAGS) -DPROGTOKEN="'$(PROGTOKEN)'"
 
 # the different language versions
-$(BINARY)-%.prc: $(OBJDIR) $(OBJDIR)/pcity $(OBJDIR)/%-game.ro
+$(OBJDIR)/$(BINARY)-%.prc: $(OBJDIR) $(OBJDIR)/PocketCity-EN \
+		$(OBJDIR)/%-game.ro
 	$(BUILDPRC) -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
-		$(OBJDIR)/pcity $(OBJDIR)/$*-game.ro version.ro touch.ro
+		$(OBJDIR)/PocketCity-EN $(OBJDIR)/$*-game.ro version.ro touch.ro
 
-$(OBJDIR)/pcity-sections.o: $(OBJDIR)/pcity-sections.s
+$(OBJDIR)/pocketcity-sections.o: $(OBJDIR)/pocketcity-sections.s
 	$(CC) -c $< -o $@
 
-$(OBJDIR)/pcity-sections.s $(OBJDIR)/pcity-sections.ld: pcity.def
-	$(MULTIGEN) -b $(OBJDIR)/pcity-sections pcity.def
+$(OBJDIR)/pocketcity-sections.s $(OBJDIR)/pocketcity-sections.ld: pcity.def
+	$(MULTIGEN) -b $(OBJDIR)/pocketcity-sections pcity.def
 
 # Language
 $(OBJDIR)/%-game.ro: $(OBJDIR) game.rcp langs.rcp \
@@ -98,9 +99,9 @@ $(OBJDIR)/%-lang:
 $(OBJDIR):
 	@-[ -d "$@" ] || mkdir -p $@
 
-$(OBJDIR)/pcity: $(OBJDIR) $(DESTOBJS)
+$(OBJDIR)/PocketCity-EN: $(OBJDIR) $(DESTOBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(DESTOBJS) -o $@ $(LDLIBS) \
-		$(OBJDIR)/pcity-sections.ld
+		$(OBJDIR)/pocketcity-sections.ld
 
 $(OBJDIR)/simcity.o: simcity.c simcity.h ../source/handler.h ../source/ui.h \
 	../source/zakdef.h simcity_resconsts.h

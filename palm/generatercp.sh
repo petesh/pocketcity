@@ -33,6 +33,9 @@ while getopts "c:d:DHh?" opt; do
 			onehalf) trydens=108 ;;
 			double) trydens=144;;
 			all) trydens="108 144";;
+			1) trydens=;;
+			1.5) trydens=108;;
+			2) trydens=144;;
                         *)
         			echo "error: density $OPTARG unknown"
         			usage

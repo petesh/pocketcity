@@ -9,6 +9,7 @@
 #include <globals.h>
 #include <simcity.h>
 #include <ui.h>
+#include <logging.h>
 #include <resCompat.h>
 #include <UIColor.h>
 

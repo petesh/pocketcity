@@ -9,6 +9,7 @@
  * sending and receiving the data.
  */
 
+#include <UIResources.h>
 #include <StringMgr.h>
 #include <ErrorMgr.h>
 #include <ExgMgr.h>
@@ -19,6 +20,10 @@
 #include <beam.h>
 #include <savegame_be.h>
 #include <logging.h>
+#include <simcity_resconsts.h>
+
+static char *mime_type = "application/x-pocketcity";
+static char *pcity_extension = "cty";
 
 int
 BeamSend(UInt8 *map_ptr)
@@ -32,13 +37,15 @@ BeamSend(UInt8 *map_ptr)
 	char beamName[50]; /* city name length + .cty + "?: " */
 
 	gMemSet((void *)&exs, (Int32)sizeof (exs), 0);
-	StrPrintF(beamName, "?_send:%s.cty", gs->cityname);
+	StrPrintF(beamName, "?_beam;_send:%s.%s", gs->cityname,
+	    pcity_extension);
 	exs.target = GetCreatorID();
 	exs.count = 1;
 	exs.length = saveGameSize(gs);
-	exs.description = "A Pocket City";
+	exs.description = gs->cityname;
 	exs.name = beamName;
 	exs.length += StrLen(exs.description);
+	exs.type = mime_type;
 
 	WriteLog("pre-exgput\n");
 	rv = ExgPut(&exs);
@@ -86,6 +93,8 @@ BeamReceive(ExgSocketType *ptr)
 		return (-1);
 
 	err = ExgAccept(ptr);
+	if (err != errNone)
+		goto recv_done;
 	/* read the gamestruct - gives size for other elements */
 	left = sizeof (GameStruct);
 	bof = (UInt8 *)gs;
@@ -102,7 +111,7 @@ BeamReceive(ExgSocketType *ptr)
 		goto recv_done;
 	bof = (UInt8 *)gs + sizeof (GameStruct);
 	
-	left -= sizeof (gs);
+	left -= sizeof (GameStruct);
 	while (left != 0) {
 		read = ExgReceive(ptr, bof, left, &err);
 		if (err != errNone) {
@@ -114,6 +123,7 @@ BeamReceive(ExgSocketType *ptr)
 	}
 	if (MemCmp(SAVEGAMEVERSION, gs->version, 4) != 0) {
 		/* XXX: Invalid savegame - warning */
+		err = exgErrBadData;
 		goto recv_done;
 	}
 	/* At this point we've been successful at reading all the structure */
@@ -136,18 +146,21 @@ BeamReceive(ExgSocketType *ptr)
 	mh = DmNewRecord(dbP, &reci, saveGameSize(gs));
 	if (mh == NULL) {
 		/* XXX: notify memory error */
+		err = exgErrBadData;
 		goto recv_done;
 	}
 	mp = MemHandleLock(mh);
 	if (mp == NULL) {
 		DmReleaseRecord(dbP, reci, false);
 		DmRemoveRecord(dbP, reci);
+		goto recv_done;
 	}
-	MemMove(mp, gs, saveGameSize(gs));
-	SetAutoSave(gs->cityname);
-	MemHandleUnlock(mp);
+	DmWrite(mp, 0, gs, saveGameSize(gs));
 	DmReleaseRecord(dbP, reci, true);
+	SetAutoSave(&gs->cityname[0]);
+	MemHandleUnlock(mh);
 recv_done:
+	CloseMyDB();
 	err = ExgDisconnect(ptr, err);
 	if (gs) gFree(gs);
 	return (err);
@@ -156,7 +169,20 @@ recv_done:
 void
 BeamRegister(void)
 {
-	ExgRegisterData(GetCreatorID(), exgRegTypeID, SGSTRING);
+	if (Is40ROM()) {
+		MemHandle mh = DmGetResource(strRsc, pcity_description);
+		MemPtr memp = MemHandleLock(mh);
+		ExgRegisterDatatype(GetCreatorID(), exgRegTypeID, mime_type,
+		    memp, 0);
+		ExgRegisterDatatype(GetCreatorID(), exgRegExtensionID,
+		    pcity_extension, memp, 0);
+		MemHandleUnlock(mh);
+		DmReleaseResource(mh);
+	} else {
+		ExgRegisterData(GetCreatorID(), exgRegTypeID, mime_type);
+		ExgRegisterData(GetCreatorID(), exgRegExtensionID,
+		    pcity_extension);
+	}
 }
 
 /*

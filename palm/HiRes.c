@@ -17,7 +17,7 @@
 #include <PenInputMgr.h>
 #include <NotifyMgr.h>
 #include <SysEvtMgr.h>
-#include <ui.h>
+#include <logging.h>
 #include <simcity.h>
 
 #define	_HIRESSOURCE_

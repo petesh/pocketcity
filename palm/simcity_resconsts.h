@@ -288,6 +288,9 @@
 #define labelID_carrywater 1009
 #define labelID_zonelocation 1010
 
+/* strings */
+#define pcity_description	3390
+
 /* Resource Strings */
 #define	resstrings_base	4096
 #define	si_cash_scale	0

@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-#ifdef DEBUG
+#ifdef LOGGING 
 /*!
  * \brief write output to the console
  * \param s the string for formatting

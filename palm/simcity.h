@@ -34,13 +34,13 @@ void SetGameInProgress(void);
 void SetGameNotInProgress(void);
 UInt16 IsGameInProgress(void);
 
-void ClearNewROM(void);
-void SetNewROM(void);
-UInt16 IsNewROM(void);
+void Clear35ROM(void);
+void Set35ROM(void);
+UInt16 Is35ROM(void);
 
-void ClearDirectBmps(void);
-void SetDirectBmps(void);
-UInt16 IsDirectBmps(void);
+void Clear40ROM(void);
+void Set40ROM(void);
+UInt16 Is40ROM(void);
 
 void ClearScaleModes(void);
 void SetScaleModes(void);

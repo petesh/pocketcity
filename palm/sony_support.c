@@ -17,7 +17,7 @@
 #include <resCompat.h>
 #include <sony_support.h>
 #include <palmutils.h>
-#include <ui.h>
+#include <logging.h>
 
 /*!
  * \brief high resolution checked.

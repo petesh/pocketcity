@@ -12,7 +12,7 @@
 #include <options.h>
 #include <globals.h>
 #include <simcity.h>
-#include <ui.h>
+#include <logging.h>
 #include <palmutils.h>
 
 static FormPtr setupOptions(void) CONFIG_SECTION;

@@ -42,14 +42,12 @@ void DeleteGameByName(char *name) SAVE_SECTION;
  */
 int  LoadGameByName(char *name) SAVE_SECTION;
 
-/*!
+/* !
  * \brief Create a new save game slot.
- * \param name name of the city.
  *
- * Save the city into it using a special save-game mode that says it is to
- * be reconfigured
+ * Save the city into it.
  */
-void CreateNewSaveGame(char *name) SAVE_SECTION;
+//void CreateNewSaveGame(void) SAVE_SECTION;
 
 /*!
  * \brief Check if a saved city by this name exists
@@ -93,7 +91,7 @@ void FreeCityNames(char **names) SAVE_SECTION;
  * \brief get the size of a city entry in bytes
  * \return the size of the city
  */
-UInt32 saveGameSize(GameStruct *gs) SAVE_SECTION;
+UInt32 saveGameSize(GameStruct *gs);
 
 /*!
  * \brief beam the city named
@@ -109,6 +107,14 @@ Int32 BeamCityByName(Char *cityName) SAVE_SECTION;
  * If it does not exist, then it tries to create it.
  */
 DmOpenRef OpenMyDB(void);
+
+/*!
+ * \brief close the savegame database
+ *
+ * This will close the savegame database if it is open, otherwise it will
+ * do nothing. Needed for the game shutdown routine
+ */
+void CloseMyDB(void);
 
 /*!
  * \brief Find a savegame by the name passed

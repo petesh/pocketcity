@@ -12,7 +12,8 @@
 #include <query.h>
 #include <palmutils.h>
 #include <simcity.h>
-#include <ui.h>
+#include <locking.h>
+#include <logging.h>
 #include <simcity_resconsts.h>
 #include <zakdef.h>
 #include <simulation.h>

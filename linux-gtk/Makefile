@@ -1,6 +1,6 @@
 VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 CC = gcc
-GCPPFLAGS := $(shell pkg-config --cflags gtk+-win32-2.0) \
+GCPPFLAGS := $(shell pkg-config --cflags gtk+-2.0) \
 	-DGTK_DISABLE_COMPAT_H -DGDK_DISABLE_DEPRECATED
 GCCFLAGS = -W -Wall -Werror
 INCLUDEDIRS = -I . -I ../source -I ../nix-common -I ../graphic

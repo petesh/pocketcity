@@ -1,7 +1,8 @@
 
 include Makefile-include
 
-BIN=pcity
+BIN=PocketCity
+TILE=pc_tile
 
 NDTARGETS=lores palm5 sony
 DTARGETS=dlores dpalm5 dsony cheat
@@ -12,34 +13,36 @@ DTARGETS=dlores dpalm5 dsony cheat
 
 # Resource PDBs (graphical; non-language)
 DEPTHS := bw twobit grey color merged
-DENSITIES := single # onehalf double all
+DENSITIES := 1 # onehalf double all
 ITARGETS= $(foreach density,$(DENSITIES),$(DEPTHS:%=%-$(density)))
 STUBS := multidensity-stubs.txt
 
-COLORTARGETS := $(ITARGETS:%=$(BIN)-%.pdb)
+COLORTARGETS := $(ITARGETS:%=$(TILE)-%.pdb)
 
 TARGETS=$(NDTARGETS)
 
+BINNAME=$(BIN)
+
 lores: TDIR =nd
-lores: BINNAME=$(BIN)
+#lores: BINNAME=$(BIN)
 
 dlores: TDIR =d
-dlores: BINNAME=debug-$(BIN)
+#dlores: BINNAME=$(BIN)
 
 palm5: TDIR =nd5
-palm5: BINNAME=palm5-$(BIN)
+#palm5: BINNAME=$(BIN)
 
 dpalm5: TDIR =d5
-dpalm5: BINNAME=debug-palm5-$(BIN)
+#dpalm5: BINNAME=$(BIN)
 
 sony: TDIR =nds
-sony: BINNAME=sony-$(BIN)
+#sony: BINNAME=$(BIN)
 
 dsony: TDIR =ds
-dsony: BINNAME=debug-sony-$(BIN)
+#dsony: BINNAME=$(BIN)
 
 cheat: TDIR =dc
-cheat: BINNAME=debug-cheat-$(BIN)
+#cheat: BINNAME=$(BIN)
 
 OBJDIR = out-$(TDIR)
 
@@ -87,7 +90,7 @@ touch.ro: FRC
 
 # Building zip/gz files
 #
-DDIR=pcity-palm_$(VERSION)
+DDIR=PocketCity-palm_$(VERSION)
 
 DISTFILES=../INSTALL ../CHANGELOG ../COPYING ../GAMEHINTS ../README
 
@@ -120,7 +123,7 @@ dist nearlylive: all-nextdir $(NDTARGETS)
 	./generatercp.sh -c $$cols -d $$dens $(STUBS) $@
 
 # The tile databases
-pcity-%.pdb: pcity-%.ro
+$(TILE)-%.pdb: PocketCity-%.ro
 	$(BUILDPRC) --no-check-resources --bundle -o $@ -n $(DBNAME) \
 		-c $(PROGTOKEN) -t $(COLORDBTOKEN) $*.ro
 

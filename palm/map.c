@@ -13,6 +13,8 @@
 #include <Progress.h>
 #include <simcity.h>
 #include <simcity_resconsts.h>
+#include <locking.h>
+#include <logging.h>
 #include <ui.h>
 #include <map.h>
 #include <globals.h>
@@ -238,7 +240,7 @@ RenderMaps(void)
 
 	/* We are on the 'standard' window */
 
-	if (!IsNewROM()) {
+	if (!Is35ROM()) {
 		/* Draw On The Bitmap Using direct write */
 		addr = (UInt8 *)wh->displayAddrV20;
 	}
@@ -271,7 +273,7 @@ RenderMaps(void)
 	}
 
 	for (posits.y = 0; posits.y < getMapHeight(); posits.y++) {
-		if (IsNewROM() && (posits.y & 0xF) == 0xF) {
+		if (Is35ROM() && (posits.y & 0xF) == 0xF) {
 			int prc = (int)(( (long)posits.y * 100 ) /
 			    getMapHeight());
 			StrPrintF(perc, "%d%%", prc);

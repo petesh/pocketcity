@@ -95,7 +95,7 @@ palm_realloc(MemPtr old, UInt32 new_size)
 			return (mh);
 		return (MemHandleLock(mh));
 	}
-	
+
 	mh = MemPtrRecoverHandle(old);
 	MemPtrUnlock(old);
 	MemHandleResize(mh, new_size);
@@ -107,7 +107,7 @@ palm_calloc(UInt32 size, UInt32 count)
 {
 	MemHandle mh;
 	MemPtr mp;
-	
+
 	mh = MemHandleNew(size * count);
 	if (mh == NULL)
 		return (mh);

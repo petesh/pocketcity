@@ -16,7 +16,7 @@
 #include <simcity_resconsts.h>
 #include <simcity.h>
 #include <palmutils.h>
-#include <ui.h>
+#include <logging.h>
 #include <mem_compat.h>
 
 /* included the TRG magic numbers :( */
@@ -93,7 +93,7 @@ getDepth(void)
 		WriteLog("Depth: saved == %ld\n", (long)avd);
 		return (avd);
 	}
-	if (IsNewROM()) {
+	if (Is35ROM()) {
 		(void) _WinScreenMode(winScreenModeGet, NULL, NULL, &avd, NULL);
 	} else {
 		avd = 1;
@@ -174,7 +174,7 @@ changeDepthRes(UInt32 ndepth, Boolean tryHigh)
 		result = _WinScreenMode(winScreenModeSet, &width, &height,
 		    &depth, &enablecol);
 
-#if defined(DEBUG)
+#if defined(LOGGING)
 	if (result != errNone)
 		WriteLog("Could not set resolution to (%d,%d)\n", (int)width,
 		    (int)height);
@@ -240,7 +240,7 @@ GetCreatorID(void)
 	return (PROGTOKEN);
 }
 
-#if defined(DEBUG)
+#if defined(LOGGING)
 
 void
 DangerWillRobinson(char *information, char *file, int line)
@@ -305,7 +305,7 @@ void
 compatBmpGetDimensions(BitmapPtr pBmp, Coord *pWidth, Coord *pHeight,
     UInt16 *pRowBytes)
 {
-	if (IsDirectBmps()) {
+	if (!Is40ROM()) {
 		if (pWidth != NULL) *pWidth = (Coord)pBmp->width;
 		if (pHeight != NULL) *pHeight = (Coord)pBmp->height;
 		if (pRowBytes != NULL) *pRowBytes = pBmp->rowBytes;

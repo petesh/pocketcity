@@ -252,6 +252,8 @@ BEGIN
     "M_TILESMISSING" = "There is no tile database found on this device " \
         "Please add one of the .pdb files and try again"
 
+	"POCKETCITY_DESCRIPTION" = "Pocket City Applications"
+
 	"CASH_SCALE" = " KMBTQ"
 	"EMPTY_LAND" = "Empty Land"
 	"POWER_LINE" = "Power Line"

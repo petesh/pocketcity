@@ -13,7 +13,7 @@
 #include <simcity_resconsts.h>
 #include <savegame.h>
 #include <savegame_be.h>
-#include <ui.h>
+#include <logging.h>
 #include <globals.h>
 #include <zakdef.h>
 #include <drawing.h>
@@ -268,7 +268,7 @@ cnCreateButtonPressed(void)
 			}
 			game.cityname[slen - 1]++;
 		}
-		CreateNewSaveGame((char *)game.cityname);
+		SaveGameByName((char *)game.cityname);
 		CleanSaveGameList();
 		if (LoadGameByName((char *)game.cityname) != -1) {
 			FrmEraseForm(form);

@@ -470,6 +470,8 @@ STRINGTABLE ID strID_Descriptions
     "DESCRIPTION_UNIT_MILITARY"
 
 /* Localizable strings */
+STRING ID pcity_description "POCKETCITY_DESCRIPTION"
+/* Localizable strings */
 STRINGTABLE ID resstrings_base
 	""
 	"CASH_SCALE"

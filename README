@@ -15,20 +15,16 @@ To compile for PalmOS:
  
  install:               for this:
 
- pcity-EN.prc		pocketcity in english
- hires-pcity-EN.prc	pocketcity in english for high resolution (sony)
+ PocketCity-EN.prc		pocketcity in english
+ PocketCity-sony-EN.prc	pocketcity in english for high resolution (sony)
  
  		--- but also install one of:
- pcity-bw.pdb		black/white displays
- pcity-grey.pdb         16 greyscale displays (like the Vx)
- pcity-color.pdb        256 color displays    (like the IIIc)
- pcity-merged.pdb       can be used on b/w, grey & color devices
+ PocketCity-bw-single.pdb		black/white displays
+ PocketCity-grey-single.pdb         16 greyscale displays (like the Vx)
+ PocketCity-color-single.pdb        256 color displays    (like the IIIc)
+ PocketCity-merged-single.pdb       can be used on b/w, grey & color devices
 
  to actually use the game; they contain the tiles.
-
-To compile for GTK+ (Linux):
- type `make` in the 'linux-gtk' folder
- then run the game with `./pcity`
 
 Special Features:
 =================
@@ -41,7 +37,14 @@ Keys/strokes
              Use the hardware keys for scrolling (up/down/phone/todo)
              Tap the "calculator" button on the silk screen for shortcuts
 
-Sony Devices:
+Palm OS 5 devices:
+==================
+  * 5 way navigation support
+  * High Resolution
+  * Soft Silk
+
+Sony Devices (4 and 5):
+=============
   * Jog dial scrolls the map
   * High Resolution where available (layout changes)
   * Using the hold switch pauses the game.
@@ -50,6 +53,6 @@ PalmOS 3.1:
 ===========
 The game _does_ run on 3.1 devices, but some features are disabled:
  * The map won't be shown, but you can still use it to scroll around quickly
- * The "calculator" quicklist are not availble. You will get the full list
-   instead
+ * The "calculator" quicklist is not availble. You will get the full 'choose
+   item list' instead.
  

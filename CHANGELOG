@@ -20,7 +20,7 @@ Version 0.17dev
   + Minimap for the Palm Platform (scrolling)
   + Desires levels now displayed
   + reduce memory requirements for savegames
-  + Beaming Support
+  + Beaming Support (To/From Palm machines, To Linux (currently))
   * Fix annoying winScreenLock issue
   * 818171 Hard Crash on Sony Clie SL10
   * 818172 Index out of range (0.16)
