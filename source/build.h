@@ -7,14 +7,16 @@
 #define BUILD_POWER_PLANT           5
 #define BUILD_NUCLEAR_PLANT         6
 #define BUILD_POWER_LINE            7
-#define BUILD_TREE                  8
-#define BUILD_WATER                 9
+
+#define BUILD_WATER_PUMP            8
+#define BUILD_WATER_PIPE            9
+
+#define BUILD_TREE                  10
+#define BUILD_WATER                 11
 // these are "extras"
-#define BUILD_FIRE_STATION          10
-#define BUILD_POLICE_STATION        11
-#define BUILD_MILITARY_BASE         12
-#define BUILD_WATER_PIPE            13
-#define BUILD_WATER_PUMP            14
+#define BUILD_FIRE_STATION          12
+#define BUILD_POLICE_STATION        13
+#define BUILD_MILITARY_BASE         14
 
 #define BUILD_DEFENCE_FIRE          250
 #define BUILD_DEFENCE_POLICE        251

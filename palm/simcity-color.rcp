@@ -16,9 +16,14 @@ BITMAPCOLOR ID bitmapID_iconRoad            "graphic/icons-color/road.bmp"      
 BITMAPCOLOR ID bitmapID_iconPowerPlant      "graphic/icons-color/powerplant.bmp"   COMPRESS
 BITMAPCOLOR ID bitmapID_iconNuclear         "graphic/icons-color/nuclear.bmp"      COMPRESS
 BITMAPCOLOR ID bitmapID_iconPowerline       "graphic/icons-color/powerline.bmp"    COMPRESS
+
+BITMAPCOLOR ID bitmapID_iconWaterPlant      "graphic/icons-color/waterplant.bmp"   COMPRESS
+BITMAPCOLOR ID bitmapID_iconWaterPipe       "graphic/icons-color/waterpipe.bmp"    COMPRESS
+
 BITMAPCOLOR ID bitmapID_iconTree            "graphic/icons-color/tree.bmp"         COMPRESS
 BITMAPCOLOR ID bitmapID_iconWater           "graphic/icons-color/water.bmp"        COMPRESS
 BITMAPCOLOR ID bitmapID_iconExtra           "graphic/icons-color/extra.bmp"        COMPRESS
+
 BITMAPCOLOR ID bitmapID_iconDefFire         "graphic/icons-color/def_firemen.bmp"        COMPRESS
 BITMAPCOLOR ID bitmapID_iconDefPolice       "graphic/icons-color/def_police.bmp"        COMPRESS
 BITMAPCOLOR ID bitmapID_iconDefMilitary     "graphic/icons-color/def_military.bmp"        COMPRESS

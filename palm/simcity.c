@@ -646,7 +646,7 @@ void UIDoQuickList(void)
         ftList = FrmInitForm(formID_quickList);
         FrmSetEventHandler(ftList, hQuickList);
         nSelectedBuildItem = FrmDoDialog(ftList) - menuitemID_buildBulldoze;
-        if (nSelectedBuildItem == 10)
+        if (nSelectedBuildItem == OFFSET_EXTRA)
             UIPopUpExtraBuildList();
         UIUpdateBuildIcon();
         FrmDeleteForm(ftList);
@@ -1222,16 +1222,17 @@ extern void UIDrawLoc(void)
     UIDrawItem(POSITIONLOC, temp);
 }
 
-extern void UIUpdateBuildIcon(void)
+extern void
+UIUpdateBuildIcon(void)
 {
     MemHandle bitmaphandle;
     BitmapPtr bitmap;
     if (DoDrawing == 0) { return; }
 
     bitmaphandle = DmGet1Resource(TBMP,bitmapID_iconBulldoze +
-            ((nSelectedBuildItem <= 9 ||
+            ((nSelectedBuildItem < OFFSET_EXTRA ||
               (nSelectedBuildItem >= 250 && nSelectedBuildItem <= 252)) ?
-             nSelectedBuildItem : 10));
+             nSelectedBuildItem : OFFSET_EXTRA));
     if (bitmaphandle == NULL) { return; } // TODO: onscreen error? +save?
     bitmap = MemHandleLock(bitmaphandle);
     _WinDrawBitmap(bitmap, 2, 2);

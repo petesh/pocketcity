@@ -48,12 +48,18 @@ extern void UIWriteLog(char * s);
 #define menuitemID_buildCommercial       1102
 #define menuitemID_buildIndustrial       1103
 #define menuitemID_buildRoad             1104
+
 #define menuitemID_buildPowerPlant       1105
 #define menuitemID_buildNuclearPlant     1106
 #define menuitemID_buildPowerLine        1107
-#define menuitemID_buildTree             1108
-#define menuitemID_buildWater            1109
-#define menuitemID_buildExtra            1110 // pops up an extra list
+
+#define menuitemID_buildWaterPlant       1108
+#define menuitemID_buildWaterPipe        1109
+
+#define menuitemID_buildTree             1110
+#define menuitemID_buildWater            1111
+#define menuitemID_buildExtra            1112 // pops up an extra list
+#define OFFSET_EXTRA                    12 // the extra for the offset
 
 #define menuitemID_defenceFire           1350 // equals to 250
 #define menuitemID_defencePolice         1351 // 251
@@ -68,9 +74,14 @@ extern void UIWriteLog(char * s);
 #define bitmapID_iconPowerPlant          1105
 #define bitmapID_iconNuclear             1106
 #define bitmapID_iconPowerline           1107
-#define bitmapID_iconTree                1108
-#define bitmapID_iconWater               1109
-#define bitmapID_iconExtra               1110
+
+#define bitmapID_iconWaterPlant          1108
+#define bitmapID_iconWaterPipe           1109
+
+#define bitmapID_iconTree                1110
+#define bitmapID_iconWater               1111
+#define bitmapID_iconExtra               1112
+
 #define bitmapID_iconDefFire             1350
 #define bitmapID_iconDefPolice           1351
 #define bitmapID_iconDefMilitary         1352
