@@ -19,7 +19,7 @@ void * worldFlagsPtr;
 GdkPixmap *zones,*monsters,*units;
 GdkBitmap *zones_mask,*monsters_mask,*units_mask;
 unsigned char selectedBuildItem = 0;
-unsigned char drawing = 0;
+static GStaticMutex drawingmutex;
 
 
 void SetUpMainWindow(void);
@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
     gint timerID;
     gtk_init (&argc, &argv);
     srand(time(0));
+    g_static_mutex_init(&drawingmutex);
 
     SetUpMainWindow();
     // start the timer
@@ -56,19 +57,17 @@ gint mainloop_callback(gpointer data)
     if (timekeeperdisaster >= SIM_GAME_LOOP_DISASTER) {
         MoveAllObjects();
         if (UpdateDisasters()) {
-            g_print("Redrawing fields because of updatedisaster\n");
-            RedrawAllFields();
+            gtk_widget_queue_draw(drawingarea);
         }
     }
     
-    if (timekeeper >= game.gameLoopSeconds) {
+    if (timekeeper >= game.gameLoopSeconds || 1) {
         g_print("A month has gone by - total months: %lu\n", game.TimeElapsed);
         timekeeper = 0;
         do {
             phase = Sim_DoPhase(phase);
         } while (phase != 0);
-        g_print("Redrawing fields because of monthloop\n");
-        RedrawAllFields();
+        gtk_widget_queue_draw(drawingarea);
     }
 
     return TRUE; // yes, call us again in a sec
@@ -298,13 +297,11 @@ extern int UIDisplayError(int nError)
 extern void UIInitDrawing(void)
 {
     // not used for this platform
-    drawing = 1;
 }
 
 extern void UIFinishDrawing(void)
 {
     // not used for this platform
-    drawing = 0;
 }
 
 extern void UIUnlockScreen(void)
@@ -371,7 +368,6 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
             ypos*game.tileSize,
             game.tileSize,
             game.tileSize);
-
 }
 
 extern void UIDrawSpecialObject(int i, int xpos, int ypos)
