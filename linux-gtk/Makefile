@@ -10,13 +10,13 @@ OBJECTS = main.o savegame.o budget.o \
 
 .PHONY: all debug clean
 
-all: pcity
+all: pocketcity
 
 debug: CFLAGS += -g -DDEBUG
 debug: all
 
-pcity: $(OBJECTS)
-	$(CC) $(CFLAGS) $(LFLAGS) $(OBJECTS) -o pcity
+pocketcity: $(OBJECTS)
+	$(CC) $(CFLAGS) $(LFLAGS) $(OBJECTS) -o $@
 
 %.o: %.c %.h ../source/zakdef.h ../source/ui.h
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -25,16 +25,16 @@ pcity: $(OBJECTS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.o pcity core*
+	rm -f *.o pocketcity core*
 
 clobber:
 	rm -f *.o core*
 
-DDIR=pcity-linux-GTK_$(VERSION)
+DDIR=pocketcity-linux-GTK_$(VERSION)
 
 dist:
 	@mkdir -p $(DDIR)
-	@cp ../Changelog ../Copying ../Gamehints ../Readme pcity $(DDIR)
+	@cp ../Changelog ../Copying ../Gamehints ../Readme pocketcity $(DDIR)
 	@mkdir -p $(DDIR)/graphic/icons
 	@cp graphic/*.xpm $(DDIR)/graphic
 	@cp graphic/icons/*.xpm $(DDIR)/graphic/icons

@@ -296,7 +296,7 @@ void SetUpMainWindow(void)
             if (actions[i].entry == -1) { continue; }
             
             button = gtk_button_new();
-            sprintf(image_path,"graphic/icons/interface_%02i.xpm",i);
+            sprintf(image_path,"graphic/icons/interface_%02i.png",i);
             button_image = gtk_image_new_from_file(image_path);
             gtk_container_add(GTK_CONTAINER(button), button_image);
             gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), button, actions[i].text,
@@ -341,15 +341,15 @@ void UISetUpGraphic(void)
     zones_bitmap = gdk_pixmap_create_from_xpm(drawingarea->window,
                                        &zones_mask,
                                        NULL,
-                                       "graphic/zones_16x16-color.xpm");
+                                       "graphic/zones_16x16-color.png");
     monsters = gdk_pixmap_create_from_xpm(drawingarea->window,
                                        &monsters_mask,
                                        NULL,
-                                       "graphic/monsters_16x16-color.xpm");
+                                       "graphic/monsters_16x16-color.png");
     units = gdk_pixmap_create_from_xpm(drawingarea->window,
                                        &units_mask,
                                        NULL,
-                                       "graphic/units_16x16-color.xpm");
+                                       "graphic/units_16x16-color.png");
 }
 
 
