@@ -5,11 +5,6 @@
 
 unsigned char GetGraphicNumber(long unsigned int pos);
 
-int CarryPower(unsigned char x);
-int IsRoad(unsigned char x);
-int IsPowerLine(unsigned char x);
-
-
 void SetUpGraphic(void)
 {
     UISetUpGraphic();
@@ -174,6 +169,10 @@ extern void DrawFieldWithoutInit(int xpos, int ypos)
     if ((GetWorldFlags(WORLDPOS(xpos,ypos)) & 0x01) == 0 && CarryPower(GetWorld(WORLDPOS(xpos, ypos)))) {
         UIDrawPowerLoss(xpos-game.map_xpos, ypos-game.map_ypos);
     }
+    
+    if ((GetWorldFlags(WORLDPOS(xpos,ypos)) & 0x04) == 0 && CarryWater(GetWorld(WORLDPOS(xpos, ypos)))) {
+        UIDrawWaterLoss(xpos-game.map_xpos, ypos-game.map_ypos);
+    }
 
     if (xpos == game.cursor_xpos && ypos == game.cursor_ypos) {
         UIDrawCursor(game.cursor_xpos-game.map_xpos, game.cursor_ypos-game.map_ypos);
@@ -203,13 +202,16 @@ unsigned char GetGraphicNumber(long unsigned int pos)
     LockWorld();
     retval = GetWorld(pos);
     switch (retval) {
-        case 4:    // special case: roads
+        case TYPE_ROAD:    // special case: roads
             retval = GetSpecialGraphicNumber(pos, 0);
             break;
-        case 5:     // special case: power line
+        case TYPE_POWER_LINE:     // special case: power line
             retval = GetSpecialGraphicNumber(pos,1);
             break;
-        case 81:     // special case: bridge
+        case TYPE_WATER_PIPE:
+            retval = GetSpecialGraphicNumber(pos,3);
+            break;            
+        case TYPE_BRIDGE:     // special case: bridge
             retval = GetSpecialGraphicNumber(pos,2);
             break;
         default:
@@ -217,13 +219,15 @@ unsigned char GetGraphicNumber(long unsigned int pos)
     }
     UnlockWorld();
     return retval;
-
 }
-
-
 
 extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
 {
+    /* type: 0 = road
+     *       1 = power line
+     *       2 = bridge
+     *       3 = water pipe
+     */
     int a=0,b=0,c=0,d=0;
     int nAddMe = 0;
 
@@ -244,6 +248,13 @@ extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
             if (pos % game.mapsize < game.mapsize-1)            { b = CarryPower(GetWorld(pos+1));            }
             if (pos % game.mapsize > 0)                         { d = CarryPower(GetWorld(pos-1));            }
             nAddMe = 70;
+            break;
+        case 3: // water pipe
+            if (pos >= game.mapsize)                            { a = CarryWater(GetWorld(pos-game.mapsize)); }
+            if (pos < (game.mapsize*game.mapsize)-game.mapsize) { c = CarryWater(GetWorld(pos+game.mapsize)); }
+            if (pos % game.mapsize < game.mapsize-1)            { b = CarryWater(GetWorld(pos+1));            }
+            if (pos % game.mapsize > 0)                         { d = CarryWater(GetWorld(pos-1));            }
+            nAddMe = 92;
             break;
         default:
             return 0;
@@ -268,8 +279,9 @@ extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
 
 /* some small usefull functions */
 extern int CarryPower(unsigned char x)         { return ((x)>=1&&(x)<=7&&(x)!=4) || ((x)>=23&&(x)<=61)  ?1:0; }
+extern int CarryWater(unsigned char x)         { return ((x)>=1&&(x)<=3)||((x)>=23&&(x)<=61)||(x)==68||(x)==69||(x)==8?1:0; }
 extern int IsPowerLine(unsigned char x)        { return ((x)>=5 && (x)<=7)  ?1:0; }
-extern int IsRoad(unsigned char x)             { return ((x)==4 || (x)==6 || (x)==7 || (x)==81)  ?1:0; }
+extern int IsRoad(unsigned char x)             { return ((x)==4||(x)==6||(x)==7||(x)==68||(x)==69||(x)==81)  ?1:0; }
 
 extern int IsZone(unsigned char x, int nType)
 {

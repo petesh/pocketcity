@@ -35,15 +35,21 @@
 #define ZONE_COMMERCIAL         1
 #define ZONE_RESIDENTIAL        2
 #define ZONE_INDUSTRIAL         3
-#define TYPE_ROAD               4
-#define TYPE_POWER_LINE         5
+
+#define TYPE_ROAD               4 // these might be used here, but
+#define TYPE_POWER_LINE         5 // the graphic slot is still free for other uses
+#define TYPE_WATER_PIPE         8 // and are used for the water/powerloss overlay
+#define TYPE_NOT_USED           9 // at the moment
+
 #define TYPE_POWERROAD_1        6
 #define TYPE_POWERROAD_2        7
+
 #define TYPE_TREE               21
 #define TYPE_WATER              22
 #define TYPE_FIRE_STATION       23
 #define TYPE_POLICE_STATION     24
 #define TYPE_MILITARY_BASE      25
+#define TYPE_WATER_PUMP         26
 #define TYPE_POWER_PLANT        60
 #define TYPE_NUCLEAR_PLANT      61
 #define TYPE_WASTE              62
@@ -52,6 +58,8 @@
 #define TYPE_FIRE3              65
 #define TYPE_REAL_WATER         66
 #define TYPE_CRATER             67
+#define TYPE_WATERROAD_1        68
+#define TYPE_WATERROAD_2        69
 #define TYPE_BRIDGE             81
 
 /* defines for the BuildCount[] array
@@ -70,6 +78,8 @@
 #define COUNT_FIRE_STATIONS    11
 #define COUNT_POLICE_STATIONS  12
 #define COUNT_MILITARY_BASES   13
+#define COUNT_WATERPIPES       14
+#define COUNT_WATER_PUMPS      15
 
 
 //income pr. zone/level

@@ -13,6 +13,8 @@
 #define BUILD_FIRE_STATION          10
 #define BUILD_POLICE_STATION        11
 #define BUILD_MILITARY_BASE         12
+#define BUILD_WATER_PIPE            13
+#define BUILD_WATER_PUMP            14
 
 #define BUILD_DEFENCE_FIRE          250
 #define BUILD_DEFENCE_POLICE        251
@@ -32,7 +34,8 @@
 #define BUILD_COST_FIRE_STATION     700
 #define BUILD_COST_POLICE_STATION   500
 #define BUILD_COST_MILITARY_BASE    10000
-
+#define BUILD_COST_WATER_PIPES      20
+#define BUILD_COST_WATER_PUMP       3000
 
 extern void BuildSomething(int xpos, int ypos);
 extern void Build_Bulldoze(int xpos, int ypos);

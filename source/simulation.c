@@ -7,14 +7,17 @@
 #include "disaster.h"
 
 int powerleft=0;
+char distributetype = 0;
 
-
-void PowerMoveOnFromThisPoint(unsigned long pos);
+void DistributeMoveOnFromThisPoint(unsigned long pos);
 void DoTaxes(void);
 void DoUpkeep(void);
-unsigned long PowerMoveOn(unsigned long pos, int direction);
-int PowerNumberOfSquaresAround(unsigned long pos);
-int PowerFieldCanCarry(unsigned long pos);
+unsigned long DistributeMoveOn(unsigned long pos, int direction);
+int DistributeNumberOfSquaresAround(unsigned long pos);
+int DistributeFieldCanCarry(unsigned long pos);
+
+int ExistsNextto(unsigned long int pos, unsigned char what);
+
 void UpgradeZones(void);
 void UpgradeZone(long unsigned pos);
 void DowngradeZone(long unsigned pos);
@@ -37,7 +40,7 @@ int FindScoreForZones(void);
  *  8765 4321
  *  |||| |||`- 1 = this tile is powered
  *  |||| ||`-- used as a marked for "already been here" in several routines
- *  |||| |`--- 
+ *  |||| |`--- 1 = this tile is watered
  *  |||| `----
  *  |||`------
  *  ||`-------
@@ -50,9 +53,9 @@ int FindScoreForZones(void);
  *  10k larger (that's A LOT ;)
  *  
  *  How to recreate:
- *  1: call Sim_DistributePower()
+ *  1: call Sim_Distribute(0)
  *  2: no need (only used as a temporary var)
- *  3:
+ *  3: call Sim_Distribute(1)
  *  4:
  *  5:
  *  6:
@@ -60,21 +63,27 @@ int FindScoreForZones(void);
  *  8:
  */
 
-extern void Sim_DistributePower(void)
+extern void Sim_Distribute(char type)
 {
+    // type == 0: power
+    // type == 1: water
     unsigned long i,j;
+    distributetype = type;
 
     // reset powergrid - ie, clear flags 1 & 2
+    // or flags 1 & 3 for watergrid
     LockWorldFlags();
-    for (j=0; j<game.mapsize*game.mapsize; j++) { SetWorldFlags(j, GetWorldFlags(j) & 0xfc); }
+    for (j=0; j<game.mapsize*game.mapsize; j++) { SetWorldFlags(j, GetWorldFlags(j) & (type==0?0xfc:0xf9)); }
 
     // Step 1: Find all the powerplants and move out from there
     LockWorld(); // this lock locks for ALL power subs
     for (i=0; i<game.mapsize*game.mapsize; i++) {
-        if (GetWorld(i) == TYPE_POWER_PLANT || GetWorld(i) == TYPE_NUCLEAR_PLANT) { // is this a powerplant?
-            if ((GetWorldFlags(i) & 0x01) == 0) { // have we already processed this powerplant?
+        if (GetWorld(i) == TYPE_POWER_PLANT 
+                || GetWorld(i) == TYPE_NUCLEAR_PLANT
+                || GetWorld(i) == TYPE_WATER_PUMP) { // is this a source?
+            if ((GetWorldFlags(i) & (type==0?0x1:0x4)) == 0) { // have we already processed this source?
                 powerleft=0;
-                PowerMoveOnFromThisPoint(i);
+                DistributeMoveOnFromThisPoint(i);
                 for (j=0; j<game.mapsize*game.mapsize; j++) {
                     SetWorldFlags(j, GetWorldFlags(j) & 0xfd); 
                 }
@@ -85,7 +94,7 @@ extern void Sim_DistributePower(void)
     UnlockWorldFlags();
 }
 
-void PowerMoveOnFromThisPoint(unsigned long pos)
+void DistributeMoveOnFromThisPoint(unsigned long pos)
 {
     // a recursive function
     // pos: here we start, all fields will be powered from here
@@ -93,28 +102,32 @@ void PowerMoveOnFromThisPoint(unsigned long pos)
     char direction = 0;
 
     do {
-        if ((GetWorldFlags(pos) & 0x01) == 0) {
+        if (((GetWorldFlags(pos) & 0x01) == 0 && distributetype == 0) ||
+            ((GetWorldFlags(pos) & 0x04) == 0 && distributetype == 1)) {
             /* if this field hasn't been powered, we need to "use" some power
              * to move further along
              * notice that the powerplantchecks are here, to avoid them from
              * giving their power everytime we hit one
              */
             powerleft--;
-            if (GetWorld(pos) == TYPE_POWER_PLANT)   { powerleft += 100; } // if this is a plant 
-            if (GetWorld(pos) == TYPE_NUCLEAR_PLANT) { powerleft += 300; } // we get more power
-        }
+            if (GetWorld(pos) == TYPE_POWER_PLANT && distributetype==0)   { powerleft += 100; } // if this is a plant 
+            if (GetWorld(pos) == TYPE_NUCLEAR_PLANT && distributetype==0) { powerleft += 300; } // we get more power
 
-        // now, set the two flags, to indicate
-        // 1: we've been here (look 4 lines above)
-        // 2: this field is now powered
-        SetWorldFlags(pos, GetWorldFlags(pos) | 0x03); 
+            if (GetWorld(pos) == TYPE_WATER_PUMP && distributetype==1 
+                && (GetWorldFlags(pos)&1)==1 && ExistsNextto(pos,TYPE_REAL_WATER))  { powerleft += 200; } // pumps need power and REAL_WATER
+        }
 
         // do we have more power left?
         if (powerleft < 1) { powerleft = 0; return; }
+        // now, set the two flags, to indicate
+        // 1: we've been here (look 4 lines above)
+        // 2: this field is now powered
+        SetWorldFlags(pos, GetWorldFlags(pos) | (distributetype==0?0x3:0x6)); 
+
 
         // find the possible ways we can move on from here
         // se the function for the "strange" returned bitfield
-        cross = PowerNumberOfSquaresAround(pos);
+        cross = DistributeNumberOfSquaresAround(pos);
 
         // if there's "no way out", return
         if ((cross & 0x0f) == 0) { return; }
@@ -127,32 +140,33 @@ void PowerMoveOnFromThisPoint(unsigned long pos)
             else if ((cross & 0x40) == 0x40) { direction = 2; }
             else if ((cross & 0x80) == 0x80) { direction = 3; }
         } else {
-            // we are at a power section
+            // we are at a crossway
             // initiate some recursive functions from here ;)
-            if ((cross & 0x10) == 0x10) { PowerMoveOnFromThisPoint(pos-game.mapsize); }
-            if ((cross & 0x20) == 0x20) { PowerMoveOnFromThisPoint(pos+1); }
-            if ((cross & 0x40) == 0x40) { PowerMoveOnFromThisPoint(pos+game.mapsize); }
-            if ((cross & 0x80) == 0x80) { PowerMoveOnFromThisPoint(pos-1); }
+            if ((cross & 0x10) == 0x10) { DistributeMoveOnFromThisPoint(pos-game.mapsize); }
+            if ((cross & 0x20) == 0x20) { DistributeMoveOnFromThisPoint(pos+1); }
+            if ((cross & 0x40) == 0x40) { DistributeMoveOnFromThisPoint(pos+game.mapsize); }
+            if ((cross & 0x80) == 0x80) { DistributeMoveOnFromThisPoint(pos-1); }
             return;
         }
 
         // and finally, update our new position
-        pos = PowerMoveOn(pos, direction);
+        pos = DistributeMoveOn(pos, direction);
 
-    } while (PowerFieldCanCarry(pos));
+    } while (DistributeFieldCanCarry(pos));
 }
 
 // note that this function is used internally in the power distribution
 // routine. Therefore it will return false for tiles we've already been at,
 // to avoid backtracking the route we came from.
-int PowerFieldCanCarry(unsigned long pos)
+int DistributeFieldCanCarry(unsigned long pos)
 {
-    if ((GetWorldFlags(pos) & 0x02) == 0x02) { return 0; } // allready been here with this plant
-    return CarryPower(GetWorld(pos));
+    if ((GetWorldFlags(pos) & 0x02) == 0x02 && distributetype==0) { return 0; } // allready been here with this plant
+    if ((GetWorldFlags(pos) & 0x04) == 0x04 && distributetype==1) { return 0; } // allready been here with this plant
+    return distributetype==0?CarryPower(GetWorld(pos)):CarryWater(GetWorld(pos));
 }
 
 // gives a status of the situation around us
-int PowerNumberOfSquaresAround(unsigned long pos)
+int DistributeNumberOfSquaresAround(unsigned long pos)
 {
     // return:
     // 0001 00xx if up
@@ -167,10 +181,10 @@ int PowerNumberOfSquaresAround(unsigned long pos)
     char retval=0;
     char number=0;
 
-    if (PowerFieldCanCarry(PowerMoveOn(pos, 0))) { retval |= 0x10; number++; }
-    if (PowerFieldCanCarry(PowerMoveOn(pos, 1))) { retval |= 0x20; number++; }
-    if (PowerFieldCanCarry(PowerMoveOn(pos, 2))) { retval |= 0x40; number++; }
-    if (PowerFieldCanCarry(PowerMoveOn(pos, 3))) { retval |= 0x80; number++; }
+    if (DistributeFieldCanCarry(DistributeMoveOn(pos, 0))) { retval |= 0x10; number++; }
+    if (DistributeFieldCanCarry(DistributeMoveOn(pos, 1))) { retval |= 0x20; number++; }
+    if (DistributeFieldCanCarry(DistributeMoveOn(pos, 2))) { retval |= 0x40; number++; }
+    if (DistributeFieldCanCarry(DistributeMoveOn(pos, 3))) { retval |= 0x80; number++; }
 
     retval |= number;
 
@@ -182,7 +196,7 @@ int PowerNumberOfSquaresAround(unsigned long pos)
  * moves the position in the direction, but won't move
  * behind map borders 
  */
-unsigned long PowerMoveOn(unsigned long pos, int direction)
+unsigned long DistributeMoveOn(unsigned long pos, int direction)
 {
     switch (direction) {
         case 0: // up
@@ -204,6 +218,17 @@ unsigned long PowerMoveOn(unsigned long pos, int direction)
     }
     return pos;
 }
+
+int ExistsNextto(unsigned long int pos, unsigned char what)
+{
+    if (GetWorld(pos-game.mapsize)==what && !(pos < game.mapsize)) { return 1; }
+    if (GetWorld(pos+1)==what && !((pos+1) >= game.mapsize*game.mapsize)) { return 1; }
+    if (GetWorld(pos+game.mapsize)==what && !((pos+game.mapsize) >= game.mapsize*game.mapsize)) { return 1; }
+    if (GetWorld(pos-1)==what && pos != 0) { return 1; }
+    return 0;
+}
+
+
 
 ////////// Zones upgrade/downgrade //////////
 
@@ -381,6 +406,7 @@ void UpgradeZone(long unsigned pos)
 
 
 
+
 int DoTheRoadTrip(long unsigned int startPos)
 {
     return 1; // for now
@@ -404,6 +430,8 @@ signed long GetZoneScore(long unsigned int pos)
 
     LockWorldFlags();
     if ((GetWorldFlags(pos) & 0x01) == 0) { UnlockWorldFlags(); UnlockWorld(); return -1; } // whoops, no power
+    if ((GetWorldFlags(pos) & 0x04) == 0) { UnlockWorldFlags(); UnlockWorld(); return -1; } // or no water :/  
+    
     UnlockWorldFlags();
 
     if (type != ZONE_RESIDENTIAL)  {
@@ -566,35 +594,43 @@ extern int Sim_DoPhase(int nPhase)
         case 1:
             if (updatePowerGrid != 0) {
                 UIWriteLog("Simulation phase 1 - power grid\n");
-                Sim_DistributePower();
+                Sim_Distribute(0);
                 updatePowerGrid = 0;
             }
             nPhase =2;
             break;
         case 2:
-            UIWriteLog("Simulation phase 2 - Find zones for upgrading\n");
-            FindZonesForUpgrading();
-            nPhase=3;
-            UIWriteLog("Simulation phase 3 - Find score for zones\n"); // this couldn't be below
+            if (updateWaterGrid != 0) {
+                UIWriteLog("Simulation phase 2 - water grid\n");
+                Sim_Distribute(1);
+                updateWaterGrid = 0;
+            }
+            nPhase = 3;
             break;
         case 3:
-            if (FindScoreForZones() == 0) {
-                nPhase=4;
-            }
+            UIWriteLog("Simulation phase 3 - Find zones for upgrading\n");
+            FindZonesForUpgrading();
+            nPhase=4;
+            UIWriteLog("Simulation phase 4 - Find score for zones\n"); // this couldn't be below
             break;
         case 4:
-            UIWriteLog("Simulation phase 4 - Upgrade Zones\n");
-            UpgradeZones();
-            nPhase=5;
+            if (FindScoreForZones() == 0) {
+                nPhase=5;
+            }
             break;
         case 5:
-            UIWriteLog("Simulation phase 5 - Update disasters\n");
-//            UpdateDisasters();
-            DoRandomDisaster();
-            nPhase = 6;
+            UIWriteLog("Simulation phase 5 - Upgrade Zones\n");
+            UpgradeZones();
+            nPhase=6;
             break;
         case 6:
-            UIWriteLog("Simulation phase 6 - Economics\n");
+            UIWriteLog("Simulation phase 6 - Update disasters\n");
+//            UpdateDisasters();
+            DoRandomDisaster();
+            nPhase = 7;
+            break;
+        case 7:
+            UIWriteLog("Simulation phase 7 - Economics\n");
             DoTaxes();
             game.TimeElapsed++;
             nPhase=0;

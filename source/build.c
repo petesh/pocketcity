@@ -9,6 +9,7 @@
 
 void Build_Road(int xpos, int ypos);
 void Build_PowerLine(int xpos, int ypos);
+void Build_WaterPipe(int xpos, int ypos);
 void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nType);
 void Build_Defence(int xpos, int ypos, int type);
 void CreateForest(long unsigned int pos, int size);
@@ -22,33 +23,44 @@ extern void BuildSomething(int xpos, int ypos)
         case BUILD_BULLDOZER:
             Build_Bulldoze(xpos, ypos);
             updatePowerGrid = 1;
+            updateWaterGrid = 1;
             break;
         case BUILD_ZONE_RESIDENTIAL:
             Build_Generic(xpos, ypos, BUILD_COST_ZONE, ZONE_RESIDENTIAL);
             updatePowerGrid = 1;
+            updateWaterGrid = 1;
             break;
         case BUILD_ZONE_COMMERCIAL:
             Build_Generic(xpos, ypos, BUILD_COST_ZONE, ZONE_COMMERCIAL);
             updatePowerGrid = 1;
+            updateWaterGrid = 1;
             break;
         case BUILD_ZONE_INDUSTRIAL:
             Build_Generic(xpos, ypos, BUILD_COST_ZONE, ZONE_INDUSTRIAL);
             updatePowerGrid = 1;
+            updateWaterGrid = 1;
             break;
         case BUILD_ROAD:
             Build_Road(xpos, ypos);
             break;
+        case BUILD_WATER_PIPE:
+            Build_WaterPipe(xpos, ypos);
+            updateWaterGrid = 1;
+            break;
         case BUILD_POWER_LINE:
             Build_PowerLine(xpos, ypos);
             updatePowerGrid = 1;
+            updateWaterGrid = 1;
             break;
         case BUILD_POWER_PLANT:
             Build_Generic(xpos, ypos, BUILD_COST_POWER_PLANT, TYPE_POWER_PLANT);
             updatePowerGrid = 1;
+            updateWaterGrid = 1;
             break;
         case BUILD_NUCLEAR_PLANT:
             Build_Generic(xpos, ypos, BUILD_COST_NUCLEAR_PLANT, TYPE_NUCLEAR_PLANT);
             updatePowerGrid = 1;
+            updateWaterGrid = 1;
             break;
         case BUILD_WATER:
             Build_Generic(xpos, ypos, BUILD_COST_WATER, TYPE_WATER);
@@ -58,12 +70,23 @@ extern void BuildSomething(int xpos, int ypos)
             break;
         case BUILD_FIRE_STATION:
             Build_Generic(xpos, ypos, BUILD_COST_FIRE_STATION, TYPE_FIRE_STATION);
+            updatePowerGrid = 1;
+            updateWaterGrid = 1;
             break;
         case BUILD_POLICE_STATION:
             Build_Generic(xpos, ypos, BUILD_COST_POLICE_STATION, TYPE_POLICE_STATION);
+            updatePowerGrid = 1;
+            updateWaterGrid = 1;
             break;
         case BUILD_MILITARY_BASE:
             Build_Generic(xpos, ypos, BUILD_COST_MILITARY_BASE, TYPE_MILITARY_BASE);
+            updatePowerGrid = 1;
+            updateWaterGrid = 1;
+            break;
+        case BUILD_WATER_PUMP:
+            Build_Generic(xpos, ypos, BUILD_COST_WATER_PUMP, TYPE_WATER_PUMP);
+            updatePowerGrid = 1;
+            updateWaterGrid = 1;
             break;
         case BUILD_DEFENCE_FIRE:     // fall through
         case BUILD_DEFENCE_POLICE:   // fall through
@@ -202,10 +225,13 @@ extern void Build_Destroy(int xpos, int ypos)
     game.BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE1);
     game.BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE2);
     game.BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE3);
+    game.BuildCount[COUNT_WATERPIPES] -= ((type == TYPE_WATER_PIPE) || (type == TYPE_WATERROAD_1) || (type == TYPE_WATERROAD_2));
     game.BuildCount[COUNT_FIRE_STATIONS] -= (type == TYPE_FIRE_STATION);
     game.BuildCount[COUNT_POLICE_STATIONS] -= (type == TYPE_POLICE_STATION);
     game.BuildCount[COUNT_MILITARY_BASES] -= (type == TYPE_MILITARY_BASE);
+    game.BuildCount[COUNT_WATER_PUMPS] -= (type == TYPE_WATER_PUMP);
     updatePowerGrid = 1; // to make sure the powergrid is uptodate
+    updateWaterGrid = 1;
     if (type == TYPE_BRIDGE || type == TYPE_REAL_WATER) {
         // A bridge turns into real_water when detroyed
         SetWorld(WORLDPOS(xpos,ypos),TYPE_REAL_WATER);
@@ -234,6 +260,7 @@ void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nT
             game.BuildCount[COUNT_FIRE_STATIONS] += (nType == TYPE_FIRE_STATION);
             game.BuildCount[COUNT_POLICE_STATIONS] += (nType == TYPE_POLICE_STATION);
             game.BuildCount[COUNT_MILITARY_BASES] += (nType == TYPE_MILITARY_BASE);
+            game.BuildCount[COUNT_WATER_PUMPS] += (nType == TYPE_WATER_PUMP);
         } else {
             UIDisplayError(ERROR_OUT_OF_MONEY);
         }
@@ -268,7 +295,26 @@ void Build_Road(int xpos, int ypos)
                     UIDisplayError(ERROR_OUT_OF_MONEY);
                 }
                 break;
-            default:
+        }
+    } else if (old == TYPE_WATER_PIPE) {
+        switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),3)) { 
+            case 92: // straight water pipe, we can build here
+                if (SpendMoney(BUILD_COST_ROAD)) {
+                    SetWorld(WORLDPOS(xpos, ypos),TYPE_WATERROAD_1);
+                    DrawCross(xpos, ypos);
+                    game.BuildCount[COUNT_ROADS]++;
+                } else {
+                    UIDisplayError(ERROR_OUT_OF_MONEY);
+                }
+                break;
+            case 93: // ditto
+                if (SpendMoney(BUILD_COST_ROAD)) {
+                    SetWorld(WORLDPOS(xpos, ypos),TYPE_WATERROAD_2);
+                    DrawCross(xpos, ypos);
+                    game.BuildCount[COUNT_ROADS]++;
+                } else {
+                    UIDisplayError(ERROR_OUT_OF_MONEY);
+                }
                 break;
         }
     } else if (old == TYPE_REAL_WATER) { // build a bridge across the water (yup, that's a song)
@@ -324,6 +370,47 @@ void Build_PowerLine(int xpos, int ypos)
                 SetWorld(WORLDPOS(xpos, ypos),TYPE_POWER_LINE);
                 DrawCross(xpos, ypos);
                 game.BuildCount[COUNT_POWERLINES]++;
+            } else {
+                UIDisplayError(ERROR_OUT_OF_MONEY);
+            }
+        }
+    }
+    UnlockWorld();
+}
+
+void Build_WaterPipe(int xpos, int ypos)
+{
+    int old;
+    LockWorld();
+
+    old = GetWorld(WORLDPOS(xpos, ypos));
+    if (old == TYPE_DIRT || old == TYPE_ROAD) {
+        if (old == TYPE_ROAD) {
+            switch(GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),0)) {
+                case 10: // straight road, we can build a power line
+                    if (SpendMoney(BUILD_COST_WATER_PIPES)) {
+                        SetWorld(WORLDPOS(xpos, ypos),TYPE_WATERROAD_2);
+                        DrawCross(xpos, ypos);
+                        game.BuildCount[COUNT_WATERPIPES]++;
+                    } else {
+                        UIDisplayError(ERROR_OUT_OF_MONEY);
+                    }
+                    break;
+                case 11: // ditto
+                    if (SpendMoney(BUILD_COST_WATER_PIPES)) {
+                        SetWorld(WORLDPOS(xpos, ypos),TYPE_WATERROAD_1);
+                        DrawCross(xpos, ypos);
+                        game.BuildCount[COUNT_WATERPIPES]++;
+                    } else {
+                        UIDisplayError(ERROR_OUT_OF_MONEY);
+                    }
+                    break;
+            }
+        } else {
+            if (SpendMoney(BUILD_COST_POWER_LINE)) {
+                SetWorld(WORLDPOS(xpos, ypos),TYPE_WATER_PIPE);
+                DrawCross(xpos, ypos);
+                game.BuildCount[COUNT_WATERPIPES]++;
             } else {
                 UIDisplayError(ERROR_OUT_OF_MONEY);
             }

@@ -1,35 +1,10 @@
 #include "zakdef.h"
-/*
-char mapsize = 100;
-char map_xpos = 50;
-char map_ypos = 50;
-char cursor_xpos = 2;
-char cursor_ypos = 2;
-long signed int credits = 50000;
-long unsigned int BuildCount[20];
-long unsigned int TimeElapsed=0; // months since Jan 2000
-char cityname[20];
-unsigned char upkeep[3];
-unsigned char disaster_level;
-short unsigned int SIM_GAME_LOOP_SECONDS = 0;
-int tax = 8;
-MoveableObject objects[10];
-DefenceUnit    units[10];
-#ifdef __palmos__
-int TILE_SIZE = 16;
-int visible_x = 10;
-int visible_y = 8;
-#else // we have a nokia :) (still running without zoom)
-int TILE_SIZE = 24;
-int visible_x = 19;
-int visible_y = 7;
-#endif
-*/
 
 // this is the central game struct
 GameStruct game;
 
 unsigned char updatePowerGrid = 1;
+unsigned char updateWaterGrid = 1;
 
 int GetCiffer(int number, signed long value);
 

@@ -13,4 +13,5 @@ extern void Goto(int x, int y);
 extern int IsRoad(unsigned char x);
 extern int IsZone(unsigned char x, int nType);
 extern int CarryPower(unsigned char x);
+extern int CarryWater(unsigned char x);
 extern int IsPowerLine(unsigned char x);

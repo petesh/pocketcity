@@ -77,10 +77,6 @@ gint mainloop_callback(gpointer data)
 gint toolbox_callback(GtkWidget *widget, gpointer data)
 {
     gint action = GPOINTER_TO_INT(data);
-    if (action == 270) {
-        CreateDragon(55,55);
-        return FALSE;
-    }
     if (action >= 260) {
         ScrollMap(action-260);
     } else {
@@ -217,25 +213,25 @@ void SetUpMainWindow(void)
     {
         char labels[] = "Bu\0Ro\0Po\0"
                         "Re\0Co\0In\0"
-                        "Tr\0Wa\0  \0"
-                        "PP\0NP\0  \0"
+                        "Tr\0Wa\0WP\0"
+                        "PP\0NP\0Wa\0"
                         "FS\0PS\0MB\0"
                         "  \0  \0  \0"
                         "DF\0DP\0DM\0"
                         "  \0/\\\0  \0"
                         "<-\0  \0->\0"
-                        "  \0\\/\0Te\0";
+                        "  \0\\/\0  \0";
         int i;
         gint actions[] = { BUILD_BULLDOZER,BUILD_ROAD,BUILD_POWER_LINE,
                             BUILD_ZONE_RESIDENTIAL,BUILD_ZONE_COMMERCIAL,BUILD_ZONE_INDUSTRIAL,
-                            BUILD_TREE,BUILD_WATER,-1,
-                            BUILD_POWER_PLANT,BUILD_NUCLEAR_PLANT,-1,
+                            BUILD_TREE,BUILD_WATER,BUILD_WATER_PIPE,
+                            BUILD_POWER_PLANT,BUILD_NUCLEAR_PLANT,BUILD_WATER_PUMP,
                             BUILD_FIRE_STATION,BUILD_POLICE_STATION,BUILD_MILITARY_BASE,
                             -1,-1,-1,
                             BUILD_DEFENCE_FIRE,BUILD_DEFENCE_POLICE,BUILD_DEFENCE_MILITARY,
                             -1,260,-1,
                             263,-1,261,
-                            -1,262,270 };
+                            -1,262,-1 };
                             
         for (i=0; i<30; i++) {
             if (*(labels+i*3) == ' ') { continue; }
@@ -443,6 +439,27 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
             gc,
             zones_bitmap,
             128,
+            0,
+            xpos*game.tileSize,
+            ypos*game.tileSize,
+            game.tileSize,
+            game.tileSize);
+}
+
+extern void UIDrawWaterLoss(int xpos, int ypos)
+{
+    GdkGC *gc;
+    gc = gdk_gc_new(drawingarea->window);
+    gdk_gc_set_clip_mask(gc,zones_mask);
+    gdk_gc_set_clip_origin(gc,
+            xpos*game.tileSize-64,
+            ypos*game.tileSize);
+
+    gdk_draw_drawable(
+            drawingarea->window,
+            gc,
+            zones_bitmap,
+            64,
             0,
             xpos*game.tileSize,
             ypos*game.tileSize,
