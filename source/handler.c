@@ -73,7 +73,6 @@ SetupNewGame(void)
 	setUpkeep(2, 100);
 	SetMapSize(100, 100);
 	setTax(8);
-	SetDisasterLevel(GetDifficultyLevel()+1);
 	LockWorld();
 	ResizeWorld(WorldSize());
 	UnlockWorld();

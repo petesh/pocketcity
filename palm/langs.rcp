@@ -41,9 +41,9 @@ BEGIN
     "POWER_C"     = "Power:"
     "DEFENCE_C"   = "Defence:"
     "TOTAL"     = "Total"
-    "CURRBAL"   = "Current Balance"
-    "BALDELTA"    = "Change"
-    "NEXTMONTHBAL" = "Next Month's Balance"
+    "CURRBAL"   = "Current Balance:"
+    "BALDELTA"    = "Change:"
+    "NEXTMONTHBAL" = "Next Month's Balance:"
 
     /* Budget Menu */
     "BACKTOGAME" = "Back to Game"

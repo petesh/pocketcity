@@ -10,7 +10,7 @@ Legend:
  '-' = removed feature
 
 Version 0.17dev
-  + Support for Palm OS 5 High Resolution API
+  + Support for Palm OS 5 High Resolution API [& Sony Old]
   + Query Tool Improved
   + Changed savegame format to include power/water details
   + Power plants and defence stations (Fire, Police, Army) are now 4 zone items

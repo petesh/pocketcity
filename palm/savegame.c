@@ -27,6 +27,13 @@ static void CleanSaveGameList(void) SAVE_SECTION;
 static void DeleteFromList(void) SAVE_SECTION;
 static int  LoadFromList(void) SAVE_SECTION;
 
+#if defined(HRSUPPORT)
+static Boolean resizeSavegameForm(FormPtr form, Int16 hOff,
+    Int16 vOff) SAVE_SECTION;
+#else
+#define resizeSavegameForm(F,H,V)
+#endif
+
 #define	LASTGAME		((UInt16)~0)
 #define	MAXSAVEGAMECOUNT	50
 
@@ -95,14 +102,30 @@ cnCreateButtonPressed(void)
 {
 	char *pGameName;
 	FormPtr form;
+	Int8 level = 0;
 
 	form = FrmGetActiveForm();
 	if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Easy)))
-		SetDifficultyLevel(0);
+		level = 0;
 	if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Medium)))
-		SetDifficultyLevel(1);
+		level = 1;
 	if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Hard)))
-		SetDifficultyLevel(2);
+		level = 2;
+	SetDifficultyLevel(level);
+
+	if (FrmGetControlValue(form, FrmGetObjectIndex(form,
+	    buttonID_dis_off)))
+		level = 0;
+	if (FrmGetControlValue(form, FrmGetObjectIndex(form,
+	    buttonID_dis_one)))
+		level = 1;
+	if (FrmGetControlValue(form, FrmGetObjectIndex(form,
+	    buttonID_dis_two)))
+		level = 2;
+	if (FrmGetControlValue(form, FrmGetObjectIndex(form,
+	    buttonID_dis_three)))
+		level = 3;
+	SetDisasterLevel(level);
 
 	pGameName = FldGetTextPtr((FieldPtr)GetObjectPtr(form,
 	    fieldID_newGameName));
@@ -139,12 +162,11 @@ cnCreateButtonPressed(void)
  * Set up the new file form.
  */
 static FormPtr
-cityNewSetup(void)
+cityNewSetup(FormPtr form)
 {
-	FormPtr form = FrmGetActiveForm();
-
 	FrmSetFocus(form, FrmGetObjectIndex(form, fieldID_newGameName));
 	FrmSetControlValue(form, FrmGetObjectIndex(form, buttonID_Easy), 1);
+	FrmSetControlValue(form, FrmGetObjectIndex(form, buttonID_dis_one), 1);
 
 	return (form);
 }
@@ -157,11 +179,15 @@ Boolean
 hFilesNew(EventPtr event)
 {
 	Boolean handled = false;
+	FormPtr form;
 
 	switch (event->eType) {
 	case frmOpenEvent:
 		SetGameNotInProgress();
-		FrmDrawForm(cityNewSetup());
+		form = FrmGetActiveForm();
+		SetSilkResizable(form, true);
+		collapseMove(form, CM_DEFAULT, NULL, NULL);
+		FrmDrawForm(cityNewSetup(form));
 		handled = true;
 		break;
 	case frmCloseEvent:
@@ -178,6 +204,19 @@ hFilesNew(EventPtr event)
 			break;
 		}
 		break;
+#if defined(HRSUPPORT)
+	case winDisplayChangedEvent:
+#if defined(SONY_CLIE)
+	case vchrSilkResize:
+#endif
+		form = FrmGetActiveForm();
+		if (collapseMove(form, CM_DEFAULT, NULL, NULL)) {
+			FrmEraseForm(form);
+			FrmDrawForm(form);
+		}
+		handled = true;
+		break;
+#endif
 	default:
 		break;
 	}
@@ -189,10 +228,8 @@ hFilesNew(EventPtr event)
  * set up the files form
  */
 static FormPtr
-filesSetup(void)
+filesSetup(FormPtr form)
 {
-	FormPtr form = FrmGetActiveForm();
-
 	SetGameNotInProgress();
 	UpdateSaveGameList();
 
@@ -208,14 +245,24 @@ Boolean
 hFiles(EventPtr event)
 {
 	Boolean handled = false;
+	FormPtr form;
+#if defined(HRSUPPORT)
+	Int16 hOff, vOff;
+#endif
 
 	switch (event->eType) {
 	case frmOpenEvent:
-		FrmDrawForm(filesSetup());
+		form = FrmGetActiveForm();
+		SetSilkResizable(form, true);
+		collapseMove(form, CM_DEFAULT, &hOff, &vOff);
+		resizeSavegameForm(form, hOff, vOff);
+		filesSetup(form);
+		FrmDrawForm(form);
 		handled = true;
 		break;
 	case frmCloseEvent:
 		CleanSaveGameList();
+		SetSilkResizable(NULL, false);
 		break;
 	case ctlSelectEvent:
 		switch (event->data.ctlSelect.controlID) {
@@ -238,12 +285,47 @@ hFiles(EventPtr event)
 			break;
 		}
 		break;
+#if defined(HRSUPPORT)
+	case winDisplayChangedEvent:
+#if defined(SONY_CLIE)
+	case vchrSilkResize:
+#endif
+		form = FrmGetActiveForm();
+		if (collapseMove(form, CM_DEFAULT, &hOff, &vOff)) {
+			resizeSavegameForm(form, hOff, vOff);
+			FrmDrawForm(form);
+		}
+		handled = true;
+		break;
+#endif
 	default:
 		break;
 	}
 
 	return (handled);
 }
+
+#if defined(HRSUPPORT)
+/*!
+ * \brief Resize the savegame form.
+ *
+ * Deal with the change of the dimensions of the old form
+ * \param form the pointer to the form that is to be resized
+ */
+Boolean
+resizeSavegameForm(FormPtr form, Int16 hOff, Int16 vOff)
+{
+	if (!(hOff || vOff))
+		return (false);
+
+	RearrangeObjectOnly(form, listID_FilesList, 0, 0, hOff, vOff);
+	RearrangeObjectOnly(form, buttonID_FilesNew, 0, vOff, 0, 0);
+	RearrangeObjectOnly(form, buttonID_FilesLoad, 0, vOff, 0, 0);
+	RearrangeObjectOnly(form, buttonID_FilesDelete, 0, vOff, 0, 0);
+	return (true);
+}
+
+#endif /* HRSUPPORT */
 
 /*
  * Update the list of save games.

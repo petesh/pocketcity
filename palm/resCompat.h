@@ -13,6 +13,11 @@
 
 #if defined(SONY_CLIE) || defined(PALM_HIGH)
 
+#define CM_DEFAULT	(0)
+#define CM_MOVEX	(1<<1)
+#define CM_MOVEY	(1<<2)
+#define CM_MODAL	(1<<3)
+
 #define	HRSUPPORT
 
 extern Int32 sWidth;
@@ -36,9 +41,9 @@ void EndHiresFontDraw(void);
 void SetSilkResizable(FormPtr form, UInt8 resizable) OTHER_SECTION;
 Int16 hasVirtualSilk(void) OTHER_SECTION;
 void EndSilk(void) OTHER_SECTION;
-Boolean CollapseMove(FormPtr form, Boolean modal, Int16 *roffsetX,
+Boolean collapseMove(FormPtr form, UInt8 stretchy, Int16 *roffsetX,
     Int16 *roffsetY) OTHER_SECTION;
-void CollapsePreRedraw(FormPtr form) OTHER_SECTION;
+void collapsePreRedraw(FormPtr form) OTHER_SECTION;
 #define	StartScaleDraw	StartHiresFontDraw
 #define EndScaleDraw		EndHiresFontDraw
 
@@ -70,8 +75,8 @@ void CollapsePreRedraw(FormPtr form) OTHER_SECTION;
 #define SetSilkResizable(X,Y)
 #define	hasVirtualSilk()	(0)
 #define EndSilk()
-#define CollapseMove(F,M,X,Y)
-#define	CollapsePreRedraw(X)
+#define collapseMove(F,M,X,Y)
+#define	collapsePreRedraw(X)
 
 #endif /* SONY_CLIE || PALM_HIGH */
 

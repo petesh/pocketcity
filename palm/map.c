@@ -97,6 +97,8 @@ hMap(EventPtr event)
 		PauseGame();
 		WriteLog("map opened\n");
 		form = FrmGetActiveForm();
+		SetSilkResizable(form, true);
+		collapseMove(form, CM_DEFAULT, NULL, NULL);
 		FrmDrawForm(form);
 		RenderMaps();
 		DrawMap();
@@ -104,6 +106,7 @@ hMap(EventPtr event)
 		break;
 	case frmCloseEvent:
 		freemaps();
+		SetSilkResizable(NULL, false);
 		WriteLog("map closed\n");
 		break;
 	case keyDownEvent:
@@ -129,6 +132,19 @@ hMap(EventPtr event)
 			handled = true;
 		}
 		break;
+#if defined(HRSUPPORT)
+	case winDisplayChangedEvent:
+#if defined(SONY_CLIE)
+	case vchrSilkResize:
+#endif
+		form = FrmGetActiveForm();
+		if (collapseMove(form, CM_DEFAULT, NULL, NULL)) {
+			FrmDrawForm(form);
+			DrawMap();
+		}
+		handled = true;
+		break;
+#endif
 	default:
 		break;
 	}

@@ -82,10 +82,10 @@ static void HoldHook(UInt32);
 static void toolBarCheck(Coord);
 static void UIDrawToolBar(void);
 static void freeToolbarBitmap(void);
-static void ResizeDisplay(Boolean draw);
+static void pcResizeDisplay(Boolean draw);
 #else
 #define	freeToolbarBitmap()
-#define ResizeDisplay(X)
+#define pcResizeDisplay(X)
 #endif
 
 /* Collects what would otherwise be several variables */
@@ -406,10 +406,10 @@ _PalmInit(void)
 		WinScreenMode(winScreenModeGetSupportedDepths, 0, 0, &depth, 0);
 		if ((depth & (1 << (8-1))) != 0) {
 			/* 8bpp (color) is supported */
-			changeDepthRes(8);
+			changeDepthRes(8, true);
 		} else if ((depth & (1 << (4-1))) != 0) {
 			/* 4bpp (greyscale) is supported */
-			changeDepthRes(4);
+			changeDepthRes(4, true);
 		}
 		/* falls through if you've no color */
 	}
@@ -659,8 +659,8 @@ hPocketCity(EventPtr event)
 	case frmOpenEvent:
 		form = FrmGetActiveForm();
 		SetSilkResizable(form, true);
-		CollapseMove(form, false, NULL, NULL);
-		ResizeDisplay(false);
+		collapseMove(form, CM_DEFAULT, NULL, NULL);
+		pcResizeDisplay(false);
 		SetGameInProgress();
 		ResumeGame();
 		FrmDrawForm(form);
@@ -737,8 +737,8 @@ hPocketCity(EventPtr event)
 #if defined(SONY_CLIE)
 	case vchrSilkResize:
 #endif
-		ResizeDisplay(CollapseMove(FrmGetActiveForm(), false, NULL,
-		    NULL));
+		pcResizeDisplay(collapseMove(FrmGetActiveForm(), CM_DEFAULT,
+		    NULL, NULL));
 		handled = true;
 		break;
 #endif
@@ -2319,7 +2319,7 @@ toolBarCheck(Coord xpos)
 }
 
 static void
-ResizeDisplay(Boolean draw)
+pcResizeDisplay(Boolean draw)
 {
 	RectangleType disRect;
 	FormPtr fp = FrmGetActiveForm();
@@ -2328,6 +2328,10 @@ ResizeDisplay(Boolean draw)
 	Int16 loc;
 
 	WinGetBounds(WinGetDisplayWindow(), &disRect);
+
+	WriteLog("WinBounds (%d,%d) [%d,%d]\n", (int)disRect.topLeft.x,
+	    (int)disRect.topLeft.y, (int)disRect.extent.x,
+	    (int)disRect.extent.y);
 
 	nWidth = scaleCoord(disRect.extent.x);
 	nHeight = scaleCoord(disRect.extent.y);
@@ -2345,7 +2349,7 @@ ResizeDisplay(Boolean draw)
 	rPlayGround.extent.x = sWidth;
 	rPlayGround.extent.y = sHeight - 2 * 16;
 	if (draw) {
-		CollapsePreRedraw(fp);
+		collapsePreRedraw(fp);
 		FrmDrawForm(fp);
 		DrawGame(1);
 		

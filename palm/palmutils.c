@@ -10,6 +10,7 @@
 #include <resCompat.h>
 #include <simcity_resconsts.h>
 #include <simcity.h>
+#include <palmutils.h>
 #include <ui.h>
 
 /* included the TRG magic numbers :( */
@@ -20,6 +21,53 @@
 #define PalmOEMCompanyID	'Palm'
 #define ZireOriginalDeviceID	'Cubs'
 
+/*!
+ * \brief rearrange/move/resize an object on the screen
+ * \param form the form who's item we wish to rearrange is on.
+ * \param oID object's ientifier
+ * \param offsetX x offset to move object by
+ * \param offsetY y offset to move object by
+ * \param resizeX amount to resize X axis by
+ * \param resizeY amount to resize Y axis by
+ */
+void
+RearrangeObjectOnly(FormPtr form, UInt16 oID, Int16 offsetX, Int16 offsetY,
+    Int16 resizeX, Int16 resizeY)
+{
+	RectangleType objrect;
+
+	FrmGetObjectBounds(form, FrmGetObjectIndex(form, oID), &objrect);
+
+	objrect.topLeft.x += offsetX;
+	objrect.topLeft.y += offsetY;
+	objrect.extent.x += resizeX;
+	objrect.extent.y += resizeY;
+
+	FrmSetObjectBounds(form, FrmGetObjectIndex(form, oID), &objrect);
+}
+
+/*!
+ * \brief rearrange the location of a bitmap on screen
+ * \param form the form that the bitmap resides on
+ * \param oID the id of the bitmap item on the form
+ * \param offsetX the offset to move the bitmap by on the X axis
+ * \param offsetY the offset to move the bitmap on the y axis.
+ */
+void
+RearrangeBitmap(FormPtr form, UInt16 oID, Int16 offsetX, Int16 offsetY)
+{
+	Coord x, y;
+
+	FrmGetObjectPosition(form, FrmGetObjectIndex(form, oID), &x, &y);
+	x += offsetX;
+	y += offsetY;
+	FrmSetObjectPosition(form, FrmGetObjectIndex(form, oID), x, y);
+}
+
+/*!
+ * \brief is this device a HandEra machine
+ * \return true of this is a handera machine.
+ */
 Boolean
 isHandEra(void)
 {
@@ -30,14 +78,18 @@ isHandEra(void)
 	return (false);
 }
 
-UInt16
+/*!
+ * \brief is the device an old Zire (palmos 4)
+ * \return true if the item is an original zire.
+ */
+Boolean
 isZireOld(void)
 {
 	UInt32 vcl;
 	static UInt16 rv = 3;
 
 	if (rv != 3)
-		return (rv);
+		return (rv == 1);
 	if ((FtrGet(sysFtrCreator, sysFtrNumOEMCompanyID, &vcl) == 0) &&
 	    (vcl == PalmOEMCompanyID) &&
 	    (FtrGet(sysFtrCreator, sysFtrNumOEMDeviceID, &vcl) == 0) &&
@@ -46,10 +98,13 @@ isZireOld(void)
 	} else {
 		rv = 0;
 	}
-	return (rv);
+	return (rv == 1);
 }
 
-/* Return the depth in bits per pixel */
+/*!
+ * \brief Return the depth in bits per pixel
+ * \return the screen depth.
+ */
 UInt32
 getDepth(void)
 {
@@ -67,6 +122,11 @@ getDepth(void)
 	return (avd);
 }
 
+/*!
+ * \brief get the highest numbered bit that is set in the 32 bit value passed
+ * \param x the value to find the highest bit set from
+ * \return the highest bit set.
+ */
 UInt32
 hibit(UInt32 x)
 {
@@ -79,8 +139,16 @@ hibit(UInt32 x)
 	return (r);
 }
 
+/*!
+ * \brief Change the depth
+ *
+ * This will consequently set the resolution of the screen
+ * \param ndepth the depth to try to set the screen resolution to
+ * \param tryHigh try to put the screen in high resolution mode.
+ * \return errNone if nothing untoward happens, otherwise an error
+ */
 Err
-changeDepthRes(UInt32 ndepth)
+changeDepthRes(UInt32 ndepth, Boolean tryHigh)
 {
 	UInt32 depth = ndepth;
 	Boolean enablecol = 1;
@@ -90,8 +158,13 @@ changeDepthRes(UInt32 ndepth)
 	UInt32 height;
 	Err result;
 
-	(void) loadHiRes();
-	setScreenRes();
+	if (tryHigh) {
+		(void) loadHiRes();
+		setScreenRes();
+	} else {
+		SETWIDTH(BASEWIDTH);
+		SETWIDTH(BASEHEIGHT);
+	}
 	
 	(void) _WinScreenMode(winScreenModeGetSupportsColor, NULL, NULL, NULL,
 	    &enablecol);
@@ -140,6 +213,10 @@ changeDepthRes(UInt32 ndepth)
 	return (result);
 }
 
+/*!
+ * \brief restore the screen to the original depth and resolution
+ * \return error if it can't restore the depth and resolution
+ */
 Err
 restoreDepthRes(void)
 {
@@ -153,26 +230,30 @@ restoreDepthRes(void)
 	return (0);
 }
 
+/*!
+ * \brief can this device perform color operations at the depth requested
+ * \param nbits the number of bits (1, 2, 4, 8, 16)
+ * \return true if this depth is available
+ */
 Boolean
 canColor(UInt16 nbits)
 {
-	static Boolean rv = false;
-	static Boolean inited = false;
+	UInt32 de;
+	UInt32 wi;
+	UInt32 he;
+	Boolean ec;
 
-	if (!inited) {
-		UInt32 de;
-		UInt32 wi = 160;
-		UInt32 he = 160;
-		Boolean ec;
-		inited = true;
-		WinScreenMode(winScreenModeGetSupportedDepths,
-		    &wi, &he, &de, &ec);
-		if (de & (1<<(nbits-1)))
-			rv = true;
-	}
-	return (rv);
+	WinScreenMode(winScreenModeGetSupportedDepths,
+	    &wi, &he, &de, &ec);
+	if (de & (1<<(nbits-1)))
+		return (true);
+	return (false);
 }
 
+/*!
+ * \brief get the applications' creator ID
+ * \return the creatorID. Machine will crash otherwise
+ */
 UInt32
 GetCreatorID(void)
 {
@@ -193,6 +274,12 @@ GetCreatorID(void)
 	return (nCreatorID);
 }
 
+/*!
+ * \brief display a warning in the program at a certain file and line
+ * \param information the informational message to display
+ * \param file the name of the file the message came from
+ * \param line the line that the error occurred
+ */
 void
 DangerWillRobinson(char *information, char *file, int line)
 {
@@ -201,7 +288,12 @@ DangerWillRobinson(char *information, char *file, int line)
 	FrmCustomAlert(alertID_programmingNiggle, information, buffer, NULL);
 }
 
-/* build a string list from all the string list items from resID */
+/*!
+ * \brief build a string list from all the string list items from resID
+ * \param resID the resource to get the strings from
+ * \param length (out) the # of items in the list
+ * \return the char array containing all the strings
+ */
 Char **
 FillStringList(UInt16 resID, UInt16 *length)
 {
@@ -233,7 +325,12 @@ FillStringList(UInt16 resID, UInt16 *length)
 	return (rv);
 }
 
-/* release from above */
+/*!
+ * \brief free the contents of a string list
+ *
+ * The list wil have been obtained from the FillStringList function
+ * \param list the list to free
+ */
 void
 FreeStringList(Char **list)
 {

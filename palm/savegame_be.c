@@ -22,7 +22,6 @@
 #define	MAXSAVEGAMECOUNT	50
 #define	DEAD	"PCNO"
 
-static void NewGame(void) SAVE_SECTION;
 static DmOpenRef OpenMyDB(void) SAVE_SECTION;
 static UInt16 FindGameByName(char *name) SAVE_SECTION;
 static int ReadCityRecord(MemHandle rec, GameStruct *gs,

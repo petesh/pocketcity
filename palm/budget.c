@@ -8,6 +8,7 @@
 #include <sections.h>
 #include <budget.h>
 #include <stddef.h>
+#include <rescompat.h>
 
 #define	MILLION 1000000
 
@@ -151,12 +152,15 @@ hBudget(EventPtr event)
 	case frmOpenEvent:
 		PauseGame();
 		form = FrmGetActiveForm();
+		SetSilkResizable(form, true);
+		collapseMove(form, CM_DEFAULT, NULL, NULL);
 		WriteLog("opening budget\n");
 		FrmDrawForm(budgetSetup(form));
 		handled = true;
 		break;
 	case frmCloseEvent:
 		WriteLog("closing budget\n");
+		SetSilkResizable(NULL, false);
 		break;
 	case keyDownEvent:
 		chr = event->data.keyDown.chr;
@@ -196,6 +200,18 @@ hBudget(EventPtr event)
 		/* Deal with the repeating controls ... */
 		dealRepeats(event);
 		break;
+#if defined(HRSUPPORT)
+	case winDisplayChangedEvent:
+#if defined(SONY_CLIE)
+	case vchrSilkResize:
+#endif
+		form = FrmGetActiveForm();
+		if (collapseMove(form, CM_DEFAULT, NULL, NULL)) {
+			FrmDrawForm(form);
+		}
+		handled = true;
+		break;
+#endif
 	default:
 		break;
 	}

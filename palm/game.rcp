@@ -127,11 +127,11 @@ BEGIN
 
 
     LABEL "TOTAL" AUTOID AT (CENTER PrevBottom) FONT 1
-    LABEL "CURRBAL" AUTOID AT (0 PrevBottom)
+    LABEL "CURRBAL" AUTOID AT (RIGHT@108 PrevBottom)
     LABEL "------------" labelID_budget_now AT (110 PrevTop)
-    LABEL "BALDELTA" AUTOID AT (0 PrevBottom)
+    LABEL "BALDELTA" AUTOID AT (RIGHT@108 PrevBottom)
     LABEL "------------" labelID_budget_tot AT (110 PrevTop)
-    LABEL "NEXTMONTHBAL" AUTOID AT (0 PrevBottom)
+    LABEL "NEXTMONTHBAL" AUTOID AT (RIGHT@108 PrevBottom)
     LABEL "------------" labelID_budget_bal AT (110 PrevTop)
 END
 
@@ -213,16 +213,15 @@ NOSAVEBEHIND
 BEGIN
     TITLE "T_SAVEGAMES"
 
-    LIST "" ID listID_FilesList AT (1 18 158 123) USABLE 
-    BUTTON "NEW" ID buttonID_FilesNew AT (2 prevbottom+5 AUTO AUTO)
+    LIST "" ID listID_FilesList AT (1 16 158 124) USABLE 
+    BUTTON "NEW" ID buttonID_FilesNew AT (4 prevbottom+4 AUTO AUTO)
     BUTTON "LOAD" ID buttonID_FilesLoad AT (prevright+4 prevtop AUTO AUTO)
     BUTTON "DELETE" ID buttonID_FilesDelete AT (prevright+4 prevtop AUTO AUTO)
 END
 
-FORM ID formID_filesNew AT ( 1 88 158 70 )
+FORM ID formID_filesNew AT ( 0 0 160 160 )
 USABLE
 SAVEBEHIND
-MODAL
 DEFAULTBTNID buttonID_FilesNewCancel
 BEGIN
     TITLE "T_NEWCITY"
@@ -237,6 +236,15 @@ BEGIN
         AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
     PUSHBUTTON "HARD" ID buttonID_Hard
         AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
+
+    LABEL "L_DISASTERS" AUTOID AT (RIGHT@48 PREVBOTTOM+6)
+    PUSHBUTTON "OFF" ID buttonID_dis_off AT (54 PREVTOP AUTO AUTO) GROUP 2
+    PUSHBUTTON "ROMAN_ONE" ID buttonID_dis_one
+	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 2
+    PUSHBUTTON "ROMAN_TWO" ID buttonID_dis_two
+	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 2
+    PUSHBUTTON "ROMAN_THREE" ID buttonID_dis_three
+	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 2
 
     BUTTON "CREATE" ID buttonID_FilesNewCreate
         AT (4 prevbottom+6 AUTO AUTO)

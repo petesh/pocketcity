@@ -319,11 +319,11 @@ SetSilkResizable(FormPtr form, UInt8 resizeable)
 }
 
 Boolean
-CollapseMove(FormPtr form, Boolean modal, Int16 *roffsetX, Int16 *roffsetY)
+collapseMove(FormPtr form, UInt8 stretchy, Int16 *roffsetX, Int16 *roffsetY)
 {
-	Coord dispHeight, dispWidth;
+	Coord		dispHeight, dispWidth;
 	RectangleType	dwRect;
-	Int16 offX, offY;
+	Int16		offX, offY;
 	WinHandle	frmH;
 
 	WinGetDisplayExtent(&dispWidth, &dispHeight);
@@ -336,7 +336,7 @@ CollapseMove(FormPtr form, Boolean modal, Int16 *roffsetX, Int16 *roffsetY)
 
 	WriteLog("offX = %d, offY = %d\n", (int)offX, (int)offY);
 
-	if (modal) {
+	if (stretchy && CM_MODAL) {
 		offX -= 2;
 		offY -= 2;
 	}
@@ -344,8 +344,14 @@ CollapseMove(FormPtr form, Boolean modal, Int16 *roffsetX, Int16 *roffsetY)
 	if (roffsetY != NULL) *roffsetY = offY;
 
 	if (offX || offY) {
-		dwRect.extent.x += offX;
-		dwRect.extent.y += offY;
+		if (stretchy && CM_MOVEX)
+			dwRect.topLeft.x += offX;
+		else /* Stretch the X axis */
+			dwRect.extent.x += offX;
+		if (stretchy && CM_MOVEY)
+			dwRect.topLeft.y += offY;
+		else
+			dwRect.extent.y += offY;
 		WinSetBounds(frmH, &dwRect);
 		return (true);
 	}
@@ -353,7 +359,7 @@ CollapseMove(FormPtr form, Boolean modal, Int16 *roffsetX, Int16 *roffsetY)
 }
 
 void
-CollapsePreRedraw(FormPtr form
+collapsePreRedraw(FormPtr form
 #if !defined(SONY_CLIE)
     __attribute__((unused))
 #endif
