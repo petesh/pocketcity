@@ -472,20 +472,7 @@ long unsigned int GetRandomZone()
 
 void DoTaxes()
 {
-    short unsigned int thisMonthsTaxes;
-    short unsigned int popTax;
-    short unsigned int comTax;
-    short unsigned int indTax;
-    float taxRate;
-
-    taxRate = 0.83;
-
-    popTax = (BuildCount[COUNT_RESIDENTIAL]*150)/100*taxRate;
-    comTax = (BuildCount[COUNT_COMMERCIAL]*150)/100*taxRate;
-    indTax = (BuildCount[COUNT_INDUSTRIAL]*150)/100*taxRate;
-
-    thisMonthsTaxes = popTax+comTax+indTax;
-    credits += thisMonthsTaxes;
+    credits += (BuildCount[COUNT_RESIDENTIAL]+BuildCount[COUNT_COMMERCIAL]+BuildCount[COUNT_INDUSTRIAL])*150*tax/100;
 }
 
 void DoUpkeep()
@@ -498,8 +485,6 @@ void DoUpkeep()
     long unsigned int powerPlantUpkeep;
     long unsigned int totalUpkeep;
 
-    LockWorld();
-
     roadCount = BuildCount[COUNT_ROADS];
     powerLineCount = BuildCount[COUNT_POWERLINES];
     powerPlantCount = BuildCount[COUNT_POWERPLANTS] + BuildCount[COUNT_POWERPLANTS]*2;
@@ -507,9 +492,7 @@ void DoUpkeep()
     powerLineUpkeep = 1;
     powerPlantUpkeep = 35;
     totalUpkeep = (roadCount*roadUpkeep)+(powerLineCount*powerLineUpkeep)+(powerPlantCount*powerPlantUpkeep);
-
-    UnlockWorld();
-
+    
     credits -= totalUpkeep;
 }
 
