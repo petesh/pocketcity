@@ -482,9 +482,7 @@ void DoTaxes()
     indTax = (BuildCount[COUNT_INDUSTRIAL]*775)/100;
 
     thisMonthsTaxes = popTax+comTax+indTax;
-    credits += thisMonthsTaxes;
-    credits += thisMonthsTaxes;
-    credits += thisMonthsTaxes;
+    credits += (thisMonthsTaxes/12);
 }
 
 
