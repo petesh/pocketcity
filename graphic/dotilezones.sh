@@ -11,6 +11,7 @@ typeset sizx=24
 typeset sizy=12
 typeset id=0
 typeset remove=
+typeset cast_to=
 typeset -a types=(bw grey color)
 
 trap cleanup 0 1
@@ -63,6 +64,18 @@ function mktmpdir {
 	[ $? -eq 0 ] && echo $temp
 }
 
+function print_define {
+        typeset define=$1
+        typeset value=$2
+
+        if [ -z "$cast_to" ]; then
+                printf "#define\t%s\t%s\n" $define $value >&4
+        else
+                printf "#define\t%s\t((%s)(%s))\n" $define $cast_to $value >&4
+        fi
+
+}
+
 # slice an image file into a series of tiles, incrementing a slice counter
 # as we go.
 # uses: width, height, rwidth, rheight, slicenum
@@ -96,7 +109,7 @@ function sliceimage {
 	eval "val=\$$variable;"
 	[ -n "$h" ] && echo "/*! \\brief $7 */" >&4
 	for def in ${st_def[@]}; do
-		[ -n "$h" ] && printf "#define\t$def\t${val}\n" >&4
+		[ -n "$h" ] && print_define $def ${val}
 	done
 	eval `identify -format "iw=%w;ih=%h;" $file`
 	while [ $ypos -lt $ih ]; do
@@ -109,7 +122,7 @@ function sliceimage {
 				mogrify -resize "${rwidth}x${rheight}" $newf
 			fi
 			if [ -n "$h" -a -n "${in_def[$index]}" ]; then
-				printf "#define\t${in_def[$index]}\t$val\n" >&4
+				print_define ${in_def[$index]} $val
 			fi
 			val=$((val + 1))
 			index=$((index + 1))
@@ -119,7 +132,7 @@ function sliceimage {
 	done
 	typeset lval=$((val - 1))
 	for def in ${en_def[@]}; do
-		[ -n "$h" ] && printf "#define\t$def\t$lval\n" >&4
+		[ -n "$h" ] && print_define $def $lval
 	done
 	[ -n "$h" ] && echo "/* image:$1 */" >&4
 	eval "$variable=$val"
@@ -127,8 +140,8 @@ function sliceimage {
 
 function usage {
 	cat <<EOM
-usage: $me [ -d <width>x<height> ] [ -r <width>x<height> ] <input file>
-	<output file> [ <headerfile> ]
+usage: $me [ -d <width>x<height> ] [ -r <width>x<height> ] [ -t <types> ]
+        [ -c <cast> ] <input file> <output file> [ <headerfile> ]
 
 Mashes the files referred to in the input file (bw,grey,color) into
 the combined tile file for use in the game. It also creates the include
@@ -149,6 +162,8 @@ Options are:
 	-s <width>x<height> - shape the tile format to this
 	-d <width>x<height> - make the tiles of this x and y dimension
 	-r <width>x<height> - resize tiles to this size (after the fact)
+        -t <type> - types to do (color, bw, grey)
+        -c <type> - cast all thed efines to this type
 	<input file> - the input file for reading the information
 	<output file> - the output file for writing the information
 	<headerfile> - the name of the header file to receive the output,
@@ -164,8 +179,11 @@ EOM
 }
 
 typeset o=
-while getopts "d:r:s:t:h?" o; do
+while getopts "c:d:r:s:t:h?" o; do
 	case $o in
+                c)
+                cast_to=$OPTARG
+                ;;
 		d)
 		checkwh "$OPTARG" width height
 		if [ $? -ne 0 ]; then

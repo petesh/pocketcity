@@ -49,7 +49,7 @@ static UInt32 GetRandomZone(void);
 static void FindZonesForUpgrading(void);
 static Int16 FindScoreForZones(void);
 static void AddNeighbors(distrib_t *distrib, UInt32 pos);
-static Int16 ExistsNextto(UInt32 pos, welem_t what);
+static UInt8 ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what);
 
 /*
  * The power/water grid is updated using the following mechanism:
@@ -154,7 +154,7 @@ static Int16
 IsItAWaterPump(welem_t point, UInt32 coord, selem_t flags)
 {
 	if ((point == Z_PUMP) && (flags & POWEREDBIT) &&
-	    ExistsNextto(coord, Z_REALWATER))
+	    ExistsNextto(coord, DIR_ALL, Z_REALWATER))
 		return (SUPPLY_WATER_PUMP);
 	return (0);
 }
@@ -433,23 +433,24 @@ DistributeMoveOn(UInt32 pos, dirType direction)
  * \param the node type to compare it against
  * \return true if the node is next to it.
  */
-static Int16
-ExistsNextto(UInt32 pos, welem_t what)
+static UInt8
+ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what)
 {
-	if (!(pos < GetMapWidth()) && GetWorld(pos - GetMapWidth()) == what) {
-		return (1);
-	}
-	if (!((pos+1) >= MapMul()) && GetWorld(pos + 1) == what) {
-		return (1);
-	}
-	if (!((pos + GetMapWidth()) >= MapMul()) &&
-	    GetWorld(pos + GetMapWidth()) == what) {
-		return (1);
-	}
-	if ((pos != 0) && GetWorld(pos - 1) == what) {
-		return (1);
-	}
-	return (0);
+	UInt8 rv = 0;
+
+	if ((dirs & DIR_UP) && (pos > GetMapWidth()) &&
+	    (what == GetWorld(pos - GetMapWidth())))
+		rv |= DIR_UP;
+	if ((dirs & DIR_DOWN) && (pos < (MapMul() - GetMapWidth())) &&
+	    (what == GetWorld(pos + GetMapWidth())))
+		rv |= DIR_DOWN;
+	if ((dirs & DIR_LEFT) && (pos % GetMapWidth()) && 
+	    (what == GetWorld(pos - 1)))
+		rv |= DIR_LEFT;
+	if ((dirs & DIR_RIGHT) && (((pos % GetMapWidth()) + 1) < GetMapWidth())
+		&& (what == GetWorld(pos + 1)))
+		rv |= DIR_RIGHT;
+	return (rv);
 }
 
 
@@ -463,7 +464,7 @@ typedef struct {
 } ZoneScore;
 
 /*! \brief zones to be upgraded/downgraded */
-ZoneScore zones[256];
+static ZoneScore zones[256];
 
 /*! \brief Find a bunch of zones and decide to upgrade/downgrade them */
 void
@@ -591,7 +592,7 @@ UpgradeZones(void)
 static void
 DowngradeZone(UInt32 pos)
 {
-	int type;
+	welem_t type;
 
 	LockWorld();
 	type = GetWorld(pos);
@@ -619,7 +620,7 @@ DowngradeZone(UInt32 pos)
 static void
 UpgradeZone(UInt32 pos)
 {
-	int type;
+	welem_t type;
 
 	LockWorld();
 	type = GetWorld(pos);
@@ -1191,7 +1192,7 @@ RecordStatistics(void)
 		tmpval = (UInt32)stat->last_ten[0] * 3 + stat_value;
 		tmpval >>= 2;
 		/* overflow */
-		if (tmpval > MAX_UINT16) {
+		if (tmpval > (UInt16)MAX_UINT16) {
 			stat->last_ten[0] = MAX_UINT16;
 		} else {
 			stat->last_ten[0] = tmpval;
@@ -1204,10 +1205,7 @@ RecordStatistics(void)
 		}
 		if ((getMonthsElapsed() & (3*12)) == (3 * 12)) {
 		}
-
 	}
-	
-	
 }
 
 /*!
@@ -1397,8 +1395,8 @@ IsZone(welem_t x, zoneType nType)
 	if (x == nType)
 		return (1);
 	nType -= Z_COMMERCIAL_SLUM;
-	if ((x >= (nType * 10 + Z_COMMERCIAL_MIN)) && 
-	    (x <= (nType * 10 + Z_COMMERCIAL_MAX)))
+	if ((x >= (welem_t)(nType * 10 + Z_COMMERCIAL_MIN)) && 
+	    (x <= (welem_t)(nType * 10 + Z_COMMERCIAL_MAX)))
 		return (1);
 	return (0);
 }
@@ -1421,20 +1419,22 @@ IsRoadOrBridge(welem_t x)
  * \param dirs the directions to check
  * \return true if the direction passed is of the correct type
  */
-Int16
-CheckNextTo(Int32 pos, Int16 (*checkfn)(welem_t), Int8 dirs)
+UInt8
+CheckNextTo(Int32 pos, Int16 (*checkfn)(welem_t), UInt8 dirs)
 {
+	UInt8 rv = 0;
+
 	if ((dirs & DIR_UP) && (pos > GetMapWidth()) &&
 	    checkfn(GetWorld(pos - GetMapWidth())))
-		return (1);
+		rv |= DIR_UP;
 	if ((dirs & DIR_DOWN) && (pos < (MapMul() - GetMapWidth())) &&
 	    checkfn(GetWorld(pos + GetMapWidth())))
-		return (1);
+		rv |= DIR_DOWN;
 	if ((dirs & DIR_LEFT) && (pos % GetMapWidth()) && 
 	    checkfn(GetWorld(pos - 1)))
-		return (1);
+		rv |= DIR_LEFT;
 	if ((dirs & DIR_RIGHT) && (((pos % GetMapWidth()) + 1) < GetMapWidth())
 		&& checkfn(GetWorld(pos + 1)))
-		return (1);
-	return (0);
+		rv |= DIR_RIGHT;
+	return (rv);
 }

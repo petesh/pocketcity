@@ -76,7 +76,7 @@ typedef struct {
  * into the filename
  */
 static void
-open_afile(GtkObject *sel, gpointer data)
+open_afile(GtkObject *sel __attribute__((unused)), gpointer data)
 {
 	fsh_data *dat = (fsh_data *)data;
 	doOpen((gchar *)gtk_file_selection_get_filename(
@@ -88,7 +88,7 @@ open_afile(GtkObject *sel, gpointer data)
  * \brief free the widget and the data pointer
  */
 static void
-free_object(GtkObject *obj, gpointer data)
+free_object(GtkObject *obj __attribute__((unused)), gpointer data)
 {
 	fsh_data *dat = (fsh_data *)data;
 	gtk_widget_destroy(dat->file_sel);

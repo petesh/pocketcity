@@ -3,8 +3,10 @@
 
 #include <PalmTypes.h>
 #include <Window.h>
+#include <Form.h>
 #include <Event.h>
 #include <sony_support.h>
+#include <sections.h>
 
 #define	BASEWIDTH ((Int32)160)
 #define	BASEHEIGHT ((Int32)160)
@@ -22,19 +24,20 @@ extern Int32 sHeight;
 Boolean isDoubleOrMoreResolution(void);
 void scaleEvent(EventPtr event);
 UInt32 highDensityFeatureSet(void);
-Coord scaleCoordX(Coord x);
-Coord scaleCoordY(Coord y);
+Coord scaleCoord(Coord x);
+Coord normalizeCoord(Coord x);
 Boolean canHires(void);
 Boolean isHires(void);
-void setScreenRes(void);
+void setScreenRes(void) OTHER_SECTION;
 void StartHiresDraw(void);
 void EndHiresDraw(void);
 void StartHiresFontDraw(void);
 void EndHiresFontDraw(void);
+void SetSilkResizable(FormPtr form, UInt8 resizable) OTHER_SECTION;
+Int16 hasVirtualSilk(void) OTHER_SECTION;
+void EndSilk(void) OTHER_SECTION;
 #define	StartScaleDraw	StartHiresFontDraw
 #define EndScaleDraw		EndHiresFontDraw
-#define normalizeX(X)	((X) * BASEWIDTH / sWidth)
-#define normalizeY(Y)	((Y) * BASEHEIGHT / sHeight)
 
 #else
 
@@ -52,10 +55,8 @@ void EndHiresFontDraw(void);
 #define highDensityFeatureSet()	(0)
 #define isDoubleOrMoreResolution() (0)
 #define scaleEvent(e)
-#define scaleCoordX(x)	(x)
-#define scaleCoordY(y)	(y)
-#define normalizeX(X)	(X)
-#define normalizeY(Y)	(Y)
+#define scaleCoord(x)	(x)
+#define normalizeCoord(X)	(X)
 #define StartHiresDraw()
 #define EndHiresDraw()
 #define StartHiresFontDraw()
@@ -63,6 +64,9 @@ void EndHiresFontDraw(void);
 #define	StartScaleDraw()
 #define EndScaleDraw()
 #define setScreenRes()
+#define SetSilkResizable(X,Y)
+#define	hasVirtualSilk()	(0)
+#define EndSilk()
 
 #endif /* SONY_CLIE || PALM_HIGH */
 

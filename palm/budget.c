@@ -11,14 +11,14 @@
 
 #define	MILLION 1000000
 
-static FormPtr budgetSetup(void) MAP_SECTION;
-static void dealRepeats(EventPtr event) MAP_SECTION;
-static void dealFieldContentChange(UInt16 fieldID) MAP_SECTION;
+static FormPtr budgetSetup(FormPtr form) BUDGET_SECTION;
+static void dealRepeats(EventPtr event) BUDGET_SECTION;
+static void dealFieldContentChange(UInt16 fieldID) BUDGET_SECTION;
 static const struct buttonmapping *getIndex(UInt16 buttonControl,
-    Boolean isButton) MAP_SECTION;
+    Boolean isButton) BUDGET_SECTION;
 static void updateBudgetValue(FormPtr form, UInt16 label, const Char *format,
-    long value) MAP_SECTION;
-static void updateBudgetNumber(BudgetNumber bn) MAP_SECTION;
+    long value) BUDGET_SECTION;
+static void updateBudgetNumber(BudgetNumber bn) BUDGET_SECTION;
 
 static const struct buttonmapping {
 	UInt16		down;
@@ -150,8 +150,9 @@ hBudget(EventPtr event)
 	switch (event->eType) {
 	case frmOpenEvent:
 		PauseGame();
+		form = FrmGetActiveForm();
 		WriteLog("opening budget\n");
-		FrmDrawForm(budgetSetup());
+		FrmDrawForm(budgetSetup(form));
 		handled = true;
 		break;
 	case frmCloseEvent:
@@ -269,15 +270,13 @@ updateBudgetNumber(const BudgetNumber item)
  * choose the %age to give over to each service.
  */
 static FormPtr
-budgetSetup(void)
+budgetSetup(FormPtr form)
 {
-	FormPtr		form;
 	MemHandle	texthandle;
 	MemPtr		text;
 	int		i;
 	struct updateentity *entityp = (struct updateentity *)&entity[0];
 
-	form = FrmGetActiveForm();
 	/*
 	 * Allocate 12 characters for each budget label in one place
 	 */

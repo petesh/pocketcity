@@ -56,10 +56,13 @@ Int16 IsZone(welem_t x, zoneType nType);
 
 #define DIR_UP		(1<<0)
 #define	DIR_DOWN	(1<<1)
+#define DIR_VER		((DIR_UP) | (DIR_DOWN))
 #define	DIR_LEFT	(1<<2)
 #define	DIR_RIGHT	(1<<3)
+#define DIR_HOR		((DIR_LEFT) | (DIR_RIGHT))
+#define	DIR_ALL		((DIR_HOR) | (DIR_VER))
 
-Int16 CheckNextTo(Int32 pos, Int16 (*checkfn)(welem_t), Int8 dirs);
+UInt8 CheckNextTo(Int32 pos, Int16 (*checkfn)(welem_t), UInt8 dirs);
 
 Int16 CarryPower(welem_t x);
 Int16 CarryWater(welem_t x);

@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <strings.h>
 #include <nix_utils.h>
 
@@ -27,7 +28,7 @@ searchForFile(Char *file, UInt16 length, Char *path)
 	char *cap;
 	struct stat sbuf;
 
-	while (atp != NULL) {
+	do {
 		cap = strchr(atp, ':');
 		if (cap != NULL)
 			*cap = '\0';
@@ -39,7 +40,7 @@ searchForFile(Char *file, UInt16 length, Char *path)
 		}
 		if (cap != NULL)
 			atp = cap + 1;
-	}
+	} while (cap != NULL);
 	if (tat != NULL) free(tat);
 	return (0);
 }

@@ -4,6 +4,7 @@
 #include <ErrorMgr.h>
 #include <SystemMgr.h>
 #include <ui.h>
+#include <PenInputMgr.h>
 
 #define	_HIRESSOURCE_
 #include <resCompat.h>
@@ -194,24 +195,104 @@ isHires(void)
 void
 scaleEvent(EventPtr event)
 {
+	UInt32 mul;
 	if (isHires()) {
-		event->screenX  = (Coord)((UInt32)event->screenX * sWidth /
-		    BASEWIDTH);
-		event->screenY = (Coord)((UInt32)event->screenY * sHeight /
-		    BASEHEIGHT);
+		if (sonyHires())
+			mul = kDensityDouble;
+		else
+			mul = hdfs;
+		event->screenX  = (Coord)((UInt32)event->screenX * mul /
+		    kDensityLow);
+		event->screenY = (Coord)((UInt32)event->screenY * mul /
+		    kDensityLow);
 	}
 }
 
+/*!
+ * \brief scale an X coordinate
+ * \param x the coordinate to scale
+ * \return the newly scaled coordinate
+ */
 Coord
-scaleCoordX(Coord x)
+scaleCoord(Coord x)
 {
-	return ((Coord)((UInt32)x * sWidth / BASEWIDTH));
+	UInt32 mul = sonyHires() ? kDensityDouble : hdfs;
+	return ((Coord)((UInt32)x * mul / kDensityLow));
 }
 
+/*!
+ * \brief normalize a scaled value back to the 'original' resolution
+ * \param x the parameter to scale
+ * \return the normalized value
+ */
 Coord
-scaleCoordY(Coord y)
+normalizeCoord(Coord x)
 {
-	return ((Coord)((UInt32)y * sHeight / BASEHEIGHT));
+	UInt32 mul = sonyHires() ? kDensityDouble : hdfs;
+	return ((Coord)((UInt32)x * kDensityLow / mul));
+}
+
+/*!
+ * \brief check for the virtual silk screen
+ * \return true if the Virtual Silkscreen is available
+ */
+Int16
+hasVirtualSilk(void)
+{
+	static Int16 has_silk = -1;
+	Err err;
+	UInt32 version;
+
+	if (has_silk != -1)
+		return (has_silk);
+
+	err = FtrGet(pinCreator, pinFtrAPIVersion, &version);
+	if (!err && version) {
+		if (pinAPIVersion1_0 == version)
+			has_silk = 1;
+		else
+			has_silk = 2;
+		return (has_silk);
+	}
+
+	if (SonySilk()) {
+		has_silk = 1;
+	}
+
+	has_silk = 0;
+
+	return (has_silk);
+}
+
+/*!
+ * \brief end the use of the silk routines
+ */
+void
+EndSilk(void)
+{
+	SonyEndSilk();
+}
+
+/*!
+ * \brief Set silk is resizable or not
+ */
+void
+SetSilkResizable(FormPtr form, UInt8 resizeable)
+{
+	if (hasVirtualSilk()) {
+		UInt16 state;
+
+		if (resizeable)
+			state = pinInputTriggerEnabled;
+		else
+			state = pinInputTriggerDisabled;
+		if (resizeable) {
+			FrmSetDIAPolicyAttr(form, frmDIAPolicyCustom);
+		}
+		PINSetInputTriggerState(state);
+	} else if (SonySilk()) {
+		SonySetSilkResizable(resizeable);
+	}
 }
 
 #endif /* HRSUPPORT */

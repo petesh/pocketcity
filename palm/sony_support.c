@@ -11,6 +11,7 @@
 #include <resCompat.h>
 #include <sony_support.h>
 #include <palmutils.h>
+#include <ui.h>
 
 /*
  * Variable to indicate that high resolution is in effect & using sony
@@ -46,9 +47,7 @@ hookHoldSwitch(void (*CallBack)(UInt32))
 	if (!err && val) {
 		UInt16 CardNo;
 		LocalID dbID;
-		DmSearchStateType state;
-		DmGetNextDatabaseByTypeCreator(true, &state, 'appl',
-		    GetCreatorID(), true, &CardNo, &dbID);
+		SysCurAppDatabase(&CardNo, &dbID);
 		SysNotifyRegister(CardNo, dbID,
 		    sonySysNotifyHoldStatusChangeEvent,
 		    PrvHoldNotificationHandler, sysNotifyNormalPriority, NULL);
@@ -291,8 +290,9 @@ IsDrawWindowMostOfScreen()
 	    ((UInt32)sWidth * sHeight * 10));
 }
 
-/*
- * Check if this device is a Sony. For Jog Navigation Support
+/*!
+ * \brief Check if this device is a Sony. For Jog Navigation Support
+ * \return true if device is a sony.
  */
 Boolean
 IsSony(void)
@@ -310,5 +310,77 @@ IsSony(void)
 	return (tested == 1);
 }
 
+static Int16 silk_ref = -1;
+static Int8 silk_ver = -1;
+
+/*!
+ * \brief Check if sony silk available. Loads library as well.
+ * \return true if sony silk library is available
+ */
+Boolean
+SonySilk(void)
+{
+	Err error = errNone;
+	UInt32 version;
+
+	if (silk_ref != -1)
+		return (silk_ref != 0);
+
+	if (SysLibFind(sonySysLibNameSilk, &silk_ref)) {
+		error = SysLibLoad('libr', sonySysFileCSilkLib, &silk_ref);
+	}
+	if (error == sysErrLibNotFound || silk_ref == -1) {
+		silk_ref = 0;
+		return (0);
+	}
+	WriteLog("found sony silk library\n");
+
+	error = FtrGet(sonySysFtrCreator, sonySysFtrNumVskVersion, &version);
+	if (error)
+		silk_ver = 0;
+	else
+		silk_ver = 1;
+
+	return (silk_ref != 0);
+}
+
+/*!
+ * \brief finish up with the sony silk library
+ */
+void
+SonyEndSilk(void)
+{
+	if (silk_ref != -1 && silk_ref != 0) {
+		if (silk_ver == 0)
+			SilkLibClose(silk_ref);
+		else
+			VskClose(silk_ref);
+	}
+	silk_ref = 0;
+}
+
+/*!
+ * \brief set silk area to be resizable
+ */
+void
+SonySetSilkResizable(UInt8 state)
+{
+	if (silk_ver == -1)
+		return;
+	if (silk_ver == 0) {
+		if (state)
+			SilkLibEnableResize(silk_ref);
+		else
+			SilkLibDisableResize(silk_ref);
+	} else {
+		if (!state)
+			VskSetState(silk_ref, vskStateEnable, state);
+		else if (VskGetAPIVersion(silk_ref) >= 0x03)
+			VskSetState(silk_ref, vskStateEnable, 
+			    vskResizeVertically | vskResizeHorizontally);
+		else
+			VskSetState(silk_ref, vskStateEnable, 1);
+	}
+}
 
 #endif /* SONY_CLIE */

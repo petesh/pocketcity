@@ -5,6 +5,7 @@
 #include <StdIOPalm.h>
 #include <simcity.h>
 #include <savegame.h>
+#include <savegame_be.h>
 #include <options.h>
 #include <map.h>
 #include <budget.h>
@@ -64,7 +65,6 @@ static void UIDoQuickList(void);
 static void UIPopUpExtraBuildList(void);
 static void CleanUpExtraBuildForm(void);
 static FieldType * UpdateDescription(Int16 sel);
-static void initTextPositions(void);
 
 static void _UIGetFieldToBuildOn(Int16 x, Int16 y);
 static Err RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags);
@@ -83,8 +83,10 @@ static void HoldHook(UInt32);
 static void toolBarCheck(Coord);
 static void UIDrawToolBar(void);
 static void freeToolbarBitmap(void);
+static void ResizeDisplay(Boolean draw);
 #else
 #define	freeToolbarBitmap()
+#define ResizeDisplay(X)
 #endif
 
 extern void UIDrawLoc(void);
@@ -123,14 +125,38 @@ ResGetString(UInt16 index, char *buffer, UInt16 length)
  * Handles the auto-saving of the application at the end.
  */
 UInt32
-PilotMain(UInt16 cmd, MemPtr cmdPBP __attribute__ ((unused)),
-    UInt16 launchFlags)
+PilotMain(UInt16 cmd,
+    MemPtr cmdPBP
+//#if !defined(HRSUPPORT)
+    __attribute__((unused))
+//#endif
+    , UInt16 launchFlags)
 {
 	UInt16 error;
 	Int16 pir;
 
-	if (cmd != sysAppLaunchCmdNormalLaunch)
+	switch (cmd) {
+	case sysAppLaunchCmdNormalLaunch:
+		break;
+#if defined(HRSUPPORT)
+	case sysAppLaunchCmdNotify:
+		if (((SysNotifyParamType *)cmdPBP)->notifyType ==
+		    sysNotifyDisplayResizedEvent ||
+		    ((SysNotifyParamType *)cmdPBP)->notifyType ==
+		    sysNotifyDisplayChangeEvent) {
+			EventType rev;
+			WriteLog("notified\n");
+			MemSet(&rev, sizeof(EventType), 0);
+			rev.eType = winDisplayChangedEvent;
+			EvtAddUniqueEventToQueue(&rev, 0, true);
+		}
 		return (0);
+		break;
+#endif
+	default:
+		return (0);
+		break;
+	}
 
 	error = RomVersionCompatible(
 	    sysMakeROMVersion(3, 5, 0, sysROMStageRelease, 0), launchFlags);
@@ -156,7 +182,7 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP __attribute__ ((unused)),
 	EventLoop();
 
 	if (IsGameInProgress()) {
-	UISaveAutoGame();
+		UISaveAutoGame();
 	}
 
 	_PalmFini(pir);
@@ -376,6 +402,10 @@ _PalmInit(void)
 	Int16		rv = 0;
 	Coord		width;
 	Coord		height;
+#if defined(HRSUPPORT)
+	UInt16		cardNo;
+	LocalID		dbID;
+#endif
 
 	timeStamp = TimGetSeconds();
 	timeStampDisaster = timeStamp;
@@ -418,17 +448,21 @@ _PalmInit(void)
 	rPlayGround.extent.y = sHeight - 2*16; /* Space on the bottom */
 
 	/* section (4) */
+#if defined(HRSUPPORT)
+	SysCurAppDatabase(&cardNo, &dbID);
+	SysNotifyRegister(cardNo, dbID, sysNotifyDisplayChangeEvent,
+	    NULL, sysNotifyNormalPriority, NULL);
+#endif
 
-	/* section (5) is special ... it always gets called */
-
+	/* Section (5); */
 	/* create an offscreen window, and copy the zones to be used later */
 	for (i = 0; i < (sizeof (handles) / sizeof (handles[0])); i++) {
 		bitmaphandle = DmGetResource(TBMP, handles[i].resourceID);
 		if (bitmaphandle == NULL) {
 			WriteLog("could not get bitmap handle[%d:%ld]\n",
 			    (int)i, (long)handles[i].resourceID);
-			if (winHandle) WinSetDrawWindow(winHandle);
-			return (5);
+			rv = 5;
+			goto returnWV;
 		}
 		bitmap = (BitmapPtr)MemHandleLock(bitmaphandle);
 		if (bitmap == NULL) {
@@ -460,7 +494,6 @@ _PalmInit(void)
 		DmReleaseResource(bitmaphandle);
 		*(handles[i].handle) = privhandle;
 	}
-	initTextPositions();
 
 	/* clean up */
 
@@ -484,9 +517,14 @@ static void
 _PalmFini(Int16 reached)
 {
 	UInt16 i;
+#if defined(HRSUPPORT)
+	UInt16 cardNo;
+	LocalID dbID;
+#endif
 
 	unhookHoldSwitch();
 	freeToolbarBitmap();
+	EndSilk();
 
 	switch (reached) {
 	case 0:
@@ -498,6 +536,11 @@ _PalmFini(Int16 reached)
 				WinDeleteWindow(*(handles[i].handle), 0);
 		}
 	case 4:
+#if defined(HRSUPPORT)
+		SysCurAppDatabase(&cardNo, &dbID);
+		SysNotifyUnregister(cardNo, dbID, sysNotifyDisplayChangeEvent,
+		    sysNotifyNormalPriority);
+#endif
 		restoreDepthRes();
 	case 3:
 		DmCloseDatabase(_refTiles);
@@ -656,6 +699,8 @@ hPocketCity(EventPtr event)
 	switch (event->eType) {
 	case frmOpenEvent:
 		form = FrmGetActiveForm();
+		SetSilkResizable(form, true);
+		ResizeDisplay(false);
 		SetGameInProgress();
 		ResumeGame();
 		FrmDrawForm(form);
@@ -665,6 +710,7 @@ hPocketCity(EventPtr event)
 		handled = true;
 		break;
 	case frmCloseEvent:
+		SetSilkResizable(NULL, false);
 		break;
 	case penDownEvent:
 		scaleEvent(event);
@@ -728,6 +774,15 @@ hPocketCity(EventPtr event)
 	case keyDownEvent:
 		handled = vkDoEvent(event->data.keyDown.chr);
 		break;
+#if defined(HRSUPPORT)
+	case winDisplayChangedEvent:
+#if defined(SONY_CLIE)
+	case vchrSilkResize:
+#endif
+		ResizeDisplay(true);
+		handled = true;
+		break;
+#endif
 	default:
 		break;
 	}
@@ -1536,30 +1591,37 @@ GetRandomNumber(UInt32 max)
 #define	ENDY	8
 
 struct StatusPositions {
-	RectangleType rect;
+	PointType point;
 	PointType offset;
 	UInt32 extents;
 };
 
+static RectangleType shapes[] = {
+	{ {0, 0}, {0, 11} },  /* DATELOC */
+	{ {0, 0}, {0, 11} }, /* CREDITSLOC */
+	{ {0, 0}, {0, 11} }, /* POPLOC */
+	{ {0, 0}, {0, 11} } /* POSITIONLOC */
+};
+
 /*
- * extents.x is filled in by initTextPositions
+ * extents.x
  */
-static struct StatusPositions lrpositions[] = {
-	{ { {0, 0}, {0, 11} }, {0, 1}, MIDX },  /* DATELOC */
-	{ { {0, 0}, {0, 11} }, {0, 1}, ENDY }, /* CREDITSLOC */
-	{ { {0, 0}, {0, 11} }, {0, 1}, MIDX | ENDY }, /* POPLOC */
-	{ { {0, 0}, {0, 11} }, {0, 1}, ENDX | ENDY }, /* POSITIONLOC */
+static const struct StatusPositions lrpositions[] = {
+	{ {0, 0} , {0, 1}, MIDX },  /* DATELOC */
+	{ {0, 0}, {0, 1}, ENDY }, /* CREDITSLOC */
+	{ {0, 0}, {0, 1}, MIDX | ENDY }, /* POPLOC */
+	{ {0, 0}, {0, 1}, ENDX | ENDY } /* POSITIONLOC */
 };
 #ifdef HRSUPPORT
 
 /*
  * High resolution version of the positions
  */
-static struct StatusPositions hrpositions[] = {
-	{ { {2, 0}, {0, 11} }, {0, 1}, ENDY },  /* DATELOC */
-	{ { {80, 0}, {0, 11} }, {0, 1}, ENDY }, /* CREDITSLOC */
-	{ { {160, 0}, {0, 11} }, {0, 1}, ENDY }, /* POPLOC */
-	{ { {280, 0}, {0, 11} }, {0, 1}, ENDY }, /* POSITIONLOC */
+static const struct StatusPositions hrpositions[] = {
+	{ {1, 0}, {0, 1}, ENDY },  /* DATELOC */
+	{ {40, 0}, {0, 1}, ENDY }, /* CREDITSLOC */
+	{ {80, 0}, {0, 1}, ENDY }, /* POPLOC */
+	{ {140, 0}, {0, 1}, ENDY }, /* POSITIONLOC */
 };
 
 /*
@@ -1573,11 +1635,12 @@ posAt(int pos)
 	if (sp != NULL)
 		return (&(sp[pos]));
 	if (isHires()) {
-		WriteLog("Plucking HiRes Positions (%d)\n", (int)highDensityFeatureSet());
-		sp = &(hrpositions[0]);
+		WriteLog("Plucking HiRes Positions (%d)\n",
+		    (int)highDensityFeatureSet());
+		sp = (struct StatusPositions *)&(hrpositions[0]);
 	} else {
 		WriteLog("Plucking Low Resolution Positions\n");
-		sp = &(lrpositions[0]);
+		sp = (struct StatusPositions *)&(lrpositions[0]);
 	}
 	return (&(sp[pos]));
 }
@@ -1588,39 +1651,25 @@ posAt(int pos)
 #define	MAXLOC		(sizeof (lrpositions) / sizeof (lrpositions[0]))
 
 /*
- * only the topLeft.y location is a 'constant'
- */
-void
-initTextPositions(void)
-{
-	UInt16 i;
-
-	for (i = 0; i < MAXLOC; i++) {
-		struct StatusPositions *pos = posAt(i);
-		if (pos->extents & ENDY)
-			pos->rect.topLeft.y = sHeight -
-				(pos->rect.extent.y + pos->offset.y);
-	}
-}
-
-/*
  * Draw a status item at the position requested
  */
 void
 UIDrawItem(Int16 location, char *text)
 {
-	struct StatusPositions *pos;
+	const struct StatusPositions *pos;
 	Int16 sl;
 	Coord tx;
+	RectangleType *rt;
 
 	if ((location < 0) || ((UInt16)location >= MAXLOC)) {
 		Warning("UIDrawitem request for item out of bounds");
 		return;
 	}
 	pos = posAt(location);
-	if (pos->rect.extent.x && pos->rect.extent.y) {
+	rt = shapes + location;
+	if (rt->extent.x && rt->extent.y) {
 		StartHiresDraw();
-		_WinEraseRectangle(&(pos->rect), 0);
+		_WinEraseRectangle(rt, 0);
 		EndHiresDraw();
 	}
 
@@ -1630,21 +1679,25 @@ UIDrawItem(Int16 location, char *text)
 	tx = FntCharsWidth(text, sl);
 	switch (pos->extents & (MIDX | ENDX)) {
 	case MIDX:
-		pos->rect.topLeft.x = (sWidth - tx) / 2 + pos->offset.x;
+		rt->topLeft.x = (sWidth - tx) / 2 + pos->offset.x;
 		break;
 	case ENDX:
-		pos->rect.topLeft.x = sWidth - (tx + pos->offset.x);
+		rt->topLeft.x = sWidth - (tx + pos->offset.x);
 		break;
+	default:
+		rt->topLeft.x = sWidth * pos->point.x / BASEWIDTH;
 	}
-	pos->rect.extent.x = tx;
+	if (pos->extents & ENDY) {
+		rt->topLeft.y = sHeight - (rt->extent.y + pos->offset.y);
+	}
+	rt->extent.x = tx;
 	if (highDensityFeatureSet()) {
 		StartHiresFontDraw();
-		_WinDrawChars(text, sl, normalizeX(pos->rect.topLeft.x),
-		    normalizeY(pos->rect.topLeft.y));
+		_WinDrawChars(text, sl, normalizeCoord(rt->topLeft.x),
+		    normalizeCoord(rt->topLeft.y));
 		EndHiresFontDraw();
 	} else {
-		_WinDrawChars(text, sl, pos->rect.topLeft.x,
-		    pos->rect.topLeft.y);
+		_WinDrawChars(text, sl, rt->topLeft.x, rt->topLeft.y);
 	}
 	if (isDoubleOrMoreResolution())
 		_FntSetFont(stdFont);
@@ -1658,11 +1711,8 @@ static Int16
 UICheckOnClick(Coord x, Coord y)
 {
 	UInt16 i;
-	struct StatusPositions *pos;
 	for (i = 0; i < MAXLOC; i++) {
-		RectangleType *rt;
-		pos = posAt(i);
-		rt = &(pos->rect);
+		RectangleType *rt = shapes + i;
 		if ((x >= rt->topLeft.x) &&
 		    (x <= (rt->topLeft.x + rt->extent.x)) &&
 		    (y >= rt->topLeft.y) &&
@@ -1700,7 +1750,6 @@ CheckTextClick(Coord x, Coord y)
 
 /*
  * Draw the date on screen.
- * XXX: Nasty, needs localization
  */
 void
 UIDrawDate(void)
@@ -1738,7 +1787,8 @@ UIDrawCredits(void)
 			return;
 		bitmap = MemHandleLock(bitmapHandle);
 		StartHiresDraw();
-		_WinDrawBitmap(bitmap, 68, sHeight - 11);
+		_WinDrawBitmap(bitmap, shapes[CREDITSLOC].topLeft.x - 11,
+		    sHeight - 11);
 		EndHiresDraw();
 		MemPtrUnlock(bitmap);
 		DmReleaseResource(bitmapHandle);
@@ -1770,7 +1820,8 @@ UIDrawLoc(void)
 			return;
 		bitmap = MemHandleLock(bitmapHandle);
 		StartHiresDraw();
-		_WinDrawBitmap(bitmap, 270, sHeight - 11);
+		_WinDrawBitmap(bitmap, shapes[POSITIONLOC].topLeft.x - 11,
+		    sHeight - 11);
 		EndHiresDraw();
 		MemPtrUnlock(bitmap);
 		DmReleaseResource(bitmapHandle);
@@ -1874,7 +1925,8 @@ UIDrawPop(void)
 			return;
 		bitmap = MemHandleLock(bitmapHandle);
 		StartHiresDraw();
-		_WinDrawBitmap(bitmap, 146, sHeight - 11);
+		_WinDrawBitmap(bitmap, shapes[POPLOC].topLeft.x - 11,
+		    sHeight - 11);
 		EndHiresDraw();
 		MemPtrUnlock(bitmap);
 		DmReleaseResource(bitmapHandle);
@@ -1926,7 +1978,6 @@ LockWorld()
 {
 	if (++lockWorldCount == 1) {
 		if (worldHandle != NULL) {
-			/*WriteLog("Locking\n");*/
 			worldPtr = MemHandleLock(worldHandle);
 		}
 	}
@@ -1939,7 +1990,6 @@ UnlockWorld()
 		worldHandle = MemPtrRecoverHandle(worldPtr);
 	}
 	if (--lockWorldCount == 0) {
-		/*WriteLog("UnLocking\n");*/
 		MemPtrUnlock(worldPtr);
 		worldPtr = NULL;
 	}
@@ -2265,9 +2315,7 @@ UIDrawToolBar(void)
 			wh = _WinCreateBitmapWindow(pToolbarBitmap, &err);
 			if (wh != NULL) {
 				owh = WinSetDrawWindow(wh);
-				//StartHiresDraw();
 				drawToolBitmaps(2, 0, bWidth);
-				//EndHiresDraw();
 				WinSetDrawWindow(owh);
 				WinDeleteWindow(wh, false);
 			}
@@ -2289,7 +2337,6 @@ UIDrawToolBar(void)
 	}
 }
 
-// XXX: This x position check is incorrect!
 static void
 toolBarCheck(Coord xpos)
 {
@@ -2308,6 +2355,29 @@ toolBarCheck(Coord xpos)
 		nSelectedBuildItem = id;
 	}
 	UIUpdateBuildIcon();
+}
+
+static void
+ResizeDisplay(Boolean draw)
+{
+	RectangleType curRect, disRect;
+	FormPtr fp = FrmGetActiveForm();
+	WinGetBounds(FrmGetWindowHandle(fp), &curRect);
+
+	WinGetBounds(WinGetDisplayWindow(), &disRect);
+
+	WriteLog("old wh = (%d, %d)\n", (int)curRect.extent.x,
+	    (int)curRect.extent.y);
+	WinSetBounds(FrmGetWindowHandle(fp), &disRect);
+	SETWIDTH(scaleCoord(disRect.extent.x));
+	SETHEIGHT(scaleCoord(disRect.extent.y));
+	ResetViewable();
+	WriteLog("new wh = (%d, %d)\n", (int)sWidth, (int)sHeight);
+	if (draw) {
+		FrmDrawForm(fp);
+		DrawGame(1);
+		RedrawAllFields();
+	}
 }
 
 #endif /* HRSUPPORT */

@@ -14,7 +14,7 @@ extern "C" {
 #define	OTHER_SECTION
 #endif
 
-void DoNastyStuffTo(Int16 type, UInt16 probability) OTHER_SECTION;
+void DoNastyStuffTo(welem_t type, UInt16 probability) OTHER_SECTION;
 void DoRandomDisaster() OTHER_SECTION;
 Int16 UpdateDisasters() OTHER_SECTION;
 Int16 BurnField(Int16 x, Int16 y, Int16 forceit) OTHER_SECTION;

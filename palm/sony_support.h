@@ -15,6 +15,9 @@ void unhookHoldSwitch(void);
 void hookHoldSwitch(void (*CallBack)(UInt32));
 int IsDrawWindowMostOfScreen(void);
 Boolean IsSony(void);
+Boolean SonySilk(void);
+void SonyEndSilk(void);
+void SonySetSilkResizable(UInt8 resizeable);
 
 Err _WinScreenMode(WinScreenModeOperation op, UInt32 *width, UInt32 *height,
     UInt32 *depth, Boolean *enableColor);
@@ -42,6 +45,9 @@ void _FntSetFont(FontID font);
 #define	hookHoldSwitch(x)
 #define	IsDrawWindowMostOfScreen() (true)
 #define	IsSony()	(false)
+#define SonySilk()	(0)
+#define	SonyEndSilk()
+#define SonySetSilkResizable(X)
 
 #define	_WinScreenMode WinScreenMode
 #define	_WinEraseRectangle WinEraseRectangle

@@ -166,7 +166,7 @@ InitWorld(void)
  * \param pos the position in the world map to obtain
  * \return the item at that position.
  */
-UInt8
+welem_t
 GetWorld(UInt32 pos)
 {
 	UInt16 val;
@@ -185,7 +185,7 @@ GetWorld(UInt32 pos)
  * \param value the value of the item
  */
 void
-SetWorld(UInt32 pos, UInt8 value)
+SetWorld(UInt32 pos, welem_t value)
 {
 	UInt16 *ptr;
 	

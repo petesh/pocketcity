@@ -15,7 +15,7 @@ ALLFILES=$(COLORS:%=$(ICONFILE)-%)
 all: $(ALLFILES)
 
 $(ICONFILE)-%: $(DEPPNGS:%=$$*/%) $(MAPFILE)
-	./dotilezones.sh -t $* -d $(DIM) -s $(SHAPE) $(MAPFILE) \
+	./dotilezones.sh -t $* -d $(DIM) -s $(SHAPE) -c welem_t $(MAPFILE) \
 		$(ICONFILE)-$(DIM) tileheader.h
 	touch $@
 

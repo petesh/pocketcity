@@ -2,7 +2,7 @@ VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 CC = gcc
 GFLAGS := $(shell pkg-config --cflags gtk+-2.0) \
 	-DGTK_DISABLE_COMPAT_H -DGDK_DISABLE_DEPRECATED
-GCCFLAGS = -Wall -Werror
+GCCFLAGS = -W -Wall -Werror
 INCLUDEDIRS = -I . -I ../source -I ../nix-common -I ../graphic
 OPTFLAGS = -O2
 CFLAGS = $(GCCFLAGS) $(OPTFLAGS) -DLINUX $(GFLAGS) $(INCLUDEDIRS)
@@ -15,6 +15,8 @@ OBJECTS = main.o savegame_fe.o budget.o \
 	stack.o savegame_be.o pglobals.o nix_utils.o
 
 .PHONY: all debug clean
+
+default: debug
 
 all: pocketcity
 

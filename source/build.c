@@ -21,19 +21,25 @@
 #include <ui.h>
 #include <drawing.h>
 #include <simulation.h>
+#include <sections.h>
 
 /*! \brief Defines the build function pointer type */
 typedef void (*BuildF)(Int16 xpos, Int16 ypos, welem_t type);
 
-static void Build_Road(Int16 xpos, Int16 ypos, welem_t type);
-static void Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type);
-static void Build_WaterPipe(Int16 xpos, Int16 ypos, welem_t type);
-static void Build_Generic(Int16 xpos, Int16 ypos, welem_t type);
-static void Build_Generic4(Int16 xpos, Int16 ypos, welem_t type);
-static void Build_Defence(Int16 xpos, Int16 ypos, welem_t type);
+static void Build_Road(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
+static void Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
+static void Build_WaterPipe(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
+static void Build_Generic(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
+static void Build_Generic4(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
+static void Build_Defence(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
 
-static void CreateForest(UInt32 pos, Int16 size);
-static void RemoveDefence(Int16 xpos, Int16 ypos);
+static void CreateForest(UInt32 pos, Int16 size) BUILD_SECTION;
+static void RemoveDefence(Int16 xpos, Int16 ypos) BUILD_SECTION;
+void RemoveAllDefence(void) BUILD_SECTION;
+static int CantBulldoze(welem_t type) BUILD_SECTION;
+static UInt16 blockSize(welem_t type) BUILD_SECTION;
+static void Doff(welem_t base, welem_t node, Int16 *x, Int16 *y) BUILD_SECTION;
+static Int16 IsBulldozable(welem_t zone) BUILD_SECTION;
 
 static Int16 SpendMoney(UInt32 howMuch);
 
@@ -288,7 +294,7 @@ end:
  * \param x the x position
  * \param y the y position
  */
-void
+static void
 Doff(welem_t base, welem_t node, Int16 *x, Int16 *y)
 {
 	*x -= (node - base) % 2;
@@ -634,18 +640,33 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 		}
 	} else if (old == Z_REALWATER) {
 		welem_t tobuil = 0;
+		UInt8 check_rd;
+		UInt8 check_br;
+		UInt32 wp = WORLDPOS(xpos, ypos);
+		check_rd = CheckNextTo(wp, IsRoad, DIR_ALL);
+		check_br = CheckNextTo(wp, IsBridge, DIR_ALL);
+
+		if ((check_rd == 0) && (check_br == 0))
+			goto leaveme;
 		/*
 		 * build a bridge only if one of the squares around is
 		 * either a bridge or a road.
+		 * XXX: Fix Here it is broken.
 		 */
-		if (CheckNextTo(WORLDPOS(xpos, ypos), IsRoadOrBridge,
-		    DIR_UP | DIR_DOWN))
-			tobuil = Z_BRIDGE_END;
+		if ((check_rd & DIR_UP) || (check_rd & DIR_DOWN)) {
+			tobuil = Z_BRIDGE_VER;
+			goto success_build;
+		}
+		if ((check_rd & DIR_LEFT) || (check_rd & DIR_RIGHT)) {
+			tobuil = Z_BRIDGE_HOR;
+			goto success_build;
+		}
 		if (CheckNextTo(WORLDPOS(xpos, ypos), IsRoadOrBridge, 
 			    DIR_LEFT | DIR_RIGHT))
 			tobuil = Z_BRIDGE_START;
 		if (tobuil == 0)
 			goto leaveme;
+success_build:
 		if (SpendMoney(toSpend)) {
 			SetWorld(WORLDPOS(xpos, ypos), tobuil);
 			DrawCross(xpos, ypos, 1, 1);

@@ -11,9 +11,11 @@
 #include <zakdef.h>
 #include <simulation.h>
 
-static void zonetoPtr(Char *zonemesg, UInt8 tile, UInt16 length) MAP_SECTION;
-static FormPtr querySetup(void) MAP_SECTION;
-static void queryCleanup(void) MAP_SECTION;
+static FormPtr querySetup(void) OTHER_SECTION;
+static void queryCleanup(void) OTHER_SECTION;
+static void zonetoPtr(Char *zonemsg, welem_t tile, UInt16 maxlen) OTHER_SECTION;
+static void frmShowID(FormPtr fp, UInt16 id) OTHER_SECTION;
+static void frmHideID(FormPtr fp, UInt16 id) OTHER_SECTION;
 
 /*
  * Handler for the query form
@@ -113,13 +115,13 @@ zonetoPtr(Char *zonemsg, welem_t tile, UInt16 maxlen)
 	}
 }
 
-void
+static void
 frmShowID(FormPtr fp, UInt16 id)
 {
 	FrmShowObject(fp, FrmGetObjectIndex(fp, id));
 }
 
-void
+static void
 frmHideID(FormPtr fp, UInt16 id)
 {
 	FrmHideObject(fp, FrmGetObjectIndex(fp, id));

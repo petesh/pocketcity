@@ -1,3 +1,2 @@
 application { "Pocket City" PCit stack=8192 }
 multiple code { "lard" }
-multiple code { "map" }

@@ -28,5 +28,7 @@ industrialzones:Z_INDUSTRIAL_MIN:Z_INDUSTRIAL_MAX::Industrial zones
 powerroadoverlap:Z_POWERROAD_START,Z_POWERROAD_PHOR:Z_POWERROAD_END,Z_POWERROAD_PVER::Power overlapping road
 piperoadoverlap:Z_PIPEROAD_PHOR,Z_PIPEROAD_START:Z_PIPEROAD_PVER,Z_PIPEROAD_END::Pipe overlapping road
 road:Z_ROAD_START,Z_ROAD:Z_ROAD_END::Road zone and tiles
-bridge:Z_BRIDGE,Z_BRIDGE_START:Z_BRIDGE_END::Bridge zones
+bridge:Z_BRIDGE,Z_BRIDGE_START,Z_BRIDGE_HOR:Z_BRIDGE_END,Z_BRIDGE_VER::Bridge zones
+rail:Z_RAIL_START,Z_RAIL:Z_RAIL_END::Rail zone and tiles
+# add below here
 statusimages:::Z_POWER_OUT,Z_POWER_OUT_MASK,Z_WATER_OUT,Z_WATER_OUT_MASK:Status flags for rendered zones

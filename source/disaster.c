@@ -36,7 +36,7 @@ static void CreateMeteor(Int16 x, Int16 y, Int16 size);
  * \param probability the normalized probability of something bad happens
  */
 void
-DoNastyStuffTo(Int16 type, UInt16 probability)
+DoNastyStuffTo(welem_t type, UInt16 probability)
 {
 	/* nasty stuff means: turn it into wasteland */
 	long unsigned int randomTile;

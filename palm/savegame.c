@@ -22,10 +22,10 @@
 #include <resCompat.h>
 #include <palmutils.h>
 
-static void UpdateSaveGameList(void) MAP_SECTION;
-static void CleanSaveGameList(void) MAP_SECTION;
-static void DeleteFromList(void) MAP_SECTION;
-static int  LoadFromList(void) MAP_SECTION;
+static void UpdateSaveGameList(void) SAVE_SECTION;
+static void CleanSaveGameList(void) SAVE_SECTION;
+static void DeleteFromList(void) SAVE_SECTION;
+static int  LoadFromList(void) SAVE_SECTION;
 
 #define	LASTGAME		((UInt16)~0)
 #define	MAXSAVEGAMECOUNT	50

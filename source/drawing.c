@@ -10,7 +10,7 @@
 #include <drawing.h>
 #include <simulation.h>
 
-static UInt8 GetGraphicNumber(UInt32 pos);
+static welem_t GetGraphicNumber(UInt32 pos);
 
 /*!
  * \brief Set up the graphics.
@@ -62,9 +62,7 @@ RedrawAllFields(void)
 	LockWorld();
 	UIInitDrawing();
 	UILockScreen();
-	for (i = getMapXPos();
-	    i < vgame.visible_x + getMapXPos();
-	    i++) {
+	for (i = getMapXPos(); i < vgame.visible_x + getMapXPos(); i++) {
 		for (j = getMapYPos();
 		    j < vgame.visible_y + getMapYPos();
 		    j++) {
@@ -202,8 +200,6 @@ DrawCross(Int16 xpos, Int16 ypos, Int16 xsize, Int16 ysize)
 	tx = xpos;
 	ty = ypos;
 	xpos -= 1;
-	WriteLog("drawCross(%d, %d, %d, %d)\n", (int)xpos, (int)ypos,
-	    (int)xsize, (int)ysize);
 	UIInitDrawing();
 	while (xpos <= tx + xsize) {
 		ypos = ty - 1;
@@ -215,7 +211,6 @@ DrawCross(Int16 xpos, Int16 ypos, Int16 xsize, Int16 ysize)
 				goto next;
 			if ((xpos >= 0) && (ypos >= 0) && \
 			    (xpos < GetMapWidth()) && (ypos < GetMapHeight())) {
-				WriteLog("elt(%d,%d)\n", xpos, ypos);
 				DrawFieldWithoutInit(xpos, ypos);
 			}
 next:
@@ -224,7 +219,6 @@ next:
 		xpos += 1;
 	}
 	UIFinishDrawing();
-	WriteLog("\n");
 }
 
 

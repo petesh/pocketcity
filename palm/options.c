@@ -7,8 +7,11 @@
 #include <ui.h>
 #include <palmutils.h>
 
-static FormPtr setupOptions(void) MAP_SECTION;
-static void saveOptions(void) MAP_SECTION;
+static FormPtr setupOptions(void) OTHER_SECTION;
+static void saveOptions(void) OTHER_SECTION;
+static FormPtr setupButtonConfig(void) OTHER_SECTION;
+static void saveButtonConfig(void) OTHER_SECTION;
+static void clearButtonConfig(void) OTHER_SECTION;
 
 /*
  * Handler for the main options dialog.
@@ -115,10 +118,6 @@ saveOptions(void)
 	    checkboxID_autobulldoze)));
 }
 
-
-static FormPtr setupButtonConfig(void) MAP_SECTION;
-static void saveButtonConfig(void) MAP_SECTION;
-static void clearButtonConfig(void) MAP_SECTION;
 
 /*
  * Handler for the button configuration form.
