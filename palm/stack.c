@@ -37,9 +37,14 @@ StackNew(void)
 	if (s == NULL)
 		return (NULL);
 	s->sl = 4;
-	if ((NULL == (s->sh = MemHandleNew(s->sl * sizeof (Int32)))) ||
-	    (NULL == (s->ss = (Int32 *)MemHandleLock(s->sh)))) {
-		if (s->sh) MemHandleFree(s->sh);
+	s->sh = MemHandleNew(s->sl * sizeof (Int32));
+	if (s->sh == NULL) {
+		MemPtrFree(s);
+		return (NULL);
+	}
+
+	if ((NULL == (s->ss = (Int32 *)MemHandleLock(s->sh)))) {
+		MemHandleFree(s->sh);
 		MemPtrFree(s);
 		return (NULL);
 	}
