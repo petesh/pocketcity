@@ -1,4 +1,3 @@
-#include <gtk/gtk.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -8,41 +7,15 @@
 #include <string.h>
 
 #include <main.h>
-#include <savegame.h>
 #include <globals.h>
 #include <handler.h>
 #include <ui.h>
 #include <simulation.h>
 #include <sys/types.h>
-#include <netinet/in.h>
 #include <inttypes.h>
 #include <strings.h>
 
-gchar *savegamename;
-
-void
-UIResetViewable(void)
-{
-	vgame.tileSize = 16;
-	vgame.visible_x = 320 / vgame.tileSize;
-	vgame.visible_y = 240 / vgame.tileSize;
-}
-
-void open_filename(GtkFileSelection *sel, gpointer data, int palm);
-
-void
-open_palmfilename(GtkFileSelection *sel, gpointer data)
-{
-	open_filename(sel, data, 1);
-}
-
-void
-open_platfilename(GtkFileSelection *sel, gpointer data)
-{
-	open_filename(sel, data, 0);
-}
-
-Int8
+static Int8
 read_int8(int fd)
 {
 	Int8 rv;
@@ -50,7 +23,7 @@ read_int8(int fd)
 	return (rv);
 }
 
-Int16
+static Int16
 read_int16(int fd)
 {
 	Int8 by[2];
@@ -58,7 +31,7 @@ read_int16(int fd)
 	return (by[0] << 8 | by[1]);
 }
 
-Int32
+static Int32
 read_int32(int fd)
 {
 	Int8 by[4];
@@ -66,7 +39,7 @@ read_int32(int fd)
 	return (by[0] << 24 | by[1] << 16 | by[2] << 8 | by[3]);
 }
 
-void
+static void
 read_palmstructure(GameStruct *new, int fd)
 {
 	int i;
@@ -114,30 +87,28 @@ read_palmstructure(GameStruct *new, int fd)
 	}
 }
 
-void
-open_filename(GtkFileSelection *sel, gpointer data, int palm)
+int
+open_filename(char *sel, int palm)
 {
 	int fd, ret;
 	char tempversion[4];
 
-	savegamename = (gchar*)gtk_file_selection_get_filename(
-	    GTK_FILE_SELECTION(data));
-	g_print("Opening save game from %s\n", savegamename);
+	WriteLog("Opening save game from %s\n", sel);
 
-	fd = open(savegamename, O_RDONLY);
+	fd = open(sel, O_RDONLY);
 	if (fd == -1) {
 		perror("open"); /* TODO: make this nicer */
-		return;
+		return (-1);
 	}
 	/* first of all, check the savegame version */
 	ret = read(fd, (void*)tempversion, 4);
 	if (ret == -1) {
 		perror("read version"); /* TODO: make this nicer */
-		return;
+		return (-1);
 	}
 	if (strncmp(tempversion, SAVEGAMEVERSION, 4) != 0) {
-		g_print("Wrong save game format - aborting\n");
-		return;
+		WriteLog("Wrong save game format - aborting\n");
+		return (-1);
 	}
 	/* version was ok, rewind the file */
 	lseek(fd, 0, SEEK_SET);
@@ -148,135 +119,75 @@ open_filename(GtkFileSelection *sel, gpointer data, int palm)
 		ret = read(fd, (void *)&game, sizeof (GameStruct));
 	if (ret == -1) {
 		perror("read game"); /* TODO: make this nicer */
-			return;
+		return (-1);
 		} else if (ret != sizeof (GameStruct)) {
-			g_print("Whoops, couldn't read full length of game\n");
-			return;
+			WriteLog("Oops, couldn't read full length of game\n");
+			return (-1);
 		}
 	} else {
 		read_palmstructure(&game, fd);
-	/* make sure of position */
-	lseek(fd, 294, SEEK_SET);
+		/* make sure of position */
+		lseek(fd, 294, SEEK_SET);
 	}
 
 	/* and now the great worldPtr :D */
 	ret = read(fd, (void *)worldPtr, GetMapMul());
 	if (ret == -1) {
 		perror("read world"); /* TODO: make this nicer */
-		return;
+		return (-1);
 	} else if (ret != GetMapMul()) {
-		g_print("Whoops, couldn't read full lenght of world\n");
-		return;
+		WriteLog("Oops, couldn't read full length of world\n");
+		return (-1);
 	}
 
 	if (close(fd) == -1) {
 		perror("close"); /* TODO: make this nicer */
-		return;
+		return (-1);
 	}
 
-	/* update the screen with the new game */
-	UIResetViewable();
-	PostLoadGame();
-	DrawGame(1);
-	MapHasJumped();
+	return (0);
 }
 
-extern void
-UIOpenGame(GtkWidget *w, gpointer data)
-{
-	GtkWidget *fileSel;
-
-	fileSel = gtk_file_selection_new("Select saved game to open");
-	g_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
-	    "clicked", G_CALLBACK(open_palmfilename), (gpointer)fileSel);
-
-	g_signal_connect_swapped(
-	    GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
-	    "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
-	g_signal_connect_swapped(
-	    GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->cancel_button),
-	    "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
-
-	gtk_widget_show(GTK_WIDGET(fileSel));
-}
-
-extern void
-UINewGame(GtkWidget *w, gpointer data)
-{
-	SetupNewGame();
-	UIResetViewable();
-	game.gameLoopSeconds = SPEED_FAST;
-}
-
-
-void
-store_filename(GtkFileSelection *sel, gpointer data)
-{
-	savegamename = (gchar*)gtk_file_selection_get_filename(
-	    GTK_FILE_SELECTION(data));
-	WriteLog("This game will be saved as %s from now on\n", savegamename);
-	UISaveGame(NULL, 0);
-}
-
-extern void
-UISaveGameAs(GtkWidget *w, gpointer data)
-{
-	GtkWidget *fileSel;
-
-	fileSel = gtk_file_selection_new("Save game as...");
-	g_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
-	    "clicked", G_CALLBACK(store_filename), (gpointer)fileSel);
-
-	g_signal_connect_swapped(
-	    GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
-	    "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
-	g_signal_connect_swapped(
-	    GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->cancel_button),
-	    "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
-
-	gtk_widget_show(GTK_WIDGET(fileSel));
-}
-
-extern void
-UISaveGame(GtkWidget *w, gpointer data)
+int
+save_filename(char *sel, int palm)
 {
 	int fd, ret;
 
-	if (savegamename == NULL) {
-		UISaveGameAs(NULL, 0);
-		return;
+	if (sel == NULL) {
+		return (-1);
 	}
-	g_print("Saving game as %s...\n", savegamename);
+	WriteLog("Saving game as %s...\n", sel);
 
-	fd = open(savegamename,
+	fd = open(sel,
 	    O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 	if (fd == -1) {
 		perror("open"); /* TODO: make this nicer */
-		return;
+		return (-1);
 	}
 	/* God, I love to write all my vars at one time */
 	/* using a struct :D */
 	ret = write(fd, (void*)&game, sizeof (GameStruct));
 	if (ret == -1) {
 		perror("write game"); /* TODO: make this nicer */
-		return;
+		return (-1);
 	} else if (ret != sizeof (GameStruct)) {
-		g_print("Whoops, couldn't write full length of game\n");
-		return;
+		WriteLog("Whoops, couldn't write full length of game\n");
+		return (-1);
 	}
 
 	/* and now the great worldPtr :D */
 	ret = write(fd, (void*)worldPtr, GetMapMul());
 	if (ret == -1) {
 		perror("write world"); /* TODO: make this nicer */
-		return;
+		return (-1);
 	} else if (ret != GetMapMul()) {
-		g_print("Whoops, couldn't write full length of world\n");
-		return;
+		WriteLog("Whoops, couldn't write full length of world\n");
+		return (-1);
 	}
 
 	if (close(fd) == -1) {
 		perror("close"); /* TODO: make this nicer */
-		return;
+		return (-1);
 	}
+	return (0);
 }

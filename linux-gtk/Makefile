@@ -7,9 +7,9 @@ GLFLAGS = $(shell pkg-config --libs gtk+-2.0)
 LIBS =
 LDLIBS = $(LIBS) $(GLFLAGS)
 
-OBJECTS = main.o savegame.o budget.o \
+OBJECTS = main.o savegame_fe.o budget.o \
 	handler.o build.o disaster.o drawing.o globals.o simulation.o \
-	stack.o
+	stack.o savegame_be.o
 
 .PHONY: all debug clean
 

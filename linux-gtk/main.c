@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include <main.h>
-#include <savegame.h>
+#include <savegame_fe.h>
 #include <budget.h>
 #include <ui.h>
 #include <handler.h>
