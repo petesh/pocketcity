@@ -362,7 +362,7 @@ UIDisplayError1(char *error)
         GTK_MESSAGE_ERROR,
         GTK_BUTTONS_OK,
         "%s",
-        temp);
+        error);
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(GTK_WIDGET(dialog));
 }
@@ -578,7 +578,7 @@ int InitWorld(void)
 
     if (worldPtr == NULL || worldFlagsPtr == NULL) {
         UIDisplayError(0);
-        UIWriteLog("malloc failed - initworld\n");
+        WriteLog("malloc failed - initworld\n");
         return 0;
     }
     return 1;
@@ -591,7 +591,7 @@ int ResizeWorld(unsigned long size)
 
     if (worldPtr == NULL || worldFlagsPtr == NULL) {
         UIDisplayError(0);
-        UIWriteLog("realloc failed - resizeworld\n");
+        WriteLog("realloc failed - resizeworld\n");
         return 0;
     }
     memset(worldPtr,0,size);
@@ -702,10 +702,15 @@ UIDrawPop(void)
 }
 
 #ifdef DEBUG
-void UIWriteLog(char* s)
+void WriteLog(char *s, ...)
 {
-    g_print(s); 
+    va_args args;
+    char mbuf[2048];
+
+    va_start(s, args);
+    vsprintf(mbuf, s, args);
+    g_print(mbuf);
+    va_end(args);
 }
 #endif
-
 
