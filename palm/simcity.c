@@ -849,14 +849,21 @@ _UIGetFieldToBuildOn(int x, int y)
 int
 UIDisplayError(erdiType nError)
 {
-    if (nError <= diFireOutbreak) {
-	switch (nError) {
-        case enOutOfMemory: FrmAlert(alertID_errorOutOfMemory); break;
-	case enOutOfMoney: FrmAlert(alertID_outMoney); break;
-    	default: ErrFatalDisplay("UIDisplayError called with unknown error");
-	}
+	/* errors */
+    if ((nError > enSTART) && (nError < enEND)) {
+	    switch (nError) {
+        case enOutOfMemory:
+			FrmAlert(alertID_errorOutOfMemory);
+			break;
+		case enOutOfMoney:
+			FrmAlert(alertID_outMoney);
+			break;
+    	default:
+			break;
+	    }
         return (0);
-    } else if (nError <= diMeteor) {
+    }
+	if ((nError > diSTART) && (nError < diEND)) {
         char string[512];
         SysStringByIndex(st_disasters, nError - diFireOutbreak, string,
             511);
@@ -865,8 +872,7 @@ UIDisplayError(erdiType nError)
         FrmCustomAlert(alertID_generic_disaster, string, 0, 0);
         return (0);
     }
-    ErrFatalDisplay("UIDisplayError called with unknown error");
-    return (0);
+    return (1);
 }
 
 

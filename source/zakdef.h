@@ -14,13 +14,17 @@
  * Make Sure they don't intersect, there's one place where they meet
  */
 typedef enum erdiType_en {
-	enOutOfMemory = 1,
+	enSTART = 0,
+	enOutOfMemory,
 	enOutOfMoney,
-	diFireOutbreak = 80,
+	enEND,
+	diSTART = 79,
+	diFireOutbreak,
 	diPlantExplosion,
 	diMonster,
 	diDragon,
-	diMeteor
+	diMeteor,
+	diEND
 } erdiType;
 
 /*
