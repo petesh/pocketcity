@@ -294,6 +294,15 @@ static const struct _costMappings {
 };
 
 /*
+ * returns non-zero if the zone is an auto-bulldozable item
+ */
+static int
+IsBulldozable(unsigned char zone)
+{
+    return ((zone == TYPE_DIRT) || ((zone == TYPE_TREE) && game.auto_bulldoze));
+}
+
+/*
  * Build a generic item
  * Based on the type passed in
  */
@@ -316,8 +325,11 @@ Build_Generic(int xpos, int ypos, unsigned int type)
     toSpend = cmi->cost;
 
     worldItem = GetWorld(WORLDPOS(xpos, ypos));
-    if (worldItem == TYPE_DIRT ||
-      ((worldItem == TYPE_TREE) && game.auto_bulldoze)) {
+
+    if ((type == TYPE_TREE) && (worldItem == TYPE_TREE))
+        return;
+
+    if (IsBulldozable(worldItem)) {
         if (worldItem == TYPE_TREE) toSpend += BUILD_COST_BULLDOZER;
         if (SpendMoney(toSpend)) {
             SetWorld(WORLDPOS(xpos,ypos), (unsigned char)type);
@@ -401,8 +413,7 @@ Build_Road(int xpos, int ypos, unsigned int type __attribute__((unused)))
         } else {
             UIDisplayError(enOutOfMoney);
         }
-    } else if (old == TYPE_DIRT ||
-        ((old == TYPE_TREE) && game.auto_bulldoze)) {
+    } else if (IsBulldozable(old)) {
         if (old == TYPE_TREE) toSpend += BUILD_COST_BULLDOZER;
         if (SpendMoney(toSpend)) {
             SetWorld(WORLDPOS(xpos, ypos),TYPE_ROAD);
@@ -430,8 +441,7 @@ Build_PowerLine(int xpos, int ypos, unsigned int type __attribute__((unused)))
 
     old = GetWorld(WORLDPOS(xpos, ypos));
     toSpend = BUILD_COST_POWER_LINE;
-    if (old == TYPE_DIRT || old == TYPE_ROAD ||
-	((old == TYPE_TREE) && game.auto_bulldoze)) {
+    if (IsBulldozable(old) || (old == TYPE_ROAD)) {
         if (old == TYPE_ROAD) {
             switch(GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),0)) {
             case 10: /* straight road, we can build a power line */
@@ -482,8 +492,7 @@ Build_WaterPipe(int xpos, int ypos, unsigned int type __attribute__((unused)))
 
     toSpend = BUILD_COST_WATER_PIPES;
     old = GetWorld(WORLDPOS(xpos, ypos));
-    if (old == TYPE_DIRT || old == TYPE_ROAD ||
-	((old == TYPE_TREE) && game.auto_bulldoze)) {
+    if (IsBulldozable(old) || (old == TYPE_ROAD)) {
         if (old == TYPE_ROAD) {
             switch(GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),0)) {
             case 10: /* straight road, we can build a power line */
