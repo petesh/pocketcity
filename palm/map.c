@@ -2,6 +2,7 @@
 #include "simcity.h"
 #include "../source/ui.h"
 #include "../source/globals.h"
+#include "../source/drawing.h"
 
 
 void DrawMap(void);
@@ -15,8 +16,8 @@ extern Boolean hMap(EventPtr event)
     switch (event->eType)
     {
         case penDownEvent:
-            if (event->screenX >= 1  && event->screenX <= mapsize+1 &&
-                event->screenY >= 17 && event->screenY <= mapsize+17) {
+            if (event->screenX >= 1  && event->screenX <= game.mapsize+1 &&
+                event->screenY >= 17 && event->screenY <= game.mapsize+17) {
                 Goto(event->screenX-1, event->screenY-17);
                 FrmGotoForm(formID_pocketCity);
                 handled = 1;
@@ -72,8 +73,8 @@ void DrawMap(void)
     _UIDrawRect(17,1,100,100);
 
     if (!oldROM) {
-        for(i=0; i<mapsize; i++) {
-            for(j=0; j<mapsize; j++) {
+        for(i=0; i<game.mapsize; i++) {
+            for(j=0; j<game.mapsize; j++) {
                 if (GetWorld(WORLDPOS(i,j)) != TYPE_DIRT) {
                     WinDrawPixel(i+1,j+17);
                 }

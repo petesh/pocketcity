@@ -17,6 +17,7 @@ extern void UIGotoForm(int);
 
 extern void UICheckMoney(void);
 extern void UIScrollMap(int direction);
+extern void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth);
 
 
 extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic);

@@ -65,42 +65,42 @@ void BudgetInit(void)
     form = FrmGetActiveForm();
 
     temp = MemPtrNew(12);
-    change = BuildCount[COUNT_RESIDENTIAL]*INCOME_RESIDENTIAL*tax/100;
+    change = game.BuildCount[COUNT_RESIDENTIAL]*INCOME_RESIDENTIAL*game.tax/100;
     cashflow += change;
     StrPrintF(temp,"%lu",  change);
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_res)), temp);
 
     temp = MemPtrNew(12);
-    change = BuildCount[COUNT_COMMERCIAL]*INCOME_COMMERCIAL*tax/100;
+    change = game.BuildCount[COUNT_COMMERCIAL]*INCOME_COMMERCIAL*game.tax/100;
     cashflow += change;
     StrPrintF(temp,"%lu",  change);
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_com)), temp);
 
     temp = MemPtrNew(12);
-    change = BuildCount[COUNT_INDUSTRIAL]*INCOME_INDUSTRIAL*tax/100;
+    change = game.BuildCount[COUNT_INDUSTRIAL]*INCOME_INDUSTRIAL*game.tax/100;
     cashflow += change;
     StrPrintF(temp,"%lu",  change);
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_ind)), temp);
 
     temp = MemPtrNew(12);
-    change = BuildCount[COUNT_ROADS]*UPKEEP_ROAD;
-    change = (change*upkeep[UPKEEPS_TRAFFIC])/100;
+    change = game.BuildCount[COUNT_ROADS]*UPKEEP_ROAD;
+    change = (change*game.upkeep[UPKEEPS_TRAFFIC])/100;
     cashflow -= change;
     StrPrintF(temp,"%lu", change);
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_tra)), temp);
 
     temp = MemPtrNew(12);
-    change = BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE +
-             BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT +
-             BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT;
-    change = (change*upkeep[UPKEEPS_POWER])/100;
+    change = game.BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE +
+             game.BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT +
+             game.BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT;
+    change = (change*game.upkeep[UPKEEPS_POWER])/100;
     cashflow -= change;
     StrPrintF(temp,"%lu", change);
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_pow)), temp);
 
     temp = MemPtrNew(12);
-    change = BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS; 
-    change = (change*upkeep[UPKEEPS_DEFENCE])/100;
+    change = game.BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS; 
+    change = (change*game.upkeep[UPKEEPS_DEFENCE])/100;
     cashflow -= change;
     StrPrintF(temp,"%lu", change);
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_def)), temp);
@@ -110,11 +110,11 @@ void BudgetInit(void)
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_tot)), temp);
 
     temp = MemPtrNew(12);
-    StrPrintF(temp,"%li", credits+cashflow);
+    StrPrintF(temp,"%li", game.credits+cashflow);
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_bal)), temp);
 
     temp = MemPtrNew(12);
-    StrPrintF(temp,"%li", credits);
+    StrPrintF(temp,"%li", game.credits);
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_now)), temp);
 
 
@@ -126,7 +126,7 @@ void BudgetInit(void)
         for (i=0; i<3; i++) {
             texthandle = MemHandleNew(4);
             text = MemHandleLock(texthandle);
-            StrPrintF(text, "%u", upkeep[i]);
+            StrPrintF(text, "%u", game.upkeep[i]);
             MemHandleUnlock(texthandle);
             FldSetTextHandle(FrmGetObjectPtr(form,FrmGetObjectIndex(form,fieldID_budget_tra+i)) , texthandle);
         }
@@ -155,7 +155,7 @@ void BudgetFreeMem(void)
             j = atol(FldGetTextPtr(FrmGetObjectPtr(form, FrmGetObjectIndex(form, fieldID_budget_tra+i))));
             if (j < 0)   {j = 0;}
             if (j > 100) {j = 100;}
-            upkeep[i] = j;
+            game.upkeep[i] = j;
         }
     }
 }

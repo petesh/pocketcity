@@ -48,7 +48,6 @@ static Boolean hPocketCity(EventPtr event);
 static Boolean hQuickList(EventPtr event);
 static Boolean hExtraList(EventPtr event);
 static Boolean hOptions(EventPtr event);
-void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth);
 void _PalmInit(void);
 void UIDoQuickList(void);
 void UIPopUpExtraBuildList(void);
@@ -148,10 +147,10 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
             if (FrmDispatchEvent(&event)) continue;
 
             // the almighty homemade >>"multithreader"<<
-            if (game_in_progress == 1 && building == 0 && SIM_GAME_LOOP_SECONDS != SPEED_PAUSED) {
+            if (game_in_progress == 1 && building == 0 && game.gameLoopSeconds != SPEED_PAUSED) {
                 if (simState == 0) {
                     timeTemp = TimGetSeconds();
-                    if (timeTemp >= timeStamp+SIM_GAME_LOOP_SECONDS)
+                    if (timeTemp >= timeStamp+game.gameLoopSeconds)
                     {
                         simState = 1;
                         timeStamp = timeTemp;
@@ -181,7 +180,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
                         char temp[10];
                         int q;
                         for (q=0; q<20; q++) {
-                            sprintf(temp,"%li",BuildCount[q]);
+                            sprintf(temp,"%li",game.BuildCount[q]);
                             UIWriteLog(temp);
                             UIWriteLog(" ");
                         }
@@ -315,13 +314,13 @@ static Boolean hPocketCity(EventPtr event)
                 _UIGetFieldToBuildOn(event->screenX, event->screenY);
             } else if (event->screenX >= 150 && event->screenY >= 150) {
                 // click was on change speed
-                switch (SIM_GAME_LOOP_SECONDS)
+                switch (game.gameLoopSeconds)
                 {
                     case SPEED_PAUSED:
-                        SIM_GAME_LOOP_SECONDS = SPEED_MEDIUM;
+                        game.gameLoopSeconds = SPEED_MEDIUM;
                         break;
                     default:
-                        SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
+                        game.gameLoopSeconds = SPEED_PAUSED;
                         break;
                 }
                 UIDrawPop();
@@ -347,9 +346,9 @@ static Boolean hPocketCity(EventPtr event)
             break;
         case penUpEvent:
             building = 0;
-            timeStamp = TimGetSeconds()-SIM_GAME_LOOP_SECONDS+2; 
+            timeStamp = TimGetSeconds()-game.gameLoopSeconds+2; 
                     // so the simulation routine won't kick in right away
-            timeStampDisaster = timeStamp-SIM_GAME_LOOP_DISASTER+1; // ditto
+            timeStampDisaster = timeStamp-game.gameLoopSeconds+1; // ditto
             handled = 1;
             break;
         case menuEvent:
@@ -370,7 +369,7 @@ static Boolean hPocketCity(EventPtr event)
                         // just handy with a 'trigger' button for testing
                         // ie. disaters
 #ifdef CHEAT
-                        credits += 100000;
+                        game.credits += 100000;
 #endif
 #ifdef DEBUG
 			            MeteorDisaster(20,20);
@@ -382,12 +381,12 @@ static Boolean hPocketCity(EventPtr event)
                         handled = 1;
                         break;
                     case menuitemID_Map:
-                        SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
+                        game.gameLoopSeconds = SPEED_PAUSED;
                         FrmGotoForm(formID_map);
                         handled = 1;
                         break;
                     case menuitemID_Budget:
-                        SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
+                        game.gameLoopSeconds = SPEED_PAUSED;
                         FrmGotoForm(formID_budget);
                         handled = 1;
                         break;
@@ -420,31 +419,30 @@ static Boolean hPocketCity(EventPtr event)
                          handled = 1;
                          break;
                     case menuID_SlowSpeed:
-                        SIM_GAME_LOOP_SECONDS = SPEED_SLOW;
+                        game.gameLoopSeconds = SPEED_SLOW;
                         UIDrawPop();
                         handled = 1;
                         break;
                     case menuID_MediumSpeed:
-                        SIM_GAME_LOOP_SECONDS = SPEED_MEDIUM;
+                        game.gameLoopSeconds = SPEED_MEDIUM;
                         UIDrawPop();
                         handled = 1;
                         break;
                     case menuID_FastSpeed:
-                        SIM_GAME_LOOP_SECONDS = SPEED_FAST;
+                        game.gameLoopSeconds = SPEED_FAST;
                         UIDrawPop();
                         handled = 1;
                         break;
                     case menuID_TurboSpeed:
-                        SIM_GAME_LOOP_SECONDS = SPEED_TURBO;
+                        game.gameLoopSeconds = SPEED_TURBO;
                         UIDrawPop();
                         handled = 1;
                         break;
                     case menuID_PauseSpeed:
-                        SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
+                        game.gameLoopSeconds = SPEED_PAUSED;
                         UIDrawPop();
                         handled = 1;
                         break;
-
                 }
             }
             break;
@@ -458,7 +456,7 @@ static Boolean hPocketCity(EventPtr event)
                     break;
                 case vchrFind:
                     /* goto map */
-                    SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
+                    game.gameLoopSeconds = SPEED_PAUSED;
                     FrmGotoForm(formID_map);
                     handled = 1;
                     break;
@@ -650,8 +648,7 @@ static Boolean hQuickList(EventPtr event)
             break;      
         case keyDownEvent:
             UIWriteLog("Key down\n");
-            switch (event->data.keyDown.chr)
-            {
+            switch (event->data.keyDown.chr) {
                 case vchrCalc:
                     /* close the quicksheet - simulate we pushed the bulldozer */
                     CtlHitControl(FrmGetObjectPtr(FrmGetActiveForm(),FrmGetObjectIndex(FrmGetActiveForm(),menuitemID_buildBulldoze)));
@@ -670,24 +667,23 @@ static Boolean hOptions(EventPtr event)
     FormPtr form;
     int handled = 0;
         
-    switch (event->eType)
-    {       
+    switch (event->eType) {       
         case frmOpenEvent:
             form = FrmGetActiveForm();
             FrmDrawForm(form);
-            CtlSetValue(FrmGetObjectPtr(form,FrmGetObjectIndex(form, buttonID_dis_off+disaster_level)), 1);
+            CtlSetValue(FrmGetObjectPtr(form,FrmGetObjectIndex(form, buttonID_dis_off+game.disaster_level)), 1);
             handled = 1;
             break;      
         case frmCloseEvent:
             form = FrmGetActiveForm();
             if (CtlGetValue(FrmGetObjectPtr(form,FrmGetObjectIndex(form, buttonID_dis_off)))) {
-                disaster_level = 0;
+                game.disaster_level = 0;
             } else if (CtlGetValue(FrmGetObjectPtr(form,FrmGetObjectIndex(form, buttonID_dis_one)))) {
-                disaster_level = 1;
+                game.disaster_level = 1;
             } else if (CtlGetValue(FrmGetObjectPtr(form,FrmGetObjectIndex(form, buttonID_dis_two)))) {
-                disaster_level = 2;
+                game.disaster_level = 2;
             } else if (CtlGetValue(FrmGetObjectPtr(form,FrmGetObjectIndex(form, buttonID_dis_three)))) {
-                disaster_level = 3;
+                game.disaster_level = 3;
             }                  
             break;      
         case keyDownEvent:
@@ -720,18 +716,18 @@ void _UIGetFieldToBuildOn(int x, int y)
 {
     RectangleType rect;
     int i,j;
-    rect.extent.x = TILE_SIZE;
-    rect.extent.y = TILE_SIZE;
+    rect.extent.x = game.tileSize;
+    rect.extent.y = game.tileSize;
 
-    for (i=0; i<visible_x; i++)
+    for (i=0; i<game.visible_x; i++)
     {
-        for (j=0; j<visible_y; j++)
+        for (j=0; j<game.visible_y; j++)
         {
-            rect.topLeft.x = XOFFSET+i*TILE_SIZE;
-            rect.topLeft.y = YOFFSET+j*TILE_SIZE;
+            rect.topLeft.x = XOFFSET+i*game.tileSize;
+            rect.topLeft.y = YOFFSET+j*game.tileSize;
             if (RctPtInRectangle(x,y,&rect))
             {
-                BuildSomething(i+map_xpos,j+map_ypos);
+                BuildSomething(i+game.map_xpos,j+game.map_ypos);
                 return;
             }
         }
@@ -753,7 +749,7 @@ extern int UIDisplayError(int nError)
         case ERROR_PLANT_EXPLOSION: FrmAlert(alertID_plantExplosion); break;
         case ERROR_MONSTER: FrmAlert(alertID_monster); break;
         case ERROR_DRAGON: FrmAlert(alertID_dragon); break;
-	case ERROR_METEOR: FrmAlert(alertID_meteor); break;
+        case ERROR_METEOR: FrmAlert(alertID_meteor); break;
     }
     return 0;
 }
@@ -777,7 +773,7 @@ extern void UIUnlockScreen(void)
     }
 }
 
-void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth)
+extern void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth)
 {
     // draws a rect on screen: note, the rect within the border will be exactly nHeight*nWidth pxls
     // the frame's left border will be at nTop-1 and so on
@@ -799,7 +795,7 @@ extern void UIDrawBorder()
     if (DoDrawing == 0) return;
 
     // border
-    _UIDrawRect(YOFFSET,XOFFSET,visible_y*TILE_SIZE,visible_x*TILE_SIZE);
+    _UIDrawRect(YOFFSET,XOFFSET,game.visible_y*game.tileSize,game.visible_x*game.tileSize);
 }
 
 
@@ -819,8 +815,8 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
     
     rect.topLeft.x = 144;
     rect.topLeft.y = 0;
-    rect.extent.x = TILE_SIZE;
-    rect.extent.y = TILE_SIZE;
+    rect.extent.x = game.tileSize;
+    rect.extent.y = game.tileSize;
     
     // copy/paste the graphic from the offscreen image
     // first draw the overlay
@@ -828,8 +824,8 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
             winZones,
             WinGetActiveWindow(),
             &rect,
-            xpos*TILE_SIZE+XOFFSET,
-            ypos*TILE_SIZE+YOFFSET,
+            xpos*game.tileSize+XOFFSET,
+            ypos*game.tileSize+YOFFSET,
             winErase);
     // now draw the powerloss icon
     rect.topLeft.x = 128;
@@ -837,8 +833,8 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
             winZones,
             WinGetActiveWindow(),
             &rect,
-            xpos*TILE_SIZE+XOFFSET,
-            ypos*TILE_SIZE+YOFFSET,
+            xpos*game.tileSize+XOFFSET,
+            ypos*game.tileSize+YOFFSET,
             winOverlay);
 }
 
@@ -847,25 +843,25 @@ extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
     RectangleType rect;
     if (DoDrawing == 0) { return; }
     
-    rect.topLeft.x = units[i].type*TILE_SIZE;
-    rect.topLeft.y = TILE_SIZE;
-    rect.extent.x = TILE_SIZE;
-    rect.extent.y = TILE_SIZE;
+    rect.topLeft.x = game.units[i].type*game.tileSize;
+    rect.topLeft.y = game.tileSize;
+    rect.extent.x = game.tileSize;
+    rect.extent.y = game.tileSize;
 
     WinCopyRectangle(
             winUnits,
             WinGetActiveWindow(),
             &rect,
-            xpos*TILE_SIZE+XOFFSET,
-            ypos*TILE_SIZE+YOFFSET,
+            xpos*game.tileSize+XOFFSET,
+            ypos*game.tileSize+YOFFSET,
             winErase);
     rect.topLeft.y = 0;
     WinCopyRectangle(
             winUnits,
             WinGetActiveWindow(),
             &rect,
-            xpos*TILE_SIZE+XOFFSET,
-            ypos*TILE_SIZE+YOFFSET,
+            xpos*game.tileSize+XOFFSET,
+            ypos*game.tileSize+YOFFSET,
             winOverlay);
 
 }
@@ -875,25 +871,25 @@ extern void UIDrawSpecialObject(int i, int xpos, int ypos)
     RectangleType rect;
     if (DoDrawing == 0) { return; }
     
-    rect.topLeft.x = (objects[i].dir)*TILE_SIZE;
-    rect.topLeft.y = ((i*2)+1)*TILE_SIZE;
-    rect.extent.x = TILE_SIZE;
-    rect.extent.y = TILE_SIZE;
+    rect.topLeft.x = (game.objects[i].dir)*game.tileSize;
+    rect.topLeft.y = ((i*2)+1)*game.tileSize;
+    rect.extent.x = game.tileSize;
+    rect.extent.y = game.tileSize;
 
     WinCopyRectangle(
             winMonsters,
             WinGetActiveWindow(),
             &rect,
-            xpos*TILE_SIZE+XOFFSET,
-            ypos*TILE_SIZE+YOFFSET,
+            xpos*game.tileSize+XOFFSET,
+            ypos*game.tileSize+YOFFSET,
             winErase);
     rect.topLeft.y -= 16;
     WinCopyRectangle(
             winMonsters,
             WinGetActiveWindow(),
             &rect,
-            xpos*TILE_SIZE+XOFFSET,
-            ypos*TILE_SIZE+YOFFSET,
+            xpos*game.tileSize+XOFFSET,
+            ypos*game.tileSize+YOFFSET,
             winOverlay);
 
 }
@@ -904,18 +900,18 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
     
     if (DoDrawing == 0) { return; }
 
-    rect.topLeft.x = (nGraphic%64)*TILE_SIZE;
-    rect.topLeft.y = (nGraphic/64)*TILE_SIZE;
-    rect.extent.x = TILE_SIZE;
-    rect.extent.y = TILE_SIZE;
+    rect.topLeft.x = (nGraphic%64)*game.tileSize;
+    rect.topLeft.y = (nGraphic/64)*game.tileSize;
+    rect.extent.x = game.tileSize;
+    rect.extent.y = game.tileSize;
     
     // copy/paste the graphic from the offscreen image
     WinCopyRectangle(
             winZones,
             WinGetActiveWindow(),
             &rect,
-            xpos*TILE_SIZE+XOFFSET,
-            ypos*TILE_SIZE+YOFFSET,
+            xpos*game.tileSize+XOFFSET,
+            ypos*game.tileSize+YOFFSET,
             winPaint);
 }
 
@@ -930,12 +926,12 @@ extern void UIScrollMap(int direction)
 
     UILockScreen();
     
-    rect.topLeft.x = XOFFSET + TILE_SIZE*(direction == 1);
-    rect.topLeft.y = YOFFSET + TILE_SIZE*(direction == 2);
-    rect.extent.x = (visible_x - 1*(direction == 1 || direction == 3 )) * TILE_SIZE;
-    rect.extent.y = (visible_y - 1*(direction == 0 || direction == 2 )) * TILE_SIZE;
-    to_x = XOFFSET + TILE_SIZE*(direction == 3);
-    to_y = YOFFSET + TILE_SIZE*(direction == 0);
+    rect.topLeft.x = XOFFSET + game.tileSize*(direction == 1);
+    rect.topLeft.y = YOFFSET + game.tileSize*(direction == 2);
+    rect.extent.x = (game.visible_x - 1*(direction == 1 || direction == 3 )) * game.tileSize;
+    rect.extent.y = (game.visible_y - 1*(direction == 0 || direction == 2 )) * game.tileSize;
+    to_x = XOFFSET + game.tileSize*(direction == 3);
+    to_y = YOFFSET + game.tileSize*(direction == 0);
     
 
     screen = WinGetActiveWindow();
@@ -947,16 +943,16 @@ extern void UIScrollMap(int direction)
     UIInitDrawing();
     
     if (direction == 1 || direction == 3) {
-        for (i=map_ypos; i<visible_y+map_ypos; i++) {
-            DrawFieldWithoutInit(map_xpos+(visible_x-1)*(direction == 1),i);
+        for (i=game.map_ypos; i<game.visible_y+game.map_ypos; i++) {
+            DrawFieldWithoutInit(game.map_xpos+(game.visible_x-1)*(direction == 1),i);
         }
     } else {
-        for (i=map_xpos; i<visible_x+map_xpos; i++) {
-            DrawFieldWithoutInit(i,map_ypos+(visible_y-1)*(direction == 2));
+        for (i=game.map_xpos; i<game.visible_x+game.map_xpos; i++) {
+            DrawFieldWithoutInit(i,game.map_ypos+(game.visible_y-1)*(direction == 2));
         }
     }
 
-    UIDrawCursor(cursor_xpos-map_xpos, cursor_ypos-map_ypos);
+    UIDrawCursor(game.cursor_xpos-game.map_xpos, game.cursor_ypos-game.map_ypos);
     UIDrawCredits();
     UIDrawPop();
 
@@ -973,8 +969,6 @@ extern unsigned long GetRandomNumber(unsigned long max)
     return (UInt16)SysRandom(0) % (UInt16)max;
 }
 
-
-
 extern void UIDrawCredits(void)
 {
     char temp[23];
@@ -982,7 +976,7 @@ extern void UIDrawCredits(void)
 
     if (DoDrawing == 0) { return; }
 
-    StrPrintF(temp, "$: %ld", credits);
+    StrPrintF(temp, "$: %ld", game.credits);
 
     rect.topLeft.x = 66;
     rect.topLeft.y = 1;
@@ -1022,9 +1016,9 @@ extern void UIDrawPop(void)
 
 
     StrPrintF(temp, "(%02u,%02u) Pop: %-9li",
-            map_xpos,
-            map_ypos,
-            (BuildCount[COUNT_RESIDENTIAL]*150));
+            game.map_xpos,
+            game.map_ypos,
+            (game.BuildCount[COUNT_RESIDENTIAL]*150));
 
 
     rect.topLeft.x = 3;
@@ -1036,7 +1030,7 @@ extern void UIDrawPop(void)
     WinDrawChars((char*)temp,StrLen(temp),3,148);
 
 
-    bitmaphandle = DmGet1Resource( TBMP, bitmapID_SpeedPaused + SIM_GAME_LOOP_SECONDS);
+    bitmaphandle = DmGet1Resource( TBMP, bitmapID_SpeedPaused + game.gameLoopSeconds);
     if (bitmaphandle == NULL) { return; } // TODO: onscreen error? +save?
     bitmap = MemHandleLock(bitmaphandle);
     WinDrawBitmap(bitmap, 150,150);
@@ -1045,14 +1039,14 @@ extern void UIDrawPop(void)
 
 extern void UICheckMoney(void)
 {
-    if(credits == 0) {
+    if(game.credits == 0) {
         if(noShown == 0) {
             FrmAlert(alertID_outMoney);
             noShown = 1;
         } else {
             return;
         }
-    } else if((credits <= 1000) || (credits == 1000)) {
+    } else if((game.credits <= 1000) || (game.credits == 1000)) {
         if(lowShown==0) {
             FrmAlert(alertID_lowFunds);
             lowShown=1;
@@ -1071,10 +1065,11 @@ extern int InitWorld(void)
 {
     worldHandle = MemHandleNew(10);
     worldFlagsHandle = MemHandleNew(10);
+    UIWriteLog("Allocation initial 20 bytes\n");
 
-    if (worldHandle == 0 || worldFlagsHandle == 0)
-    {
+    if (worldHandle == 0 || worldFlagsHandle == 0) {
         UIDisplayError(0);
+        UIWriteLog("FAILED!\n");
         return 0;
     }
     return 1;
@@ -1084,11 +1079,18 @@ extern int InitWorld(void)
 extern int ResizeWorld(long unsigned size)
 {
     int i;
+#ifdef DEBUG
+    char temp[20];
+    StrPrintF(temp,"%i\n",size);
+    UIWriteLog("Allocating bytes: ");
+    UIWriteLog(temp);
+#endif
+    
 
-    if (MemHandleResize(worldHandle, size) != 0 || MemHandleResize(worldFlagsHandle, size) != 0)
-    {
+    if (MemHandleResize(worldHandle, size) != 0 || MemHandleResize(worldFlagsHandle, size) != 0) {
         UIDisplayError(0);
         //QuitGameError();
+        UIWriteLog("FAILED!\n");
         return 0;
     }
 
@@ -1115,13 +1117,13 @@ extern void UnlockWorldFlags() { MemHandleUnlock(worldFlagsHandle); }
 extern unsigned char GetWorldFlags(long unsigned int pos)
 {
     // NOTE: LockWorld() MUST have been called before this is used!!!
-    if (pos > (mapsize*mapsize)) { return 0; }
+    if (pos > (game.mapsize*game.mapsize)) { return 0; }
     return ((unsigned char*)worldFlagsPtr)[pos];
 }
 
 extern void SetWorldFlags(long unsigned int pos, unsigned char value)
 {
-    if (pos > mapsize*mapsize) { return; }
+    if (pos > game.mapsize*game.mapsize) { return; }
     ((unsigned char*)worldFlagsPtr)[pos] = value;
 }
 
@@ -1129,25 +1131,18 @@ extern void SetWorldFlags(long unsigned int pos, unsigned char value)
 extern unsigned char GetWorld(unsigned long pos)
 {
     // NOTE: LockWorld() MUST have been called before this is used!!!
-    if (pos > (mapsize*mapsize)) { return 0; }
+    if (pos > (game.mapsize*game.mapsize)) { return 0; }
     return ((unsigned char*)worldPtr)[pos];
 }
 
 extern void SetWorld(unsigned long pos, unsigned char value)
 {
-    if (pos > mapsize*mapsize) { return; }
+    if (pos > game.mapsize*game.mapsize) { return; }
     ((unsigned char*)worldPtr)[pos] = value;
 }
 
 
 /*** end ***/
-
-
-
-
-
-
-
 
 
 

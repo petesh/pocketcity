@@ -75,11 +75,11 @@ void RemoveDefence(int xpos, int ypos)
 {
     int i;
     for (i=0; i<NUM_OF_UNITS; i++) {
-        if (units[i].x == xpos &&
-            units[i].y == ypos) {
+        if (game.units[i].x == xpos &&
+            game.units[i].y == ypos) {
             
-            units[i].active = 0;
-            DrawCross(units[i].x, units[i].y);
+            game.units[i].active = 0;
+            DrawCross(game.units[i].x, game.units[i].y);
         }
     }
 }
@@ -88,8 +88,8 @@ extern void RemoveAllDefence(void)
 {
     int i;
     for (i=0; i<NUM_OF_UNITS; i++) {
-       units[i].active = 0;
-       DrawCross(units[i].x, units[i].y);
+       game.units[i].active = 0;
+       DrawCross(game.units[i].x, game.units[i].y);
     }
 }
 
@@ -97,26 +97,26 @@ void Build_Defence(int xpos, int ypos, int type)
 {
     int oldx, oldy, i, sel=-1,newactive=1,e,s,m,nCounter;
     nCounter = ((type == DEFENCE_POLICE) ? COUNT_POLICE_STATIONS : (type == DEFENCE_FIREMEN ? COUNT_FIRE_STATIONS : COUNT_MILITARY_BASES));
-    if (BuildCount[nCounter] == 0) { return; } // no special building....
+    if (game.BuildCount[nCounter] == 0) { return; } // no special building....
     s = ((type == DEFENCE_POLICE) ? DEF_POLICE_START : (type == DEFENCE_FIREMEN ? DEF_FIREMEN_START : DEF_MILITARY_START));
     e = ((type == DEFENCE_POLICE) ? DEF_POLICE_END : (type == DEFENCE_FIREMEN ? DEF_FIREMEN_END : DEF_MILITARY_END));
-    m = ((e-s)+1 < BuildCount[nCounter]/3) ? e : BuildCount[nCounter]/3+s; // make sure we can't make too many objects
+    m = ((e-s)+1 < game.BuildCount[nCounter]/3) ? e : game.BuildCount[nCounter]/3+s; // make sure we can't make too many objects
 
 
     // first remove all defence on this tile
     for (i=0; i<NUM_OF_UNITS; i++) {
-        if (xpos == units[i].x &&
-            ypos == units[i].y &&
-            units[i].active != 0) {
-            if (units[i].type == type) { return; } // no need to build something already here
-            units[i].active = 0;
+        if (xpos == game.units[i].x &&
+            ypos == game.units[i].y &&
+            game.units[i].active != 0) {
+            if (game.units[i].type == type) { return; } // no need to build something already here
+            game.units[i].active = 0;
         }
     }
 
     // find an empty slot for the new
     // defence unit
     for (i=s; i<=m; i++) {
-        if (units[i].active == 0) {
+        if (game.units[i].active == 0) {
             sel = i;
             break;
         }
@@ -124,33 +124,33 @@ void Build_Defence(int xpos, int ypos, int type)
     if (sel == -1) {
         // none found - start from the beginning
         for (i=s; i<=m; i++) {
-            if (units[i].active == 1) {
+            if (game.units[i].active == 1) {
                 sel = i;
                 newactive=2;
                 break;
             } else {
-                units[i].active = 2;
+                game.units[i].active = 2;
             }
         }
     }
     if (sel == -1) {
         // if STILL none found - then it's number 0
         for (i=s; i<=m; i++) {
-            if (units[i].active != 0) {
-                units[i].active = 1;
+            if (game.units[i].active != 0) {
+                game.units[i].active = 1;
             }
         }
         sel = s;
         newactive=2;
     }
         
-    oldx = units[sel].x;
-    oldy = units[sel].y;
+    oldx = game.units[sel].x;
+    oldy = game.units[sel].y;
 
-    units[sel].x = xpos;
-    units[sel].y = ypos;
-    units[sel].active = newactive;
-    units[sel].type = type;
+    game.units[sel].x = xpos;
+    game.units[sel].y = ypos;
+    game.units[sel].active = newactive;
+    game.units[sel].type = type;
 
     DrawCross(oldx, oldy);
     DrawCross(xpos, ypos);
@@ -168,13 +168,11 @@ extern void Build_Bulldoze(int xpos, int ypos)
         type != TYPE_FIRE3 &&
         type != TYPE_REAL_WATER)
     {
-        if (SpendMoney(BUILD_COST_BULLDOZER))
-        {
+        if (SpendMoney(BUILD_COST_BULLDOZER)) {
             Build_Destroy(xpos, ypos);
         } else {
             UIDisplayError(ERROR_OUT_OF_MONEY);
         }
-
     }
     RemoveDefence(xpos, ypos); 
     UnlockWorld();
@@ -189,22 +187,22 @@ extern void Build_Destroy(int xpos, int ypos)
     type = GetWorld(WORLDPOS(xpos,ypos));
     RemoveDefence(xpos, ypos);
 
-    BuildCount[COUNT_COMMERCIAL] -= (type >= (ZONE_COMMERCIAL*10+20) && type <= (ZONE_COMMERCIAL*10+29)) ? (type%10)+1 : 0;
-    BuildCount[COUNT_RESIDENTIAL] -= (type >= (ZONE_RESIDENTIAL*10+20) && type <= (ZONE_RESIDENTIAL*10+29)) ? (type%10)+1 : 0;
-    BuildCount[COUNT_INDUSTRIAL] -= (type >= (ZONE_INDUSTRIAL*10+20) && type <= (ZONE_INDUSTRIAL*10+29)) ? (type%10)+1 : 0;
-    BuildCount[COUNT_ROADS] -= IsRoad(type);
-    BuildCount[COUNT_TREES] -= (type == TYPE_TREE);
-    BuildCount[COUNT_WATER] -= (type == TYPE_WATER);
-    BuildCount[COUNT_WASTE] -= (type == TYPE_WASTE);
-    BuildCount[COUNT_POWERPLANTS] -= (type == TYPE_POWER_PLANT);
-    BuildCount[COUNT_NUCLEARPLANTS] -= (type == TYPE_NUCLEAR_PLANT);
-    BuildCount[COUNT_POWERLINES] -= ((type == TYPE_POWERROAD_2) || (type == TYPE_POWERROAD_1) || (type == TYPE_POWER_LINE));
-    BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE1);
-    BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE2);
-    BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE3);
-    BuildCount[COUNT_FIRE_STATIONS] -= (type == TYPE_FIRE_STATION);
-    BuildCount[COUNT_POLICE_STATIONS] -= (type == TYPE_POLICE_STATION);
-    BuildCount[COUNT_MILITARY_BASES] -= (type == TYPE_MILITARY_BASE);
+    game.BuildCount[COUNT_COMMERCIAL] -= (type >= (ZONE_COMMERCIAL*10+20) && type <= (ZONE_COMMERCIAL*10+29)) ? (type%10)+1 : 0;
+    game.BuildCount[COUNT_RESIDENTIAL] -= (type >= (ZONE_RESIDENTIAL*10+20) && type <= (ZONE_RESIDENTIAL*10+29)) ? (type%10)+1 : 0;
+    game.BuildCount[COUNT_INDUSTRIAL] -= (type >= (ZONE_INDUSTRIAL*10+20) && type <= (ZONE_INDUSTRIAL*10+29)) ? (type%10)+1 : 0;
+    game.BuildCount[COUNT_ROADS] -= IsRoad(type);
+    game.BuildCount[COUNT_TREES] -= (type == TYPE_TREE);
+    game.BuildCount[COUNT_WATER] -= (type == TYPE_WATER);
+    game.BuildCount[COUNT_WASTE] -= (type == TYPE_WASTE);
+    game.BuildCount[COUNT_POWERPLANTS] -= (type == TYPE_POWER_PLANT);
+    game.BuildCount[COUNT_NUCLEARPLANTS] -= (type == TYPE_NUCLEAR_PLANT);
+    game.BuildCount[COUNT_POWERLINES] -= ((type == TYPE_POWERROAD_2) || (type == TYPE_POWERROAD_1) || (type == TYPE_POWER_LINE));
+    game.BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE1);
+    game.BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE2);
+    game.BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE3);
+    game.BuildCount[COUNT_FIRE_STATIONS] -= (type == TYPE_FIRE_STATION);
+    game.BuildCount[COUNT_POLICE_STATIONS] -= (type == TYPE_POLICE_STATION);
+    game.BuildCount[COUNT_MILITARY_BASES] -= (type == TYPE_MILITARY_BASE);
     updatePowerGrid = 1; // to make sure the powergrid is uptodate
     if (type == TYPE_BRIDGE || type == TYPE_REAL_WATER) {
         // A bridge turns into real_water when detroyed
@@ -221,20 +219,19 @@ void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nT
 {
     LockWorld();
     if (GetWorld(WORLDPOS(xpos, ypos)) == TYPE_DIRT) {
-
         if (SpendMoney(nCost)) {
             SetWorld(WORLDPOS(xpos,ypos),nType);
             DrawCross(xpos, ypos);
 
             //  update counter
-            BuildCount[COUNT_ROADS] += IsRoad(nType);
-            BuildCount[COUNT_TREES] += (nType == TYPE_TREE);
-            BuildCount[COUNT_WATER] += (nType == TYPE_WATER);
-            BuildCount[COUNT_POWERPLANTS] += (nType == TYPE_POWER_PLANT);
-            BuildCount[COUNT_NUCLEARPLANTS] += (nType == TYPE_NUCLEAR_PLANT);
-            BuildCount[COUNT_FIRE_STATIONS] += (nType == TYPE_FIRE_STATION);
-            BuildCount[COUNT_POLICE_STATIONS] += (nType == TYPE_POLICE_STATION);
-            BuildCount[COUNT_MILITARY_BASES] += (nType == TYPE_MILITARY_BASE);
+            game.BuildCount[COUNT_ROADS] += IsRoad(nType);
+            game.BuildCount[COUNT_TREES] += (nType == TYPE_TREE);
+            game.BuildCount[COUNT_WATER] += (nType == TYPE_WATER);
+            game.BuildCount[COUNT_POWERPLANTS] += (nType == TYPE_POWER_PLANT);
+            game.BuildCount[COUNT_NUCLEARPLANTS] += (nType == TYPE_NUCLEAR_PLANT);
+            game.BuildCount[COUNT_FIRE_STATIONS] += (nType == TYPE_FIRE_STATION);
+            game.BuildCount[COUNT_POLICE_STATIONS] += (nType == TYPE_POLICE_STATION);
+            game.BuildCount[COUNT_MILITARY_BASES] += (nType == TYPE_MILITARY_BASE);
         } else {
             UIDisplayError(ERROR_OUT_OF_MONEY);
         }
@@ -255,7 +252,7 @@ void Build_Road(int xpos, int ypos)
                 if (SpendMoney(BUILD_COST_ROAD)) {
                     SetWorld(WORLDPOS(xpos, ypos),TYPE_POWERROAD_1);
                     DrawCross(xpos, ypos);
-                    BuildCount[COUNT_ROADS]++;
+                    game.BuildCount[COUNT_ROADS]++;
                 } else {
                     UIDisplayError(ERROR_OUT_OF_MONEY);
                 }
@@ -264,11 +261,10 @@ void Build_Road(int xpos, int ypos)
                 if (SpendMoney(BUILD_COST_ROAD)) {
                     SetWorld(WORLDPOS(xpos, ypos),TYPE_POWERROAD_2);
                     DrawCross(xpos, ypos);
-                    BuildCount[COUNT_ROADS]++;
+                    game.BuildCount[COUNT_ROADS]++;
                 } else {
                     UIDisplayError(ERROR_OUT_OF_MONEY);
                 }
-
                 break;
             default:
                 break;
@@ -277,7 +273,7 @@ void Build_Road(int xpos, int ypos)
         if (SpendMoney(BUILD_COST_BRIDGE)) {
             SetWorld(WORLDPOS(xpos, ypos), TYPE_BRIDGE);
             DrawCross(xpos, ypos);
-            BuildCount[COUNT_ROADS]++;
+            game.BuildCount[COUNT_ROADS]++;
         } else {
             UIDisplayError(ERROR_OUT_OF_MONEY);
         }
@@ -285,7 +281,7 @@ void Build_Road(int xpos, int ypos)
         if (SpendMoney(BUILD_COST_ROAD)) {
             SetWorld(WORLDPOS(xpos, ypos),TYPE_ROAD);
             DrawCross(xpos, ypos);
-            BuildCount[COUNT_ROADS]++;
+            game.BuildCount[COUNT_ROADS]++;
         } else {
             UIDisplayError(ERROR_OUT_OF_MONEY);
         }
@@ -306,7 +302,7 @@ void Build_PowerLine(int xpos, int ypos)
                     if (SpendMoney(BUILD_COST_POWER_LINE)) {
                         SetWorld(WORLDPOS(xpos, ypos),TYPE_POWERROAD_2);
                         DrawCross(xpos, ypos);
-                        BuildCount[COUNT_POWERLINES]++;
+                        game.BuildCount[COUNT_POWERLINES]++;
                     } else {
                         UIDisplayError(ERROR_OUT_OF_MONEY);
                     }
@@ -315,7 +311,7 @@ void Build_PowerLine(int xpos, int ypos)
                     if (SpendMoney(BUILD_COST_POWER_LINE)) {
                         SetWorld(WORLDPOS(xpos, ypos),TYPE_POWERROAD_1);
                         DrawCross(xpos, ypos);
-                        BuildCount[COUNT_POWERLINES]++;
+                        game.BuildCount[COUNT_POWERLINES]++;
                     } else {
                         UIDisplayError(ERROR_OUT_OF_MONEY);
                     }
@@ -325,7 +321,7 @@ void Build_PowerLine(int xpos, int ypos)
             if (SpendMoney(BUILD_COST_POWER_LINE)) {
                 SetWorld(WORLDPOS(xpos, ypos),TYPE_POWER_LINE);
                 DrawCross(xpos, ypos);
-                BuildCount[COUNT_POWERLINES]++;
+                game.BuildCount[COUNT_POWERLINES]++;
             } else {
                 UIDisplayError(ERROR_OUT_OF_MONEY);
             }
@@ -336,9 +332,9 @@ void Build_PowerLine(int xpos, int ypos)
 
 int SpendMoney(unsigned long howMuch)
 {
-    if (howMuch > credits) { return 0; }
+    if (howMuch > game.credits) { return 0; }
 
-    credits -= howMuch;
+    game.credits -= howMuch;
 
     // now redraw the credits
     UIInitDrawing();
@@ -359,9 +355,9 @@ extern void CreateFullRiver(void)
     j = GetRandomNumber(100);
     LockWorld();
     
-    for (i=0; i<mapsize; i++) {
+    for (i=0; i<game.mapsize; i++) {
         for (k=j; k<width+j; k++) {
-            if (k > 0 && k < mapsize) {
+            if (k > 0 && k < game.mapsize) {
                 SetWorld(WORLDPOS(i,k),TYPE_REAL_WATER);
             }
         }
@@ -372,8 +368,8 @@ extern void CreateFullRiver(void)
             default: break;
         }
         switch (GetRandomNumber(4)) {
-            case 0: if (j > 0)       { j--; } break;
-            case 1: if (j < mapsize) { j++; } break;
+            case 0: if (j > 0)            { j--; } break;
+            case 1: if (j < game.mapsize) { j++; } break;
             default: break;
         }
     }
@@ -390,7 +386,7 @@ extern void CreateForests(void)
     j = GetRandomNumber(6)+7;
     for (i=0; i<j; i++) {
         k = GetRandomNumber(6)+8;
-        pos = GetRandomNumber(mapsize*mapsize);
+        pos = GetRandomNumber(game.mapsize*game.mapsize);
         CreateForest(pos, k);
     }
 
@@ -400,21 +396,21 @@ extern void CreateForests(void)
 void CreateForest(long unsigned int pos, int size)
 {
     int x,y,i,j,s;
-    x = pos % mapsize;
-    y = pos / mapsize;
+    x = pos % game.mapsize;
+    y = pos / game.mapsize;
     LockWorld();
     i = x;
     j = y;
 
     for (i=x-size; i<=x+size; i++) {
         for (j=y-size; j<=y+size; j++) {
-            if (i >= 0 && i < mapsize && j >= 0 && j < mapsize) {
+            if (i >= 0 && i < game.mapsize && j >= 0 && j < game.mapsize) {
                 if (GetWorld(WORLDPOS(i,j)) == TYPE_DIRT) {
                     s = ((y>j) ? (y-j) : (j-y)) +
                         ((x>i) ? (x-i) : (i-x));
                     if (GetRandomNumber(s) < 2) {
                         SetWorld(WORLDPOS(i,j), TYPE_TREE);
-                        BuildCount[COUNT_TREES]++;
+                        game.BuildCount[COUNT_TREES]++;
                     }
                 }
             }

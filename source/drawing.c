@@ -17,12 +17,12 @@ void SetUpGraphic(void)
 
 extern void Goto(int x, int y)
 {
-    map_xpos = x-(visible_x/2);
-    map_ypos = y-(visible_y/2);
-    if (map_ypos < 0) { map_ypos = 0; }
-    if (map_ypos > mapsize-visible_y) { map_ypos = mapsize - visible_y; }
-    if (map_xpos < 0) { map_xpos = 0; }
-    if (map_xpos > mapsize-visible_x) { map_xpos = mapsize - visible_x; }
+    game.map_xpos = x-(game.visible_x/2);
+    game.map_ypos = y-(game.visible_y/2);
+    if (game.map_ypos < 0) { game.map_ypos = 0; }
+    if (game.map_ypos > game.mapsize-game.visible_y) { game.map_ypos = game.mapsize - game.visible_y; }
+    if (game.map_xpos < 0) { game.map_xpos = 0; }
+    if (game.map_xpos > game.mapsize-game.visible_x) { game.map_xpos = game.mapsize - game.visible_x; }
     RedrawAllFields();
 }
 
@@ -34,13 +34,13 @@ extern void RedrawAllFields(void)
     LockWorldFlags();
     UIInitDrawing();
     UILockScreen();
-    for (i=map_xpos; i<visible_x+map_xpos; i++) {
-        for (j=map_ypos; j<visible_y+map_ypos; j++) {
+    for (i=game.map_xpos; i<game.visible_x+game.map_xpos; i++) {
+        for (j=game.map_ypos; j<game.visible_y+game.map_ypos; j++) {
             DrawFieldWithoutInit(i,j);
         }
     }
 
-    UIDrawCursor(cursor_xpos-map_xpos, cursor_ypos-map_ypos);
+    UIDrawCursor(game.cursor_xpos-game.map_xpos, game.cursor_ypos-game.map_ypos);
     UIDrawCredits();
     UIDrawPop();
 
@@ -54,16 +54,36 @@ extern void ScrollMap(int direction)
 {
     switch (direction) {
         case 0: // up
-            if (map_ypos > 0) { map_ypos-=1; } else {  map_ypos=0; return; }
+            if (game.map_ypos > 0) { 
+                game.map_ypos-=1; 
+            } else {  
+                game.map_ypos=0; 
+                return; 
+            }
             break;
         case 1: // right
-            if (map_xpos <= (mapsize-1-visible_x)) { map_xpos+=1; } else { map_xpos = mapsize-visible_x; return; }
+            if (game.map_xpos <= (game.mapsize-1-game.visible_x)) { 
+                game.map_xpos+=1; 
+            } else { 
+                game.map_xpos = game.mapsize-game.visible_x; 
+                return; 
+            }
             break;
         case 2: // down
-            if (map_ypos <= (mapsize-1-visible_y)) { map_ypos+=1; } else { map_ypos = mapsize-visible_y; return; }
+            if (game.map_ypos <= (game.mapsize-1-game.visible_y)) {
+                game.map_ypos+=1; 
+            } else { 
+                game.map_ypos = game.mapsize-game.visible_y; 
+                return; 
+            }
             break;
         case 3: // left
-            if (map_xpos > 0) { map_xpos-=1; } else { map_xpos=0; return; }
+            if (game.map_xpos > 0) {
+                game.map_xpos-=1; 
+            } else { 
+                game.map_xpos=0; 
+                return; 
+            }
             break;
         default:
             return;
@@ -75,30 +95,30 @@ extern void ScrollMap(int direction)
 
 extern void MoveCursor(int direction)
 {
-    int old_x = cursor_xpos, old_y = cursor_ypos;
+    int old_x = game.cursor_xpos, old_y = game.cursor_ypos;
     LockWorld();
 
     switch (direction) {
         case 0: // up
-            if (cursor_ypos > 0) { cursor_ypos--; }
-            if ((cursor_ypos < map_ypos)) { ScrollMap(0); }
+            if (game.cursor_ypos > 0) { game.cursor_ypos--; }
+            if ((game.cursor_ypos < game.map_ypos)) { ScrollMap(0); }
             break;
         case 1: // right
-            if (cursor_xpos < mapsize-1) { cursor_xpos++; }
-            if ((cursor_xpos > map_xpos+visible_x-1) && cursor_xpos < mapsize) { ScrollMap(1); }
+            if (game.cursor_xpos < game.mapsize-1) { game.cursor_xpos++; }
+            if ((game.cursor_xpos > game.map_xpos+game.visible_x-1) && game.cursor_xpos < game.mapsize) { ScrollMap(1); }
             break;
         case 2: // down
-            if (cursor_ypos < mapsize-1) { cursor_ypos++; }
-            if ((cursor_ypos > map_ypos+visible_y-1) && cursor_ypos < mapsize) { ScrollMap(2); }
+            if (game.cursor_ypos < game.mapsize-1) { game.cursor_ypos++; }
+            if ((game.cursor_ypos > game.map_ypos+game.visible_y-1) && game.cursor_ypos < game.mapsize) { ScrollMap(2); }
             break;
         case 3: // left
-            if (cursor_xpos > 0) { cursor_xpos--; }
-            if ((cursor_xpos < map_xpos)) { ScrollMap(3); }
+            if (game.cursor_xpos > 0) { game.cursor_xpos--; }
+            if ((game.cursor_xpos < game.map_xpos)) { ScrollMap(3); }
             break;
     }
 
     DrawField(old_x, old_y);
-    DrawField(cursor_xpos, cursor_ypos);
+    DrawField(game.cursor_xpos, game.cursor_ypos);
 
     UnlockWorld();
 }
@@ -126,8 +146,8 @@ extern void DrawCross(int xpos, int ypos)
     LockWorldFlags();
     if (xpos > 0) { DrawFieldWithoutInit(xpos-1, ypos);}
     if (ypos > 0) { DrawFieldWithoutInit(xpos, ypos-1);}
-    if (xpos+1 < mapsize) { DrawFieldWithoutInit(xpos+1, ypos);}
-    if (ypos+1 < mapsize) { DrawFieldWithoutInit(xpos, ypos+1);}
+    if (xpos+1 < game.mapsize) { DrawFieldWithoutInit(xpos+1, ypos);}
+    if (ypos+1 < game.mapsize) { DrawFieldWithoutInit(xpos, ypos+1);}
     DrawFieldWithoutInit(xpos, ypos);
     UnlockWorld();
     UnlockWorldFlags();
@@ -141,38 +161,38 @@ extern void DrawCross(int xpos, int ypos)
 extern void DrawFieldWithoutInit(int xpos, int ypos)
 {
     int i;
-    if (xpos < map_xpos ||
-            xpos >= map_xpos+visible_x ||
-            ypos < map_ypos ||
-            ypos >= map_ypos+visible_y)
+    if (xpos < game.map_xpos ||
+            xpos >= game.map_xpos+game.visible_x ||
+            ypos < game.map_ypos ||
+            ypos >= game.map_ypos+game.visible_y)
     {
         return;
     }
 
-    UIDrawField(xpos-map_xpos, ypos-map_ypos,GetGraphicNumber(WORLDPOS(xpos,ypos)));
+    UIDrawField(xpos-game.map_xpos, ypos-game.map_ypos,GetGraphicNumber(WORLDPOS(xpos,ypos)));
 
     if ((GetWorldFlags(WORLDPOS(xpos,ypos)) & 0x01) == 0 && CarryPower(GetWorld(WORLDPOS(xpos, ypos)))) {
-        UIDrawPowerLoss(xpos-map_xpos, ypos-map_ypos);
+        UIDrawPowerLoss(xpos-game.map_xpos, ypos-game.map_ypos);
     }
 
-    if (xpos == cursor_xpos && ypos == cursor_ypos) {
-        UIDrawCursor(cursor_xpos-map_xpos, cursor_ypos-map_ypos);
+    if (xpos == game.cursor_xpos && ypos == game.cursor_ypos) {
+        UIDrawCursor(game.cursor_xpos-game.map_xpos, game.cursor_ypos-game.map_ypos);
     }
 
     // draw monster
     for (i=0; i<NUM_OF_OBJECTS; i++) {
-        if (xpos == objects[i].x &&
-            ypos == objects[i].y &&
-            objects[i].active != 0) {
-            UIDrawSpecialObject(i, xpos - map_xpos, ypos - map_ypos);
+        if (xpos == game.objects[i].x &&
+            ypos == game.objects[i].y &&
+            game.objects[i].active != 0) {
+            UIDrawSpecialObject(i, xpos - game.map_xpos, ypos - game.map_ypos);
         }
     }
     // draw extra units
     for (i=0; i<NUM_OF_UNITS; i++) {
-        if (xpos == units[i].x &&
-            ypos == units[i].y &&
-            units[i].active != 0) {
-            UIDrawSpecialUnit(i, xpos - map_xpos, ypos - map_ypos);
+        if (xpos == game.units[i].x &&
+            ypos == game.units[i].y &&
+            game.units[i].active != 0) {
+            UIDrawSpecialUnit(i, xpos - game.map_xpos, ypos - game.map_ypos);
         }
     }
 }
@@ -212,17 +232,17 @@ extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
     switch (nType) {
         case 0: // roads
         case 2: // bridge
-            if (pos >= mapsize)                       { a = IsRoad(GetWorld(pos-mapsize));    }
-            if (pos < (mapsize*mapsize)-mapsize)      { c = IsRoad(GetWorld(pos+mapsize));    }
-            if (pos % mapsize < mapsize-1)            { b = IsRoad(GetWorld(pos+1));          }
-            if (pos % mapsize > 0)                    { d = IsRoad(GetWorld(pos-1));          }
+            if (pos >= game.mapsize)                            { a = IsRoad(GetWorld(pos-game.mapsize)); }
+            if (pos < (game.mapsize*game.mapsize)-game.mapsize) { c = IsRoad(GetWorld(pos+game.mapsize)); }
+            if (pos % game.mapsize < game.mapsize-1)            { b = IsRoad(GetWorld(pos+1));            }
+            if (pos % game.mapsize > 0)                         { d = IsRoad(GetWorld(pos-1));            }
             nAddMe = nType== 2 ? TYPE_BRIDGE : 10; // 81 for bridge, 0 for normal road
             break;
         case 1:    // power lines
-            if (pos >= mapsize)                       { a = CarryPower(GetWorld(pos-mapsize));    }
-            if (pos < (mapsize*mapsize)-mapsize)      { c = CarryPower(GetWorld(pos+mapsize));    }
-            if (pos % mapsize < mapsize-1)            { b = CarryPower(GetWorld(pos+1));          }
-            if (pos % mapsize > 0)                    { d = CarryPower(GetWorld(pos-1));          }
+            if (pos >= game.mapsize)                            { a = CarryPower(GetWorld(pos-game.mapsize)); }
+            if (pos < (game.mapsize*game.mapsize)-game.mapsize) { c = CarryPower(GetWorld(pos+game.mapsize)); }
+            if (pos % game.mapsize < game.mapsize-1)            { b = CarryPower(GetWorld(pos+1));            }
+            if (pos % game.mapsize > 0)                         { d = CarryPower(GetWorld(pos-1));            }
             nAddMe = 70;
             break;
         default:

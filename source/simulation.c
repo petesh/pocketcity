@@ -66,16 +66,16 @@ extern void Sim_DistributePower(void)
 
     // reset powergrid - ie, clear flags 1 & 2
     LockWorldFlags();
-    for (j=0; j<mapsize*mapsize; j++) { SetWorldFlags(j, GetWorldFlags(j) & 0xfc); }
+    for (j=0; j<game.mapsize*game.mapsize; j++) { SetWorldFlags(j, GetWorldFlags(j) & 0xfc); }
 
     // Step 1: Find all the powerplants and move out from there
     LockWorld(); // this lock locks for ALL power subs
-    for (i=0; i<mapsize*mapsize; i++) {
+    for (i=0; i<game.mapsize*game.mapsize; i++) {
         if (GetWorld(i) == TYPE_POWER_PLANT || GetWorld(i) == TYPE_NUCLEAR_PLANT) { // is this a powerplant?
             if ((GetWorldFlags(i) & 0x01) == 0) { // have we already processed this powerplant?
                 powerleft=0;
                 PowerMoveOnFromThisPoint(i);
-                for (j=0; j<mapsize*mapsize; j++) {
+                for (j=0; j<game.mapsize*game.mapsize; j++) {
                     SetWorldFlags(j, GetWorldFlags(j) & 0xfd); 
                 }
             }
@@ -129,9 +129,9 @@ void PowerMoveOnFromThisPoint(unsigned long pos)
         } else {
             // we are at a power section
             // initiate some recursive functions from here ;)
-            if ((cross & 0x10) == 0x10) { PowerMoveOnFromThisPoint(pos-mapsize); }
+            if ((cross & 0x10) == 0x10) { PowerMoveOnFromThisPoint(pos-game.mapsize); }
             if ((cross & 0x20) == 0x20) { PowerMoveOnFromThisPoint(pos+1); }
-            if ((cross & 0x40) == 0x40) { PowerMoveOnFromThisPoint(pos+mapsize); }
+            if ((cross & 0x40) == 0x40) { PowerMoveOnFromThisPoint(pos+game.mapsize); }
             if ((cross & 0x80) == 0x80) { PowerMoveOnFromThisPoint(pos-1); }
             return;
         }
@@ -186,16 +186,16 @@ unsigned long PowerMoveOn(unsigned long pos, int direction)
 {
     switch (direction) {
         case 0: // up
-            if (pos < mapsize) { return pos; }
-            pos -= mapsize;
+            if (pos < game.mapsize) { return pos; }
+            pos -= game.mapsize;
             break;
         case 1: // right
-            if ((pos+1) >= mapsize*mapsize) { return pos; }
+            if ((pos+1) >= game.mapsize*game.mapsize) { return pos; }
             pos++;
             break;
         case 2: // down
-            if ((pos+mapsize) >= mapsize*mapsize) { return pos; }
-            pos += mapsize;
+            if ((pos+game.mapsize) >= game.mapsize*game.mapsize) { return pos; }
+            pos += game.mapsize;
             break;
         case 3: //left
             if (pos == 0) { return pos; }
@@ -220,7 +220,7 @@ void FindZonesForUpgrading()
     int i;
     long signed int randomZone;
 
-    int max = mapsize*3;
+    int max = game.mapsize*3;
     if (max > 256) { max = 256; }
 
     // find some random zones
@@ -341,17 +341,17 @@ void DowngradeZone(long unsigned pos)
     if (type >= 30 && type <= 39)
     {
         SetWorld(pos, (type == 30) ? 1 : type-1);
-        BuildCount[COUNT_COMMERCIAL]--;
+        game.BuildCount[COUNT_COMMERCIAL]--;
     }
     else if (type >= 40 && type <= 49)
     {
         SetWorld(pos, (type == 40) ? 2 : type-1);
-        BuildCount[COUNT_RESIDENTIAL]--;
+        game.BuildCount[COUNT_RESIDENTIAL]--;
     }
     else if (type >= 50 && type <= 59)
     {
         SetWorld(pos, (type == 50) ? 3 : type-1);
-        BuildCount[COUNT_INDUSTRIAL]--;
+        game.BuildCount[COUNT_INDUSTRIAL]--;
     }
 
     UnlockWorld();
@@ -367,13 +367,13 @@ void UpgradeZone(long unsigned pos)
 
     if (type == 1 || (type >= 30 && type <= 38)) {
         SetWorld(pos, (type == 1) ? 30 : type+1);
-        BuildCount[COUNT_COMMERCIAL]++;
+        game.BuildCount[COUNT_COMMERCIAL]++;
     } else if (type == 2 || (type >= 40 && type <= 48)) {
         SetWorld(pos, (type == 2) ? 40 : type+1);
-        BuildCount[COUNT_RESIDENTIAL]++;
+        game.BuildCount[COUNT_RESIDENTIAL]++;
     } else if (type == 3 || (type >= 50 && type <= 58)) {
         SetWorld(pos, (type == 3) ? 50 : type+1);
-        BuildCount[COUNT_INDUSTRIAL]++;
+        game.BuildCount[COUNT_INDUSTRIAL]++;
     }
     UnlockWorld();
 }
@@ -392,8 +392,8 @@ signed long GetZoneScore(long unsigned int pos)
     // return -1 to make this zone be downgraded _right now_ (ie. if missing things as power or roads)
 
     signed long score = 0;
-    int x = pos%mapsize;
-    int y = pos/mapsize;
+    int x = pos%game.mapsize;
+    int y = pos/game.mapsize;
     signed int i,j;
     int bRoad = 0;
     int type = 0;
@@ -411,8 +411,8 @@ signed long GetZoneScore(long unsigned int pos)
         // a new zone of ind or com
 
         long signed int availPop = 
-                (BuildCount[COUNT_RESIDENTIAL]*25)
-                - (BuildCount[COUNT_COMMERCIAL]*25 + BuildCount[COUNT_INDUSTRIAL]*25);
+                (game.BuildCount[COUNT_RESIDENTIAL]*25)
+                - (game.BuildCount[COUNT_COMMERCIAL]*25 + game.BuildCount[COUNT_INDUSTRIAL]*25);
         if (availPop <= 0) { UnlockWorld(); return -1; } // whoops, missing population
 
     } else if (type == ZONE_RESIDENTIAL) {
@@ -423,8 +423,8 @@ signed long GetZoneScore(long unsigned int pos)
         // into our little city
 
         long signed int availPop = 
-                ((TimeElapsed*TimeElapsed)/35+30)
-                - (BuildCount[COUNT_RESIDENTIAL]);
+                ((game.TimeElapsed*game.TimeElapsed)/35+30)
+                - (game.BuildCount[COUNT_RESIDENTIAL]);
         if (availPop <= 0) { UnlockWorld(); return -1; } // hmm - need more children
     }
 
@@ -433,18 +433,16 @@ signed long GetZoneScore(long unsigned int pos)
         // enough industrial zones before commercial zones kick in ;)
 
         long signed int availGoods =
-                (BuildCount[COUNT_INDUSTRIAL]/3*2)
-                - (BuildCount[COUNT_COMMERCIAL]);
+                (game.BuildCount[COUNT_INDUSTRIAL]/3*2)
+                - (game.BuildCount[COUNT_COMMERCIAL]);
         if (availGoods <= 0) { UnlockWorld(); return -1; } // darn, nothing to sell here
     }
 
 
     // take a look around at the enviroment ;)
-    for (i=x-3; i<4+x; i++)
-    {
-        for (j=y-3; j<4+y; j++)
-        {
-            if (!(i<0 || i>=mapsize || j<0 || j>=mapsize)) {
+    for (i=x-3; i<4+x; i++) {
+        for (j=y-3; j<4+y; j++) {
+            if (!(i<0 || i>=game.mapsize || j<0 || j>=game.mapsize)) {
                 
                 score += GetScoreFor(type, GetWorld(WORLDPOS(i,j)));
                 
@@ -452,7 +450,6 @@ signed long GetZoneScore(long unsigned int pos)
                     // can we reach all kinds of zones from here?
                     bRoad = DoTheRoadTrip(WORLDPOS(i,j));
                 }
-
             }
         }
     }
@@ -486,7 +483,7 @@ long unsigned int GetRandomZone()
     LockWorld();
     for (i=0; i<5; i++) // try five times to hit a valid zone
     {
-        pos = GetRandomNumber(mapsize*mapsize);
+        pos = GetRandomNumber(game.mapsize*game.mapsize);
         type = GetWorld(pos);
         if ((type >= 1 && type <= 3) || (type >= 30 && type <= 59)) {
             UnlockWorld();
@@ -500,64 +497,64 @@ long unsigned int GetRandomZone()
 
 void DoTaxes()
 {
-    credits += (
-            BuildCount[COUNT_RESIDENTIAL]*INCOME_RESIDENTIAL +
-            BuildCount[COUNT_COMMERCIAL]*INCOME_COMMERCIAL   +
-            BuildCount[COUNT_INDUSTRIAL]*INCOME_INDUSTRIAL
-            )*tax/100;
+    game.credits += (
+            game.BuildCount[COUNT_RESIDENTIAL]*INCOME_RESIDENTIAL +
+            game.BuildCount[COUNT_COMMERCIAL]*INCOME_COMMERCIAL   +
+            game.BuildCount[COUNT_INDUSTRIAL]*INCOME_INDUSTRIAL
+            )*game.tax/100;
 }
 
 void DoUpkeep()
 {
     long unsigned int change = 0;
     // roads
-    change = BuildCount[COUNT_ROADS]*UPKEEP_ROAD;
-    change = (change*upkeep[UPKEEPS_TRAFFIC])/100;
+    change = game.BuildCount[COUNT_ROADS]*UPKEEP_ROAD;
+    change = (change*game.upkeep[UPKEEPS_TRAFFIC])/100;
     
-    if (credits < change) {
+    if (game.credits < change) {
         // can't pay
-        credits = 0;
+        game.credits = 0;
         DoNastyStuffTo(TYPE_ROAD,1);
     } else {
-        credits -= change;
+        game.credits -= change;
     }
 
     // power lines
-    change = BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE;
-    change = (change*upkeep[UPKEEPS_POWER])/100;
-    if (credits < change) {
+    change = game.BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE;
+    change = (change*game.upkeep[UPKEEPS_POWER])/100;
+    if (game.credits < change) {
         // can't pay
-        credits = 0;
+        game.credits = 0;
         DoNastyStuffTo(TYPE_POWER_LINE,5);
     } else {
-        credits -= change;
+        game.credits -= change;
     }
 
     // power plants
-    change = BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT + BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT;
-    change = (change*upkeep[UPKEEPS_POWER])/100;
-    if (credits < change) {
+    change = game.BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT + game.BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT;
+    change = (change*game.upkeep[UPKEEPS_POWER])/100;
+    if (game.credits < change) {
         // can't pay
-        credits = 0;
+        game.credits = 0;
         DoNastyStuffTo(TYPE_POWER_PLANT,15);
         DoNastyStuffTo(TYPE_NUCLEAR_PLANT,30);
     } else {
-        credits -= change;
+        game.credits -= change;
     }
 
     // fire stations
-    change = BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS;
-    change += BuildCount[COUNT_POLICE_STATIONS]*UPKEEP_POLICE_STATIONS;
-    change += BuildCount[COUNT_MILITARY_BASES]*UPKEEP_MILITARY_BASES;
-    change = (change*upkeep[UPKEEPS_DEFENCE])/100;    
-    if (credits < change) {
+    change =  game.BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS;
+    change += game.BuildCount[COUNT_POLICE_STATIONS]*UPKEEP_POLICE_STATIONS;
+    change += game.BuildCount[COUNT_MILITARY_BASES]*UPKEEP_MILITARY_BASES;
+    change = (change*game.upkeep[UPKEEPS_DEFENCE])/100;    
+    if (game.credits < change) {
         // can't friggin pay...
-        credits = 0;
+        game.credits = 0;
         DoNastyStuffTo(TYPE_FIRE_STATION,10);
         DoNastyStuffTo(TYPE_POLICE_STATION,10);
         DoNastyStuffTo(TYPE_MILITARY_BASE,30);
     } else {
-        credits -= change;
+        game.credits -= change;
     }
     
 }
@@ -599,7 +596,7 @@ extern int Sim_DoPhase(int nPhase)
         case 6:
             UIWriteLog("Simulation phase 6 - Economics\n");
             DoTaxes();
-            TimeElapsed++;
+            game.TimeElapsed++;
             nPhase=0;
             UIInitDrawing();
             UIDrawCredits();

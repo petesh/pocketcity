@@ -92,7 +92,7 @@
 #define UPKEEP_MILITARY_BASES   500
 
 // a very nice macro
-#define WORLDPOS(x,y)		((x)+(y)*(mapsize))
+#define WORLDPOS(x,y)		((x)+(y)*(game.mapsize))
 
 
 // moveable objects
@@ -134,5 +134,36 @@ enum DefenceUnitTypes { DEFENCE_FIREMEN,
                         DEFENCE_POLICE,
                         DEFENCE_MILITARY
                       };
+
+
+// this is the central game struct
+// only one of this exists at a time
+// and is called `game`
+// This entire struct will be saved
+// between games
+
+typedef struct _game_struct {
+    char            version[4];
+    char            mapsize;
+    int             visible_x;
+    int             visible_y;
+    int             map_xpos;
+    int             map_ypos;
+    int             cursor_xpos;
+    int             cursor_ypos;
+    long signed     credits;
+    long unsigned   BuildCount[20];
+    long unsigned   TimeElapsed;
+    unsigned char   tax;
+    unsigned char   tileSize;
+    unsigned short  gameLoopSeconds;
+    char            cityname[20];
+    unsigned char   upkeep[3];
+    unsigned char   disaster_level;
+    DefenceUnit     units[10];
+    MoveableObject  objects[10];
+} GameStruct;
+
+#define SAVEGAMEVERSION     "PC05"
 
 #endif

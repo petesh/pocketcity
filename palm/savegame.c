@@ -3,6 +3,7 @@
 #include <PalmOS.h>
 #include <StringMgr.h>
 #include <unix_string.h>
+#include <unix_stdlib.h>
 #include <StdIOPalm.h>
 #include "simcity.h"
 #include "savegame.h"
@@ -107,18 +108,18 @@ void _UICreateNewSaveGame(void)
             if (DmNumRecords(db) == 0) {
                 // create an empty record in slot 0 if it's not there, this is
                 // used for autosaves
-                rec = DmNewRecord(db,&index, mapsize*mapsize+200);
+                rec = DmNewRecord(db,&index, game.mapsize*game.mapsize+200);
                 if (rec) {
                     DmReleaseRecord(db, index, true);
                 }
             }
             index = dmMaxRecordIndex;
-            rec = DmNewRecord(db,&index,mapsize*mapsize+200);
+            rec = DmNewRecord(db,&index,game.mapsize*game.mapsize+200);
             if (rec) {
                 pRec = MemHandleLock(rec);
                 // write the header and some globals
                 DmWrite(pRec,0,"PC00",4);
-                DmWrite(pRec,100,(char*)cityname,20);
+                DmWrite(pRec,100,(char*)game.cityname,20);
                 MemHandleUnlock(rec);
                 DmReleaseRecord(db,index,true);
             }
@@ -133,15 +134,8 @@ int _UILoadNewestFromList(void)
     FormPtr form = FrmGetActiveForm();
     n = LstGetNumberOfItems(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)));
     LstSetSelection(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)),n - 1);
-    UIWriteLog("..");
-    { char s[20];
-        sprintf(s, "%i\n", n);
-        UIWriteLog(s);
-    }
-    
 
-
-   return _UILoadFromList(); 
+    return _UILoadFromList(); 
 }
 
 int _UILoadFromList(void)
@@ -189,24 +183,13 @@ extern void UIClearAutoSaveSlot(void)
 
 void UINewGame(void)
 {
-    // reset all vars
-    TimeElapsed = 0;
-    map_xpos = 50;
-    map_ypos = 50;
-    credits = 50000;
-    memset((void*)&BuildCount[0],0,80);
-    memset((void*)objects,0,sizeof(MoveableObject)*NUM_OF_OBJECTS);
-    memset((void*)units,0,sizeof(DefenceUnit)*NUM_OF_UNITS);
-    upkeep[0] = 100;
-    upkeep[1] = 100;
-    upkeep[2] = 100;
-    mapsize = 100;
-    disaster_level = 1; // TODO: = difficulty_level
-    ResizeWorld(mapsize*mapsize);
-    SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
-    CreateFullRiver();
-    CreateForests();
-    DrawGame(1);
+    /* The UI part is responsible for setting
+     * the visible_x/y vars
+     * and then call SetupNewGame()
+     */
+    game.visible_x = 10;
+    game.visible_y = 8;
+    SetupNewGame();
     game_in_progress = 1;
 }
 
@@ -255,22 +238,10 @@ int UILoadGame(UInt16 index)
             UINewGame();
             UISaveGame(index); // save the newly created map
             loaded = 2;
-        } else if (StrNCompare("PC04",(char*)pTemp,4) == 0) { // version check
+        } else if (StrNCompare(SAVEGAMEVERSION,(char*)pTemp,4) == 0) { // version check
             LockWorld();
-            MemMove(&credits,       pTemp+4,4);
-            MemMove(&map_xpos,      pTemp+8,1);
-            MemMove(&map_ypos,      pTemp+9,1);
-            MemMove(&mapsize,       pTemp+10,1);
-            MemMove(&TimeElapsed,   pTemp+11,4);
-            MemMove(&upkeep[0],     pTemp+15,3);
-            MemMove(&disaster_level,pTemp+18,1);
-            //                      pTemp+19,1 is reserved for
-            //                      difficulty_level
-            MemMove(&BuildCount[0], pTemp+20,80);
-            MemMove(cityname,       pTemp+100,20);
-            MemMove(&objects,       pTemp+120,sizeof(MoveableObject)*NUM_OF_OBJECTS);
-            MemMove(&units,         pTemp+200,sizeof(DefenceUnit)*NUM_OF_UNITS);
-            MemMove(worldPtr,       pTemp+300,mapsize*mapsize);
+            MemMove((void*)&game,pTemp,sizeof(GameStruct));
+            MemMove(worldPtr,pTemp+sizeof(GameStruct),game.mapsize*game.mapsize);
             UnlockWorld();
             // update the power grid:
             Sim_DistributePower();
@@ -324,26 +295,13 @@ extern void UISaveGame(UInt16 index)
         if (DmNumRecords(db) > index) {
             DmRemoveRecord(db, index);
         }
-        rec = DmNewRecord(db,&index, mapsize*mapsize+300);
+        rec = DmNewRecord(db,&index, game.mapsize*game.mapsize+sizeof(GameStruct));
         if (rec) {
             pRec = MemHandleLock(rec);
             LockWorld();
             // write the header and some globals
-            DmWrite(pRec,0,"PC04",4);
-            DmWrite(pRec,4,&credits,4);
-            DmWrite(pRec,8,&map_xpos,1);
-            DmWrite(pRec,9,&map_ypos,1);
-            DmWrite(pRec,10,&mapsize,1);
-            DmWrite(pRec,11,&TimeElapsed,4);
-            DmWrite(pRec,15,&upkeep[0],3);
-            DmWrite(pRec,18,&disaster_level,1);
-            //           19,               ,1  is reserved for
-            //                                 difficulty_level
-            DmWrite(pRec,20,&BuildCount[0],80);
-            DmWrite(pRec,100,(char*)cityname,20);
-            DmWrite(pRec,120,(void*)&objects, sizeof(MoveableObject)*NUM_OF_OBJECTS); // 8 bytes each
-            DmWrite(pRec,200,(void*)&units,   sizeof(DefenceUnit)*NUM_OF_UNITS); // 8 bytes each
-            DmWrite(pRec,300,(void*)(unsigned char*)worldPtr,mapsize*mapsize);
+            DmWrite(pRec,0,(void*)&game,sizeof(GameStruct));
+            DmWrite(pRec,sizeof(GameStruct),(void*)(unsigned char*)worldPtr,game.mapsize*game.mapsize);
             UnlockWorld();
             MemHandleUnlock(rec);
             DmReleaseRecord(db,index,true);
@@ -383,7 +341,7 @@ extern Boolean hFilesNew(EventPtr event)
                 case buttonID_FilesNewCancel:
                     UIWriteLog("Cancel pushed\n");
                     // set (char*)cityname to '\0'
-                    cityname[0] = '\0';
+                    game.cityname[0] = '\0';
                     FrmReturnToForm(0);
                     handled = 1;
                     break;
@@ -427,7 +385,7 @@ extern Boolean hFiles(EventPtr event)
                         // need to fetch the savegame name from the form
                         pGameName = FldGetTextPtr(FrmGetObjectPtr(ftNewGame, FrmGetObjectIndex(ftNewGame, fieldID_newGameName)));
                         if (pGameName != NULL) {
-                            strcpy((char*)cityname,pGameName);
+                            strcpy((char*)game.cityname,pGameName);
                             _UICreateNewSaveGame();
                             _UICleanSaveGameList();
                             _UIUpdateSaveGameList();
@@ -436,7 +394,7 @@ extern Boolean hFiles(EventPtr event)
                                 FrmGotoForm(formID_pocketCity);
                             }
                         } else {
-                            strcpy((char*)cityname,"");
+                            strcpy((char*)game.cityname,"");
                             UIWriteLog("No name specified\n");
                         }
                     }

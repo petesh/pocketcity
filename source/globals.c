@@ -1,4 +1,5 @@
 #include "zakdef.h"
+/*
 char mapsize = 100;
 char map_xpos = 50;
 char map_ypos = 50;
@@ -10,14 +11,10 @@ long unsigned int TimeElapsed=0; // months since Jan 2000
 char cityname[20];
 unsigned char upkeep[3];
 unsigned char disaster_level;
-
-short updatePowerGrid = 1;
-
 short unsigned int SIM_GAME_LOOP_SECONDS = 0;
 int tax = 8;
 MoveableObject objects[10];
 DefenceUnit    units[10];
-
 #ifdef __palmos__
 int TILE_SIZE = 16;
 int visible_x = 10;
@@ -27,7 +24,12 @@ int TILE_SIZE = 24;
 int visible_x = 19;
 int visible_y = 7;
 #endif
+*/
 
+// this is the central game struct
+GameStruct game;
+
+unsigned char updatePowerGrid = 1;
 
 int GetCiffer(int number, signed long value);
 
@@ -110,12 +112,12 @@ extern char* GetDate(char * temp)
     char year[5];
     char months[]="JanFebMarAprMayJunJulAugSepOctNovDec";
 
-    temp[0] = months[(TimeElapsed%12)*3];
-    temp[1] = months[(TimeElapsed%12)*3+1];
-    temp[2] = months[(TimeElapsed%12)*3+2];
+    temp[0] = months[(game.TimeElapsed%12)*3];
+    temp[1] = months[(game.TimeElapsed%12)*3+1];
+    temp[2] = months[(game.TimeElapsed%12)*3+2];
     temp[3] = ' ';
 
-    LongToString((TimeElapsed/12)+2000,(char*)year);
+    LongToString((game.TimeElapsed/12)+2000,(char*)year);
     temp[4] = year[0];
     temp[5] = year[1];
     temp[6] = year[2];
