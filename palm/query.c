@@ -173,6 +173,12 @@ querySetup(void)
 
 	form = FrmGetActiveForm();
 	temp = (Char *)MemPtrNew(255);
+	StrPrintF(temp, "(%d,%d)", (int)(GetPositionClicked() % getMapWidth()),
+	    (int)(GetPositionClicked() / getMapWidth()));
+	ctl = (ControlPtr)GetObjectPtr(form, labelID_zonelocation);
+	CtlSetLabel(ctl, temp);
+
+	temp = (Char *)MemPtrNew(255);
 	zonetoPtr(temp, element, 255);
 	fld = (FieldPtr)GetObjectPtr(form, labelID_zonetype);
 	FldSetTextPtr(fld, temp);
@@ -193,7 +199,6 @@ querySetup(void)
 
 	frmHideID(form, labelID_ispowered);
 	if (CarryPower(element)) {
-		WriteLog("Carries power\n");
 		if (status & POWEREDBIT)
 			frmShowID(form, labelID_ispowered);
 		frmShowID(form, labelID_carrypower);
@@ -202,7 +207,6 @@ querySetup(void)
 	}
 	frmHideID(form, labelID_iswatered);
 	if (CarryWater(element)) {
-		WriteLog("Carries water\n");
 		if (status & WATEREDBIT)
 			frmShowID(form, labelID_iswatered);
 		frmShowID(form, labelID_carrywater);
@@ -224,12 +228,18 @@ queryCleanup(void)
 
 	form = FrmGetActiveForm();
 
+	temp = (char *)CtlGetLabel((ControlPtr)GetObjectPtr(form,
+		    labelID_zonelocation));
+	if (temp) MemPtrFree(temp);
+
 	temp = (char *)FldGetTextPtr((FieldPtr)GetObjectPtr(form,
 	    labelID_zonetype));
 	if (temp) MemPtrFree(temp);
+
 	temp = (char *)CtlGetLabel((ControlPtr)GetObjectPtr(form,
 	    labelID_zonevalue));
 	if (temp) MemPtrFree(temp);
+
 	temp = (char *)CtlGetLabel((ControlPtr)GetObjectPtr(form,
 	    labelID_zonedensity));
 	if (temp) MemPtrFree(temp);
