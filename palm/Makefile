@@ -1,5 +1,6 @@
 VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 CC = m68k-palmos-gcc
+MULTIGEN = m68k-palmos-multigen
 CFLAGS = -O2 -Wall -DPALM -I . -I ../source
 #LDFLAGS = -T text_64k
 LDLIBS =
