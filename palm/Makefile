@@ -13,8 +13,8 @@ PRCTARGETS = pcity pcity-grey pcity-color
 ##################
 ### make all #####
 ##################
-all: $(addsuffix .prc,$(PRCTARGETS))
-dhires hires: $(addsuffix .prc,$(addprefix sy-,$(PRCTARGETS)))
+all debug: $(addsuffix .prc,$(PRCTARGETS))
+hires dhires: $(addsuffix .prc,$(addprefix sy-,$(PRCTARGETS)))
 
 ##################
 ### make cheat ###
@@ -26,29 +26,25 @@ cheat: debug
 ### make debug ###
 ##################
 debug: CFLAGS += -g -DDEBUG
-debug: all
 
 hires: HCFLAGS = -DSONY_CLIE
-hires: all
 
 dhires: HCFLAGS = -g -DSONY_CLIE -DDEBUG
-dhires: all
 
 #### the different versions
-pcity-%.prc: grcs.stm simcity-%.stm zones-%.stm game.stm
+pcity-%.prc: simcity-%.stm zones-%.stm game.stm grcs.stm
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def *.grc \
 		temp$*/*.bin temp/*.bin
 
-pcity.prc: grcs.stm simcity.stm zones.stm game.stm
+pcity.prc: simcity.stm zones.stm game.stm grcs.stm
 	build-prc -o pcity.prc -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		*.grc tempbw/*.bin temp/*.bin
 
-sy-pcity.prc: sy/ sy/sy.stm game.stm syicons.stm grcs.stm simcity.stm zones.stm
+sy-pcity.prc: sy/ game.stm syicons.stm simcity.stm zones.stm sy/sy.stm
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc tempbw/*.bin temp/*.bin
 
-sy-pcity-%.prc: sy/ sy/sy.stm game.stm syicons.stm grcs.stm \
-		simcity-%.stm zones-%.stm
+sy-pcity-%.prc: sy/ game.stm syicons.stm simcity-%.stm zones-%.stm sy/sy.stm
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc temp$*/*.bin temp/*.bin sy/*.bin
 
@@ -110,7 +106,7 @@ sy/%.o: %.c
 
 sy/sy.stm: sy/simcity
 	cd sy; m68k-palmos-obj-res simcity
-	echo touching>sy.stm
+	echo touching>sy/sy.stm
 
 syicons.stm: hricons.rcp
 	pilrc -q hricons.rcp sy
