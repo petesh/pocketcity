@@ -63,7 +63,7 @@ extern void DoRandomDisaster(void)
             UIWriteLog("\n");
 #endif
             if (random < 10) {
-                if (BurnField(x,y)) {
+                if (BurnField(x,y,0)) {
                     UIDisplayError(ERROR_FIRE_OUTBREAK);
                 }
             } else if (random < 15) {
@@ -136,26 +136,27 @@ void CreateWaste(int x, int y)
 
 void FireSpread(int x, int y) 
 {
-    if (x > 0) { BurnField(x-1,y); }
-    if (x < mapsize-1) { BurnField(x+1,y); }
-    if (y > 0) { BurnField(x,y-1); }
-    if (y < mapsize-1) { BurnField(x,y+1); }
+    if (x > 0) { BurnField(x-1,y,0); }
+    if (x < mapsize-1) { BurnField(x+1,y,0); }
+    if (y > 0) { BurnField(x,y-1,0); }
+    if (y < mapsize-1) { BurnField(x,y+1,0); }
 }
 
 
-extern int BurnField(int x, int y)
+extern int BurnField(int x, int y, int forceit)
 {
     int type;
     
     LockWorld();
     type = GetWorld(WORLDPOS(x,y));
-    if (type != TYPE_FIRE1 &&
+    if (forceit != 0 ||
+        (type != TYPE_FIRE1 &&
         type != TYPE_FIRE2 &&
         type != TYPE_FIRE3 &&
         type != TYPE_DIRT  &&
         type != TYPE_WASTE &&
         type != TYPE_WATER &&
-        type != TYPE_REAL_WATER) {
+        type != TYPE_REAL_WATER)) {
         Build_Destroy(x,y);
         SetWorld(WORLDPOS(x,y), TYPE_FIRE1);
         DrawCross(x,y);
@@ -213,7 +214,7 @@ extern void MoveAllObjects(void)
             // hmm, is this thing destructive?
             if (i == OBJ_DRAGON) {
                 // sure it is :D
-                if (!BurnField(objects[i].x, objects[i].y)) {
+                if (!BurnField(objects[i].x, objects[i].y,1)) {
                     CreateWaste(objects[i].x, objects[i].y);
                 }
             } else if (i == OBJ_MONSTER) {

@@ -490,6 +490,7 @@ static Boolean hPocketCity(EventPtr event)
                         // change this to whatever testing you're doing ;)
                         // just handy with a 'trigger' button for testing
                         // ie. disaters
+                        CreateDragon(5,5);
                         CreateMonster(5,5);
                         handled = 1;
                         break;

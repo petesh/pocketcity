@@ -16,7 +16,7 @@ Kean Pedersen:
   + Bridges (not over homemade water on purpose)
   + 16bpp greyscale
   + A real monster :D (actually two of them)
-  * Fire now spreads at it own rate - pause won't help
+  * Fire/disasters now spreads at it own rate - pause won't help (!)
   * Cleaned compiler warnings
   * Uses less stackspace in recursive function (should fix the FE)
   * Moved all graphic for the zones onto an offscreen windows
