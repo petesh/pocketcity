@@ -8,7 +8,9 @@ CFLAGS = -O2 -Wall -DPALM -I . -I ../source
 #LDFLAGS = -T text_64k
 LDLIBS =
 OBJECTS = stack.o simcity.o handler.o drawing.o globals.o build.o \
-	simulation.o HiRes.o savegame.o disaster.o map.o budget.o palmutils.o pcity-sections.o
+	options.o \
+	simulation.o HiRes.o savegame.o disaster.o map.o budget.o palmutils.o \
+	pcity-sections.o
 PROGNAME = "Pocket City"
 PROGTOKEN = PCit
 PRCTARGETS = pcity pcity-grey pcity-color mg-pcity

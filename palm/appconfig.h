@@ -3,6 +3,10 @@
 
 #include <PalmTypes.h>
 
+/*
+ * if you add in here don't forget the entries in game.rcp for the
+ * configuration screen.
+ */
 typedef enum ButtonEvent {
     BeIgnore = 0,
     BeUp,
@@ -11,6 +15,8 @@ typedef enum ButtonEvent {
     BeRight,
     BePopup,
     BeMap,
+    BeBudget,
+    BePopulation,
     BePassthrough
 #ifdef SONY_CLIE
     ,

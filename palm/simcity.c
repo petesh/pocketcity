@@ -5,6 +5,7 @@
 #include <StdIOPalm.h>
 #include <simcity.h>
 #include <savegame.h>
+#include <options.h>
 #include <map.h>
 #include <budget.h>
 #include <zakdef.h>
@@ -55,8 +56,6 @@ UInt16 jog_lr = 0;
 static Boolean hPocketCity(EventPtr event);
 static Boolean hQuickList(EventPtr event);
 static Boolean hExtraList(EventPtr event);
-static Boolean hOptions(EventPtr event);
-static Boolean hButtonConfig(EventPtr event);
 
 static void _PalmInit(void);
 static void _PalmFini(void);
@@ -74,11 +73,16 @@ static Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags);
 static void EventLoop(void);
 static void cycleSpeed(void);
 static void DoAbout(void);
+static void CheckTextClick(Coord x, Coord y);
+static int doButtonEvent(ButtonEvent key);
 
 #if defined(SONY_CLIE)
 static void HoldHook(UInt32);
 static void toolBarCheck(Coord);
 static void UIDrawToolBar(void);
+static void clearToolbarBitmap(void);
+#else
+#define clearToolbarBitmap()
 #endif
 
 extern void UIDrawLoc(void);
@@ -343,6 +347,7 @@ static void
 _PalmFini(void)
 {
     unhookHoldSwitch();
+    clearToolbarBitmap();
     PrefSetAppPreferences(GetCreatorID(), 0, CONFIG_VERSION, &gameConfig, sizeof(AppConfig_t), true);
 #ifdef DEBUG
     { char log[40]; StrPrintF(log, "saved: %ld\n", (long)sizeof(AppConfig_t)); UIWriteLog(log); }
@@ -407,6 +412,9 @@ hPocketCity(EventPtr event)
 #endif
             /* check for other 'penclicks' here */
         }
+
+        CheckTextClick(event->screenX, event->screenY);
+
         break;
     case penMoveEvent:
         scaleEvent(event);
@@ -812,157 +820,6 @@ hQuickList(EventPtr event)
     return handled;
 }
 
-static Boolean hOptions(EventPtr event)
-{
-    FormPtr form;
-    int handled = 0;
-    static char okHit = 0;
-
-    switch (event->eType) {
-    case frmOpenEvent:
-        form = FrmGetActiveForm();
-        FrmDrawForm(form);
-        CtlSetValue(FrmGetObjectPtr(form, FrmGetObjectIndex(form,
-                  buttonID_dis_off+game.disaster_level)), 1);
-        okHit = 0;
-        handled = 1;
-        break;
-    case frmCloseEvent:
-        if (okHit) {
-            form = FrmGetActiveForm();
-            if (CtlGetValue(FrmGetObjectPtr(form,
-                      FrmGetObjectIndex(form, buttonID_dis_off)))) {
-                game.disaster_level = 0;
-            } else if (CtlGetValue(FrmGetObjectPtr(form,
-                      FrmGetObjectIndex(form, buttonID_dis_one)))) {
-                game.disaster_level = 1;
-            } else if (CtlGetValue(FrmGetObjectPtr(form,
-                      FrmGetObjectIndex(form, buttonID_dis_two)))) {
-                game.disaster_level = 2;
-            } else if (CtlGetValue(FrmGetObjectPtr(form,
-                      FrmGetObjectIndex(form, buttonID_dis_three)))) {
-                game.disaster_level = 3;
-            }
-        }
-        RestoreSpeed()
-        break;
-    case keyDownEvent:
-        UIWriteLog("Key down\n");
-        switch (event->data.keyDown.chr) {
-        case vchrLaunch:
-            FrmGotoForm(formID_pocketCity);
-            handled = 1;
-            break;
-        }
-    case ctlSelectEvent:
-        switch (event->data.ctlEnter.controlID) {
-        case buttonID_OK:
-            okHit = 1;
-            handled = 1;
-            FrmGotoForm(formID_pocketCity);
-            break;
-        case buttonID_Cancel:
-            okHit = 0;
-            handled = 1;
-            FrmGotoForm(formID_pocketCity);
-            break;
-        }
-    default:
-        break;
-    }
-
-    return (handled);
-}
-
-static const struct bc_chelts {
-    UInt16 popup;
-    UInt16 list;
-    UInt16 elt;
-} bc_elts[] = {
-    { List_Cal_Popup, List_Cal, BkCalendar },
-    { List_Addr_Popup, List_Addr, BkAddress },
-    { List_HrUp_Popup, List_HrUp, BkHardUp },
-    { List_HrDn_Popup, List_HrDn, BkHardDown },
-    { List_ToDo_Popup, List_ToDo, BkToDo },
-    { List_Memo_Popup, List_Memo, BkMemo },
-    { List_Calc_Popup, List_Calc, BkCalc },
-    { List_Find_Popup, List_Find, BkFind },
-#ifdef SONY_CLIE
-    { List_JogUp_Popup, List_JogUp, BkJogUp },
-    { List_JogDn_Popup, List_JogDn, BkJogDown },
-    { List_JogOut_Popup, List_JogOut, BkJogRelease },
-#endif
-    { 0, 0, 0 }
-};
-
-/* Handle the button configuration menu */
-static Boolean hButtonConfig(EventPtr event)
-{
-    FormPtr form;
-    ButtonKey bk;
-    int handled = 0;
-    static char okHit = 0;
-    static char **Popups;
-
-    switch (event->eType) {
-    case frmOpenEvent: {
-        Int16 poplen;
-
-        form = FrmGetActiveForm();
-        FrmDrawForm(form);
-        okHit = 0;
-
-        /* do the buttons */
-        for (bk = BkCalendar; bc_elts[bk].popup != 0; bk++) {
-            ListType *lp;
-            Popups = FillStringList(StrID_Popups, &poplen);
-            CtlSetLabel(FrmGetObjectPtr(form, FrmGetObjectIndex(form, bc_elts[bk].popup)),
-              Popups[gameConfig.pc.keyOptions[bk]]);
-            lp = FrmGetObjectPtr(form, FrmGetObjectIndex(form, bc_elts[bk].list));
-            LstSetListChoices(lp, (Char **)Popups, poplen);
-            LstSetSelection(lp, gameConfig.pc.keyOptions[bk]);
-        }
-        handled = 1;
-        break;
-                       }
-    case frmCloseEvent:
-        if (okHit) {
-            form = FrmGetActiveForm();
-            for (bk = BkCalendar; bc_elts[bk].popup != 0; bk++) {
-                gameConfig.pc.keyOptions[bk] =
-                    LstGetSelection(FrmGetObjectPtr(form, FrmGetObjectIndex(form, bc_elts[bk].list)));
-            }
-            FreeStringList(Popups);
-        }
-        RestoreSpeed()
-        break;
-    case keyDownEvent:
-        switch (event->data.keyDown.chr) {
-        case vchrLaunch:
-            FrmGotoForm(formID_pocketCity);
-            handled = 1;
-            break;
-        }
-    case ctlSelectEvent:
-        switch (event->data.ctlEnter.controlID) {
-        case buttonID_OK:
-            okHit = 1;
-            handled = 1;
-            FrmGotoForm(formID_pocketCity);
-            break;
-        case buttonID_Cancel:
-            okHit = 0;
-            handled = 1;
-            FrmGotoForm(formID_pocketCity);
-            break;
-        }
-    default:
-        break;
-    }
-
-    return (handled);
-}
-
 unsigned char
 UIGetSelectedBuildItem(void)
 {
@@ -1065,7 +922,6 @@ UIDrawBorder()
     _UIDrawRect(YOFFSET, XOFFSET, vgame.visible_y * vgame.tileSize,
       vgame.visible_x * vgame.tileSize);
 }
-
 
 void UISetUpGraphic(void) {}
 
@@ -1284,13 +1140,12 @@ GetRandomNumber(unsigned long max)
  * [money]            [pop]               [loc]
  *
  * Layout (current|hires)
- * [tool]                            [J][Speed]
+ * [tool][Toolbar          ]         [J][Speed]
  * [            Play Area                     ]
  * [Date]    [Money]     [pop]            [loc]
  *
  * The J is for 'jog' item it's either uplt or ltrt
  */
-
 
 #define DATELOC 0
 #define CREDITSLOC 1
@@ -1311,7 +1166,7 @@ struct StatusPositions {
 /* extent.x is filled in automatically */
 
 static struct StatusPositions lrpositions[] = {
-    { { {0, 0}, {0, 11} }, { 0, 1 }, MIDX },  /* DATELOC */
+    { { {0, 0}, {0, 11} }, {0, 1}, MIDX },  /* DATELOC */
     { { {0, 0}, {0, 11} }, {0, 1}, ENDY }, /* CREDITSLOC */
     { { {0, 0}, {0, 11} }, {0, 1}, MIDX | ENDY }, /* POPLOC */
     { { {0, 0}, {0, 11} }, {0, 1}, ENDX | ENDY }, /* POSITIONLOC */
@@ -1319,7 +1174,7 @@ static struct StatusPositions lrpositions[] = {
 #ifdef SONY_CLIE
 
 static struct StatusPositions hrpositions[] = {
-    { { {2, 0}, {0, 11} }, { 0, 1 }, ENDY },  /* DATELOC */
+    { { {2, 0}, {0, 11} }, {0, 1}, ENDY },  /* DATELOC */
     { { {80, 0}, {0, 11} }, {0, 1}, ENDY }, /* CREDITSLOC */
     { { {160, 0}, {0, 11} }, {0, 1}, ENDY }, /* POPLOC */
     { { {280, 0}, {0, 11} }, {0, 1}, ENDY }, /* POSITIONLOC */
@@ -1360,8 +1215,11 @@ void UIDrawItem(int location, char *text)
     struct StatusPositions *pos;
     Int16 sl;
     Coord tx;
-    ErrFatalDisplayIf((location < 0) || (location >= MAXLOC),
-      "Item Location is out of range");
+
+    if ((location < 0) || (location >= MAXLOC)) {
+        Warning("UIDrawitem request for item out of bounds");
+        return;
+    }
     pos = posAt(location);
     if (pos->rect.extent.x && pos->rect.extent.y) {
         _WinEraseRectangle(&(pos->rect), 0);
@@ -1383,6 +1241,44 @@ void UIDrawItem(int location, char *text)
     _WinDrawChars(text, sl, pos->rect.topLeft.x, pos->rect.topLeft.y);
     if (isHires())
         _FntSetFont(stdFont);
+}
+
+static int
+UICheckOnClick(Coord x, Coord y)
+{
+    int i;
+    struct StatusPositions *pos;
+    for (i = 0; i < MAXLOC; i++) {
+        RectangleType *rt;
+        pos = posAt(i);
+        rt = &(pos->rect);
+        if ((x >= rt->topLeft.x) && (x <= (rt->topLeft.x + rt->extent.x)) &&
+           (y >= rt->topLeft.y) && (y <= (rt->topLeft.y + rt->extent.y)))
+            return (i);
+    }
+    return (-1);
+}
+
+static void
+CheckTextClick(Coord x, Coord y)
+{
+    int t = UICheckOnClick(x, y);
+    if (t == -1) return;
+    switch (t) {
+    case DATELOC:
+        break;
+    case CREDITSLOC:
+        doButtonEvent(BeBudget);
+        break;
+    case POPLOC:
+        doButtonEvent(BePopulation);
+        break;
+    case POSITIONLOC:
+        doButtonEvent(BeMap);
+        break;
+    default:
+        break;
+    }
 }
 
 extern void
@@ -1446,6 +1342,7 @@ UIDrawLoc(void)
     } else
 #endif
         StrPrintF(temp, "(%02u,%02u)", game.map_xpos, game.map_ypos);
+
 #ifdef SONY_CLIE
     bitmapHandle = DmGet1Resource('Tbmp', bitmapID_updn + jog_lr);
     /* place at rt - (12 + 8), 1 */
@@ -1456,8 +1353,8 @@ UIDrawLoc(void)
             MemPtrUnlock(bitmap);
         }
         DmReleaseResource(bitmapHandle);
-
     }
+
 #endif
     UIDrawItem(POSITIONLOC, temp);
 }
@@ -1730,9 +1627,9 @@ cycleSpeed(void)
 
 /* Do the command against the key passed */
 static int
-HardButtonEvent(ButtonKey key)
+doButtonEvent(ButtonEvent event)
 {
-    switch(gameConfig.pc.keyOptions[key]) {
+    switch(event) {
     case BeIgnore:
         break;
     case BeUp:
@@ -1754,6 +1651,13 @@ HardButtonEvent(ButtonKey key)
 	SaveSpeed();
 	FrmGotoForm(formID_map);
 	break;
+    case BeBudget:
+	SaveSpeed();
+	FrmGotoForm(formID_budget);
+        break;
+    case BePopulation:
+        /* No-Op at moment */
+        break;
     case BePassthrough:
         return (0);
 #ifdef SONY_CLIE
@@ -1781,6 +1685,11 @@ HardButtonEvent(ButtonKey key)
         break;
     }
     return (1);
+}
+
+static int HardButtonEvent(ButtonKey key)
+{
+    return doButtonEvent(gameConfig.pc.keyOptions[key]);
 }
 
 static struct _silkKeys {
@@ -1843,15 +1752,23 @@ vkDoEvent(UInt16 key)
 }
 
 #ifdef SONY_CLIE
+static BitmapType *pToolbarBitmap = NULL;
 
 static void
-UIDrawToolBar(void)
+clearToolbarBitmap(void)
 {
-    Coord startx = 16;
-    Coord starty = 2;
-    UInt32 id;
+    if (pToolbarBitmap != NULL) {
+        BmpDelete(pToolbarBitmap);
+        pToolbarBitmap = NULL;
+    }
+}
+
+static void
+drawToolBitmaps(Coord startx, Coord starty)
+{
     MemHandle hBitmap;
     MemPtr pBitmap;
+    UInt32 id;
 
     for (id = bitmapID_iconBulldoze; id <= bitmapID_iconExtra; id++) {
         hBitmap = DmGet1Resource('Tbmp', id);
@@ -1868,11 +1785,44 @@ UIDrawToolBar(void)
     }
 }
 
+static const UInt16 tbwidth = 14 * (bitmapID_iconExtra+1 - bitmapID_iconBulldoze);
+
+static void
+UIDrawToolBar(void)
+{
+    WinHandle wh = NULL;
+    WinHandle owh = NULL;
+
+    if (pToolbarBitmap == NULL) {
+        UInt16 err;
+        pToolbarBitmap = _BmpCreate(tbwidth, 12, getDepth(), NULL, &err);
+        if (pToolbarBitmap != NULL) {
+            wh = _WinCreateBitmapWindow(pToolbarBitmap, &err);
+            if (wh != NULL) {
+                owh = WinSetDrawWindow(wh);
+                drawToolBitmaps(0, 0);
+                WinSetDrawWindow(owh);
+                WinDeleteWindow(wh, false);
+            }
+        } else {
+            drawToolBitmaps((sWidth - tbwidth) >> 1, 2);
+            return;
+        }
+    }
+    if (pToolbarBitmap != NULL) {
+        _WinDrawBitmap(pToolbarBitmap, (sWidth - tbwidth) >> 1, 2);
+    }
+}
+
 static void
 toolBarCheck(Coord xpos)
 {
+    int id;
     /* We've already confirmed the y-axis. */
-    int id = (xpos - 16) / 14;
+    if (xpos < ((sWidth - tbwidth) >> 1) ||
+      xpos > ((sWidth + tbwidth) >> 1)) return;
+
+    id = (xpos - ((sWidth - tbwidth) >> 1)) / 14;
     if (id == (bitmapID_iconExtra - bitmapID_iconBulldoze)) {
         UIPopUpExtraBuildList();
     } else {

@@ -395,6 +395,8 @@ STRINGTABLE ID StrID_Popups
 	"Right"
 	"Pop Up"
 	"Map"
+	"Budget"
+	"Population"
 	"Default"
 /* HIRES>> */
 	"Up/Left"
@@ -490,5 +492,12 @@ BEGIN
     TITLE "Major Bad"
     MESSAGE "I've been told to tell you that ^1 has happened. This is bad. I, as a program can't handle this. Quit ASAP!"
     BUTTONS "Oh Well"
+END
+
+ALERT ID alertID_programmingNiggle
+BEGIN
+    TITLE "Programmer Error"
+    Message "There has been an error where '^1' has happened. It's not fatal, but you should report it. It happened at ^2"
+    BUTTON "Meh, Whatever"
 END
 

@@ -191,6 +191,24 @@ _WinDrawBitmap(BitmapPtr bmp, Coord x, Coord y)
     }
 }
 
+BitmapType *
+_BmpCreate(Coord width, Coord height, UInt8 depth, ColorTableType *clut,
+  UInt16 *error)
+{
+    if (hires)
+        return HRBmpCreate(hires, width, height, depth, clut, error);
+    else
+        return BmpCreate(width, height, depth, clut, error);
+}
+
+WinHandle
+_WinCreateBitmapWindow(BitmapType *pBitmap, UInt16 *err)
+{
+    if (hires)
+        return HRWinCreateBitmapWindow(hires, pBitmap, err);
+    else
+        return WinCreateBitmapWindow(pBitmap, err);
+}
 WinHandle _WinCreateOffscreenWindow (Coord width, Coord height,
   WindowFormatType format, UInt16 *error )
 {

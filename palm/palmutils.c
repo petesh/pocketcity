@@ -5,8 +5,10 @@
 #include <SystemMgr.h>
 #include <SysUtils.h>
 #include <StringMgr.h>
+#include <Form.h>
 
 #include <resCompat.h>
+#include <simcity_resconsts.h>
 
 static UInt32 oWidth = 0;
 static UInt32 oHeight = 0;
@@ -176,6 +178,14 @@ GetCreatorID(void)
     return nCreatorID;
 }
 
+void
+DangerWillRobinson(char *information, char *file, int line)
+{
+    char buffer[80];
+    StrPrintF(buffer, "%s(%d)", file, line);
+    FrmCustomAlert(alertID_programmingNiggle, information, buffer, NULL);
+}
+
 /* build a string list from all the string list items from resID */
 Char **
 FillStringList(UInt16 resID, UInt16 *length)
@@ -215,3 +225,4 @@ FreeStringList(Char **list)
     MemPtrFree(list[0]);
     MemPtrFree(list);
 }
+

@@ -24,7 +24,10 @@ int IsDrawWindowMostOfScreen(void);
 Err _WinScreenMode(WinScreenModeOperation op, UInt32 *width, UInt32 *height,
   UInt32 *depth, Boolean *enableColor);
 void _WinEraseRectangle(RectangleType *r, UInt16 cornerDiam);
+BitmapType *_BmpCreate(Coord width, Coord height, UInt8 depth,
+ColorTableType *clut, UInt16 *error);
 void _WinDrawBitmap(BitmapPtr bmp, Coord x, Coord y);
+WinHandle _WinCreateBitmapWindow(BitmapType *pBitmap, UInt16 *err);
 WinHandle _WinCreateOffscreenWindow (Coord width, Coord height,
   WindowFormatType format, UInt16 *error);
 void _WinCopyRectangle(WinHandle srcWin, WinHandle dstWin,
@@ -52,11 +55,13 @@ void _FntSetFont(FontID font);
 #define _WinScreenMode WinScreenMode
 #define _WinEraseRectangle WinEraseRectangle
 #define _WinDrawBitmap WinDrawBitmap
+#define _BmpCreate BmpCreate
 #define _WinCopyRectangle WinCopyRectangle
 #define _WinDrawChars WinDrawChars
 #define _WinDrawRectangleFrame WinDrawRectangleFrame
 #define _FntSetFont FntSetFont
 #define _WinCreateOffscreenWindow WinCreateOffscreenWindow
+#define _WinCreateBitmapWindow WinCreateBitmapWindow
 
 #endif /* SONY_CLIE */
 

@@ -10,10 +10,12 @@ Legend:
  '-' = removed feature
 
 Version 0.15dev
+  * patch # 648260 Make greyscale work on HandEra 330
   * bug # 636080 Exit Crash on Clie NR70
   * bug # 636081 Map Failure on Clie NR70
   * bug # 650955 residential zone water scale wrong
   + buttons can now be configured.
+  + money, location and population are now clickable (pop is empty)
 
 Version 0.14
   + Savegames are backed up with application data
