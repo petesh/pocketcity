@@ -3,6 +3,7 @@
 #define formID_budget                    1001
 #define formID_map                       1002
 #define formID_files                     1003
+#define formID_filesNew                  1004
 
 #define menuID_pocketCity                1000
 #define menuID_budget                    1001
@@ -95,6 +96,11 @@
 #define bitmapID_PowerLossOverlay       2001 // 32x32
 #define bitmapID_PowerLossOverlay2      2002 // 16x16
 
+
+// controls for files=>new
+#define fieldID_newGameName             1010
+#define buttonID_FilesNewCreate         1011
+#define buttonID_FilesNewCancel        1012
 
 /*
     1x1        \

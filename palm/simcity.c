@@ -12,6 +12,10 @@
 #include "../source/simulation.h"
 #include <string.h>
 
+#ifdef DEBUG
+#include <HostControl.h>
+#endif
+
 MemHandle worldHandle;
 MemHandle worldFlagsHandle;
 MemPtr worldPtr;
@@ -32,11 +36,13 @@ short simState = 0;
 short DoDrawing = 0;
 unsigned short XOFFSET =0;
 unsigned short YOFFSET =15;
+void UIWriteLog(char * s);
 
 static Boolean hPocketCity(EventPtr event);
 static Boolean hBudget(EventPtr event);
 static Boolean hMap(EventPtr event);
 static Boolean hFiles(EventPtr event);
+static Boolean hFilesNew(EventPtr event);
 void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth);
 void _UIUpdateSaveGameList(void);
 void _UICreateNewSaveGame(void);
@@ -68,6 +74,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 
     error = RomVersionCompatible (0x03503000, launchFlags);
     if (error) return (error);
+    UIWriteLog("Starting Pocket City\n");
 
     if (cmd == sysAppLaunchCmdNormalLaunch) {
         _PalmInit();
@@ -90,6 +97,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
             if (MenuHandleEvent((void*)0, &event, &err)) continue;
 
             if (event.eType == frmLoadEvent) {
+                UIWriteLog("Main::frmLoadEvent\n");
                 formID = event.data.frmLoad.formID;
                 form = FrmInitForm(formID);
                 FrmSetActiveForm(form);
@@ -107,6 +115,9 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
                         break;
                     case formID_files:
                         FrmSetEventHandler(form, hFiles);
+                        break;
+                    case formID_filesNew:
+                        FrmSetEventHandler(form, hFilesNew);
                         break;
                 }
             }
@@ -279,11 +290,12 @@ void DrawMap(void)
 }
 
 
-
 static Boolean hFiles(EventPtr event)
 {
     FormPtr form;
     int handled = 0;
+    FormType * ftNewGame;
+    char * pGameName;
 
     switch (event->eType)
     {
@@ -302,9 +314,22 @@ static Boolean hFiles(EventPtr event)
             {
                 case buttonID_FilesNew:
                     // create new game and add it to the list
-                    _UICreateNewSaveGame();
-                    _UICleanSaveGameList();
-                    _UIUpdateSaveGameList();
+                    ftNewGame = FrmInitForm(formID_filesNew);
+                    if (FrmDoDialog(ftNewGame) == buttonID_FilesNewCreate) {
+                        UIWriteLog("Creating new game\n");
+                        // need to fetch the savegame name from the form
+                        pGameName = FldGetTextPtr(FrmGetObjectPtr(ftNewGame, FrmGetObjectIndex(ftNewGame, fieldID_newGameName)));
+                        if (pGameName != NULL) {
+                            strcpy((char*)cityname,pGameName);
+                            _UICreateNewSaveGame();
+                            _UICleanSaveGameList();
+                            _UIUpdateSaveGameList();
+                        } else {
+                            strcpy((char*)cityname,"");
+                            UIWriteLog("No name specified\n");
+                        }
+                    }
+                    FrmDeleteForm(ftNewGame);
                     handled = 1;
                     break;
                 case buttonID_FilesLoad:
@@ -343,6 +368,46 @@ static Boolean hFiles(EventPtr event)
                     _UIDeleteFromList();
                     _UICleanSaveGameList();
                     _UIUpdateSaveGameList();
+                    handled = 1;
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return handled;
+}
+
+static Boolean hFilesNew(EventPtr event)
+{
+    FormPtr form;
+    int handled = 0;
+
+    switch (event->eType)
+    {
+        case frmOpenEvent:
+            game_in_progress = 0;
+            form = FrmGetActiveForm();
+            FrmDrawForm(form);
+            handled = 1;
+            break;
+        case frmCloseEvent:
+            break;
+        case ctlSelectEvent:
+            switch (event->data.ctlSelect.controlID)
+            {
+                case buttonID_FilesNewCreate:
+                    UIWriteLog("Create pushed\n");
+                    // copy the name to (char*)cityname
+                    FrmReturnToForm(0);
+                    handled = 1;
+                    break;
+                case buttonID_FilesNewCancel:
+                    UIWriteLog("Cancel pushed\n");
+                    // set (char*)cityname to '\0'
+                    cityname[0] = '\0';
+                    FrmReturnToForm(0);
                     handled = 1;
                     break;
             }
@@ -1059,7 +1124,7 @@ void UISaveGame(UInt16 index)
             DmWrite(pRec,11,&TimeElapsed,4);
             
             DmWrite(pRec,20,&BuildCount[0],80);
-            DmWrite(pRec,100,"Old savegame\0",13);
+            DmWrite(pRec,100,(char*)cityname,20);
             DmWrite(pRec,200,(void*)(unsigned char*)worldPtr,mapsize*mapsize);
             UnlockWorld();
             MemHandleUnlock(rec);
@@ -1081,7 +1146,6 @@ int UILoadGame(UInt16 index)
     MemHandle rec;
     unsigned char * pTemp;
     short int loaded = 0;
-    char name[20];
 
     db = DmOpenDatabaseByTypeCreator('DATA', 'PCit', dmModeReadOnly);
     if (!db) {
@@ -1099,7 +1163,7 @@ int UILoadGame(UInt16 index)
             memcpy((void*)&TimeElapsed,(void*)pTemp+11,4);
 
             memcpy((void*)&BuildCount[0],(void*)pTemp+20,80);
-            memcpy((void*)name, (void*)pTemp+100,20);
+            memcpy((void*)cityname, (void*)pTemp+100,20);
             memcpy((void*)worldPtr,(void*)pTemp+200,mapsize*mapsize);
             UnlockWorld();
             // update the power grid:
@@ -1236,7 +1300,7 @@ void _UICreateNewSaveGame(void)
                 pRec = MemHandleLock(rec);
                 // write the header and some globals
                 DmWrite(pRec,0,"PC00",4);
-                DmWrite(pRec,100,"New game\0",9);
+                DmWrite(pRec,100,(char*)cityname,20);
                 MemHandleUnlock(rec);
                 DmReleaseRecord(db,index,true);
             }
@@ -1286,4 +1350,19 @@ void _UIClearAutoSaveSlot(void)
     }
         
     DmCloseDatabase(db);
+}
+
+
+
+void UIWriteLog(char * s) 
+{
+#ifdef DEBUG
+    HostFILE * hf = NULL;
+
+    hf = HostFOpen("pcity.log", "a");
+    if (hf) {
+        HostFPrintF(hf, s);
+        HostFClose(hf);
+    }
+#endif
 }
