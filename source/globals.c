@@ -49,8 +49,10 @@ vGameVisuals visuals;
 
 /*! \brief the world pointer */
 void *worldPtr;
+/*! \brief the flags pointer */
+void *flagPtr;
 
-/*! \bref the growable pointer */
+/*! \brief the growable pointer */
 void *growablePtr;
 
 /*! \brief This is the game configuration */
@@ -209,16 +211,25 @@ ResizeWorld(UInt32 size)
 {
 	WriteLog("Resize World = %ld\n", (long)size);
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	worldPtr = gRealloc(worldPtr, size);
+	flagPtr = gRealloc(flagPtr, size);
 
 	if (worldPtr == NULL) {
 		UISystemErrorNotify(seOutOfMemory);
 		WriteLog("realloc failed - resizeworld\n");
 		return (0);
 	}
+	if (flagPtr == NULL) {
+		UISystemErrorNotify(seOutOfMemory);
+		WriteLog("realloc failed - resizeworldflags\n");
+		return (0);
+	}
 
 	gMemSet(worldPtr, (Int32)size, 0);
+	gMemSet(flagPtr, (Int32)size, 0);
 	UnlockZone(lz_world);
+	UnlockZone(lz_flags);
 	return (1);
 }
 
@@ -240,14 +251,10 @@ InitWorld(void)
 welem_t
 getWorld(UInt32 pos)
 {
-	UInt16 val;
-	
 	if (pos > MapMul())
 		return (0);
 		
-	val = ((UInt16 *)worldPtr)[pos];
-	/* mask against the inverse of my own flags */
-	return ((welem_t)(val & FLAGS_ANDMASK));
+	return (((welem_t *)worldPtr)[pos]);
 }
 
 /*!
@@ -258,15 +265,10 @@ getWorld(UInt32 pos)
 void
 setWorld(UInt32 pos, welem_t value)
 {
-	UInt16 *ptr;
-	
 	if (pos > MapMul())
 		return;
 
-	ptr = (UInt16 *)worldPtr + pos;
-	/* Clear the world value */
-	*ptr &= WORLD_ANDMASK;
-	*ptr |= value;
+	((welem_t *)worldPtr)[pos] = value;
 }
 
 /*!
@@ -281,8 +283,8 @@ setWorldAndFlag(UInt32 pos, welem_t value, selem_t status)
 	if (pos > MapMul())
 		return;
 
-	((UInt16 *)(worldPtr))[pos] =
-	    (UInt16)((status << FLAGS_SHIFTVALUE) | value);
+	((welem_t *)worldPtr)[pos] = value;
+	((selem_t *)flagPtr)[pos] = status;
 }
 
 /*!
@@ -293,13 +295,9 @@ setWorldAndFlag(UInt32 pos, welem_t value, selem_t status)
 selem_t
 getWorldFlags(UInt32 pos)
 {
-	UInt16 val;
-	
 	if (pos > MapMul())
 		return (0);
-	val = ((UInt16 *)worldPtr)[pos];
-	/* Use WORLD_ANDMASK for getting clean value */
-	return ((selem_t)((val & WORLD_ANDMASK) >> FLAGS_SHIFTVALUE));
+	return (((selem_t *)flagPtr)[pos]);
 }
 
 /*!
@@ -310,13 +308,9 @@ getWorldFlags(UInt32 pos)
 void
 setWorldFlags(UInt32 pos, selem_t value)
 {
-	UInt16 *ptr;
-	
 	if (pos > MapMul())
 		return;
-	ptr = ((UInt16 *)worldPtr) + pos;
-	*ptr &= (UInt16)FLAGS_ANDMASK;
-	*ptr |= (UInt16)(value << FLAGS_SHIFTVALUE);
+	((selem_t *)flagPtr)[pos] = value;
 }
 
 /*!
@@ -327,14 +321,9 @@ setWorldFlags(UInt32 pos, selem_t value)
 void
 andWorldFlags(UInt32 pos, selem_t value)
 {
-	UInt16 *ptr;
-	
 	if (pos > MapMul())
 		return;
-	ptr = ((UInt16 *)worldPtr) + pos;
-	
-	*ptr &= (UInt16)((WORLD_ANDMASK &
-	    (value << FLAGS_SHIFTVALUE)) | FLAGS_ANDMASK);
+	((selem_t *)flagPtr)[pos] &= value;
 }
 
 /*!
@@ -345,14 +334,9 @@ andWorldFlags(UInt32 pos, selem_t value)
 void
 orWorldFlags(UInt32 pos, selem_t value)
 {
-	UInt16 *ptr;
-	
 	if (pos > MapMul())
 		return;
-	
-	ptr = ((UInt16 *)worldPtr) + pos;
-	/* use WORLD_ANDMASK as it is the inversion of FLAGS_ANDMASK */
-	*ptr |= (UInt16)(WORLD_ANDMASK & (value << FLAGS_SHIFTVALUE));
+	((selem_t *)flagPtr)[pos] |= value;
 }
 
 /*!
@@ -364,14 +348,10 @@ orWorldFlags(UInt32 pos, selem_t value)
 void
 getWorldAndFlag(UInt32 pos, welem_t *world, selem_t *flag)
 {
-	UInt16 val;
-
 	if (pos > MapMul())
 		return;
-
-	val = ((UInt16 *)worldPtr)[pos];
-	*world = (welem_t)(val & FLAGS_ANDMASK);
-	*flag = (selem_t)((val & WORLD_ANDMASK) >> FLAGS_SHIFTVALUE);
+	*world = ((welem_t *)worldPtr)[pos];
+	*flag = ((selem_t *)flagPtr)[pos];
 }
 
 /*!
@@ -381,6 +361,7 @@ void
 PurgeWorld(void)
 {
 	ReleaseZone(lz_world);
+	ReleaseZone(lz_flags);
 }
 
 /*!

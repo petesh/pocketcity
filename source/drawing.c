@@ -95,6 +95,7 @@ MoveCursor(dirType direction)
 	UInt16 old_y = getCursorY();
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 
 	switch (direction) {
 	case dtUp:
@@ -129,6 +130,7 @@ MoveCursor(dirType direction)
 	DrawField(old_x, old_y);
 	DrawField(getCursorX(), getCursorY());
 
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 }
 

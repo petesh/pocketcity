@@ -393,7 +393,10 @@ SonySilk(void)
 void
 SonyEndSilk(void)
 {
-	if (silk_ref < 0)
+	UInt16 cardNo;
+	LocalID dbID;
+
+	if (silk_ref <= 0)
 		return;
 
 	WriteLog("Will Close\n");
@@ -407,6 +410,9 @@ SonyEndSilk(void)
 		VskClose(silk_ref);
 	}
 	silk_ref = -1;
+	SysCurAppDatabase(&cardNo, &dbID);
+	SysNotifyUnregister(cardNo, dbID, sysNotifyDisplayChangeEvent,
+	    sysNotifyNormalPriority);
 }
 
 void

@@ -65,6 +65,7 @@ extern vGameStruct vgame;
 extern vGameVisuals visuals;
 extern AppConfig_t gameConfig;
 extern void *worldPtr;
+extern void *flagPtr;
 extern void *growablePtr;
 
 EXPORT char *getDate(char *temp);
@@ -98,6 +99,9 @@ EXPORT void clearGraphicUpdate(void);
 
 EXPORT void setGameBit(gamestatusbit_t bit, UInt8 value);
 EXPORT UInt8 getGameBit(gamestatusbit_t bit);
+
+EXPORT void PackBits(void *src, void *dest, UInt8 nbits, UInt32 count);
+EXPORT void UnpackBits(void *src, void *dest, UInt8 nbits, UInt32 count);
 
 #if defined(__cplusplus)
 }

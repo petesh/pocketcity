@@ -26,6 +26,9 @@ typedef enum {
 #define	POWEREDBIT	((unsigned char)0x01)
 /*! \brief the bit associated with water in the worldflags */
 #define	WATEREDBIT	((unsigned char)0x02)
+/*! \brief the number of fits saved into the savegame */
+#define SAVEDBITS	(2)
+
 /*! \brief the bit associated with scratch/unvisited in the worldflags */
 #define	SCRATCHBIT	((unsigned char)0x80)
 /*! \brief the bit associated with knowing if the field has been painted */

@@ -266,7 +266,8 @@ normalizeCoord(Coord x)
 
 static Int16 has_silk = -1;
 
-Int16 hasVirtualSilk(void)
+Int16
+hasVirtualSilk(void)
 {
 	return (has_silk);
 }
@@ -284,21 +285,26 @@ StartSilk(void)
 	if (has_silk != -1)
 		return;
 
+	WriteLog("StartSilk(");
+
 	err = FtrGet(pinCreator, pinFtrAPIVersion, &version);
 	if (!err && version) {
 		if (pinAPIVersion1_0 == version)
 			has_silk = 1;
 		else
 			has_silk = 2;
+		WriteLog("%d)\n", has_silk);
 		return;
 	}
 
 	if (SonySilk()) {
 		has_silk = 1;
+		WriteLog("%d)\n", has_silk);
 		return;
 	}
 
 	has_silk = 0;
+	WriteLog("%d)\n", has_silk);
 
 	return;
 }
@@ -309,13 +315,9 @@ StartSilk(void)
 void
 EndSilk(void)
 {
-	UInt16 cardNo;
-	LocalID dbID;
-
+	WriteLog("Endsilk\n");
+	has_silk = 0;
 	SonyEndSilk();
-	SysCurAppDatabase(&cardNo, &dbID);
-	SysNotifyUnregister(cardNo, dbID, sysNotifyDisplayChangeEvent,
-	    sysNotifyNormalPriority);
 }
 
 /*!

@@ -1309,9 +1309,9 @@ _UIGetFieldToBuildOn(Int16 x, Int16 y)
 	if (RctPtInRectangle(x, y, &rect)) {
 		Coord xpos = (x - XOFFSET) / gameTileSize() + getMapXPos();
 		Coord ypos = (y - YOFFSET) / gameTileSize() + getMapYPos();
-		LockZone(lz_world);
+		LockZone(lz_world); // OK
 		SetPositionClicked(WORLDPOS(xpos, ypos));
-		UnlockZone(lz_world);
+		UnlockZone(lz_world); // OK
 		if (UIGetSelectedBuildItem() != Be_Query)
 			BuildSomething((UInt16)xpos, (UInt16)ypos);
 		else
@@ -1714,6 +1714,7 @@ UIPaintPlayArea(void)
 	    getMapHeight();
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	for (; x < maxx; x++) {
 		for (; y < maxy; y++) {
 			DrawFieldWithoutInit(x, y);
@@ -1722,6 +1723,7 @@ UIPaintPlayArea(void)
 	}
 	if (GETMINIMAPVISIBLE())
 		minimapPaint();
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 }
 
@@ -1758,6 +1760,7 @@ UIScrollDisplay(dirType direction)
 	SetScrolling();
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	UIInitDrawing();
 
 	if (GETMINIMAPVISIBLE()) {
@@ -1817,6 +1820,7 @@ UIScrollDisplay(dirType direction)
 	}
 	UIFinishDrawing();
 
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 }
 

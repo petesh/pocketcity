@@ -19,14 +19,6 @@
 /*! \brief number of entries in array */
 #define STAT_ENTRIES	(STATS_PER * STATS_COUNT)
 
-/*! \brief bitmask for anding off when setting/getting world flags */
-#define	FLAGS_ANDMASK	0x00ff
-/*! \brief shift value for getting/setting world flags */
-#define FLAGS_SHIFTVALUE	0x8
-/*! \brief bitmask for anding off when setting/getting world pointer */
-#define WORLD_ANDMASK	0xff00
-/* There is no shift value for the world field */
-
 #define	MAX_UINT16	(~(UInt16)0)
 /*! \brief value for normalizing the cashflow within the range */
 #define OFFSET_FOR_CASHFLOW_BC	(1UL<<31)
@@ -170,7 +162,7 @@
 #define	CONFIG_VERSION 1
 
 /*! \brief save game version */
-#define	SAVEGAMEVERSION	 "PC06"
+#define	SAVEGAMEVERSION	 "PC07"
 
 #define GG	game
 /*! \brief get the map size */
@@ -188,15 +180,13 @@
 	GG.mapx = X; \
 	GG.mapy = Y; \
 	vgame.mapmul = (UInt16)GG.mapx * GG.mapy; \
-	vgame.world_size = (UInt32)vgame.mapmul << 1; \
 }
-
 
 /*! \brief get the map array size */
 #define	MapMul() (vgame.mapmul)
 
 /*! \brief get the world pointer size .. based on map */
-#define WorldSize() (vgame.world_size)
+#define WorldSize() (vgame.mapmul)
 
 /*!
  * \brief add a grid to be updated
@@ -522,7 +512,6 @@ typedef struct _vgame_struct {
 	UInt16	mapmul;	/*!< x*y */
 	UInt32	prior_credit; /*!< last month's credit value */
 	Int16	BuildCount[bc_tail]; /*!< count of elements */
-	UInt32	world_size;	/*!< size of world pointer */
 	UInt16	oldLoopSeconds;	/*!< last selected speed - for pause */
 } vGameStruct;
 

@@ -546,6 +546,7 @@ Build_Generic4(UInt16 xpos, UInt16 ypos, welem_t type)
 	if (cmi == NULL)
 		return (rv);
 	LockZone(lz_world);
+	LockZone(lz_flags);
 
 	toSpend = cmi->cost;
 
@@ -561,6 +562,7 @@ Build_Generic4(UInt16 xpos, UInt16 ypos, welem_t type)
 		}
 	}
 	if (!canbuild) {
+		LockZone(lz_flags);
 		UnlockZone(lz_world);
 		return (rv);
 	}
@@ -580,6 +582,7 @@ Build_Generic4(UInt16 xpos, UInt16 ypos, welem_t type)
 	} else {
 		UIProblemNotify(peOutOfMoney);
 	}
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 	return (rv);
 }
@@ -609,6 +612,7 @@ Build_Generic(UInt16 xpos, UInt16 ypos, welem_t type)
 	if (cmi == NULL)
 		return (rv);
 	LockZone(lz_world);
+	LockZone(lz_flags);
 
 	toSpend = cmi->cost;
 
@@ -617,6 +621,7 @@ Build_Generic(UInt16 xpos, UInt16 ypos, welem_t type)
 	if ((type == Z_FAKETREE) && ((worldItem == Z_REALTREE) ||
 		    (worldItem == Z_FAKETREE))) {
 		UnlockZone(lz_world);
+		UnlockZone(lz_flags);
 		return (rv);
 	}
 
@@ -637,8 +642,9 @@ Build_Generic(UInt16 xpos, UInt16 ypos, welem_t type)
 			rv = 1;
 		} else {
 			UIProblemNotify(peOutOfMoney);
-		}
+			}
 	}
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 	return (rv);
 }
@@ -659,6 +665,7 @@ Build_Road(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 	int rv = 0;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	old = getWorld(WORLDPOS(xpos, ypos));
 	toSpend = BUILD_COST_ROAD;
 	if (IsPowerLine(old) || IsWaterPipe(old) || IsRail(old)) {
@@ -750,6 +757,7 @@ success_build:
 		}
 	}
 leaveme:
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 	return (rv);
 }
@@ -770,6 +778,7 @@ Build_Rail(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 	int rv = 0;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	old = getWorld(WORLDPOS(xpos, ypos));
 	toSpend = BUILD_COST_RAIL;
 	if (IsPowerLine(old) || IsWaterPipe(old) || IsRoad(old)) {
@@ -864,6 +873,7 @@ success_build:
 	}
 leaveme:
 	UnlockZone(lz_world);
+	UnlockZone(lz_flags);
 	return (rv);
 }
 
@@ -883,6 +893,7 @@ Build_PowerLine(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 	int rv = 0;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 
 	old = getWorld(WORLDPOS(xpos, ypos));
 	toSpend = BUILD_COST_POWER_LINE;
@@ -933,6 +944,7 @@ Build_PowerLine(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 	}
 leaveme:
 	UnlockZone(lz_world);
+	UnlockZone(lz_flags);
 	return (rv);
 }
 
@@ -953,6 +965,7 @@ Build_WaterPipe(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 	int rv = 0;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 
 	toSpend = BUILD_COST_WATER_PIPE;
 	old = getWorld(WORLDPOS(xpos, ypos));
@@ -963,8 +976,10 @@ Build_WaterPipe(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_waterpipes]++;
 			rv = 1;
+			goto leaveme;
 		} else {
 			UIProblemNotify(peOutOfMoney);
+			goto leaveme;
 		}
 	}
 	if (IsRoad(old) || IsPowerLine(old) || IsRail(old)) {
@@ -1000,6 +1015,7 @@ Build_WaterPipe(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 		}
 	}
 leaveme:
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 	return (rv);
 }
@@ -1043,6 +1059,7 @@ CreateFullRiver(void)
 	j = (UInt16)GetRandomNumber(kmax);
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 
 	for (i = 0; i < kmax; i++) {
 		for (k = j; k < (width + j); k++) {
@@ -1081,6 +1098,7 @@ CreateFullRiver(void)
 			break;
 		}
 	}
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 }
 
@@ -1115,6 +1133,7 @@ CreateForest(UInt32 pos, UInt16 size)
 	x = (UInt16)(pos % getMapWidth());
 	y = (UInt16)(pos / getMapWidth());
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	i = x - size > 0 ? x - size : 0;
 	j = y - size > 0 ? y - size : 0;
 
@@ -1135,5 +1154,6 @@ CreateForest(UInt32 pos, UInt16 size)
 		}
 		j = y - size > 0 ? y - size : 0;
 	}
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 }

@@ -17,6 +17,7 @@
 #include <resCompat.h>
 #include <savegame_be.h>
 #include <mem_compat.h>
+#include <pack.h>
 
 #define	LASTGAME	((UInt16)~0)
 #define	MAXSAVEGAMECOUNT	50
@@ -25,9 +26,9 @@
 static DmOpenRef OpenMyDB(void) SAVE_SECTION;
 static UInt16 FindGameByName(char *name) SAVE_SECTION;
 static int ReadCityRecord(MemHandle rec, GameStruct *gs,
-    MemPtr *wp) SAVE_SECTION;
+    MemPtr *wp, MemPtr *fp) SAVE_SECTION;
 static void WriteCityRecord(MemHandle rec, GameStruct *gs,
-    MemPtr wp) SAVE_SECTION;
+    MemPtr wp, MemPtr fp) SAVE_SECTION;
 static int SaveGameByIndex(UInt16 index) SAVE_SECTION;
 static int LoadGameByIndex(UInt16 index) SAVE_SECTION;
 static void getAutoSaveName(char *name) SAVE_SECTION;
@@ -110,6 +111,17 @@ ResetViewable(void)
 	setVisibleY((UInt16)((sHeight / gameTileSize()) - 2));
 }
 
+UInt32
+saveGameSize(void)
+{
+
+	UInt32 size = (sizeof (GameStruct) +
+	    getMapWidth() * getMapHeight() +
+	    ((getMapWidth() * getMapHeight() + ( (8 / 2) - 1)) / ( 8 / 2 )));
+	WriteLog("Size=%ld\n", (long)size);
+	return (size);
+}
+
 /*!
  * \brief Read the city record.
  * \param rec the record to read
@@ -118,7 +130,7 @@ ResetViewable(void)
  * \return 0 if it all went well, -1 otherwise.
  */
 static int
-ReadCityRecord(MemHandle rec, GameStruct *gs, MemPtr *wp)
+ReadCityRecord(MemHandle rec, GameStruct *gs, MemPtr *wp, MemPtr *fp)
 {
 	char *ptemp;
 	int rv = -1;
@@ -131,9 +143,14 @@ ReadCityRecord(MemHandle rec, GameStruct *gs, MemPtr *wp)
 	if (StrNCompare(SAVEGAMEVERSION, (char *)ptemp, 4) == 0) {
 		UInt32 size;
 		MemMove((void *)gs, ptemp, sizeof (GameStruct));
-		size = gs->mapx * gs->mapy * 2;
+		size = gs->mapx * gs->mapy;
+		ptemp += sizeof (GameStruct);
 		*wp = gRealloc(*wp, size);
-		MemMove(*wp, ptemp + sizeof (GameStruct), (Int32)size);
+		MemMove(*wp, ptemp, (Int32)size);
+		*fp = gRealloc(*fp, size);
+		ptemp += size;
+		UnpackBits(ptemp, *fp, 2, (Int32)size);
+		MemMove(*fp, ptemp, (Int32)size);
 		rv = 0;
 	} else {
 		FrmAlert(alertID_invalidSaveVersion);
@@ -150,17 +167,26 @@ leave_me:
  * \param rec the record to write to
  * \param gs the game structure
  * \param wp the world pointer
+ * \param fp the flags pointer
  */
 static void
-WriteCityRecord(MemHandle rec, GameStruct *gs, MemPtr wp)
+WriteCityRecord(MemHandle rec, GameStruct *gs, MemPtr wp, MemPtr fp)
 {
 	void *pRec;
+	void *pRec2;
+	UInt32 size;
 
 	pRec = MemHandleLock(rec);
 	/* write the header and some globals */
 	DmWrite(pRec, 0, gs, sizeof (GameStruct));
-	DmWrite(pRec, sizeof (GameStruct), (void *)(unsigned char *)wp,
-	    gs->mapx * gs->mapy * 2);
+	DmWrite(pRec, sizeof (GameStruct), (void *)wp,
+	    gs->mapx * gs->mapy);
+	size = (gs->mapx * gs->mapy + ((8 / 2) - 1)) / (8 / 2);
+	pRec2 = gMalloc(size);
+	PackBits(fp, pRec2, 2, gs->mapx * gs->mapy);
+	DmWrite(pRec, sizeof (GameStruct) + gs->mapx * gs->mapy,
+	    (void *)pRec2, size);
+	gFree(pRec2);
 	MemHandleUnlock(rec);
 }
 
@@ -183,17 +209,17 @@ SaveGameByIndex(UInt16 index)
 	if (db == NULL)
 		return (-1);
 	if (index <= DmNumRecords(db)) {
-		rec = DmResizeRecord(db, index,
-		    WorldSize() + sizeof (GameStruct));
+		rec = DmResizeRecord(db, index, saveGameSize());
 		rec = DmGetRecord(db, index);
 	} else {
 		index = DmNumRecords(db) + 1;
-		rec = DmNewRecord(db, &index,
-		    WorldSize() + sizeof (GameStruct));
+		rec = DmNewRecord(db, &index, saveGameSize());
 	}
 	if (rec) {
 		LockZone(lz_world);
-		WriteCityRecord(rec, &game, worldPtr);
+		LockZone(lz_flags);
+		WriteCityRecord(rec, &game, worldPtr, flagPtr);
+		UnlockZone(lz_flags);
 		UnlockZone(lz_world);
 		DmReleaseRecord(db, index, true);
 	}
@@ -252,13 +278,15 @@ CreateNewSaveGame(char *name)
 			}
 		}
 		index = dmMaxRecordIndex;
-		rec = DmNewRecord(db, &index,
-		    WorldSize() + sizeof (game));
+		WriteLog("Newbie\n");
+		rec = DmNewRecord(db, &index, saveGameSize());
 		if (rec) {
 			ResetViewable();
 			ResumeGame();
 			LockZone(lz_world);
-			WriteCityRecord(rec, &game, worldPtr);
+			LockZone(lz_flags);
+			WriteCityRecord(rec, &game, worldPtr, flagPtr);
+			UnlockZone(lz_flags);
 			UnlockZone(lz_world);
 			DmReleaseRecord(db, index, true);
 		}
@@ -288,7 +316,9 @@ LoadGameByIndex(UInt16 index)
 	rec = DmQueryRecord(db, index);
 	if (rec) {
 		LockZone(lz_world);
-		loaded = ReadCityRecord(rec, &game, &worldPtr);
+		LockZone(lz_flags);
+		loaded = ReadCityRecord(rec, &game, &worldPtr, &flagPtr);
+		UnlockZone(lz_flags);
 		UnlockZone(lz_world);
 	}
 	if (loaded != -1) {

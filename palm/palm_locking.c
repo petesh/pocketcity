@@ -16,6 +16,7 @@ static struct tag_lockers {
 	void		**destVar; /*!< destination value when locked */
 } lockZones[lz_end] = {
 	{ NULL, 0, &worldPtr },
+	{ NULL, 0, &flagPtr },
 	{ NULL, 0, &growablePtr }
 };
 

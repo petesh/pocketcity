@@ -233,6 +233,7 @@ DoDistribute(Int16 grid)
 	}
 
 	LockZone(lz_world); /* this lock locks for ALL power subs */
+	LockZone(lz_flags);
 	for (i = 0; i < MapMul(); i++) {
 		if (distrib->doescarry(getWorld(i)))
 			andWorldFlags(i,
@@ -265,6 +266,7 @@ DoDistribute(Int16 grid)
 			}
 		}
 	}
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 	StackDelete(distrib->needSourceList);
 	StackDelete(distrib->unvisitedNodes);
@@ -544,6 +546,7 @@ FindScoreForZones(void)
 	counter += 20;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 
 	for (i = counter - 20; i < (Int16)counter; i++) {
 		if (i >= at_pos) {
@@ -563,6 +566,7 @@ FindScoreForZones(void)
 			ran_zone[i].pos = -1;
 		}
 	}
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 	return (1); /* there's still more zones that need a score. */
 }
@@ -642,6 +646,7 @@ DowngradeZone(UInt32 pos)
 	UInt16 ypos = (UInt16)(pos / getMapWidth());
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	type = getWorld(pos);
 	ntype = type;
 	if (IsCommercial(type) && type != Z_COMMERCIAL_SLUM) {
@@ -669,6 +674,7 @@ DowngradeZone(UInt32 pos)
 		DrawFieldWithoutInit(xpos, ypos);
 	}
 
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 }
 
@@ -684,6 +690,7 @@ UpgradeZone(UInt32 pos)
 	UInt16 ypos = (UInt16)(pos / getMapWidth());
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	type = getWorld(pos);
 	ntype = type;
 	if (IsCommercial(type) && type < Z_COMMERCIAL_MAX) {
@@ -711,6 +718,7 @@ UpgradeZone(UInt32 pos)
 		DrawFieldWithoutInit(xpos, ypos);
 	}
 
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 }
 
@@ -744,6 +752,7 @@ GetZoneScore(UInt32 pos)
 	UInt8 zone;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	zone = getWorld(pos);
 	type = (IsZone(zone, ztCommercial) ? ztCommercial :
 	    (IsZone(zone, ztResidential) ? ztResidential : ztIndustrial));
@@ -831,6 +840,7 @@ GetZoneScore(UInt32 pos)
 	}
 
 unlock_ret:
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 	return (score);
 }
@@ -911,6 +921,7 @@ GetRandomZone(void)
 	UInt8 type;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	for (i = 0; i < 5; i++) { /* try five times to hit a valid zone */
 		pos = GetRandomNumber(MapMul());
 		type = getWorld(pos);
@@ -920,6 +931,7 @@ GetRandomZone(void)
 		}
 	}
 
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 	return (-1);
 }
@@ -1125,6 +1137,7 @@ UpdateVolatiles(void)
 	UInt32 p;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 
 	for (p = 0; p < MapMul(); p++) {
 		UInt8 elt = getWorld(p);
@@ -1187,6 +1200,7 @@ UpdateVolatiles(void)
 		if (IsPump(elt))
 			vgame.BuildCount[bc_waterpumps]++;
 	}
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 }
 

@@ -184,6 +184,7 @@ Int8 UIClipped(UInt16 xpos, UInt16 ypos);
 /*! \brief the zones to lock/unlock */
 typedef enum {
 	lz_world = 0, /*!< lock the world zone */
+	lz_flags , /*!< lock the world flags */
 	lz_growable, /*!< lock the growable memory zone */
 	lz_end /*!< the end/guard entry for the memory zones */
 } lockZone;

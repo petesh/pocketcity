@@ -168,7 +168,9 @@ querySetup(void)
 	Int16 valdens;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	getWorldAndFlag(GetPositionClicked(), &element, &status);
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 
 	form = FrmGetActiveForm();

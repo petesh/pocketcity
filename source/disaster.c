@@ -42,6 +42,7 @@ DoNastyStuffTo(welem_t type, UInt16 probability)
 		return;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	for (i = 0; i < 50; i++) {
 		randomTile = GetRandomNumber(MapMul());
 		if (getWorld(randomTile) == type) {
@@ -52,6 +53,7 @@ DoNastyStuffTo(welem_t type, UInt16 probability)
 			break;
 		}
 	}
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 }
 
@@ -68,6 +70,7 @@ DoRandomDisaster(void)
 		return;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 
 	for (i = 0; i < 100; i++) { /* 100 tries to hit a useful tile */
 		randomTile = GetRandomNumber(MapMul());
@@ -95,6 +98,7 @@ DoRandomDisaster(void)
 			break;
 		}
 	}
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 }
 
@@ -146,6 +150,7 @@ UpdateDisasters(void)
 	int retval = 0;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	clearScratch();
 	for (i = 0; i < getMapHeight(); i++) {
 		for (j = 0; j < getMapWidth(); j++) {
@@ -175,6 +180,7 @@ UpdateDisasters(void)
 			}
 		}
 	}
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 	return (retval);
 }
@@ -204,6 +210,7 @@ BurnField(UInt16 x, UInt16 y, Int16 forceit)
 	int rv = 0;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	node = getWorld(WORLDPOS(x, y));
 	if ((forceit != 0 && node != Z_BRIDGE &&
 	    node != Z_REALWATER) ||
@@ -224,6 +231,7 @@ BurnField(UInt16 x, UInt16 y, Int16 forceit)
 		vgame.BuildCount[bc_fire]++;
 		rv = 1;
 	}
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 	return (rv);
 }
@@ -235,6 +243,7 @@ CreateMonster(UInt16 x, UInt16 y)
 	int rv = 0;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	node = getWorld(WORLDPOS(x, y));
 	if (node != Z_REALWATER && node != Z_CRATER) {
 		game.objects[obj_monster].x = x;
@@ -244,6 +253,7 @@ CreateMonster(UInt16 x, UInt16 y)
 		DrawField(x, y);
 		rv = 1;
 	}
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 	return (rv);
 }
@@ -255,6 +265,7 @@ CreateDragon(UInt16 x, UInt16 y)
 	int rv = 0;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	node = getWorld(WORLDPOS(x, y));
 	if (node != Z_REALWATER && node != Z_CRATER) {
 		game.objects[obj_dragon].x = x;
@@ -264,6 +275,7 @@ CreateDragon(UInt16 x, UInt16 y)
 		DrawField(x, y);
 		rv = 1;
 	}
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 	return (rv);
 }
@@ -422,8 +434,10 @@ MoveAllObjects(void)
 				break;
 			}
 			LockZone(lz_world);
+			LockZone(lz_flags);
 			DrawCross(x, y, 1, 1); /* (erase it) */
 			DrawField(game.objects[i].x, game.objects[i].y);
+			UnlockZone(lz_flags);
 			UnlockZone(lz_world);
 		}
 	}
@@ -452,6 +466,7 @@ CreateMeteor(UInt16 x, UInt16 y, Int16 size)
 	UInt16 i =  (Int16)(x - size) < 0 ? 0 : (UInt16)(x - size);
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	UILockScreen();
 	for (; i <= x + size; i++) {
 		j = (Int16)(y - size) < 0 ? 0 : (UInt16)(y - size);
@@ -476,6 +491,7 @@ CreateMeteor(UInt16 x, UInt16 y, Int16 size)
 	}
 	Build_Destroy(x, y);
 	setWorldAndFlag(WORLDPOS(x, y), Z_CRATER, 0);
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 	UIUnlockScreen();
 	RedrawAllFields();
@@ -492,15 +508,18 @@ CreateWaste(UInt16 x, UInt16 y)
 	welem_t node;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	node = getWorld(WORLDPOS(x, y));
 	Build_Destroy(x, y);
 	if (node == Z_REALWATER || IsRoadBridge(node)) {
+		UnlockZone(lz_flags);
 		UnlockZone(lz_world);
 		return;
 	}
 	setWorldAndFlag(WORLDPOS(x, y), Z_WASTE, 0);
 	vgame.BuildCount[bc_waste]++;
 	DrawCross(x, y, 1, 1);
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 	if (node == Z_COALPLANT || node == Z_NUCLEARPLANT)  {
 		UIDisasterNotify(diPlantExplosion);

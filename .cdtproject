@@ -4,34 +4,35 @@
     <extension id="org.eclipse.cdt.core.Elf" point="org.eclipse.cdt.core.BinaryParser"/>
     <data>
         <item id="org.eclipse.cdt.make.core.makeScannerInfo">
-            <includePath path="D:\PalmDev\sdk-5r3\include"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Core"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Core\Hardware"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Core\System"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Core\System\Unix"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Core\UI"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Dynamic"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Extensions"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Extensions\Bluetooth"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Extensions\ExpansionMgr"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Incs"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Incs\Libraries"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Incs\System"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Incs\System\etc"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Libraries"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Libraries\AddressSort"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Libraries\CPMLib"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Libraries\ExgLocal"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Libraries\INet"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Libraries\Lz77"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Libraries\PalmOSGlue"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Libraries\Pdi"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Libraries\Simulator"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Libraries\Simulator\Locale"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Libraries\Sms"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Libraries\SSL"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Libraries\Telephony"/>
-            <includePath path="D:\PalmDev\sdk-5r3\include\Libraries\Telephony\UI"/>
+            <includePath path="$(SDK5_LOCATION)\include"/>
+            <includePath path="$(SDK5_LOCATION)\include\Core"/>
+            <includePath path="$(SDK5_LOCATION)\include\Core\Hardware"/>
+            <includePath path="$(SDK5_LOCATION)\include\Core\System"/>
+            <includePath path="$(SDK5_LOCATION)\include\Core\System\Unix"/>
+            <includePath path="$(SDK5_LOCATION)\include\Core\UI"/>
+            <includePath path="$(SDK5_LOCATION)\include\Dynamic"/>
+            <includePath path="$(SDK5_LOCATION)\include\Extensions"/>
+            <includePath path="$(SDK5_LOCATION)\include\Extensions\Bluetooth"/>
+            <includePath path="$(SDK5_LOCATION)\include\Extensions\ExpansionMgr"/>
+            <includePath path="$(SDK5_LOCATION)\include\Incs"/>
+            <includePath path="$(SDK5_LOCATION)\include\Incs\Libraries"/>
+            <includePath path="$(SDK5_LOCATION)\include\Incs\System"/>
+            <includePath path="$(SDK5_LOCATION)\include\Incs\System\etc"/>
+            <includePath path="$(SDK5_LOCATION)\include\Libraries"/>
+            <includePath path="$(SDK5_LOCATION)\include\Libraries\AddressSort"/>
+            <includePath path="$(SDK5_LOCATION)\include\Libraries\CPMLib"/>
+            <includePath path="$(SDK5_LOCATION)\include\Libraries\ExgLocal"/>
+            <includePath path="$(SDK5_LOCATION)\include\Libraries\INet"/>
+            <includePath path="$(SDK5_LOCATION)\include\Libraries\Lz77"/>
+            <includePath path="$(SDK5_LOCATION)\include\Libraries\PalmOSGlue"/>
+            <includePath path="$(SDK5_LOCATION)\include\Libraries\Pdi"/>
+            <includePath path="$(SDK5_LOCATION)\include\Libraries\Simulator"/>
+            <includePath path="$(SDK5_LOCATION)\include\Libraries\Simulator\Locale"/>
+            <includePath path="$(SDK5_LOCATION)\include\Libraries\Sms"/>
+            <includePath path="$(SDK5_LOCATION)\include\Libraries\SSL"/>
+            <includePath path="$(SDK5_LOCATION)\include\Libraries\Telephony"/>
+            <includePath path="$(SDK5_LOCATION)\include\Libraries\Telephony\UI"/>
+            <includePath path="C:\Code-Work\palm\pcity\source"/>
         </item>
     </data>
 </cdtproject>

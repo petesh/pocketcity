@@ -41,9 +41,9 @@ dsony: BINNAME=debug-sony-$(BIN)
 cheat: TDIR =dc
 cheat: BINNAME=debug-cheat-$(BIN)
 
-OBJDIR = .out-$(TDIR)
+OBJDIR = out-$(TDIR)
 
-%: OBJDIR = .out-$(TDIR)
+%: OBJDIR = out-$(TDIR)
 
 VERSION := $(shell /bin/grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 nearlylive: VERSION = $(shell date +%Y.%m.%d)
@@ -57,12 +57,12 @@ dist: all-nextdir
 
 $(TARGETS) $(DTARGETS): VER $(COLORTARGETS)
 	$(MAKE) -f Makefile-dowork BINARY=$(BINNAME) \
-		OBJDIR=.out-$(TDIR) BINPRE=$(TDIR) $@
+		OBJDIR=out-$(TDIR) BINPRE=$(TDIR) $@
 
 clean: clean-graphic
 	rm -rf *.ro $(BIN)-*.rcp *.pdb *.prc
 	$(MAKE) -f Makefile-dowork BINARY=$(BINNAME) \
-		OBJDIR=.out-$(TDIR) $@
+		OBJDIR=out-$(TDIR) $@
 
 clean-%:
 	cd $(@:clean-%=%) && $(MAKE) clean

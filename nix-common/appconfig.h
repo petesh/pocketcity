@@ -16,6 +16,8 @@
 
 #if !defined(LP64)
 /* assume ILP32 ... terrible, I know */
+typedef unsigned char Byte;
+
 /*! \brief Int8 data type to correspond to palm data type */
 typedef signed char Int8;
 /*! \brief Char data type to correspond to palm data type */

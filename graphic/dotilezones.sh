@@ -2,7 +2,7 @@
 
 typeset me=${0##*/}
 typeset infile=
-typeset headerfile=
+typeset outfile=
 typeset width=
 typeset height=
 typeset rwidth=

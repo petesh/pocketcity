@@ -6,11 +6,37 @@
 	</projects>
 	<buildSpec>
 		<buildCommand>
+			<name>com.palmsource.eclipse.palmoscore.palmOSBuildToolsVerifier</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>com.palmsource.eclipse.palmoscore.palmOSMakeBuilder</name>
+			<arguments>
+				<dictionary>
+					<key>SDK</key>
+					<value>com.palmsource.eclipse.sdk.palmos5</value>
+				</dictionary>
+				<dictionary>
+					<key>OS_API</key>
+					<value>68K</value>
+				</dictionary>
+				<dictionary>
+					<key>PROJECT_TYPE</key>
+					<value>appl</value>
+				</dictionary>
+				<dictionary>
+					<key>SDK5_LOCATION</key>
+					<value>$(SDK_LOCATION)</value>
+				</dictionary>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
 			<name>org.eclipse.cdt.make.core.makeBuilder</name>
 			<arguments>
 				<dictionary>
 					<key>org.eclipse.cdt.core.errorOutputParser</key>
-					<value>org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.VCErrorParser;</value>
+					<value>com.palmsource.eclipse.tools.pelf2BinErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.VCErrorParser;</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.fullBuildTarget</key>
@@ -26,7 +52,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>/PocketCity</value>
+					<value></value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.enableFullBuild</key>
@@ -60,7 +86,10 @@
 		</buildCommand>
 	</buildSpec>
 	<natures>
+		<nature>com.palmsource.eclipse.palmos4dev.palmOS68KNature</nature>
+		<nature>com.palmsource.eclipse.palmoscore.palmOSNature</nature>
 		<nature>org.eclipse.cdt.core.cnature</nature>
 		<nature>org.eclipse.cdt.make.core.makeNature</nature>
+		<nature>org.eclipse.cdt.core.ccnature</nature>
 	</natures>
 </projectDescription>
