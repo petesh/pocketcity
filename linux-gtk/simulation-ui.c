@@ -262,7 +262,6 @@ doPixPaint(void)
 	pmh.water_mask = gdk_pixmap_new(dwa,
 	    getMapWidth() * mapTileSize(),
 	    getMapHeight() * mapTileSize(), 1);
-	//initMap();
 }
 
 /*!

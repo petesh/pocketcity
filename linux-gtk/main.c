@@ -30,7 +30,7 @@
 #include <zonemon.h>
 
 /*! \brief path to search for graphics */
-#define PATHSEARCH	".:./graphic:./graphic/icons:../graphic"
+Char *pathsearch = (Char *)".:./graphic:./graphic/icons:../graphic";
 
 #define	MILLISECS	1000
 #define	TICKPERSEC	10
@@ -90,7 +90,7 @@ const GtkItemFactoryEntry menu_items[] = {
 	{ "/_View", NULL, NULL,	0, "<Branch>", 0 },
 	{ "/View/_Budget", "<control>B", ViewBudget, 0, NULL, 0 },
 	{ "/View/_Map", "<control>M", showMap, 0, NULL, 0 },
-	{ "/View/_Hover", NULL, hoverShow, 0, NULL, 0 },
+	{ "/View/_Hover", "<control>H", hoverShow, 0, NULL, 0 },
 	{ "/_Speed", NULL, NULL, 0, "<Branch>", 0 },
 	{ "/Speed/_Pause", "<control>0", SetSpeed, 1 + SPEED_PAUSED, NULL,
 		NULL },
@@ -125,8 +125,10 @@ main(int argc, char **argv)
 	if (px != NULL) {
 		*px = '\0';
 	} else {
-		/* Trouble at't mine, is it windows? */
-		g_print("Windows??\n");
+		/* Trouble at't mine */
+		char *cwd = getcwd(NULL, 0);
+		free(exec_dir);
+		exec_dir = cwd;
 	}
 
 	gtk_init(&argc, &argv);
@@ -351,8 +353,6 @@ drawing_exposed_callback(GtkWidget *widget,
 {
 	GdkGC *gc = gdk_gc_new(widget->window);
 
-	//WriteLog("drawing: (%d,%d)\n", event->area.width, event->area.height);
-
 	gdk_draw_drawable(
 	    widget->window,
 	    gc,
@@ -456,12 +456,9 @@ GtkWidget *
 setupToolBox(void)
 {
 	GtkWidget *button_image;
-	//GtkTooltips *tips;
 	GtkWidget *toolbox;
-	//GtkWidget *button;
-	//GtkWidget *handle;
 	unsigned int i;
-	char *image_path;
+	Char *image_path;
 	size_t max_path = (size_t)pathconf("/", _PC_PATH_MAX) + 1;
 	/* If you change the order here you need to change the xpm... */
 	/*! \todo make the file names related to the items */
@@ -495,9 +492,7 @@ setupToolBox(void)
 
 	image_path = malloc(max_path);
 
-	//tips = gtk_tooltips_new();
 
-	//toolbox = gtk_table_new(9, 3, TRUE);
 	toolbox = gtk_toolbar_new();
 	gtk_container_set_border_width(GTK_CONTAINER(toolbox), 0);
 
@@ -507,12 +502,12 @@ setupToolBox(void)
 			continue;
 		}
 
-		//button = gtk_button_new();
-		strcpy(image_path, actions[i].file);
-		if (searchForFile(image_path, max_path, PATHSEARCH))
-			button_image = gtk_image_new_from_file(image_path);
+		strcpy((char *)image_path, actions[i].file);
+		if (searchForFile(image_path, max_path, pathsearch))
+			button_image = gtk_image_new_from_file(
+			    (const char *)image_path);
 		else {
-			perror(image_path);
+			perror((const char *)image_path);
 			exit(1);
 		}
 		gtk_toolbar_append_item(GTK_TOOLBAR(toolbox),
@@ -524,9 +519,9 @@ setupToolBox(void)
 		    actions[i].text, NULL);
 		g_signal_connect(G_OBJECT(button), "clicked",
 		    G_CALLBACK(toolbox_callback),
-		GINT_TO_POINTER(actions[i].entry));*/
-		//gtk_table_attach_defaults(GTK_TABLE(toolbox), button,
-		//    (i%3), (i%3)+1, (i/3), (i/3)+1);
+		GINT_TO_POINTER(actions[i].entry));
+		gtk_table_attach_defaults(GTK_TABLE(toolbox), button,
+		    (i%3), (i%3)+1, (i/3), (i/3)+1);*/
 	}
 
 	/*handle = gtk_handle_box_new();
@@ -719,7 +714,7 @@ cleanupPixmaps(void)
 void
 UIInitGraphic(void)
 {
-	char *image_path;
+	Char *image_path;
 	int i;
 	struct image_pms *ipm;
 	size_t max_path = (size_t)pathconf("/", _PC_PATH_MAX) + 1;
@@ -728,10 +723,12 @@ UIInitGraphic(void)
 
 	for (i = 0; image_pixmaps[i].filename != NULL; i++) {
 		ipm = image_pixmaps + i;
-		strncpy(image_path, ipm->filename, max_path - 1);
-		if (searchForFile(image_path, max_path, PATHSEARCH)) {
+		strncpy((char *)image_path, ipm->filename,
+		    max_path - 1);
+		if (searchForFile(image_path, max_path, pathsearch)) {
 			*ipm->pm = gdk_pixmap_create_from_xpm(
-			    mw.window->window, ipm->mask, NULL, image_path);
+			    mw.window->window, ipm->mask, NULL,
+			    (const char *)image_path);
 			if (*ipm->pm == NULL) {
 				WriteLog("Could not create pixmap from file %s",
 				    ipm->filename);
@@ -739,16 +736,16 @@ UIInitGraphic(void)
 				exit(1);
 			}
 		} else {
-			perror(image_path);
+			perror((const char *)image_path);
 			free(image_path);
 			exit(1);
 		}
 	}
 	/* load the icon */
-	strncpy(image_path, "pcityicon.png", max_path - 1);
-	if (searchForFile(image_path, max_path, PATHSEARCH)) {
+	strncpy((char *)image_path, "pcityicon.png", max_path - 1);
+	if (searchForFile(image_path, max_path, pathsearch)) {
 		gtk_window_set_icon_from_file(GTK_WINDOW(mw.window),
-		    image_path, NULL);
+		    (char const *)image_path, NULL);
 	}
 	free(image_path);
 }

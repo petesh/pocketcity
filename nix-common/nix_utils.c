@@ -16,7 +16,7 @@ int
 searchForFile(Char *file, UInt16 length, Char *path)
 {
 	char *buffer;
-	char *atp = strdup(path);
+	char *atp = strdup((char const *)path);
 	char *tat = atp;
 	char *cap;
 	struct stat sbuf;
@@ -30,7 +30,7 @@ searchForFile(Char *file, UInt16 length, Char *path)
 			*cap = '\0';
 		snprintf(buffer, max_path, "%s/%s", atp, file);
 		if (stat(buffer, &sbuf) != -1) {
-			strncpy(file, buffer, length);
+			strncpy((char *)file, buffer, length);
 			free(tat);
 			free(buffer);
 			return (1);

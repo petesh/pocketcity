@@ -128,7 +128,7 @@ clearGraphicUpdate(void)
 char *
 getDate(char *temp)
 {
-	char month[10];
+	Char month[10];
 
 	sprintf(temp, "%s %ld", getMonthString(
 	    (UInt16)(getMonthsElapsed() % 12),

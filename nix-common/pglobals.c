@@ -14,12 +14,12 @@
  * \param length the maximum length of the month
  * \return the string passed (useful for printf; etc.)
  */
-char *
+Char *
 getMonthString(UInt16 month, Char *string, UInt16 length)
 {
 	struct tm tm;
 	tm.tm_mon = month;
-	strftime(string, length, "%b", &tm);
+	strftime((char *)string, length, "%b", &tm);
 	return (string);
 }
 

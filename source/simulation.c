@@ -977,7 +977,7 @@ static const struct countCosts {
  * \return the cost/benefit associated with the node
  */
 static Int32
-costIt(BuildCode item)
+costIt(BuildCount item)
 {
 	UInt16 i;
 	for (i = 0; i < CCSIZE; i++)

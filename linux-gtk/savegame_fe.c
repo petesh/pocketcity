@@ -83,6 +83,7 @@ ImportOneFromGame(GtkWidget *widget, gint response, gpointer data)
 		DrawGame(1);
 		MapHasJumped();
 	}
+	savegame_close(sel->sg);
 	free_listselect(sel);
 	gtk_widget_destroy(widget);
 }
@@ -160,6 +161,7 @@ doOpen(gchar *filename)
 	setCityFileName(filename);
 
 	if (savegame_citycount(sg) == 0) {
+		WriteLog("no savegames in file\n");
 		savegame_close(sg);
 		return;
 	}

@@ -147,12 +147,13 @@ mapm_int32(unsigned char *mem, unsigned char *val)
  * in order to eliminate the potential confusion every time the structure
  * changes (e.g. using the stabs information to generate this)
  */
-static char *
-read_palmstructure(char *mem, GameStruct *new, char **map, char **flags)
+static unsigned char *
+read_palmstructure(unsigned char *mem, GameStruct *new,
+    unsigned char **map, unsigned char **flags)
 {
 	int i;
 	int j;
-	char *ptr = (char *)new;
+	unsigned char *ptr = (unsigned char *)new;
 	size_t map_size;
 	UInt32 foo;
 
@@ -169,8 +170,8 @@ read_palmstructure(char *mem, GameStruct *new, char **map, char **flags)
 	new->map_xpos = *mem++;
 	new->map_ypos = *mem++;
 	
-	mem = mapm_int32(mem, (char *)&new->credits);
-	mem = mapm_int32(mem, (char *)&new->TimeElapsed);
+	mem = mapm_int32(mem, (unsigned char *)&new->credits);
+	mem = mapm_int32(mem, (unsigned char *)&new->TimeElapsed);
 
 	new->tax = *mem++;
 	new->gameLoopSeconds = *mem++;
@@ -182,62 +183,56 @@ read_palmstructure(char *mem, GameStruct *new, char **map, char **flags)
 		new->upkeep[i] = *mem++;
 	new->gridsToUpdate = *mem++;
 
-	mem = mapm_int16(mem, (char *)&new->desires[de_evaluation]);
-	mem = mapm_int16(mem, (char *)&new->desires[de_residential]);
-	mem = mapm_int16(mem, (char *)&new->desires[de_commercial]);
-	mem = mapm_int16(mem, (char *)&new->desires[de_industrial]);
+	mem = mapm_int16(mem, (unsigned char *)&new->desires[de_evaluation]);
+	mem = mapm_int16(mem, (unsigned char *)&new->desires[de_residential]);
+	mem = mapm_int16(mem, (unsigned char *)&new->desires[de_commercial]);
+	mem = mapm_int16(mem, (unsigned char *)&new->desires[de_industrial]);
 	printf("stats starting at %p\n", mem);
 	i = 0;
 	while (i < st_tail) {
 		for (j = 0; j < STATS_COUNT; j++) {
 			mem = mapm_int16(mem,
-			    (char *)&new->statistics[i].last_ten[j]);
+			    (unsigned char *)&new->statistics[i].last_ten[j]);
 		}
 		for (j = 0; j < STATS_COUNT; j++) {
 			mem = mapm_int16(mem,
-			    (char *)&new->statistics[i].last_century[j]);
+			    (unsigned char *)&new->statistics[i].last_century[j]);
 		}
 		i++;
 	}
 	printf("units starting at %p\n", mem);
 	i = 0;
 	while (i < NUM_OF_UNITS) {
-		mem = mapm_int16(mem, (char *)&new->units[i].x);
-		mem = mapm_int16(mem, (char *)&new->units[i].y);
-		mem = mapm_int16(mem, (char *)&new->units[i].active);
-		mem = mapm_int16(mem, (char *)&new->units[i].type);
+		mem = mapm_int16(mem, (unsigned char *)&new->units[i].x);
+		mem = mapm_int16(mem, (unsigned char *)&new->units[i].y);
+		mem = mapm_int16(mem, (unsigned char *)&new->units[i].active);
+		mem = mapm_int16(mem, (unsigned char *)&new->units[i].type);
 		i++;
 	}
 	printf("objects starting at %p\n", mem);
 	i = 0;
 	while (i < NUM_OF_OBJECTS) {
-		mem = mapm_int16(mem, (char *)&new->objects[i].x);
-		mem = mapm_int16(mem, (char *)&new->objects[i].y);
-		mem = mapm_int16(mem, (char *)&new->objects[i].dir);
-		mem = mapm_int16(mem, (char *)&new->objects[i].active);
+		mem = mapm_int16(mem, (unsigned char *)&new->objects[i].x);
+		mem = mapm_int16(mem, (unsigned char *)&new->objects[i].y);
+		mem = mapm_int16(mem, (unsigned char *)&new->objects[i].dir);
+		mem = mapm_int16(mem, (unsigned char *)&new->objects[i].active);
 		i++;
 	}
-	mem = mapm_int32(mem, (char *)&foo);
+	mem = mapm_int32(mem, (unsigned char *)&foo);
 	printf("%lx\n", (long)foo);
 	map_size = sizeof (welem_t) * new->mapx * new->mapy;
-	ptr = malloc(map_size);
+	ptr = calloc(map_size, 1);
 	*map = ptr;
 	printf("map starting from: %p for [0x%x]%d\n", mem, map_size, map_size);
 	bcopy(mem, *map, new->mapx * new->mapy);
 	mem += new->mapx * new->mapy;
-	mem = mapm_int32(mem, (char *)&foo);
+	mem = mapm_int32(mem, (unsigned char *)&foo);
 	printf("%lx\n", (long)foo);
 	printf("status starting from: %p\n", mem);
-	//for (i = 0; i < new->mapx * new->mapy; ptr++, i++) {
-	//	mem = mapm_int8(mem, ptr);
-	//}
 	map_size = sizeof (selem_t) * new->mapx * new->mapy;
-	ptr = malloc(map_size);
+	ptr = calloc(map_size, 1);
 	*flags = ptr;
 	UnpackBits(mem, ptr, 2, new->mapx * new->mapy);
-	for (i = 0; i < new->mapx * new->mapy; i++) {
-		clearWorldFlags(i, PAINTEDBIT);
-	}
 	return (mem);
 }
 
@@ -314,7 +309,7 @@ savegame_open(char *filename)
 	struct stat st;
 	savegame_t *rv = (savegame_t *)calloc(1, sizeof (savegame_t));
 	int fd = open(filename, O_RDONLY, 0666);
-	char *buf, *buf2, *buf3;
+	unsigned char *buf, *buf2, *buf3;
 	size_t size;
 
 	if (rv == NULL) {
@@ -336,7 +331,7 @@ savegame_open(char *filename)
 	}
 	size = st.st_size;
 
-	buf = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
+	buf = (unsigned char *)mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
 	if (buf == MAP_FAILED) {
 		perror("mmap");
 		close(fd);
@@ -349,15 +344,16 @@ savegame_open(char *filename)
 		rv->gamecount = 1;
 		rv->games = calloc(1, sizeof (struct embedded_savegame));
 		read_palmstructure(buf, &rv->games[0].gs,
-			&rv->games[0].world, &rv->games[0].flags);
-		munmap(buf, st.st_size);
+			(unsigned char **)&rv->games[0].world,
+			(unsigned char **)&rv->games[0].flags);
+		munmap((char *)buf, st.st_size);
 		close(fd);
 		return(rv);
 	}
 
 	/* It may be a palmos savegame structure ... this would be a .pdb */
 
-	buf2 = inMem(buf, size, SAVEGAMEVERSION, 4);
+	buf2 = inMem((const char *)buf, size, SAVEGAMEVERSION, 4);
 	if (buf2 == NULL) {
 		free(rv);
 		return (NULL);
@@ -370,12 +366,12 @@ savegame_open(char *filename)
 		buf3 = buf2;
 		buf2 = read_palmstructure(buf2,
 		    &rv->games[rv->gamecount - 1].gs,
-		    &rv->games[rv->gamecount - 1].world,
-		    &rv->games[rv->gamecount - 1].flags);
+		    (unsigned char **)&rv->games[rv->gamecount - 1].world,
+		    (unsigned char **)&rv->games[rv->gamecount - 1].flags);
 		size -= (buf2 - buf3);
-		buf2 = inMem(buf2, size, SAVEGAMEVERSION, 4);
+		buf2 = inMem((const char *)buf2, size, SAVEGAMEVERSION, 4);
 	}
-	munmap(buf, st.st_size);
+	munmap((char *)buf, st.st_size);
 	return (rv);
 }
 
@@ -398,7 +394,7 @@ savegame_getcityname(savegame_t *sg, int item)
 	if (sg == NULL || item >= sg->gamecount)
 		return (NULL);
 	else
-		return (sg->games[item].gs.cityname);
+		return ((char *)sg->games[item].gs.cityname);
 }
 
 int
@@ -413,8 +409,8 @@ savegame_getcity(savegame_t *sg, int item, GameStruct *gs, char **map,
 	*map = (char *)realloc (*map, newl);
 	bcopy(sg->games[item].world, *map, newl);
 	newl = (sizeof (selem_t)) * gs->mapx * gs->mapy;
-	*flags = (char *)realloc(*map, newl);
-	bcopy(sg->games[item].flags, *map, newl);
+	*flags = (char *)realloc(*flags, newl);
+	bcopy(sg->games[item].flags, *flags, newl);
 	return (0);
 }
 

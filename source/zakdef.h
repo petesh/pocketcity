@@ -556,6 +556,6 @@ typedef appConfig_01_t AppConfig_t;
  * \param length the maximum string acceptable in string
  * \return the month in a string
  */
-char *getMonthString(UInt16 month, Char *string, UInt16 length);
+Char *getMonthString(UInt16 month, Char *string, UInt16 length);
 
 #endif /* _ZAKDEF_H */

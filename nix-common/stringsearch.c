@@ -36,8 +36,6 @@ void *
 inMem(const char *space, size_t space_len, const char *item,
     size_t item_len)
 {
-	/* const char *srch_end = srch_space + srch_len;
-	const char *item_end = srch_item + item_len; */
 	size_t bmbc[ASIZE];
 	unsigned char *aj, *maxj;
 	unsigned char c;
@@ -48,18 +46,8 @@ inMem(const char *space, size_t space_len, const char *item,
 
 	fillBM(item, item_len, bmbc, ASIZE);
 
-	/*
-	for (j = 0; j < ASIZE; j++)
-		if (bmbc[j] != item_len)
-			if (j < 32 || j > 127)
-				printf("bmbc['%d'] == %ld\n", j, (long)bmbc[j]);
-			else
-				printf("bmbc['%c'] == %ld\n", j, (long)bmbc[j]);
-
-	*/
-
-	aj = (char *)space;
-	maxj  = (char *)(space + (space_len - item_len));
+	aj = (unsigned char *)space;
+	maxj  = (unsigned char *)(space + (space_len - item_len));
 
 	lic = item[item_len - 1];
 

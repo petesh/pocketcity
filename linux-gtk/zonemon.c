@@ -40,15 +40,17 @@ static struct tag_things {
 void
 hoverUpdate(UInt16 xpos, UInt16 ypos, int force)
 {
-	welem_t	world;
-	selem_t	status;
+	welem_t	world = 0;
+	selem_t	status = 0;
 	char text[1024];
 
 	if (ttg.win == NULL)
 		return;
 
 	LockZone(lz_world);
+	LockZone(lz_flags);
 	getWorldAndFlag(WORLDPOS(xpos, ypos), &world, &status);
+	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 
 	if ((ttg.old_xpos == xpos) && (ttg.old_ypos == ypos)) 
