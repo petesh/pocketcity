@@ -1,10 +1,15 @@
 
 include Makefile-include
 
+BINNAME=pcity
+
 all: TDIR =-nd
+
 debug: TDIR =-d
 hires: TDIR =-ndh
+hires: BINNAME=hires-pcity
 dhires: TDIR =-dh
+dhires: BINNAME=hires-pcity
 cheat: TDIR =-dc
 
 OBJDIR = out$(TDIR)
@@ -17,10 +22,10 @@ nearlylive: VERSION = $(shell date +%Y.%m.%d)
 DSTAMP := $(shell date "+%Y/%m/%d@%H:%M")
 
 all debug hires dhires cheat: VER
-	$(MAKE) -f Makefile-dowork OBJDIR=out$(TDIR) $@
+	$(MAKE) -f Makefile-dowork BINARY=$(BINNAME) OBJDIR=out$(TDIR) $@
 
 clean:
-	$(MAKE) -f Makefile-dowork OBJDIR=out$(TDIR) $@
+	$(MAKE) -f Makefile-dowork BINARY=$(BINNAME) OBJDIR=out$(TDIR) $@
 # Build Stamping
 
 VER: version.stm touch.stm
@@ -49,11 +54,8 @@ DISTFILES=../INSTALL ../CHANGELOG ../COPYING ../GAMEHINTS ../README
 dist nearlylive: all hires
 	@mkdir -p $(DDIR)
 	@cp $(DISTFILES) out-nd/*.prc *.pdb $(DDIR)
-	@tar cvf - $(DDIR) | gzip -9c >$(DDIR)-normal.tar.gz
-	@zip -9R $(DDIR)-normal.zip $(DDIR)/*
-	@rm -f $(DDIR)/*
-	@cp $(DISTFILES) out-ndh/*.prc *.pdb $(DDIR)
-	@tar cvf - $(DDIR) | gzip -9c >$(DDIR)-sony.tar.gz
-	@zip -9R $(DDIR)-sony.zip $(DDIR)/*
+	@tar cvf - $(DDIR) | gzip -9c >$(DDIR).tar.gz
+	@cp out-ndh/*.prc $(DDIR)
+	@zip -9R $(DDIR).zip $(DDIR)/*
 	@rm -rf $(DDIR)
 

@@ -23,7 +23,7 @@ HIRES := 0
 LANGUAGES := EN
 
 DESTOBJS = $(OBJECTS:%=$(OBJDIR)/%)
-PRCTARGETS = $(LANGUAGES:%=$(OBJDIR)/pcity-%.prc)
+PRCTARGETS = $(LANGUAGES:%=$(OBJDIR)/$(BINARY)-%.prc)
 
 LANGDIRS = $(LANGUAGES:%=(OBJDIR)/%)
 
@@ -63,7 +63,7 @@ hires dhires: CFLAGS += -DSONY_CLIE
 hires dhires: HIRES=1
 
 # the different language versions
-$(OBJDIR)/pcity-%.prc: $(OBJDIR) $(OBJDIR)/pcity $(OBJDIR)/%-lang/game.stm
+$(OBJDIR)/$(BINARY)-%.prc: $(OBJDIR) $(OBJDIR)/pcity $(OBJDIR)/%-lang/game.stm
 	$(BUILDPRC) -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		$(OBJDIR)/pcity $(OBJDIR)/$*-lang/*.bin
 
