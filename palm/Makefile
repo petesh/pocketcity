@@ -1,7 +1,8 @@
 
 CC = m68k-palmos-gcc
 CFLAGS = -O2 -Wall
-OBJECTS = simcity.o handler.o drawing.o globals.o build.o simulation.o disaster.o savegame.o
+OBJECTS = simcity.o handler.o drawing.o globals.o build.o simulation.o \
+		  disaster.o savegame.o map.o budget.o
 PROGNAME = "Pocket City"
 PROGTOKEN = PCit
 PRCTARGETS = pcity pcity-grey pcity-color

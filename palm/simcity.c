@@ -5,6 +5,8 @@
 #include <StdIOPalm.h>
 #include "simcity.h"
 #include "savegame.h"
+#include "map.h"
+#include "budget.h"
 #include "../source/zakdef.h"
 #include "../source/ui.h"
 #include "../source/drawing.h"
@@ -43,18 +45,13 @@ unsigned short XOFFSET =0;
 unsigned short YOFFSET =15;
 
 static Boolean hPocketCity(EventPtr event);
-static Boolean hBudget(EventPtr event);
-static Boolean hMap(EventPtr event);
 static Boolean hQuickList(EventPtr event);
 static Boolean hExtraList(EventPtr event);
 void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth);
 void _PalmInit(void);
-void DrawMap(void);
 void UIDoQuickList(void);
 void UIPopUpExtraBuildList(void);
 
-void BudgetInit(void);
-void BudgetFreeMem(void);
 void _UIGetFieldToBuildOn(int x, int y);
 Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags);
 
@@ -169,21 +166,21 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
                 if (timeTemp >= timeStampDisaster+SIM_GAME_LOOP_DISASTER) {
                     MoveAllObjects();
 #ifdef DEBUG
-{
-    // this will print the BuildCount array
-    // don't forget to keep an eye on it
-    // in the log - should be up-to-date
-    // AT ALL TIMES!
-    char temp[10];
-    int q;
-    for (q=0; q<20; q++) {
-        sprintf(temp,"%li",BuildCount[q]);
-        UIWriteLog(temp);
-        UIWriteLog(" ");
-    }
-    UIWriteLog("\n");
+                    { // block so we can initialize more vars
+                        // this will print the BuildCount array
+                        // don't forget to keep an eye on it
+                        // in the log - should be up-to-date
+                        // AT ALL TIMES!
+                        char temp[10];
+                        int q;
+                        for (q=0; q<20; q++) {
+                            sprintf(temp,"%li",BuildCount[q]);
+                            UIWriteLog(temp);
+                            UIWriteLog(" ");
+                        }
+                        UIWriteLog("\n");
 
-}
+                    } // end debug block
 #endif
                     if (UpdateDisasters()) {
                         RedrawAllFields();
@@ -285,181 +282,6 @@ void _PalmInit(void)
     
     // clean up 
     WinSetDrawWindow(winHandle);
-}
-
-
-
-static Boolean hBudget(EventPtr event)
-{
-    FormPtr form;
-    int handled = 0;
-
-    switch (event->eType)
-    {
-        case frmOpenEvent:
-            form = FrmGetActiveForm();
-            BudgetInit();
-            FrmDrawForm(form);
-            handled = 1;
-            break;
-        case frmCloseEvent:
-            BudgetFreeMem();
-            break;
-        case menuEvent:
-            switch (event->data.menu.itemID)
-            {
-                case menuitemID_BudgetBack:
-                    FrmGotoForm(formID_pocketCity);
-                    handled = 1;
-                    break;
-            }
-            break;
-        default:
-            break;
-    }
-
-    return handled;
-}
-
-
-static Boolean hMap(EventPtr event)
-{
-    FormPtr form;
-    int handled = 0;
-
-    switch (event->eType)
-    {
-        case penDownEvent:
-            if (event->screenX >= 1  && event->screenX <= mapsize+1 &&
-                event->screenY >= 17 && event->screenY <= mapsize+17) {
-                map_xpos = event->screenX-1-(visible_x/2);
-                map_ypos = event->screenY-17-(visible_y/2);
-                if (map_ypos < 0) { map_ypos = 0; }
-                if (map_ypos > mapsize-visible_y) { map_ypos = mapsize - visible_y; }
-                if (map_xpos < 0) { map_xpos = 0; }
-                if (map_xpos > mapsize-visible_x) { map_xpos = mapsize - visible_x; }
-                FrmGotoForm(formID_pocketCity);
-                handled = 1;
-            }
-            // check for other 'penclicks' here
-            break;
-        case frmOpenEvent:
-            form = FrmGetActiveForm();
-            FrmDrawForm(form);
-            DrawMap();
-            handled = 1;
-            break;
-        case frmCloseEvent:
-            break;
-        case menuEvent:
-            switch (event->data.menu.itemID)
-            {
-                case menuitemID_MapBack:
-                    FrmGotoForm(formID_pocketCity);
-                    handled = 1;
-                    break;
-            }
-            break;
-        default:
-            break;
-    }
-
-    return handled;
-}
-
-void DrawMap(void)
-{
-    int i,j;
-
-    LockWorld();
-    UILockScreen();
-    _UIDrawRect(17,1,100,100);
-    
-    if (!oldROM) {
-        for(i=0; i<mapsize; i++) {
-            for(j=0; j<mapsize; j++) {
-                if (GetWorld(WORLDPOS(i,j)) != TYPE_DIRT) {
-                    WinDrawPixel(i+1,j+17);
-                }
-            }
-        }
-    }
-
-    UIUnlockScreen();
-    UnlockWorld();
-}
-
-void BudgetInit(void)
-{
-    FormPtr form;
-    char * temp;
-    long signed int cashflow = 0;
-    long unsigned int change = 0;
-    
-    form = FrmGetActiveForm();
-
-    temp = MemPtrNew(12);
-    change = BuildCount[COUNT_RESIDENTIAL]*INCOME_RESIDENTIAL*tax/100;
-    cashflow += change;
-    StrPrintF(temp,"%lu",  change);
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_res)), temp);
-
-    temp = MemPtrNew(12);
-    change = BuildCount[COUNT_COMMERCIAL]*INCOME_COMMERCIAL*tax/100;
-    cashflow += change;
-    StrPrintF(temp,"%lu",  change);
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_com)), temp);
-
-    temp = MemPtrNew(12);
-    change = BuildCount[COUNT_INDUSTRIAL]*INCOME_INDUSTRIAL*tax/100;
-    cashflow += change;
-    StrPrintF(temp,"%lu",  change);
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_ind)), temp);
-
-    temp = MemPtrNew(12);
-    change = BuildCount[COUNT_ROADS]*UPKEEP_ROAD;
-    cashflow -= change;
-    StrPrintF(temp,"%lu", change);
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_tra)), temp);
-
-    temp = MemPtrNew(12);
-    change = BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE +
-             BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT +
-             BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT;
-    cashflow -= change;
-    StrPrintF(temp,"%lu", change);
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_pow)), temp);
-
-    temp = MemPtrNew(12);
-    change = BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS; 
-    cashflow -= change;
-    StrPrintF(temp,"%lu", change);
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_def)), temp);
-
-    temp = MemPtrNew(12);
-    StrPrintF(temp,"%+li", cashflow);
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_tot)), temp);
-
-    temp = MemPtrNew(12);
-    StrPrintF(temp,"%li", credits+cashflow);
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_bal)), temp);
-
-    temp = MemPtrNew(12);
-    StrPrintF(temp,"%li", credits);
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_now)), temp);
-}
-
-void BudgetFreeMem(void)
-{
-    FormPtr form;
-
-    form = FrmGetActiveForm();
-    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_res))));
-    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_com))));
-    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_ind))));
-    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_tra))));
-    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_pow))));
-    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_def))));
 }
 
 static Boolean hPocketCity(EventPtr event)
@@ -624,6 +446,7 @@ static Boolean hPocketCity(EventPtr event)
                     /* goto map */
                     SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
                     FrmGotoForm(formID_map);
+                    handled = 1;
                     break;
                 case pageUpChr:
                     /* scroll map up */

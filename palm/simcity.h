@@ -4,6 +4,7 @@
 extern short int game_in_progress;
 extern MemPtr worldPtr;
 extern MemPtr worldFlagsPtr;
+extern short int oldROM;
 extern void UIWriteLog(char * s);
 
 
