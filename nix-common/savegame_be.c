@@ -1,20 +1,35 @@
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 #include <main.h>
 #include <globals.h>
 #include <handler.h>
 #include <ui.h>
 #include <simulation.h>
-#include <sys/types.h>
 #include <inttypes.h>
 #include <strings.h>
 #include <mem_compat.h>
+#include <stringsearch.h>
+
+struct embedded_savegame {
+	GameStruct gs;	/*!< game structure of the savegame */
+	char *world;	/*!< world pointer of the savegame */
+};
+
+struct save_tag {
+	int gamecount; /*!< count of savegames in this structure */
+	struct embedded_savegame *games; /*!< the games */
+};
+typedef struct save_tag savegame_t;
+
+#define _SAVEGAME_BE_IMPL
 #include <savegame_be.h>
 
 /*
@@ -63,85 +78,126 @@ write_int32(int fd, Int32 value)
 }
 */
 
-static void *
-map_int8(int fd, void *val)
+/*
+static char *
+mapm_int8(char *mem, char *val)
 {
-	(void) read(fd, val, 1);
-	return ((char *)val + 1);
+	*val = *mem;
+	return (mem + 1);
+}
+*/
+
+/*
+ * \brief map a memory element that's 16 bits long
+ * \param mem the memory pointer to start at
+ * \param val the value to fill
+ * \return pointer to after the read structure
+ */
+static unsigned char *
+mapm_int16(unsigned char *mem, unsigned char *val)
+{
+	*(Int16 *)val = (mem[0] << 8 | mem[1]);
+	return (mem + 2);
 }
 
-static void *
-map_int16(int fd, void *val)
+/*
+ * \brief map a memory element that's 32bits long
+ * \param mem the memory to map
+ * \param val the value to populate with the value
+ * \return pointer to just after the data
+ */
+static unsigned char *
+mapm_int32(unsigned char *mem, unsigned char *val)
 {
-	Int8 by[2];
-	read(fd, by, 2);
-	*(Int16 *)val = (by[0] << 8 | by[1]);
-	return ((char *)val + 2);
+	*(Int32 *)val = (mem[0] << 24 | mem[1] << 16 | mem[2] << 8 | mem[3]);
+	return (mem + 4);
 }
 
-static void *
-map_int32(int fd, void *val)
-{
-	Int8 by[4];
-	read(fd, by, 4);
-	*(Int32 *)val = (by[0] << 24 | by[1] << 16 | by[2] << 8 | by[3]);
-	return ((char *)val + 4);
-}
-
-static void
-read_palmstructure(GameStruct *new, int fd)
+/*
+ * \brief read the palm game structure and the map.
+ * \param mem the pointer to the start of the memory of the game
+ * \param new the pointer to the gamestructure to fill with the data
+ * \param map pointer to the pointer that will be filled with the map
+ * \return the pointer to just after the structure.
+ *
+ * This routine reads in the palm structure and it's corresponding map from
+ * a mem-mapped copy of the file. If you change the savegame structure you
+ * need to make sure that the reading routines here match the declarations
+ * in the GameStruct structure, otherwise you read in garbage.
+ */
+static char *
+read_palmstructure(char *mem, GameStruct *new, char **map)
 {
 	int i;
 	int j;
-	void *ptr = new;
+	char *ptr = (char *)new;
+	size_t map_size;
 
+	printf("starting from: %p\n", mem);
 	bzero(new, sizeof (*new));
+
+	/* savegame identifier */
 	for (i = 0; i < 4; i++)
-		ptr = map_int8(fd, ptr);
-	ptr = map_int8(fd, ptr);
-	ptr = map_int8(fd, ptr);
-	ptr = map_int16(fd, ptr);
-	ptr = map_int16(fd, ptr);
-	ptr = map_int32(fd, ptr);
-	ptr = map_int32(fd, ptr);
-	ptr = map_int8(fd, ptr);
-	ptr = map_int8(fd, ptr);
-	ptr = map_int8(fd, ptr);
-	ptr = map_int8(fd, ptr);
-	read(fd, ptr, CITYNAMELEN);
-	ptr = (char *)ptr + CITYNAMELEN;
-	ptr = map_int8(fd, ptr);
-	ptr = map_int8(fd, ptr);
-	ptr = map_int8(fd, ptr);
-	ptr = map_int16(fd, ptr);
-	ptr = map_int8(fd, ptr);
-	ptr = map_int8(fd, ptr);
+		*(ptr + i) = *mem++;
+
+	new->mapx = *mem++;
+	new->mapy = *mem++;
+
+	new->map_xpos = *mem++;
+	new->map_ypos = *mem++;
+
+	mem = mapm_int32(mem, (char *)&new->credits);
+	mem = mapm_int32(mem, (char *)&new->TimeElapsed);
+
+	new->tax + *mem++;
+	new->gameLoopSeconds = *mem++;
+	new->diff_disaster = *mem++;
+	new->auto_bulldoze = *mem++;
+	bcopy(mem, new->cityname, CITYNAMELEN);
+	mem += CITYNAMELEN;
+	for (i = 0; i < ue_tail; i++)
+		new->upkeep[i] = *mem++;
+	new->gridsToUpdate = *mem++;
+
+	mem = mapm_int16(mem, (char *)&new->evaluation);
 	i = 0;
 	while (i < st_tail) {
 		for (j = 0; j < STATS_COUNT; j++) {
-			ptr = map_int16(fd, ptr);
+			mem = mapm_int16(mem,
+			    (char *)&new->statistics[i].last_ten[j]);
 		}
 		for (j = 0; j < STATS_COUNT; j++) {
-			ptr = map_int16(fd, ptr);
+			mem = mapm_int16(mem,
+			    (char *)&new->statistics[i].last_century[j]);
 		}
 		i++;
 	}
 	i = 0;
 	while (i < NUM_OF_UNITS) {
-		ptr = map_int16(fd, ptr);
-		ptr = map_int16(fd, ptr);
-		ptr = map_int16(fd, ptr);
-		ptr = map_int16(fd, ptr);
+		mem = mapm_int16(mem, (char *)&new->units[i].x);
+		mem = mapm_int16(mem, (char *)&new->units[i].y);
+		mem = mapm_int16(mem, (char *)&new->units[i].active);
+		new->units[i].type = *mem++;
+		mem += 1;
 		i++;
 	}
 	i = 0;
 	while (i < NUM_OF_OBJECTS) {
-		ptr = map_int16(fd, ptr);
-		ptr = map_int16(fd, ptr);
-		ptr = map_int16(fd, ptr);
-		ptr = map_int16(fd, ptr);
+		mem = mapm_int16(mem, (char *)&new->objects[i].x);
+		mem = mapm_int16(mem, (char *)&new->objects[i].y);
+		mem = mapm_int16(mem, (char *)&new->objects[i].dir);
+		mem = mapm_int16(mem, (char *)&new->objects[i].active);
 		i++;
 	}
+	map_size = (sizeof (welem_t) + sizeof (selem_t)) *
+	    new->mapx * new->mapy;
+	ptr = malloc(map_size);
+	*map = ptr;
+	printf("map starting from: %p for %d\n", mem, map_size);
+	for (i = 0; i < new->mapx * new->mapy; ptr+=2, i++) {
+		mem = mapm_int16(mem, ptr);
+	}
+	return (mem);
 }
 
 /*
@@ -198,85 +254,152 @@ write_palmstructure(GameStruct *new, int fd)
 }
 */
 
-int
-load_filename(char *sel, int palm)
+savegame_t *
+savegame_open(char *filename)
 {
-	int fd, ret;
-	char tempversion[4];
-	int worldsize = WorldSize();
+	struct stat st;
+	savegame_t *rv = (savegame_t *)calloc(1, sizeof (savegame_t));
+	int fd = open(filename, O_RDONLY, 0666);
+	char *buf, *buf2, *buf3;
+	size_t size;
+	char sbuf[4];
 
-	WriteLog("Opening save game from %s\n", sel);
+	if (rv == NULL) {
+		perror("calloc");
+		return (NULL);
+	}
 
-	fd = open(sel, O_RDONLY);
 	if (fd == -1) {
-		perror("open"); /* TODO: make this nicer */
-		return (-1);
-	}
-	/* first of all, check the savegame version */
-	ret = read(fd, (void*)tempversion, 4);
-	if (ret == -1) {
-		perror("read version"); /* TODO: make this nicer */
-		return (-1);
-	}
-	if (strncmp(tempversion, SAVEGAMEVERSION, 4) != 0) {
-		WriteLog("Wrong save game format - aborting\n");
-		return (-1);
-	}
-	/* version was ok, rewind the file */
-	lseek(fd, 0, SEEK_SET);
-
-	/* God, I love to read all my vars at one time */
-	/* using a struct :D ... unfortunately horribly unportable */
-	if (!palm) {
-		ret = read(fd, (void *)&game, sizeof (GameStruct));
-	if (ret == -1) {
-		perror("read game"); /* TODO: make this nicer */
-		return (-1);
-		} else if (ret != sizeof (GameStruct)) {
-			WriteLog("Oops, couldn't read full length of game\n");
-			return (-1);
-		}
-	} else {
-		read_palmstructure(&game, fd);
-		/* make sure of position */
-		lseek(fd, 294, SEEK_SET);
+		perror("open");
+		return (NULL);
 	}
 
-	/* and now the great worldPtr :D */
-	ret = read(fd, (void *)worldPtr, worldsize);
-	if (ret == -1) {
-		perror("read world"); /* TODO: make this nicer */
-		return (-1);
-	} else if (ret != worldsize) {
-		WriteLog("Oops, couldn't read full length of world\n");
-		return (-1);
+	read(fd, sbuf, 4);
+	if (0 == memcmp(sbuf, SAVEGAMEVERSION, 4)) {
+		size_t worldsize;
+		lseek(fd, SEEK_SET, 0);
+		rv->gamecount = 1;
+		rv->games = calloc(1, sizeof (struct embedded_savegame));
+		read(fd, &rv->games[0].gs, sizeof (GameStruct));
+		worldsize = (rv->games[0].gs.mapx * rv->games[0].gs.mapy) *
+		    (sizeof (selem_t) + sizeof (welem_t));
+		rv->games[0].world = calloc(1, worldsize);
+		read(fd, (void *)worldPtr, worldsize);
+		close(fd);
+		return(rv);
 	}
 
-	if (close(fd) == -1) {
-		perror("close"); /* TODO: make this nicer */
-		return (-1);
-	}
+	/* It's a palmos savegame structure */
 
+	if (-1 == fstat(fd, &st)) {
+		perror("fstat");
+		close(fd);
+		return (NULL);
+	}
+	size = st.st_size;
+
+	buf = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
+	if (buf == MAP_FAILED) {
+		perror("mmap");
+		close(fd);
+		return (NULL);
+	}
+	close(fd);
+	buf2 = inMem(buf, size, SAVEGAMEVERSION, 4);
+	while (buf2 != NULL) {
+		rv->gamecount++;
+		rv->games = realloc(rv->games,
+		    rv->gamecount * sizeof (struct embedded_savegame));
+		buf3 = buf2;
+		buf2 = read_palmstructure(buf2,
+		    &rv->games[rv->gamecount - 1].gs,
+		    &rv->games[rv->gamecount - 1].world);
+		size -= (buf2 - buf3);
+		buf2 = inMem(buf2, size, SAVEGAMEVERSION, 4);
+	}
+	munmap(buf, st.st_size);
+	return (rv);
+}
+
+void
+savegame_close(savegame_t *sg)
+{
+	int index;
+
+	for (index = 0; index < sg->gamecount; index++) {
+		free(sg->games[index].world);
+	}
+	free(sg->games);
+	free(sg);
+}
+
+char *
+savegame_getcityname(savegame_t *sg, int item)
+{
+	if (sg == NULL || item >= sg->gamecount)
+		return (NULL);
+	else
+		return (sg->games[item].gs.cityname);
+}
+
+int
+savegame_getcity(savegame_t *sg, int item, GameStruct *gs, char **map)
+{
+	size_t newl = 0;
+	if (sg == NULL || item >= sg->gamecount)
+		return (-1);
+	bcopy(&sg->games[item].gs, gs, sizeof (GameStruct));
+	newl = (sizeof (welem_t) + sizeof (selem_t)) * gs->mapx * gs->mapy;
+	*map = (char *)realloc (*map, newl);
+	bcopy(sg->games[item].world, *map, newl);
 	return (0);
 }
 
 int
-load_defaultfilename(int palm)
+savegame_setcity(savegame_t *sg, int item, GameStruct *gs, char *map)
 {
-	return (load_filename(getCityFileName(), palm));
+	size_t newl;
+
+	if (map == NULL || sg == NULL || item >= sg->gamecount)
+		return (-1);
+	bcopy(gs, &sg->games[item].gs, sizeof (GameStruct));
+	newl = sizeof (selem_t) + sizeof (welem_t) * gs->mapx * gs->mapy;
+	sg->games[item].world = realloc(sg->games[item].world, newl);
+	bcopy(map, sg->games[item].world, newl);
+	return (0);
 }
 
 int
-save_defaultfilename(int palm)
+savegame_citycount(savegame_t *sg)
 {
-	return(save_filename(getCityFileName(), palm));
+	if (sg == NULL) return (-1);
+	return (sg->gamecount);
 }
 
 int
-save_filename(char *sel, int palm)
+load_defaultfilename(void)
+{
+	savegame_t *sg = savegame_open(getCityFileName());
+	if (sg == NULL)
+		return (-1);
+	if (worldPtr != NULL) free(worldPtr);
+	savegame_getcity(sg, 0, &game, (char **)&worldPtr);
+	savegame_close(sg);
+	return (0);
+}
+
+int
+save_defaultfilename()
+{
+	return(save_filename(getCityFileName(), &game, worldPtr));
+}
+
+int
+save_filename(char *sel, GameStruct *gs, char *world)
 {
 	int fd, ret;
-	int worldsize = WorldSize();
+	ssize_t worldsize = gs->mapx * gs->mapy *
+	    (sizeof (selem_t) + sizeof (welem_t));
 
 	if (sel == NULL) {
 		return (-1);
@@ -291,11 +414,8 @@ save_filename(char *sel, int palm)
 	}
 	/* God, I love to write all my vars at one time */
 	/* using a struct :D */
-	if (palm != 0) {
-		//write_palmstructure(&game, fd);
-		return (0);
-	}
-	ret = write(fd, (void*)&game, sizeof (GameStruct));
+
+	ret = write(fd, (void*)gs, sizeof (GameStruct));
 	if (ret == -1) {
 		perror("write game"); /* TODO: make this nicer */
 		return (-1);
@@ -305,7 +425,7 @@ save_filename(char *sel, int palm)
 	}
 
 	/* and now the great worldPtr :D */
-	ret = write(fd, (void*)worldPtr, worldsize);
+	ret = write(fd, (void*)world, (size_t)worldsize);
 	if (ret == -1) {
 		perror("write world"); /* TODO: make this nicer */
 		return (-1);
@@ -339,10 +459,13 @@ getCityFileName(void)
 	return (cityfile);
 }
 
-void
+int
 setCityFileName(char *newName)
 {
+	if (strcasecmp(newName + strlen(newName) - 4, ".pdb") == 0)
+		return (-1);
 	if (cityfile != NULL)
 		free(cityfile);
 	cityfile = strdup(newName);
+	return (0);
 }
