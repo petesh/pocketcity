@@ -22,14 +22,14 @@ GtkWidget *creditslabel;
 GtkWidget *poplabel;
 GtkWidget *timelabel;
 GtkObject *playscrollerh, *playscrollerv;
-void * worldPtr;
-void * worldFlagsPtr;
+void *worldPtr;
+void *worldFlagsPtr;
 GdkPixmap *zones_bitmap, *monsters, *units;
 GdkBitmap *zones_mask, *monsters_mask, *units_mask;
 UInt8 selectedBuildItem = 0;
 void SetUpMainWindow(void);
 static gint mainloop_callback(gpointer data);
-void UIQuitGame(GtkWidget *w, gpointer data) { gtk_main_quit(); }
+void UIQuitGame(GtkWidget *w, gpointer data);
 void UISetSpeed(GtkWidget *w, gpointer data);
 
 GtkItemFactoryEntry menu_items[] = {
@@ -50,7 +50,6 @@ GtkItemFactoryEntry menu_items[] = {
 	{ "/Speed/_Fast", NULL, UISetSpeed, SPEED_FAST, NULL },
 	{ "/Speed/_Turbo", NULL, UISetSpeed, SPEED_TURBO, NULL	},
 };
-
 
 int
 main(int argc, char *argv[])
@@ -126,6 +125,12 @@ scrollbar(GtkAdjustment *adj)
 {
 	Goto(GTK_ADJUSTMENT(playscrollerh)->value,
 	    GTK_ADJUSTMENT(playscrollerv)->value);
+}
+
+void
+winresize(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+	g_print("resizeme");
 }
 
 static gint
@@ -206,6 +211,7 @@ setupToolBox(void)
 	GtkTooltips *tips;
 	GtkWidget *toolbox;
 	GtkWidget *button;
+	GtkWidget *handle;
 	int i;
 	char image_path[40];
 	/* If you change the order here you need to change the xpm... */
@@ -258,7 +264,12 @@ setupToolBox(void)
 		gtk_table_attach_defaults(GTK_TABLE(toolbox), button,
 		    (i%3), (i%3)+1, (i/3), (i/3)+1);
 	}
-	return (toolbox);
+
+	handle = gtk_handle_box_new();
+	gtk_handle_box_set_handle_position(
+	    (GtkHandleBox *)handle, GTK_POS_TOP);
+	gtk_container_add(GTK_CONTAINER(handle), toolbox);
+	return (handle);
 }
 
 GtkAccelGroup *
@@ -284,7 +295,8 @@ createMenu(GtkWidget *main_box)
 void
 SetUpMainWindow(void)
 {
-	GtkWidget *fieldbox, *box, *toolbox, *headerbox, *playingbox, *main_box;
+	GtkWidget *fieldbox, *box, *toolbox, *headerbox;
+	GtkWidget *playingbox, *main_box;
 	GtkAccelGroup *accel_group;
 	GtkWidget *hscroll, *vscroll;
 
@@ -307,7 +319,7 @@ SetUpMainWindow(void)
 
 	/* the actual playfield is a GtkDrawingArea */
 	drawingarea = gtk_drawing_area_new();
-	gtk_drawing_area_size((GtkDrawingArea*)drawingarea, 320, 240);
+	gtk_drawing_area_size((GtkDrawingArea *)drawingarea, 320, 240);
 	/* and some scrollbars for the drawingarea */
 	playscrollerh = gtk_adjustment_new(60, 10, 110, 1, 10, 20);
 	playscrollerv = gtk_adjustment_new(57, 10, 107, 1, 10, 15);
@@ -318,19 +330,25 @@ SetUpMainWindow(void)
 	g_signal_connect(G_OBJECT(playscrollerv), "value_changed",
 	    G_CALLBACK(scrollbar), NULL);
 
-	gtk_table_attach_defaults(GTK_TABLE(playingbox), drawingarea,
-	    0, 1, 0, 1);
-	gtk_table_attach_defaults(GTK_TABLE(playingbox), hscroll, 0, 1, 1, 2);
-	gtk_table_attach_defaults(GTK_TABLE(playingbox), vscroll, 1, 2, 0, 1);
+	gtk_table_attach(GTK_TABLE(playingbox), drawingarea,
+	    0, 1, 0, 1, GTK_EXPAND, GTK_EXPAND, 0, 0);
+	gtk_table_attach(GTK_TABLE(playingbox), hscroll, 0, 1, 1, 2,
+	    GTK_FILL, 0, 0, 0);
+	gtk_table_attach(GTK_TABLE(playingbox), vscroll, 1, 2, 0, 1,
+	    0, GTK_FILL, 0, 0);
+	g_signal_connect(G_OBJECT(window), "configure_event",
+	    G_CALLBACK(winresize), NULL);
 
 	/* arange in boxes  */
 	toolbox = setupToolBox();
 	gtk_box_pack_end(GTK_BOX(main_box), box, TRUE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(box), toolbox, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(box), toolbox, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(box), fieldbox, TRUE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(fieldbox), headerbox, TRUE, TRUE, 0);
+
+	gtk_box_pack_start(GTK_BOX(fieldbox), headerbox, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(fieldbox), playingbox, TRUE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(fieldbox), poplabel, TRUE, TRUE, 0);
+	gtk_box_pack_end(GTK_BOX(fieldbox), poplabel, FALSE, TRUE, 0);
+
 	gtk_box_pack_start(GTK_BOX(headerbox), creditslabel, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(headerbox), timelabel, TRUE, TRUE, 0);
 
@@ -738,7 +756,6 @@ MapHasJumped(void)
 	((GtkAdjustment *)playscrollerv)->value = game.map_ypos+7;
 	gtk_adjustment_value_changed(GTK_ADJUSTMENT(playscrollerh));
 	gtk_adjustment_value_changed(GTK_ADJUSTMENT(playscrollerv));
-
 }
 
 void
@@ -756,6 +773,12 @@ UIDrawPop(void)
 	    vgame.BuildCount[COUNT_RESIDENTIAL]*150);
 
 	gtk_label_set_text((GtkLabel*)poplabel, temp);
+}
+
+void
+UIQuitGame(GtkWidget *w, gpointer data)
+{
+	gtk_main_quit();
 }
 
 #ifdef DEBUG

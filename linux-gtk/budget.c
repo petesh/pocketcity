@@ -17,25 +17,25 @@ UIUpdateBudget(void)
 	if (!dlg)
 		return;
 
-	sprintf(temp, "%li", BudgetGetNumber(bnResidential));
+	sprintf(temp, "%li", (long)BudgetGetNumber(bnResidential));
 	gtk_label_set_text((GtkLabel*)lres, temp);
-	sprintf(temp, "%li", BudgetGetNumber(bnCommercial));
+	sprintf(temp, "%li", (long)BudgetGetNumber(bnCommercial));
 	gtk_label_set_text((GtkLabel*)lcom, temp);
-	sprintf(temp, "%li", BudgetGetNumber(bnIndustrial));
+	sprintf(temp, "%li", (long)BudgetGetNumber(bnIndustrial));
 	gtk_label_set_text((GtkLabel*)lind, temp);
 
-	sprintf(temp, "%li", BudgetGetNumber(bnPower));
+	sprintf(temp, "%li", (long)BudgetGetNumber(bnPower));
 	gtk_label_set_text((GtkLabel*)lpow, temp);
-	sprintf(temp, "%li", BudgetGetNumber(bnTraffic));
+	sprintf(temp, "%li", (long)BudgetGetNumber(bnTraffic));
 	gtk_label_set_text((GtkLabel*)ltra, temp);
-	sprintf(temp, "%li", BudgetGetNumber(bnDefence));
+	sprintf(temp, "%li", (long)BudgetGetNumber(bnDefence));
 	gtk_label_set_text((GtkLabel*)ldef, temp);
 
-	sprintf(temp, "%li", BudgetGetNumber(bnCurrentBalance));
+	sprintf(temp, "%li", (long)BudgetGetNumber(bnCurrentBalance));
 	gtk_label_set_text((GtkLabel*)lbal, temp);
-	sprintf(temp, "%li", BudgetGetNumber(bnChange));
+	sprintf(temp, "%li", (long)BudgetGetNumber(bnChange));
 	gtk_label_set_text((GtkLabel*)lcha, temp);
-	sprintf(temp, "%li", BudgetGetNumber(bnNextMonth));
+	sprintf(temp, "%li", (long)BudgetGetNumber(bnNextMonth));
 	gtk_label_set_text((GtkLabel*)lnex, temp);
 
 }
@@ -45,8 +45,8 @@ budget_traffic(GtkAdjustment *adj)
 {
 	char temp[20];
 	game.upkeep[UPKEEPS_TRAFFIC] = gtk_adjustment_get_value(
-	GTK_ADJUSTMENT(adjust_tra));
-	sprintf(temp, "%li", BudgetGetNumber(bnTraffic));
+	    GTK_ADJUSTMENT(adjust_tra));
+	sprintf(temp, "%li", (long)BudgetGetNumber(bnTraffic));
 	gtk_label_set_text((GtkLabel*)ltra, temp);
 }
 
@@ -56,8 +56,8 @@ budget_power(GtkAdjustment *adj)
 	char temp[20];
 
 	game.upkeep[UPKEEPS_POWER] = gtk_adjustment_get_value(
-	GTK_ADJUSTMENT(adjust_pow));
-	sprintf(temp, "%li", BudgetGetNumber(bnPower));
+	    GTK_ADJUSTMENT(adjust_pow));
+	sprintf(temp, "%li", (long)BudgetGetNumber(bnPower));
 	gtk_label_set_text((GtkLabel*)lpow, temp);
 }
 
@@ -67,8 +67,8 @@ budget_defence(GtkAdjustment *adj)
 	char temp[20];
 
 	game.upkeep[UPKEEPS_DEFENCE] = gtk_adjustment_get_value(
-	GTK_ADJUSTMENT(adjust_def));
-	sprintf(temp, "%li", BudgetGetNumber(bnDefence));
+	    GTK_ADJUSTMENT(adjust_def));
+	sprintf(temp, "%li", (long)BudgetGetNumber(bnDefence));
 	gtk_label_set_text((GtkLabel*)ldef, temp);
 }
 

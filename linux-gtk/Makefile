@@ -2,7 +2,7 @@ VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 CC = gcc
 GFLAGS := $(shell pkg-config --cflags gtk+-2.0)
 OPTFLAGS = -O2 -Wall
-CFLAGS = $(OPTFLAGS) -DLINUX $(GFLAGS) -I . -I ../source
+CFLAGS = $(OPTFLAGS) -DLINUX $(GFLAGS) -I . -I ../source -I ../nix-common
 GLFLAGS = $(shell pkg-config --libs gtk+-2.0)
 LIBS =
 LDLIBS = $(LIBS) $(GLFLAGS)
@@ -24,7 +24,13 @@ pocketcity: $(OBJECTS)
 %.o: %.c %.h ../source/zakdef.h ../source/ui.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+%.o: ../nix-common/%.c ../nix-common/%.h ../source/zakdef.h ../source/ui.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
 %.o: ../source/%.c ../source/%.h ../source/zakdef.h ../source/ui.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+%.o: ../nix-common/%.c ../source/%.h ../source/zakdef.h ../source/ui.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
