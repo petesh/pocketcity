@@ -13,5 +13,5 @@ echo ****Palm*****
 echo *************
 
 cd palm
-make
+C:\cygnus\cygwin-b20\H-i586-cygwin32\bin\make
 cd ..
