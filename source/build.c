@@ -619,10 +619,10 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			tobuil = Z_POWERROAD_PVER;
 			break;
 		case Z_PIPE_START: /* Straight water pipe - Horizontal */
-			tobuil = Z_PIPEROAD_PVER;
+			tobuil = Z_PIPEROAD_PHOR;
 			break;
 		case Z_PIPE_START+1: /* Straight water pipe - Vertical */
-			tobuil = Z_PIPEROAD_PHOR;
+			tobuil = Z_PIPEROAD_PVER;
 			break;
 		}
 		if (SpendMoney(toSpend)) {
@@ -633,9 +633,21 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			UIDisplayError(enOutOfMoney);
 		}
 	} else if (old == Z_REALWATER) {
-		/* build a bridge */
+		welem_t tobuil = 0;
+		/*
+		 * build a bridge only if one of the squares around is
+		 * either a bridge or a road.
+		 */
+		if (CheckNextTo(WORLDPOS(xpos, ypos), IsRoadOrBridge,
+		    DIR_UP | DIR_DOWN))
+			tobuil = Z_BRIDGE_END;
+		if (CheckNextTo(WORLDPOS(xpos, ypos), IsRoadOrBridge, 
+			    DIR_LEFT | DIR_RIGHT))
+			tobuil = Z_BRIDGE_START;
+		if (tobuil == 0)
+			goto leaveme;
 		if (SpendMoney(toSpend)) {
-			SetWorld(WORLDPOS(xpos, ypos), Z_BRIDGE);
+			SetWorld(WORLDPOS(xpos, ypos), tobuil);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_count_roads]++;
 		} else {
@@ -651,6 +663,7 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			UIDisplayError(enOutOfMoney);
 		}
 	}
+leaveme:
 	UnlockWorld();
 }
 

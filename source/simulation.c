@@ -409,7 +409,7 @@ DistributeMoveOn(UInt32 pos, dirType direction)
 		pos -= GetMapWidth();
 		break;
 	case dtRight:
-		if ((pos%GetMapWidth()+1) >= GetMapWidth())
+		if (((pos%GetMapWidth()) + 1) >= GetMapWidth())
 			return (pos);
 		pos++;
 		break;
@@ -419,7 +419,7 @@ DistributeMoveOn(UInt32 pos, dirType direction)
 		pos += GetMapWidth();
 		break;
 	case dtLeft:
-		if (pos%GetMapWidth() == 0)
+		if (pos % GetMapWidth() == 0)
 			return (pos);
 		pos--;
 		break;
@@ -434,7 +434,7 @@ DistributeMoveOn(UInt32 pos, dirType direction)
  * \return true if the node is next to it.
  */
 static Int16
-ExistsNextto(UInt32 pos, UInt8 what)
+ExistsNextto(UInt32 pos, welem_t what)
 {
 	if (!(pos < GetMapWidth()) && GetWorld(pos - GetMapWidth()) == what) {
 		return (1);
@@ -1399,6 +1399,42 @@ IsZone(welem_t x, zoneType nType)
 	nType -= Z_COMMERCIAL_SLUM;
 	if ((x >= (nType * 10 + Z_COMMERCIAL_MIN)) && 
 	    (x <= (nType * 10 + Z_COMMERCIAL_MAX)))
+		return (1);
+	return (0);
+}
+
+/*!
+ * \brief is the zone either a road or bridge
+ * \param x the zone to test
+ * \return true if the zone is either a bridge or road
+ */
+Int16
+IsRoadOrBridge(welem_t x)
+{
+	return (IsRoad(x) || IsBridge(x));
+}
+
+/*!
+ * \brief Is one of the zones in the direction passed of the type passed
+ * \param pos position to start from
+ * \param checkfn function to assert or deny the test
+ * \param dirs the directions to check
+ * \return true if the direction passed is of the correct type
+ */
+Int16
+CheckNextTo(Int32 pos, Int16 (*checkfn)(welem_t), Int8 dirs)
+{
+	if ((dirs & DIR_UP) && (pos > GetMapWidth()) &&
+	    checkfn(GetWorld(pos - GetMapWidth())))
+		return (1);
+	if ((dirs & DIR_DOWN) && (pos < (MapMul() - GetMapWidth())) &&
+	    checkfn(GetWorld(pos + GetMapWidth())))
+		return (1);
+	if ((dirs & DIR_LEFT) && (pos % GetMapWidth()) && 
+	    checkfn(GetWorld(pos - 1)))
+		return (1);
+	if ((dirs & DIR_RIGHT) && (((pos % GetMapWidth()) + 1) < GetMapWidth())
+		&& checkfn(GetWorld(pos + 1)))
 		return (1);
 	return (0);
 }

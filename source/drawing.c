@@ -309,9 +309,9 @@ GetGraphicNumber(UInt32 pos)
 		retval = GetSpecialGraphicNumber(pos);
 	} else if (IsWaterPipe(retval)) {
 		retval = GetSpecialGraphicNumber(pos);
-	} else if (IsBridge(retval)) {
+	} /* else if (IsBridge(retval)) {
 		retval = GetSpecialGraphicNumber(pos);
-	}
+	} */
 	return (retval);
 }
 
@@ -372,7 +372,8 @@ GetSpecialGraphicNumber(UInt32 pos)
 			b = CarryPower(GetWorld(pos+1));
 		if (pos % GetMapWidth() > 0) d = CarryPower(GetWorld(pos - 1));
 		nAddMe = Z_POWERLINE;
-	} else if (IsBridge(wpe)) {
+	}
+	/* else if (IsBridge(wpe)) {
 		if (pos >= GetMapWidth()) {
 			elt = GetWorld(pos - GetMapWidth());
 			a = IsRoad(elt) || IsBridge(elt);
@@ -382,7 +383,7 @@ GetSpecialGraphicNumber(UInt32 pos)
 			c = IsRoad(elt) || IsBridge(elt);
 		}
 		nAddMe = Z_BRIDGE_START;
-	}
+	} */
 
 	if ((a && b && c && d) == 1)
 		return (10 + nAddMe);

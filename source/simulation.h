@@ -51,7 +51,15 @@ Int16 IsRoadPower(welem_t x);
 Int16 IsWaterPipe(welem_t x);
 Int16 IsRoadWater(welem_t x);
 Int16 IsBridge(welem_t x);
+Int16 IsRoadOrBridge(welem_t x);
 Int16 IsZone(welem_t x, zoneType nType);
+
+#define DIR_UP		(1<<0)
+#define	DIR_DOWN	(1<<1)
+#define	DIR_LEFT	(1<<2)
+#define	DIR_RIGHT	(1<<3)
+
+Int16 CheckNextTo(Int32 pos, Int16 (*checkfn)(welem_t), Int8 dirs);
 
 Int16 CarryPower(welem_t x);
 Int16 CarryWater(welem_t x);
