@@ -1,4 +1,8 @@
 
+VERSION := $(shell grep Version CHANGELOG | head -1 | awk '{print $$2}')
+
+nearlylive: VERSION = $(shell date +%Y.%m.%d)
+
 .PHONY: all linux palm clean stuff
 
 stuff:
@@ -27,3 +31,10 @@ clean:
 	cd linux-gtk && $(MAKE) clean
 	cd palm && $(MAKE) clean
 
+SVFILE=pcity-source-$(VERSION)
+
+nearlylive dist:
+	cd ..; \
+	ln -s pcity $(SVFILE); \
+	tar chf - $(SVFILE) | gzip -c > $(SVFILE).tgz; \
+	rm $(SVFILE)
