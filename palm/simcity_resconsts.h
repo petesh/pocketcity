@@ -276,6 +276,13 @@
 #define	List_JogOut 2520
 #define	List_JogOut_Popup 2521
 
+#define List_RockerLeft 2522
+#define List_RockerLeft_Popup 2523
+#define List_RockerRight 2524
+#define List_RockerRight_Popup 2525
+#define List_RockerCenter 2526
+#define List_RockerCenter_Popup 2527
+
 /* Controls for the Query Form */
 #define	labelID_zonetype 1001
 #define labelID_zonevalue 1002

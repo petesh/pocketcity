@@ -53,7 +53,7 @@ cheat: dlores
 
 # you can add: -DMEM_DEBUG to add logging of most palm memory allocation calls
 # -mdebug-labels
-dlores dpalm5 dsony: AXCFLAGS = -g -DDEBUG -DLOGGING
+dlores dpalm5 dsony: AXCFLAGS = -g -DDEBUG
 dlores dpalm5 dsony: DEBUG=1
 
 palm5 dpalm5: BXCFLAGS = -DPALM_HIGH

@@ -39,10 +39,11 @@ Things left to implement:
 		- stadium
 
 	Palm 5
-		- 5 way navigator
+		- 5 way navigator (implemented - test now)
 
 	Buttons
-		- specific tools for buttons
+		- specific tools for buttons (done)
+		- make the toolbar customizable (needed?)
 
 Save games on external media
 

@@ -33,7 +33,7 @@
 #include <logging.h>
 #include <locking.h>
 
-#ifdef LOGGING
+#if defined(LOGGING)
 #include <HostControl.h>
 #endif
 
@@ -57,7 +57,7 @@ UInt32 timeStampDisaster = 0;
 Int16 simState = 0;
 Coord XOFFSET = 0;
 Coord YOFFSET = 15;
-#ifdef SONY_CLIE
+#if defined(SONY_CLIE)
 UInt16 jog_lr = 0;
 #endif
 
@@ -82,7 +82,7 @@ static void EventLoop(void);
 static void cycleSpeed(void);
 static void DoAbout(void) LARD_SECTION;
 static void CheckTextClick(Coord x, Coord y);
-static Int16 doButtonEvent(ButtonEvent key);
+static Int16 doKeyEvent(keyEvent key);
 static Int16 speedOffset(void);
 static void UISetSelectedBuildItem(BuildCode item);
 static void ClearScrolling(void);
@@ -389,11 +389,11 @@ EventLoop(void)
 		timeTemp = TimGetSeconds();
 
 		if (timeTemp >= (timeStampDisaster + SIM_GAME_LOOP_DISASTER)) {
-#ifdef LOGGING
+#if defined(LOGGING)
 			Int16 q, pc = 0;
 #endif
 			MoveAllObjects();
-#ifdef LOGGING
+#if defined(LOGGING)
 			/*
 			 * This will print the BuildCount array
 			 * don't forget to keep an eye on it
@@ -724,10 +724,10 @@ DoPCityMenuProcessing(UInt16 itemID)
 		 * ie. disaters... this item is erased if you've
 		 * not compiled with CHEAT or DEBUG
 		 */
-#ifdef CHEAT
+#if defined(CHEAT)
 		game.credits += 10000;
 #endif
-#ifdef DEBUG
+#if defined(DEBUG)
 		MeteorDisaster(20, 20);
 #endif
 		handled = true;
@@ -1923,7 +1923,7 @@ static const struct StatusPositions lrpositions[] = {
 	{ {0, 0}, {0, 1}, ENDX | ENDY } /* loc_position */
 };
 
-#ifdef HRSUPPORT
+#if defined(HRSUPPORT)
 
 /*! \brief the positions of the items on screen - high resolution */
 static const struct StatusPositions hrpositions[] = {
@@ -2052,14 +2052,14 @@ CheckTextClick(Coord x, Coord y)
 	case loc_date:
 		break;
 	case loc_credits:
-		doButtonEvent(BeBudget);
+		doKeyEvent(keBudget);
 		break;
 	case loc_population:
-		doButtonEvent(BePopulation);
+		doKeyEvent(kePopulation);
 		break;
 	case loc_position:
 		if (!GETMINIMAPVISIBLE())
-			doButtonEvent(BeMap);
+			doKeyEvent(keMap);
 		break;
 	default:
 		break;
@@ -2084,7 +2084,7 @@ UIPaintCredits(void)
 	char temp[20];
 	char scale;
 	UInt32 credits;
-#ifdef HRSUPPORT
+#if defined(HRSUPPORT)
 	MemHandle bitmapHandle;
 	BitmapPtr bitmap;
 #endif
@@ -2095,7 +2095,7 @@ UIPaintCredits(void)
 	credits = scaleNumber((UInt32)getCredits(), &scale);
 	StrPrintF(temp, "$: %ld%c", credits, scale);
 	DrawItem(loc_credits, temp);
-#ifdef HRSUPPORT
+#if defined(HRSUPPORT)
 	if (isHires()) {
 		bitmapHandle = DmGetResource(TBMP, bitmapID_coin);
 		if (bitmapHandle == NULL)
@@ -2115,7 +2115,7 @@ void
 UIPaintLocation(void)
 {
 	char temp[20];
-#ifdef HRSUPPORT
+#if defined(HRSUPPORT)
 	MemHandle bitmapHandle;
 	BitmapPtr bitmap;
 #endif
@@ -2126,7 +2126,7 @@ UIPaintLocation(void)
 	StrPrintF(temp, "%02u,%02u", getMapXPos(), getMapYPos());
 
 	DrawItem(loc_position, temp);
-#ifdef HRSUPPORT
+#if defined(HRSUPPORT)
 	if (isHires()) {
 		bitmapHandle = DmGetResource(TBMP, bitmapID_loca);
 		if (bitmapHandle == NULL)
@@ -2198,7 +2198,7 @@ UIPaintSpeed(void)
 	    GETWIDTH() - 12, 2, winPaint);
 	EndHiresDraw();
 
-#ifdef SONY_CLIE
+#if defined(SONY_CLIE)
 	if (IsSony()) {
 		bitmapHandle = DmGetResource(TBMP, bitmapID_updn + jog_lr);
 		/* place at rt - (12 + 8), 1 */
@@ -2233,7 +2233,7 @@ UIPaintPopulation(void)
 
 	StrPrintF(temp, "Pop: %lu%c", popul, scale);
 	DrawItem(loc_population, temp);
-#ifdef HRSUPPORT
+#if defined(HRSUPPORT)
 	if (isHires()) {
 		MemHandle bitmapHandle;
 		BitmapPtr bitmap;
@@ -2379,44 +2379,68 @@ cycleSpeed(void)
  * \return 1 if the event was dealt with, 0 otherwise.
  */
 static Int16
-doButtonEvent(ButtonEvent event)
+doKeyEvent(keyEvent event)
 {
 	switch (event) {
-	case BeIgnore:
+	case keIgnore:
 		break;
-	case BeUp:
+	case keUp:
 		ScrollDisplay(dtUp);
 		break;
-	case BeDown:
+	case keDown:
 		ScrollDisplay(dtDown);
 		break;
-	case BeLeft:
+	case keLeft:
 		ScrollDisplay(dtLeft);
 		break;
-	case BeRight:
+	case keRight:
 		ScrollDisplay(dtRight);
 		break;
-	case BePopup:
+	case kePopup:
 		UIDoQuickList();
 		break;
-	case BeMap:
+	case keMap:
 		FrmGotoForm(formID_map);
 		break;
-	case BeBudget:
+	case keBudget:
 		FrmGotoForm(formID_budget);
 		break;
-	case BePopulation:
+	case kePopulation:
 		/* No-Op at moment */
 		break;
-	case BePassthrough:
+	case kePassthrough:
 		return (0);
-#ifdef SONY_CLIE
+	case keToolBulldozer:
+	case keToolResidential:
+	case keToolCommercial:
+	case keToolIndustrial:
+	case keToolRoad:
+	case keToolRail:
+	case keToolCoalPlant:
+	case keToolNuclearPlant:
+	case keToolPowerLine:
+	case keToolWaterPump:
+	case keToolWaterPipe:
+	case keToolTree:
+	case keToolLake:
+	case keToolFireStation:
+	case keToolPoliceStation:
+	case keToolArmyBase:
+	case keToolQuery:
+	case keUnitFire:
+	case keUnitPolice:
+	case keUnitArmy:
+		UISetSelectedBuildItem(event - keToolBulldozer);
+		addGraphicUpdate(gu_buildicon);
+		break;
+
+#if defined(SONY_CLIE)
 	/*
 	 * if the draw window doesn't occupy most of the screen ...
 	 *  - for example if it's a menu
 	 * allow jog assist to work.
 	 */
-	case BeJogUp:
+	case keJogUp:
 		if (!IsDrawWindowMostOfScreen())
 			return (0);
 		if (jog_lr)
@@ -2424,7 +2448,7 @@ doButtonEvent(ButtonEvent event)
 		else
 			ScrollDisplay(dtUp);
 		break;
-	case BeJogDown:
+	case keJogDown:
 		if (!IsDrawWindowMostOfScreen())
 			return (0);
 		if (jog_lr)
@@ -2432,13 +2456,13 @@ doButtonEvent(ButtonEvent event)
 		else
 			ScrollDisplay(dtDown);
 		break;
-	case BeJogRelease:
+	case keJogRelease:
 		if (!IsDrawWindowMostOfScreen())
 			return (0);
 		jog_lr = 1 - jog_lr;
 		addGraphicUpdate(gu_location);
 		break;
-#endif
+#endif /* SONY_CLIE */
 	default:
 		break;
 	}
@@ -2453,7 +2477,7 @@ doButtonEvent(ButtonEvent event)
 static Int16
 HardButtonEvent(ButtonKey key)
 {
-	return (doButtonEvent(gameConfig.pc.keyOptions[key]));
+	return (doKeyEvent(gameConfig.pc.keyOptions[key]));
 }
 
 void
@@ -2475,16 +2499,19 @@ static struct _silkKeys {
 } silky[] = {
 	{ pageUpChr, BkHardUp },
 	{ pageDownChr, BkHardDown },
-	{ vchrRockerUp, BkHardUp },
-	{ vchrRockerDown, BkHardDown },
 	{ vchrHard1, BkCalendar },
 	{ vchrHard2, BkAddress },
 	{ vchrHard3, BkToDo },
 	{ vchrHard4, BkMemo },
 	{ vchrFind, BkFind },
 	{ 1, BkCalc },
-#ifdef HIRES
-#ifdef SONY_CLIE
+#if defined(HRSUPPORT)
+	{ vchrRockerUp, BkHardUp },
+	{ vchrRockerDown, BkHardDown },
+	{ vchrRockerLeft, BkHardLeft },
+	{ vchrRockerRight, BkHardRight },
+	{ vchrRockerCenter, BkRockerCenter },
+#if defined(SONY_CLIE)
 	{ vchrJogUp, BkJogUp },
 	{ vchrJogDown, BkJogDown },
 	{ vchrJogRelease, BkJogRelease },
@@ -2560,7 +2587,7 @@ vkDoEvent(UInt16 key)
 
 }
 
-#ifdef HRSUPPORT
+#if defined(HRSUPPORT)
 /*! \brief the tool bar bitmap */
 static BitmapType *pToolbarBitmap;
 /*! \brief the low-resolution bitmap (v2) for palmOS5 compatibility */
@@ -2779,7 +2806,7 @@ pcResizeDisplay(FormPtr form, Int16 hOff, Int16 vOff, Boolean draw)
 
 #endif /* HRSUPPORT */
 
-#ifdef	SONY_CLIE
+#if defined(SONY_CLIE)
 
 /*! \brief  Pauses the game if you flick the 'hold' switch */
 static void
@@ -2791,7 +2818,7 @@ HoldHook(UInt32 held)
 
 #endif
 
-#ifdef LOGGING
+#if defined(LOGGING)
 
 #include <unix_stdarg.h>
 

@@ -214,11 +214,16 @@ static const struct bc_chelts {
 	{ List_Memo_Popup, List_Memo, BkMemo },
 	{ List_Calc_Popup, List_Calc, BkCalc },
 	{ List_Find_Popup, List_Find, BkFind },
-#ifdef SONY_CLIE
+#if defined(PALM_HIGH)
+	{ List_RockerLeft_Popup, List_RockerLeft, BkHardLeft },
+	{ List_RockerRight_Popup, List_RockerRight, BkHardRight },
+	{ List_RockerCenter_Popup, List_RockerCenter, BkRockerCenter },
+#if defined(SONY_CLIE)
 	{ List_JogUp_Popup, List_JogUp, BkJogUp },
 	{ List_JogDn_Popup, List_JogDn, BkJogDown },
 	{ List_JogOut_Popup, List_JogOut, BkJogRelease },
-#endif
+#endif /* SONY_CLIE */
+#endif /* HIRES */
 	{ 0, 0, 0 }
 };
 
@@ -272,7 +277,7 @@ saveButtonConfig(void)
 
 	for (bk = BkCalendar; bc_elts[bk].popup != 0; bk++) {
 		gameConfig.pc.keyOptions[bk] =
-		    (ButtonEvent)LstGetSelection((ListPtr)GetObjectPtr(form,
+		    (keyEvent)LstGetSelection((ListPtr)GetObjectPtr(form,
 				bc_elts[bk].list));
 	}
 }

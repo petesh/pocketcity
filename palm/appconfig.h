@@ -16,27 +16,48 @@
 /*!
  * \brief the button events
  *
- * if you add in here don't forget the entries in game.rcp for the
- * configuration screen.
+ * The order here matches the string table StrID_Popups in game.rcp
+ * As well as the BuildCodes in build.h. If you change one you need to
+ * change all
  */
-typedef enum ButtonEvent {
-	BeIgnore = 0,
-	BeUp,
-	BeDown,
-	BeLeft,
-	BeRight,
-	BePopup,
-	BeMap,
-	BeBudget,
-	BePopulation,
-	BePassthrough,
+typedef enum skeyEvent {
+	keIgnore = 0,
+	keUp,
+	keDown,
+	keLeft,
+	keRight,
+	kePopup,
+	keMap,
+	keBudget,
+	kePopulation,
+	kePassthrough,
+	keToolBulldozer,
+	keToolResidential,
+	keToolCommercial,
+	keToolIndustrial,
+	keToolRoad,
+	keToolRail,
+	keToolCoalPlant,
+	keToolNuclearPlant,
+	keToolPowerLine,
+	keToolWaterPump,
+	keToolWaterPipe,
+	keToolTree,
+	keToolLake,
+	keToolFireStation,
+	keToolPoliceStation,
+	keToolArmyBase,
+	keToolQuery,
+	keUnitFire,
+	keUnitPolice,
+	keUnitArmy,
 #ifdef SONY_CLIE
-	BeJogUp,
-	BeJogDown,
-	BeJogRelease,
-#endif
-	BeEnd /* unused */
-} ButtonEvent;
+	keJogUp,
+	keJogDown,
+	keJogRelease,
+#endif /* SONY_CLIE */
+	keEnd /* unused */
+} keyEvent;
 
 /*! \brief the keys */
 typedef enum buttonKeys {
@@ -46,33 +67,44 @@ typedef enum buttonKeys {
 	BkHardDown,
 	BkToDo,
 	BkMemo,
-	BkCalc,
-	BkFind,
-#ifdef SONY_CLIE
+	BkCalc, /* This is not a real key! */
+	BkFind, /* This is not a real key! */
+#if defined(PALM_HIGH) || defined(SONY_CLIE)
+	BkHardLeft,
+	BkHardRight,
+	BkRockerCenter,
+#if defined(SONY_CLIE)
 	BkJogUp,
 	BkJogDown,
 	BkJogRelease,
-#endif
+#endif /* SONY_CLIE */
+#endif /* HIRES */
 	BkEnd /* Unused */
 } ButtonKey;
 
 /*! \brief the palm application configuration */
 typedef struct _PalmAppConfig_01 {
-	ButtonEvent	keyOptions[BkEnd];
+	keyEvent	keyOptions[BkEnd];
 } PalmAppConfig_01_t;
 
 /*! \brief the palm application configuration */
 typedef PalmAppConfig_01_t PlatformAppConfig;
 
-#ifdef SONY_CLIE
-#define	SONYEV , BeJogUp, BeJogDown, BeJogRelease
+#if defined(PALM_HIGH) || defined(SONY_HIGH)
+#define HIRESKEY , keLeft, keRight, keIgnore
+#else
+#define HIRESKEY
+#endif
+
+#if defined(SONY_CLIE)
+#define	SONYEV , keJogUp, keJogDown, keJogRelease
 #else
 #define	SONYEV
 #endif
 
 #define	DEFAULT_APPCONFIG { \
-	{ BePassthrough, BeLeft, BeUp, BeDown, BeRight, BePassthrough, \
-		BePopup, BeMap SONYEV } \
+	{ kePassthrough, keLeft, keUp, keDown, keRight, kePassthrough, \
+		kePopup, keMap HIRESKEY SONYEV } \
 }
 
 #endif /* _APPCONFIG_H */

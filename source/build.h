@@ -19,7 +19,8 @@ extern "C" {
 /*!
  * \brief The codes that are mapped for building items.
  *
- * These items are aligned with the BUILD_* items in simcity.h to
+ * These items are aligned with the keyCodes in palm/appconfig.h
+ * as well as the string list StrID_Popups in palm/game.rcp
  * ease the mapping of buttons to items to build.
  */
 typedef enum BuildCode {
