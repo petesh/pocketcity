@@ -8,6 +8,12 @@ Legend:
  '*' = fix/modification
  '-' = removed feature
 
+Version 0.11
+============
+Kean Pedersen:
+  + Naming of savegames
+  * Uses less stackspace in recursive function (should fix the FE)
+
 Version 0.10
 ============
 Kean Pedersen:

@@ -7,7 +7,7 @@ C = commercial zones
 * R will VERY rarely settle next to I
 * I/C zones only grows if there are enough R (workers)
 * C will only grow if there are enough I (to produce goods)
-* There most be at most 3 squares to the nearest road for a zone
+* There must be at most 3 squares to the nearest road for a zone
 * The population is calculated from the total R - I/C doesn't count
 * Tapping on the speed indicator will pause the game, tapping again will set the speed to "medium"
 * Tapping on the build icon will toggle bulldozer
