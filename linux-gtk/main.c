@@ -12,6 +12,7 @@ GtkWidget *drawingarea;
 void * worldPtr;
 void * worldFlagsPtr;
 GdkPixmap *zones;
+unsigned char selectedBuildItem = 0;
 
 
 void SetUpMainWindow(void);
@@ -30,9 +31,15 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-gint scoll_map_callback(GtkWidget *widget, gpointer data)
+gint toolbox_callback(GtkWidget *widget, gpointer data)
 {
-    ScrollMap(GPOINTER_TO_INT(data));
+    gint action = GPOINTER_TO_INT(data);
+    if (action >= 260) {
+        ScrollMap(action-260);
+    } else {
+        selectedBuildItem = action;
+    }
+
     return FALSE;
 }
 
@@ -115,15 +122,17 @@ void SetUpMainWindow(void)
     gtk_window_set_title(GTK_WINDOW(window), "Pocket City");
     g_signal_connect(G_OBJECT(window), "delete_event", G_CALLBACK(delete_event), NULL);
     
-    box = gtk_vbox_new(FALSE,0);
-    toolbox = gtk_hbox_new(FALSE,0);
+    box = gtk_hbox_new(FALSE,0);
+    toolbox = gtk_table_new(10,3,TRUE);
     gtk_container_add(GTK_CONTAINER(window), box);
+
+    gtk_container_set_border_width(GTK_CONTAINER(toolbox), 3);
 
     // the actual playfield is a GtkDrawingArea
     drawingarea = gtk_drawing_area_new();
     gtk_drawing_area_size((GtkDrawingArea*)drawingarea,320,240);
-    gtk_box_pack_start(GTK_BOX(box), drawingarea, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(box), toolbox, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(box), drawingarea, TRUE, TRUE, 0);
 
     g_signal_connect(G_OBJECT(drawingarea),"expose_event",
             G_CALLBACK(drawing_exposed_callback), NULL);
@@ -146,14 +155,34 @@ void SetUpMainWindow(void)
 
     // setup the toolbox
     {
-        char labels[] = "<\0^\0v\0>";
+        char labels[] = "Bu\0Ro\0Po\0"
+                        "Re\0Co\0In\0"
+                        "Tr\0Wa\0  \0"
+                        "PP\0NP\0  \0"
+                        "FS\0PS\0MB\0"
+                        "  \0  \0  \0"
+                        "DF\0DP\0DM\0"
+                        "  \0/\\\0  \0"
+                        "<-\0  \0->\0"
+                        "  \0\\/\0  \0";
         int i;
-        char dir[] = "\x03\x00\x02\x01";
-        for (i=0; i<4; i++) {
-            button = gtk_button_new_with_label(labels+i*2);
+        gint actions[] = { BUILD_BULLDOZER,BUILD_ROAD,BUILD_POWER_LINE,
+                            BUILD_ZONE_RESIDENTIAL,BUILD_ZONE_COMMERCIAL,BUILD_ZONE_INDUSTRIAL,
+                            BUILD_TREE,BUILD_WATER,-1,
+                            BUILD_POWER_PLANT,BUILD_NUCLEAR_PLANT,-1,
+                            BUILD_FIRE_STATION,BUILD_POLICE_STATION,BUILD_MILITARY_BASE,
+                            -1,-1,-1,
+                            BUILD_DEFENCE_FIRE,BUILD_DEFENCE_POLICE,BUILD_DEFENCE_MILITARY,
+                            -1,260,-1,
+                            263,-1,261,
+                            -1,262,-1 };
+                            
+        for (i=0; i<30; i++) {
+            if (*(labels+i*3) == ' ') { continue; }
+            button = gtk_button_new_with_label(labels+i*3);
             g_signal_connect(G_OBJECT(button),"clicked",
-                G_CALLBACK(scoll_map_callback), GINT_TO_POINTER((int)dir[i]));
-            gtk_box_pack_start(GTK_BOX(toolbox), button, TRUE, TRUE, 0);
+                G_CALLBACK(toolbox_callback), GINT_TO_POINTER(actions[i]));
+            gtk_table_attach_defaults(GTK_TABLE(toolbox), button, (i%3), (i%3)+1, (i/3), (i/3)+1);
             gtk_widget_show(button);
         }
     }
@@ -172,7 +201,6 @@ void SetUpMainWindow(void)
 
 extern void UISetUpGraphic(void)
 {
-    g_print("UISetUpGraphic\n");
     zones = gdk_pixmap_create_from_xpm(drawingarea->window,
                                        NULL,
                                        NULL,
@@ -283,12 +311,11 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
 
 extern unsigned char UIGetSelectedBuildItem(void)
 {
-    return BUILD_ROAD;
+    return selectedBuildItem;
 }
 
 extern int InitWorld(void)
 {
-    g_print("InitWorld\n");
     worldPtr = malloc(10);
     worldFlagsPtr = malloc(10);
 
@@ -302,7 +329,6 @@ extern int InitWorld(void)
 
 extern int ResizeWorld(long unsigned size)
 {
-    g_print("ResizeWorld\n");
     worldPtr = realloc(worldPtr, size);
     worldFlagsPtr = realloc(worldFlagsPtr, size);
 
