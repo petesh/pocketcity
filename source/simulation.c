@@ -200,8 +200,7 @@ void FindZonesForUpgrading()
     {
         zones[i].used = 0;
         randomZone = GetRandomZone();
-        if (randomZone != -1) // -1 means we didn't find a zone
-        {
+        if (randomZone != -1) { // -1 means we didn't find a zone
             zones[i].pos = randomZone;
             zones[i].used = 1;
         }
@@ -230,8 +229,8 @@ int FindScoreForZones()
     {
         if (i>=256) { counter = 0; return 0; } // this was the last zone!
 
-        if (zones[i].used == 1)
-        {
+        if (zones[i].used == 1) {
+            
             score = GetZoneScore(zones[i].pos);
             if (score != -1) {
                 zones[i].score = score;
@@ -243,7 +242,6 @@ int FindScoreForZones()
         }
     }
     return 1; // there's still more zones that need a score.
-
 }
 
 
@@ -264,18 +262,15 @@ void UpgradeZones()
         // find the one with max points
         for (j=0; j<256; j++)
         {
-            if (zones[j].score > topscore && zones[j].used == 1)
-            {
+            if (zones[j].score > topscore && zones[j].used == 1) {
                 topscore = zones[j].score;
                 topscorer = j;
             }
         }
 
         // upgrade him/her/it/whatever
-        if (topscorer != -1)
-        {
-            if (zones[topscorer].used == 1)
-            {
+        if (topscorer != -1) {
+            if (zones[topscorer].used == 1) {
                 zones[topscorer].used = 0;
                 UpgradeZone(zones[topscorer].pos);
             }
@@ -291,18 +286,15 @@ void UpgradeZones()
         // find the one with min points
         for (j=0; j<256; j++)
         {
-            if (zones[j].score < topscore && zones[j].used == 1)
-            {
+            if (zones[j].score < topscore && zones[j].used == 1) {
                 topscore = zones[j].score;
                 topscorer = j;
             }
         }
 
-        // upgrade him/her/it/whatever
-        if (topscorer != -1)
-        {
-            if (zones[topscorer].used == 1)
-            {
+        // downgrade him/her/it/whatever
+        if (topscorer != -1) {
+            if (zones[topscorer].used == 1) {
                 zones[topscorer].used = 0;
                 DowngradeZone(zones[topscorer].pos);
             }
@@ -335,7 +327,6 @@ void DowngradeZone(long unsigned pos)
     }
 
     UnlockWorld();
-
 }
 
 void UpgradeZone(long unsigned pos)
@@ -346,18 +337,13 @@ void UpgradeZone(long unsigned pos)
 
     type = GetWorld(pos);
 
-    if (type == 1 || (type >= 30 && type <= 38))
-    {
+    if (type == 1 || (type >= 30 && type <= 38)) {
         SetWorld(pos, (type == 1) ? 30 : type+1);
         BuildCount[COUNT_COMMERCIAL]++;
-    }
-    else if (type == 2 || (type >= 40 && type <= 48))
-    {
+    } else if (type == 2 || (type >= 40 && type <= 48)) {
         SetWorld(pos, (type == 2) ? 40 : type+1);
         BuildCount[COUNT_RESIDENTIAL]++;
-    }
-    else if (type == 3 || (type >= 50 && type <= 58))
-    {
+    } else if (type == 3 || (type >= 50 && type <= 58)) {
         SetWorld(pos, (type == 3) ? 50 : type+1);
         BuildCount[COUNT_INDUSTRIAL]++;
     }
@@ -392,35 +378,36 @@ signed long GetZoneScore(long unsigned int pos)
     if ((GetWorldFlags(pos) & 0x01) == 0) { UnlockWorldFlags(); UnlockWorld(); return -1; } // whoops, no power
     UnlockWorldFlags();
 
-    // see if there's actually enough residential population to support a
-    // new zone of ind or com
-    if (type != 2)
-    {
+    if (type != ZONE_RESIDENTIAL)  {
+        // see if there's actually enough residential population to support
+        // a new zone of ind or com
+
         long signed int availPop = 
                 (BuildCount[COUNT_RESIDENTIAL]*25)
                 - (BuildCount[COUNT_COMMERCIAL]*25 + BuildCount[COUNT_INDUSTRIAL]*25);
         if (availPop <= 0) { UnlockWorld(); return -1; } // whoops, missing population
-    }
-    // and what is a store without something to sell? therefore we need
-    // enough industrial zones before commercial zones kick in ;)
-    if (type == 1)
-    {
-        long signed int availGoods =
-                (BuildCount[COUNT_INDUSTRIAL]/3*2)
-                - (BuildCount[COUNT_COMMERCIAL]);
-        if (availGoods <= 0) { UnlockWorld(); return -1; } // darn, nothing to sell here
-    }
-    // and lastly, the population can't skyrocket all at once, we need a cap
-    // somewhere - note, this should be fine tuned somehow
-    // A factor might be the number of (road/train/airplane) connections to
-    // the surrounding world - this would bring more potential residents
-    // into our little city
-    if (type == 2)
-    {
+
+    } else if (type == ZONE_RESIDENTIAL) {
+        // the population can't skyrocket all at once, we need a cap
+        // somewhere - note, this should be fine tuned somehow
+        // A factor might be the number of (road/train/airplane) connections to
+        // the surrounding world - this would bring more potential residents
+        // into our little city
+
         long signed int availPop = 
                 ((TimeElapsed*TimeElapsed)/35+30)
                 - (BuildCount[COUNT_RESIDENTIAL]);
         if (availPop <= 0) { UnlockWorld(); return -1; } // hmm - need more children
+    }
+
+    if (type == ZONE_COMMERCIAL) {
+        // and what is a store without something to sell? therefore we need
+        // enough industrial zones before commercial zones kick in ;)
+
+        long signed int availGoods =
+                (BuildCount[COUNT_INDUSTRIAL]/3*2)
+                - (BuildCount[COUNT_COMMERCIAL]);
+        if (availGoods <= 0) { UnlockWorld(); return -1; } // darn, nothing to sell here
     }
 
 
@@ -429,12 +416,11 @@ signed long GetZoneScore(long unsigned int pos)
     {
         for (j=y-3; j<4+y; j++)
         {
-            if (!(i<0 || i>=mapsize || j<0 || j>=mapsize))
-            {
-
+            if (!(i<0 || i>=mapsize || j<0 || j>=mapsize)) {
+                
                 score += GetScoreFor(type, GetWorld(WORLDPOS(i,j)));
-                if (IsRoad(GetWorld(WORLDPOS(i,j))) && bRoad == 0)
-                {
+                
+                if (IsRoad(GetWorld(WORLDPOS(i,j))) && bRoad == 0) {
                     // can we reach all kinds of zones from here?
                     bRoad = DoTheRoadTrip(WORLDPOS(i,j));
                 }
@@ -444,7 +430,7 @@ signed long GetZoneScore(long unsigned int pos)
     }
 
     UnlockWorld();
-    if (!bRoad) { return -1; }
+    if (!bRoad) return -1;
     return score;
 }
 
@@ -474,8 +460,7 @@ long unsigned int GetRandomZone()
     {
         pos = GetRandomNumber(mapsize*mapsize);
         type = GetWorld(pos);
-        if ((type >= 1 && type <= 3) || (type >= 30 && type <= 59))
-        {
+        if ((type >= 1 && type <= 3) || (type >= 30 && type <= 59)) {
             UnlockWorld();
             return pos;
         }
@@ -483,7 +468,6 @@ long unsigned int GetRandomZone()
 
     UnlockWorld();
     return -1;
-
 }
 
 void DoTaxes()
@@ -538,16 +522,15 @@ extern int Sim_DoPhase(int nPhase)
                 Sim_DistributePower();
                 updatePowerGrid = 0;
             }
-            nPhase=2;
+            nPhase =2;
             break;
         case 2:
             FindZonesForUpgrading();
             nPhase=3;
             break;
         case 3:
-            if (FindScoreForZones() == 0) {
-                nPhase=4;
-            }
+            if (FindScoreForZones() == 0)
+                  nPhase=4;
             break;
         case 4:
             UpgradeZones();
@@ -568,5 +551,3 @@ extern int Sim_DoPhase(int nPhase)
 
     return nPhase;
 }
-
-
