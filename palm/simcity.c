@@ -62,8 +62,10 @@ static Boolean hPocketCity(EventPtr event);
 static Boolean hQuickList(EventPtr event);
 static Boolean hExtraList(EventPtr event);
 
-static Int16 _PalmInit(void);
-static void _PalmFini(Int16);
+static Int16 _PalmInit(void) LARD_SECTION;
+static void _PalmFini(void) LARD_SECTION;
+static void doPocketCityOpen(FormPtr form) LARD_SECTION;
+
 static void buildSilkList(void);
 static Int16 vkDoEvent(UInt16 key);
 static void UIDoQuickList(void);
@@ -143,8 +145,8 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP __attribute__((unused)), UInt16 launchFlags)
 
 	WriteLog("Starting Pocket City\n");
 	if (0 != (pir = _PalmInit())) {
-		WriteLog("Init Didn't Happen right[%d]\n", (int)pir);
-		_PalmFini(pir);
+		WriteLog("Init Didn't Happen right [%d]\n", (int)pir);
+		_PalmFini();
 		return (1);
 	}
 
@@ -163,9 +165,36 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP __attribute__((unused)), UInt16 launchFlags)
 
 	PCityShutdown();
 
-	_PalmFini(pir);
+	_PalmFini();
 	return (0);
 }
+
+static
+FormEventHandlerType *id2handler[] = {
+	hPocketCity, /* formID_pocketCity */
+	hBudget, /* formID_budget */
+	hMap , /* formID_map */
+	hFiles, /* formID_files */
+	hFilesNew, /* formID_filesNew */
+	hQuickList, /* formID_quickList */
+	hExtraList, /* formID_extraBuild */
+	hOptions, /* formID_options */
+	hButtonConfig, /* formID_ButtonConfig */
+	hQuery /* formID_Query */
+};
+#define IDARLEN	(sizeof (id2handler) / sizeof (id2handler[0]))
+
+static FormEventHandlerType *
+gitForm(UInt16 formID)
+{
+	if (formID < 1000)
+		return (NULL);
+	formID -= 1000;
+	if (formID > (IDARLEN - 1))
+		return (NULL);
+	return (id2handler[formID]);
+}
+
 
 /*
  * Event loop for application level form events.
@@ -178,6 +207,7 @@ AppEvent(EventPtr event)
 	static UInt16 oldFormID = ~((UInt16)0);
 	FormPtr form;
 	UInt16 formID;
+	FormEventHandlerType *fh;
 
 	if (event->eType == frmLoadEvent) {
 		formID = event->data.frmLoad.formID;
@@ -186,39 +216,9 @@ AppEvent(EventPtr event)
 		oldFormID = formID;
 		form = FrmInitForm(formID);
 		FrmSetActiveForm(form);
-
-		switch (formID) {
-		case formID_pocketCity:
-			FrmSetEventHandler(form, hPocketCity);
-			break;
-		case formID_budget:
-			FrmSetEventHandler(form, hBudget);
-			break;
-		case formID_map:
-			FrmSetEventHandler(form, hMap);
-			break;
-		case formID_options:
-			FrmSetEventHandler(form, hOptions);
-			break;
-		case formID_files:
-			FrmSetEventHandler(form, hFiles);
-			break;
-		case formID_filesNew:
-			FrmSetEventHandler(form, hFilesNew);
-			break;
-		case formID_quickList:
-			FrmSetEventHandler(form, hQuickList);
-			break;
-		case formID_extraBuild:
-			FrmSetEventHandler(form, hExtraList);
-			break;
-		case formID_ButtonConfig:
-			FrmSetEventHandler(form, hButtonConfig);
-			break;
-		case formID_Query:
-			FrmSetEventHandler(form, hQuery);
-			break;
-		}
+		fh = gitForm(formID);
+		if (fh != NULL)
+			FrmSetEventHandler(form, fh);
 		return (true);
 	}
 
@@ -316,7 +316,8 @@ EventLoop(void)
 
 		if (IsBuilding()) continue;
 
-		if (IsScrolling()) {
+		if (IsScrolling() && ((event.eType != keyDownEvent) ||
+		    !(event.data.keyDown.modifiers & autoRepeatKeyMask))) {
 			timeTemp = TimGetSeconds();
 			if (timeTemp > timeStamp)
 				ClearScrolling();
@@ -432,8 +433,6 @@ _PalmInit(void)
 	prefSize = sizeof (AppConfig_t);
 	err = PrefGetAppPreferences(GetCreatorID(), 0, &gameConfig, &prefSize,
 	    true);
-	if (err != noPreferenceFound) {
-	}
 
 	/* section (2) */
 
@@ -471,7 +470,6 @@ _PalmInit(void)
 	/* Section (5); */
 	/* create an offscreen window, and copy the zones to be used later */
 	for (i = 0; i < (sizeof (handles) / sizeof (handles[0])); i++) {
-
 		bitmaphandle = DmGetResource(TBMP, handles[i].resourceID);
 		if (bitmaphandle == NULL) {
 			WriteLog("could not get bitmap handle[%d:%ld]\n",
@@ -535,7 +533,7 @@ returnWV:
  * Everything is done in reverse order from having them done in the init.
  */
 static void
-_PalmFini(Int16 reached)
+_PalmFini(void)
 {
 	UInt16 i;
 
@@ -543,26 +541,36 @@ _PalmFini(Int16 reached)
 	freeToolbarBitmap();
 	EndSilk();
 
-	switch (reached) {
-	case 0:
-		PurgeWorld();
-	case 5:
-		/* clean up handles */
-		for (i = 0; i < (sizeof (handles) / sizeof (handles[0])); i++) {
-			if (*(handles[i].handle) != NULL)
-				WinDeleteWindow(*(handles[i].handle), 0);
-		}
-	case 4:
-		restoreDepthRes();
-	case 3:
-		DmCloseDatabase(_refTiles);
-	case 2:
-		PrefSetAppPreferences(GetCreatorID(), 0, CONFIG_VERSION,
-		    &gameConfig, sizeof (AppConfig_t), true);
-		WriteLog("saved: %ld\n", (long)sizeof (AppConfig_t));
+	PurgeWorld();
+	/* clean up handles */
+	for (i = 0; i < (sizeof (handles) / sizeof (handles[0])); i++) {
+		if (*(handles[i].handle) != NULL)
+			WinDeleteWindow(*(handles[i].handle), 0);
 	}
+	restoreDepthRes();
+	if (_refTiles != 0) DmCloseDatabase(_refTiles);
+	PrefSetAppPreferences(GetCreatorID(), 0, CONFIG_VERSION,
+	    &gameConfig, sizeof (AppConfig_t), true);
 	/* Close the forms */
 	FrmCloseAllForms();
+}
+
+static void
+DoLoadAlert(void)
+{
+	switch (FrmAlert(alertID_loadGame)) {
+	case 0: /* save game */
+		UISaveMyCity();
+		UIClearAutoSaveSlot();
+		FrmGotoForm(formID_files);
+		break;
+	case 1: /* don't save */
+		UIClearAutoSaveSlot();
+		FrmGotoForm(formID_files);
+		break;
+	default: /* cancel */
+		break;
+	}
 }
 
 static Boolean
@@ -573,19 +581,7 @@ DoPCityMenuProcessing(UInt16 itemID)
 	switch (itemID) {
 		/* First menu ... game */
 	case menuitemID_loadGame:
-		switch (FrmAlert(alertID_loadGame)) {
-		case 0: /* save game */
-			UISaveMyCity();
-			UIClearAutoSaveSlot();
-			FrmGotoForm(formID_files);
-			break;
-		case 1: /* don't save */
-			UIClearAutoSaveSlot();
-			FrmGotoForm(formID_files);
-			break;
-		default: /* cancel */
-			break;
-		}
+		DoLoadAlert();
 		handled = true;
 		break;
 	case menuitemID_saveGame:
@@ -602,23 +598,6 @@ DoPCityMenuProcessing(UInt16 itemID)
 		FrmGotoForm(formID_map);
 		handled = true;
 		break;
-#if defined(CHEAT) || defined(DEBUG)
-	case menuitemID_Funny:
-		/*
-		 * change this to whatever testing you're doing.
-		 * just handy with a 'trigger' button for testing
-		 * ie. disaters... this item is erased if you've
-		 * not compiled with CHEAT or DEBUG
-		 */
-#ifdef CHEAT
-		game.credits += 10000;
-#endif
-#ifdef DEBUG
-		MeteorDisaster(20, 20);
-#endif
-		handled = true;
-		break;
-#endif
 	case menuitemID_Configuration:
 		FrmGotoForm(formID_options);
 		handled = true;
@@ -642,7 +621,7 @@ DoPCityMenuProcessing(UInt16 itemID)
 		break;
 
 		/* for a reason ... */
-	case gi_buildExtra:
+	case mi_buildExtra:
 		UIPopUpExtraBuildList();
 		handled = true;
 		break;
@@ -695,6 +674,23 @@ DoPCityMenuProcessing(UInt16 itemID)
 		FrmHelp(StrID_tips);
 		handled = true;
 		break;
+#if defined(CHEAT) || defined(DEBUG)
+	case menuitemID_Funny:
+		/*
+		 * change this to whatever testing you're doing.
+		 * just handy with a 'trigger' button for testing
+		 * ie. disaters... this item is erased if you've
+		 * not compiled with CHEAT or DEBUG
+		 */
+#ifdef CHEAT
+		game.credits += 10000;
+#endif
+#ifdef DEBUG
+		MeteorDisaster(20, 20);
+#endif
+		handled = true;
+		break;
+#endif
 	}
 	return (handled);
 }
@@ -1748,31 +1744,28 @@ UIScrollDisplay(dirType direction)
 	mapx = getMapXPos();
 	mapy = getMapYPos();
 
-	WriteLog("Map(%d,%d)\n", mapx, mapy);
-
 	SetScrolling();
 	/* Repaint fhe area occluded by the minimap */
 	/* XXX: fix the repaint with XOFFSET, YOFFSET */
 	minimapIntersect(&rPlayGround, &overlap);
-	WriteLog("overlap == %d, %d -> %d, %d\n", overlap.topLeft.x,
-	    overlap.topLeft.y, overlap.extent.x, overlap.extent.y);
 	gs_m1 = gameTileSize() - 1;
-	s_x = mapx + inGameTiles(overlap.topLeft.x - XOFFSET + gs_m1);
-	s_y = mapy + inGameTiles(overlap.topLeft.y - YOFFSET + gs_m1);
-	l_x = s_x + inGameTiles(overlap.extent.x + gs_m1);
-	l_y = s_y + inGameTiles(overlap.extent.y + gs_m1);
-	WriteLog("paint (%d, %d) -> (%d, %d)\n", s_x, s_y, l_x, l_y);
+	s_x = mapx + scaleCoord(inGameTiles(overlap.topLeft.x - XOFFSET));
+	s_y = mapy + scaleCoord(inGameTiles(overlap.topLeft.y - YOFFSET));
+	l_x = s_x + scaleCoord(inGameTiles(overlap.extent.x + gs_m1));
+	l_y = s_y + scaleCoord(inGameTiles(overlap.extent.y + gs_m1));
+	WriteLog("(%d,%d)->(%d,%d)\n", s_x, s_y, l_x, l_y);
 
-	for (x = s_x; x < l_x; x++) {
-		for(y = s_y; y < l_y; y++) {
+	LockZone(lz_world);
+	UIInitDrawing();
+
+	for (x = s_x; x <= l_x; x++) {
+		for(y = s_y; y <= l_y; y++) {
 			DrawFieldWithoutInit(x, y);
-			WriteLog("minimap paintover@(%d, %d)\n", x, y);
 		}
 	}
 
 	rect.topLeft.x = XOFFSET + gameTileSize() * (direction == dtRight);
 	rect.topLeft.y = YOFFSET + gameTileSize() * (direction == dtDown);
-	WriteLog("%d, %d\n", getVisibleX(), getVisibleY());
 	rect.extent.x = (Coord)((getVisibleX() -
 	    ((direction == dtRight || direction == dtLeft) ? 1 : 0)) *
 	    gameTileSize());
@@ -1784,15 +1777,10 @@ UIScrollDisplay(dirType direction)
 
 	screen = WinGetActiveWindow();
 	StartHiresDraw();
-	WriteLog("Copy Rectangle (%d, %d, %d, %d) to %d, %d\n", 
-	    rect.topLeft.x, rect.topLeft.y,
-	    rect.extent.x, rect.extent.y, to_x, to_y);
 	_WinCopyRectangle(screen, screen, &rect, to_x, to_y, winPaint);
 	EndHiresDraw();
 
 	/* and lastly, fill the gap */
-	LockZone(lz_world);
-	UIInitDrawing();
 
 	if (direction == dtRight || direction == dtLeft) {
 		for (y = mapy; y < getVisibleY() + mapy; y++) {
@@ -2697,14 +2685,8 @@ pcResizeDisplay(FormPtr form, Int16 hOff, Int16 vOff, Boolean draw)
 
 	WinGetDrawWindowBounds(&disRect);
 
-	WriteLog("WinBounds (%d,%d) [%d,%d]\n", (int)disRect.topLeft.x,
-	    (int)disRect.topLeft.y, (int)disRect.extent.x,
-	    (int)disRect.extent.y);
-
 	nWidth = GETWIDTH() + scaleCoord(hOff);
 	nHeight = GETHEIGHT() + scaleCoord(vOff);
-
-	WriteLog("old wh = (%d, %d)\n", (int)GETWIDTH(), (int)GETHEIGHT());
 
 	SETWIDTH(nWidth);
 	SETHEIGHT(nHeight);
@@ -2714,20 +2696,16 @@ pcResizeDisplay(FormPtr form, Int16 hOff, Int16 vOff, Boolean draw)
 	for (loc = 0; loc < (Int16)MAXLOC; loc++)
 		shapes[loc].extent.x = 0;
 
-	WriteLog("new wh = (%d, %d)\n", (int)GETWIDTH(), (int)GETHEIGHT());
-
 	/* XXX: Resize the gadgets - coordinates are natural */
 	rPlayGround.extent.x = normalizeCoord(GETWIDTH());
 	rPlayGround.extent.y = normalizeCoord(GETHEIGHT()) - 2 * 10;
 
-	disRect.topLeft.x = normalizeCoord(GETWIDTH()) - scaleCoord(32);
-	disRect.topLeft.y = normalizeCoord(GETHEIGHT()) - scaleCoord(32);
-	disRect.extent.x = scaleCoord(32);
-	disRect.extent.y = scaleCoord(32);
+	/* Resize the minimap */
+	disRect.topLeft.x = normalizeCoord(GETWIDTH()) - 32;
+	disRect.topLeft.y = normalizeCoord(GETHEIGHT()) - 32;
+	disRect.extent.x = 32;
+	disRect.extent.y = 32;
 	minimapPlace(&disRect);
-
-	WriteLog("Playground: (%d, %d)\n", (int)rPlayGround.extent.x,
-    	    (int)rPlayGround.extent.y);
 
 	if (draw) {
 		collapsePreRedraw(form);
