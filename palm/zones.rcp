@@ -89,8 +89,8 @@ BITMAP ID bitmapID_IndZone2                     "graphic/16x16/i_00.bmp" COMPRES
 	
 BITMAPFAMILY ID bitmapID_PowerRoadUpDown2       "graphic/16x16/powerroad1.bmp" "" "" "graphic/16x16-color/powerroad1.bmp" COMPRESS
 BITMAPFAMILY ID bitmapID_PowerRoadLeftRight2    "graphic/16x16/powerroad2.bmp" "" "" "graphic/16x16-color/powerroad2.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerLoss2			"graphic/16x16/powerloss.bmp" COMPRESS
-BITMAP ID bitmapID_PowerLossOverlay2	"graphic/16x16/powerloss2.bmp" COMPRESS
+BITMAP ID bitmapID_PowerLoss2                   "graphic/16x16/powerloss.bmp" COMPRESS
+BITMAP ID bitmapID_PowerLossOverlay2            "graphic/16x16/powerloss2.bmp" COMPRESS
 //BITMAP ID bitmapID_CursorBmp2			"graphic/16x16/something.bmp" COMPRESS	
 
 BITMAPFAMILY ID bitmapID_RoadLeftRight2         "graphic/16x16/road01.bmp" "" "" "graphic/16x16-color/road01.bmp" COMPRESS
@@ -140,14 +140,14 @@ BITMAP ID bitmapID_IndTen2				"graphic/16x16/i_10.bmp" COMPRESS
 BITMAPFAMILY ID bitmapID_PowerPlant2            "graphic/16x16/powerplant.bmp" "" "" "graphic/16x16-color/powerplant.bmp" COMPRESS	
 BITMAPFAMILY ID bitmapID_NulearPlant2           "graphic/16x16/nuclear.bmp" "" "" "graphic/16x16-color/nuclear.bmp" COMPRESS
 
-BITMAP ID bitmapID_PowerLeftRight2		"graphic/16x16/power01.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerUpDown2			"graphic/16x16/power02.bmp" COMPRESS
-BITMAP ID bitmapID_PowerRightDown2		"graphic/16x16/power03.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerLeftDown2		"graphic/16x16/power04.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerLeftUp2			"graphic/16x16/power05.bmp" COMPRESS
-BITMAP ID bitmapID_PowerRightUp2		"graphic/16x16/power06.bmp" COMPRESS
-BITMAP ID bitmapID_PowerLeftUpDown2		"graphic/16x16/power07.bmp" COMPRESS
-BITMAP ID bitmapID_PowerRightUpDown2	"graphic/16x16/power08.bmp" COMPRESS
-BITMAP ID bitmapID_PowerLeftRightDown2	"graphic/16x16/power09.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerLeftRightUp2	"graphic/16x16/power10.bmp" COMPRESS
-BITMAP ID bitmapID_PowerCross2			"graphic/16x16/power11.bmp" COMPRESS	
+BITMAPFAMILY ID bitmapID_PowerLeftRight2        "graphic/16x16/power01.bmp" "" "" "graphic/16x16-color/power01.bmp" COMPRESS	
+BITMAPFAMILY ID bitmapID_PowerUpDown2           "graphic/16x16/power02.bmp" "" "" "graphic/16x16-color/power02.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_PowerRightDown2        "graphic/16x16/power03.bmp" "" "" "graphic/16x16-color/power03.bmp" COMPRESS	
+BITMAPFAMILY ID bitmapID_PowerLeftDown2         "graphic/16x16/power04.bmp" "" "" "graphic/16x16-color/power04.bmp" COMPRESS	
+BITMAPFAMILY ID bitmapID_PowerLeftUp2	        "graphic/16x16/power05.bmp" "" "" "graphic/16x16-color/power05.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_PowerRightUp2          "graphic/16x16/power06.bmp" "" "" "graphic/16x16-color/power06.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_PowerLeftUpDown2       "graphic/16x16/power07.bmp" "" "" "graphic/16x16-color/power07.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_PowerRightUpDown2      "graphic/16x16/power08.bmp" "" "" "graphic/16x16-color/power08.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_PowerLeftRightDown2	"graphic/16x16/power09.bmp" "" "" "graphic/16x16-color/power09.bmp" COMPRESS	
+BITMAPFAMILY ID bitmapID_PowerLeftRightUp2      "graphic/16x16/power10.bmp" "" "" "graphic/16x16-color/power10.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_PowerCross2            "graphic/16x16/power11.bmp" "" "" "graphic/16x16-color/power11.bmp" COMPRESS	
