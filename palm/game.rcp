@@ -10,7 +10,7 @@ BEGIN
     TITLE "Pocket City"
 END
 
-VERSION 1 "0.09"
+VERSION 1 "0.10"
 ICONFAMILY "graphic/pcity.bmp" "" "" "graphic/pcity-color.bmp"
 SMALLICONFAMILY "graphic/pcitysmall.bmp" "" "" "graphic/pcitysmall-color.bmp"
 
