@@ -381,10 +381,26 @@ extern void UIDrawBorder(void)
 extern void UIDrawCredits(void)
 {
     char temp[23];
+    char date[40];
     sprintf(temp, "$: %ld", game.credits);
     gtk_label_set_text((GtkLabel*)creditslabel, temp);
     GetDate((char*)temp);
-    gtk_label_set_text((GtkLabel*)timelabel, temp);
+    if(game.gameLoopSeconds == SPEED_PAUSED) {
+    	sprintf(date,"(Paused) %s",temp);
+    }
+    else if(game.gameLoopSeconds == SPEED_SLOW) {
+    	sprintf(date,"(Slow) %s",temp);
+    }
+    else if(game.gameLoopSeconds == SPEED_MEDIUM) {
+    	sprintf(date,"(Medium) %s",temp);
+    }
+    else if(game.gameLoopSeconds == SPEED_FAST) {
+    	sprintf(date,"(Fast) %s",temp);
+    }
+    else if(game.gameLoopSeconds == SPEED_TURBO) {
+    	sprintf(date,"(Speed Of Light) %s",temp);
+    }   
+    gtk_label_set_text((GtkLabel*)timelabel, date);
 }
 
 extern void UIUpdateBuildIcon(void)
