@@ -32,7 +32,7 @@ StackNew(void)
 	dsObj *s = (dsObj *)MemPtrNew(sizeof (dsObj));
 	if (s == NULL)
 		return (NULL);
-	s->sl = 128;
+	s->sl = 4;
 	if ((NULL == (s->sh = MemHandleNew(s->sl * sizeof (Int32)))) ||
 	    (NULL == (s->ss = (Int32 *)MemHandleLock(s->sh)))) {
 		if (s->sh) MemHandleFree(s->sh);
@@ -58,13 +58,35 @@ StackDelete(dsObj *sp)
 }
 
 /*
+ * resize the stack
+ */
+static void
+StackResize(dsObj *sp, Int32 newsize)
+{
+	Int32 sd = sp->sp - sp->ss;
+	Int32 sn;
+	sp->sl = newsize;
+	sn = sp->sl * sizeof (Int32);
+	MemHandleUnlock(sp->sh);
+	if (errNone != MemHandleResize(sp->sh, sn)) {
+		ErrFatalDisplayIf(1, "Resize of myStack Chunk Failed");
+	}
+	sp->ss = (Int32 *)MemHandleLock(sp->sh);
+	sp->se = sp->ss + (sp->sl - 1);
+	sp->sp = sp->ss + sd;
+}
+
+/*
  * remove the top most item from the stack
  */
 Int32
 StackPop(dsObj *sp)
 {
 	if (sp->sp >= sp->ss) {
-		return (*sp->sp--);
+		Int32 rv = *sp->sp--;
+		if (((sp->sl >> 2) > (sp->sp - sp->ss)) && (sp->sl > 4))
+			StackResize(sp, sp->sl >> 1);
+		return (rv);
 	}
 	ErrFatalDisplayIf(1, "myStack Underflow");
 	return (-1);
@@ -76,19 +98,8 @@ StackPop(dsObj *sp)
 void
 StackPush(dsObj *sp, Int32 elt)
 {
-	if (sp->sp >= sp->se) {
-		Int32 sd = sp->sp - sp->ss;
-		Int32 sn;
-		sp->sl <<= 1;
-		sn = sp->sl * sizeof (Int32);
-		MemHandleUnlock(sp->sh);
-		if (errNone != MemHandleResize(sp->sh, sn)) {
-			ErrFatalDisplayIf(1, "Resize of myStack Chunk Failed");
-		}
-		sp->ss = (Int32 *)MemHandleLock(sp->sh);
-		sp->se = sp->ss + (sp->sl - 1);
-		sp->sp = sp->ss + sd;
-	}
+	if (sp->sp >= sp->se)
+		StackResize(sp, sp->sl << 1);
 	*(++sp->sp) = elt;
 }
 
