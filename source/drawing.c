@@ -267,13 +267,13 @@ GetGraphicNumber(UInt32 pos)
         retval = GetSpecialGraphicNumber(pos, 0);
         break;
     case TYPE_POWER_LINE:     /* special case: power line */
-        retval = GetSpecialGraphicNumber(pos,1);
+        retval = GetSpecialGraphicNumber(pos, 1);
         break;
     case TYPE_WATER_PIPE:
-        retval = GetSpecialGraphicNumber(pos,3);
+        retval = GetSpecialGraphicNumber(pos, 3);
         break;            
     case TYPE_BRIDGE:     /* special case: bridge */
-        retval = GetSpecialGraphicNumber(pos,2);
+        retval = GetSpecialGraphicNumber(pos, 2);
         break;
     default:
         break;
@@ -294,8 +294,6 @@ GetSpecialGraphicNumber(UInt32 pos, Int16 nType)
      */
     int a=0, b=0, c=0, d=0;
     int nAddMe = 0;
-
-    LockWorld();
 
     switch (nType) {
     case 0: /* roads */
@@ -333,8 +331,6 @@ GetSpecialGraphicNumber(UInt32 pos, Int16 nType)
     default:
         return (0);
     }
-
-    UnlockWorld(); 
 
     if ((a && b && c && d) == 1)
         return (10 + nAddMe);
