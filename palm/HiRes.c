@@ -264,19 +264,25 @@ normalizeCoord(Coord x)
 	return ((Coord)((Int32)x * kDensityLow / mul));
 }
 
+static Int16 has_silk = -1;
+
+Int16 hasVirtualSilk(void)
+{
+	return (has_silk);
+}
+
 /*!
  * \brief check for the virtual silk screen
  * \return true if the Virtual Silkscreen is available
  */
-Int16
-hasVirtualSilk(void)
+void
+StartSilk(void)
 {
-	static Int16 has_silk = -1;
 	Err err;
 	UInt32 version;
 
 	if (has_silk != -1)
-		return (has_silk);
+		return;
 
 	err = FtrGet(pinCreator, pinFtrAPIVersion, &version);
 	if (!err && version) {
@@ -284,16 +290,17 @@ hasVirtualSilk(void)
 			has_silk = 1;
 		else
 			has_silk = 2;
-		return (has_silk);
+		return;
 	}
 
 	if (SonySilk()) {
 		has_silk = 1;
+		return;
 	}
 
 	has_silk = 0;
 
-	return (has_silk);
+	return;
 }
 
 /*!
@@ -317,7 +324,9 @@ EndSilk(void)
 void
 SetSilkResizable(FormPtr form, UInt8 resizeable)
 {
-	if (hasVirtualSilk()) {
+	if (SonySilk()) {
+		SonySetSilkResizable(resizeable);
+	} else if (hasVirtualSilk()) {
 		UInt16 state;
 
 		if (resizeable)
@@ -340,8 +349,6 @@ SetSilkResizable(FormPtr form, UInt8 resizeable)
 		} else {
 			PINSetInputTriggerState(state);
 		}
-	} else if (SonySilk()) {
-		SonySetSilkResizable(resizeable);
 	}
 }
 
@@ -358,7 +365,7 @@ collapseMove(FormPtr form, UInt8 stretchy, Int16 *roffsetX, Int16 *roffsetY)
 	}
 
 	WinGetDisplayExtent(&dispWidth, &dispHeight);
-	WriteLog("extend = %d, %d\n", (int)dispWidth, (int)dispHeight);
+	WriteLog("extent = %d, %d\n", (int)dispWidth, (int)dispHeight);
 
 	frmH = WinGetWindowHandle(form);
 	WinGetBounds(frmH, &dwRect);

@@ -255,8 +255,6 @@
 #define setGameVersion(V)	strncpy((char *)GG.version, (char *)V, 4)
 #define	setTax(T)	GG.tax = (T)
 #define	getTax()	(GG.tax)
-#define setAutoBulldoze(V)	GG.auto_bulldoze = (V)
-#define getAutoBulldoze()	(GG.auto_bulldoze)
 
 /* Typedefs */
 
@@ -453,7 +451,7 @@ typedef struct _game_struct05 {
 	UInt32		_BuildCount[20]; /*!< Deprecated */
 	UInt32		TimeElapsed;	/*!< Number of months past 00 */
 	UInt8		tax;		/*!< Tax rate */
-	UInt8		auto_bulldoze;	/*!< do we auto-bulldoze?*/
+	UInt8		gas_bits;	/*!< do we auto-bulldoze?*/
 	UInt16		gameLoopSeconds; /*!< real seconds per game month */
 	Char		cityname[CITYNAMELEN]; /*!< Name of city */
 	UInt8		upkeep[ue_tail];	/*!< upkeep %ages for bits */
@@ -482,7 +480,8 @@ typedef struct _game_struct06a {
 	UInt8	tax;		/*!< tax rate */
 	UInt8	gameLoopSeconds; /*!< speed of game */
 	UInt8	diff_disaster;  /*!< merge of difficulty and disaster */
-	UInt8	auto_bulldoze;  /*!< are we auto-bulldozing */
+	/*! auto-bulldozing, visible minimap, detailed minimap */
+	UInt8	gas_bits;
 	Int8	cityname[20];   /*!< Name of city */
 	UInt8	upkeep[ue_tail];	/*!< upkeep %ages for bits */
 	UInt8	gridsToUpdate;	/*!< Grids to be updated on next grid cycle */

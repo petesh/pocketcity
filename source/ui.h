@@ -71,7 +71,7 @@ void UIPaintPopulation(void);
 /*! \brief Draw the date on screen.  */
 void UIPaintDate(void);
 /*! \brief Draw the map position on screen */
-void UIPaintLoc(void);
+void UIPaintLocation(void);
 /*! \brief Update the build icon on screen */
 void UIPaintBuildIcon(void);
 /*! \brief Draw the speed icon on screen */

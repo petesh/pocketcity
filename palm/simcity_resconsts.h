@@ -198,6 +198,8 @@
 #define	buttonID_Hard 1006
 
 #define	checkboxID_autobulldoze 1010
+#define	checkboxID_minimapvisible 1011
+#define	checkboxID_minimapdetailed 1012
 
 /* Controls for the DistribDetails Form */
 #define	pb_dd_overview 1000

@@ -50,6 +50,7 @@ void StartHiresFontDraw(void);
 void EndHiresFontDraw(void);
 void SetSilkResizable(FormPtr form, UInt8 resizable) HIRES_SECTION;
 Int16 hasVirtualSilk(void) HIRES_SECTION;
+void StartSilk(void) HIRES_SECTION;
 void EndSilk(void) HIRES_SECTION;
 Boolean collapseMove(FormPtr form, UInt8 stretchy, Int16 *roffsetX,
     Int16 *roffsetY) HIRES_SECTION;
@@ -87,6 +88,7 @@ void collapsePreRedraw(FormPtr form) HIRES_SECTION;
 #define SetSilkResizable(X,Y)
 #define	hasVirtualSilk()	(0)
 #define EndSilk()
+#define StartSilk()
 #define collapseMove(F,M,X,Y)
 #define	collapsePreRedraw(X)
 

@@ -76,6 +76,10 @@ BEGIN
 
     "L_AUTO_BULL" = "Auto Bulldoze:"
 
+    "L_MINIMAPVISIBLE" = "Show Minimap:"
+
+    "L_MINIMAPDETAILED" = "Detailed Map:"
+
     /* Savegames */
     "T_SAVEGAMES"   = "PocketCity Savegames"
 

@@ -516,7 +516,7 @@ static Int16
 IsBulldozable(welem_t zone)
 {
 	return ((zone == Z_DIRT) ||
-	    ((zone == Z_REALTREE) && getAutoBulldoze()));
+	    ((zone == Z_REALTREE) && GETAUTOBULLDOZE()));
 }
 
 /*!

@@ -27,16 +27,38 @@ extern "C" {
  * repainted the items at the direct request of the command.
  */
 typedef enum {
-	gu_playarea = (1),
-	gu_credits = (1<<1),
-	gu_population = (1<<2),
-	gu_date = (1<<3),
-	gu_location = (1<<4),
-	gu_buildicon = (1<<5),
-	gu_speed = (1<<6),
-	gu_desires = (1<<7),
-	gu_all = (1<<8)
+	gu_playarea = (1), /*!< The play area needs updating */
+	gu_credits = (1<<1), /*!< The credits value needs updating */
+	gu_population = (1<<2), /*!< The population needs updating */
+	gu_date = (1<<3), /*!< The date field needs updating */
+	gu_location = (1<<4), /*!< The map location needs updating (minimap) */
+	gu_buildicon = (1<<5), /*!< The build icon needs updating */
+	gu_speed = (1<<6), /*!< The speed indicator needs updating */
+	gu_desires = (1<<7), /*!< The desires of the city */
+	gu_all = (1<<8) /*!< Everything needs painting */
 } graphicupdate_t;
+
+/*!
+ * \brief these fields are to control game options.
+ */
+typedef enum {
+	sb_autobulldoze = (1), /*!< do we auto-bulldoze trees */
+	sb_showminimap = (1<<1), /*!< do we show the minimap */
+	sb_detailedminimap = (1<<2) /*!< is the minimap detailed */
+} gamestatusbit_t;
+
+/*! set the Auto Bulldoze flag */
+#define	SETAUTOBULLDOZE(X)	setGameBit(sb_autobulldoze, (X))
+/*! get the Auto Bulldoze flag */
+#define	GETAUTOBULLDOZE()	getGameBit(sb_autobulldoze)
+/*! set if the minimap is visible */
+#define	SETMINIMAPVISIBLE(X)	setGameBit(sb_showminimap, (X))
+/*! get if the minimap is visible */
+#define	GETMINIMAPVISIBLE()	getGameBit(sb_showminimap)
+/*! set to show the minimap in a detailed form */
+#define SETMINIMAPDETAILED(X)	setGameBit(sb_detailedminimap, (X))
+/*! get if the minimap is supposed to be detailed */
+#define GETMINIMAPDETAILED()	getGameBit(sb_detailedminimap)
 
 extern GameStruct game;
 extern vGameStruct vgame;
@@ -46,6 +68,7 @@ extern void *worldPtr;
 extern void *growablePtr;
 
 EXPORT char *getDate(char *temp);
+
 EXPORT UInt32 scaleNumber(UInt32 old_value, Char *scale);
 EXPORT void *getIndexOf(char *ary, Int16 addit, Int16 key);
 EXPORT UInt8 getDisasterLevel(void);
@@ -55,6 +78,7 @@ EXPORT void setDifficultyLevel(UInt8 value);
 
 EXPORT Int16 InitWorld(void);
 EXPORT Int16 ResizeWorld(UInt32 size);
+
 EXPORT void PurgeWorld(void);
 
 EXPORT welem_t getWorld(UInt32 pos);
@@ -71,6 +95,9 @@ EXPORT void removeGraphicUpdate(graphicupdate_t entity);
 EXPORT UInt8 checkGraphicUpdate(graphicupdate_t entity);
 EXPORT UInt8 checkAnyGraphicUpdate(void);
 EXPORT void clearGraphicUpdate(void);
+
+EXPORT void setGameBit(gamestatusbit_t bit, UInt8 value);
+EXPORT UInt8 getGameBit(gamestatusbit_t bit);
 
 #if defined(__cplusplus)
 }

@@ -59,6 +59,7 @@ AppConfig_t gameConfig = {
 	DEFAULT_APPCONFIG
 };
 
+/*! \brief the varaible used to record what elements of the world need change */
 static UInt16 needchange;
 
 /*!
@@ -354,6 +355,12 @@ orWorldFlags(UInt32 pos, selem_t value)
 	*ptr |= (UInt16)(WORLD_ANDMASK & (value << FLAGS_SHIFTVALUE));
 }
 
+/*!
+ * \brief get the values of the field and it's flag
+ * \param pos the location on the map to extract the value of
+ * \param world a pointer to fill with the value of the world field
+ * \param flag a pointer to fill with the value of the flag at that location
+ */
 void
 getWorldAndFlag(UInt32 pos, welem_t *world, selem_t *flag)
 {
@@ -371,7 +378,7 @@ getWorldAndFlag(UInt32 pos, welem_t *world, selem_t *flag)
  * \brief free all the game related structures
  */
 void
-PurgeWorld()
+PurgeWorld(void)
 {
 	ReleaseZone(lz_world);
 }
@@ -397,3 +404,27 @@ scaleNumber(UInt32 old_value, Char *scale)
 	return (old_value);
 }
 
+/*!
+ * \brief set one of the savegame status bits
+ * \param bit the bit to set
+ * \param value the value of the new status bit
+ *
+ * It sets the bit to 1 if value is non zero.
+ */
+void
+setGameBit(gamestatusbit_t bit, UInt8 value)
+{
+	GG.gas_bits &= (~bit & 0xff);
+	if (value) GG.gas_bits |= bit;
+}
+
+/*!
+ * \brief get one of the savegame status bits
+ * \param bit the field to get the value of
+ * \returns non-zero if the bit is set, zero otherwise
+ */
+UInt8
+getGameBit(gamestatusbit_t bit)
+{
+	return (GG.gas_bits & bit);
+}

@@ -35,6 +35,8 @@ Version 0.17dev
   * 725967 Support for the hires palmos 5
   * 937555 Map coloring for 16 color displays is wrong
   * 943160 Power consumption is high
+  * 987006 Screwed up lists
+  * 963903 Scrolling is annoying
 
 Version 0.16
   * bug # 655848 crash after money warning

@@ -91,7 +91,13 @@ setupOptions(void)
 	    (UInt16)(buttonID_Easy + tval)), 1);
 
 	CtlSetValue((ControlPtr)GetObjectPtr(form, checkboxID_autobulldoze),
-	    getAutoBulldoze() ? 1 : 0);
+	    GETAUTOBULLDOZE() ? 1 : 0);
+
+	CtlSetValue((ControlPtr)GetObjectPtr(form, checkboxID_minimapvisible),
+	    GETMINIMAPVISIBLE() ? 1 : 0);
+
+	CtlSetValue((ControlPtr)GetObjectPtr(form, checkboxID_minimapdetailed),
+	    GETMINIMAPDETAILED() ? 1 : 0);
 	return (form);
 }
 
@@ -131,8 +137,12 @@ saveOptions(void)
 		level = 2;
 	}
 	setDifficultyLevel(level);
-	setAutoBulldoze(UInt8)(CtlGetValue((ControlPtr)GetObjectPtr(form,
+	SETAUTOBULLDOZE(CtlGetValue((ControlPtr)GetObjectPtr(form,
 	    checkboxID_autobulldoze)));
+	SETMINIMAPVISIBLE(CtlGetValue((ControlPtr)GetObjectPtr(form,
+	    checkboxID_minimapvisible)));
+	SETMINIMAPDETAILED(CtlGetValue((ControlPtr)GetObjectPtr(form,
+	    checkboxID_minimapdetailed)));
 }
 
 

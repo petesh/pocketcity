@@ -290,7 +290,7 @@ EventLoop(void)
 	UInt16 err;
 
 	for (;;) {
-		EvtGetEvent(&event, (Int32)1);
+		EvtGetEvent(&event, (Int32)10);
 		if (event.eType == appStopEvent) break;
 
 		if (event.eType == keyDownEvent)
@@ -316,12 +316,14 @@ EventLoop(void)
 
 		if (IsBuilding()) continue;
 
-		if (IsScrolling() && ((event.eType != keyDownEvent) ||
-		    !(event.data.keyDown.modifiers & autoRepeatKeyMask))) {
-			timeTemp = TimGetSeconds();
-			if (timeTemp > timeStamp)
-				ClearScrolling();
-			continue;
+		if (IsScrolling()) {
+			if ((event.eType != keyDownEvent)) {
+				if (KeyCurrentState() == 0) {
+					ClearScrolling();
+				} else {
+					continue;
+				}
+			}
 		}
 
 		/* the almighty homemade >>"multithreader"<< */
@@ -445,6 +447,7 @@ _PalmInit(void)
 	}
 
 	/* section (3) */
+	StartSilk();
 
 	/* set screen mode to colors if supported */
 	if (IsNewROM()) {  /* must be v3.5+ for some functions in here */
@@ -539,7 +542,6 @@ _PalmFini(void)
 
 	unhookHoldSwitch();
 	freeToolbarBitmap();
-	EndSilk();
 
 	PurgeWorld();
 	/* clean up handles */
@@ -553,6 +555,8 @@ _PalmFini(void)
 	    &gameConfig, sizeof (AppConfig_t), true);
 	/* Close the forms */
 	FrmCloseAllForms();
+
+	EndSilk();
 }
 
 static void
@@ -712,11 +716,12 @@ doPocketCityOpen(FormPtr form)
 	rect.extent.y = rect.extent.x;
 
 	minimapPlace(&rect);
-	minimapSetShowing(1);
+	minimapSetShowing(GETMINIMAPVISIBLE());
 
 #if defined(HRSUPPORT)
-	if (collapseMove(form, CM_DEFAULT, &hOff, &vOff))
+	if (collapseMove(form, CM_DEFAULT, &hOff, &vOff)) {
 		pcResizeDisplay(form, hOff, vOff, false);
+	}
 #endif
 	SetGameInProgress();
 	ResumeGame();
@@ -750,13 +755,17 @@ hPocketCity(EventPtr event)
 		SetSilkResizable(NULL, false);
 		break;
 	case penDownEvent:
-		minimperc.x = event->screenX;
-		minimperc.y = event->screenY;
 
-		if (minimapIsTapped(&minimperc, &minimperc)) {
-			Goto((UInt16)minimperc.x, (UInt16)minimperc.y, 1);
-			handled = true;
-			break;
+		if (GETMINIMAPVISIBLE()) {
+			minimperc.x = event->screenX;
+			minimperc.y = event->screenY;
+
+			if (minimapIsTapped(&minimperc, &minimperc)) {
+				Goto((UInt16)minimperc.x,
+				    (UInt16)minimperc.y, 1);
+				handled = true;
+				break;
+			}
 		}
 		scaleEvent(event);
 		if (RctPtInRectangle(event->screenX, event->screenY,
@@ -1677,8 +1686,9 @@ performPaintDisplay(void)
 		UIPaintPopulation();
 	if (checkGraphicUpdate(gu_date))
 		UIPaintDate();
-	/*if (checkGraphicUpdate(gu_location))
-		UIPaintLocation();*/
+	if (checkGraphicUpdate(gu_location))
+		if (!GETMINIMAPVISIBLE())
+			UIPaintLocation();
 	if (checkGraphicUpdate(gu_buildicon))
 		UIPaintBuildIcon();
 	if (checkGraphicUpdate(gu_speed))
@@ -1710,7 +1720,8 @@ UIPaintPlayArea(void)
 		}
 		y = getMapYPos();
 	}
-	minimapPaint();
+	if (GETMINIMAPVISIBLE())
+		minimapPaint();
 	UnlockZone(lz_world);
 }
 
@@ -1745,22 +1756,26 @@ UIScrollDisplay(dirType direction)
 	mapy = getMapYPos();
 
 	SetScrolling();
-	/* Repaint fhe area occluded by the minimap */
-	/* XXX: fix the repaint with XOFFSET, YOFFSET */
-	minimapIntersect(&rPlayGround, &overlap);
-	gs_m1 = gameTileSize() - 1;
-	s_x = mapx + scaleCoord(inGameTiles(overlap.topLeft.x - XOFFSET));
-	s_y = mapy + scaleCoord(inGameTiles(overlap.topLeft.y - YOFFSET));
-	l_x = s_x + scaleCoord(inGameTiles(overlap.extent.x + gs_m1));
-	l_y = s_y + scaleCoord(inGameTiles(overlap.extent.y + gs_m1));
-	WriteLog("(%d,%d)->(%d,%d)\n", s_x, s_y, l_x, l_y);
 
 	LockZone(lz_world);
 	UIInitDrawing();
 
-	for (x = s_x; x <= l_x; x++) {
-		for(y = s_y; y <= l_y; y++) {
-			DrawFieldWithoutInit(x, y);
+	if (GETMINIMAPVISIBLE()) {
+		/* Repaint fhe area occluded by the minimap */
+		minimapIntersect(&rPlayGround, &overlap);
+		gs_m1 = gameTileSize() - 1;
+		s_x = mapx + scaleCoord(
+		    inGameTiles(overlap.topLeft.x - XOFFSET));
+		s_y = mapy + scaleCoord(
+		    inGameTiles(overlap.topLeft.y - YOFFSET));
+		l_x = s_x + scaleCoord(inGameTiles(overlap.extent.x + gs_m1));
+		l_y = s_y + scaleCoord(inGameTiles(overlap.extent.y + gs_m1));
+		WriteLog("(%d,%d)->(%d,%d)\n", s_x, s_y, l_x, l_y);
+
+		for (x = s_x; x <= l_x; x++) {
+			for(y = s_y; y <= l_y; y++) {
+				DrawFieldWithoutInit(x, y);
+			}
 		}
 	}
 
@@ -1795,7 +1810,11 @@ UIScrollDisplay(dirType direction)
 	}
 
 	UIPaintCursor(getCursorX(), getCursorY());
-	minimapPaint();
+	if (GETMINIMAPVISIBLE()) {
+		minimapPaint();
+	} else {
+		UIPaintLocation();
+	}
 	UIFinishDrawing();
 
 	UnlockZone(lz_world);
@@ -1831,8 +1850,8 @@ GetRandomNumber(UInt32 max)
 typedef enum {
 	loc_date = 0,
 	loc_credits,
-	loc_population
-	//loc_position
+	loc_population,
+	loc_position
 } loc_screen;
 
 #define	MIDX	1
@@ -1852,7 +1871,7 @@ static RectangleType shapes[] = {
 	{ {0, 0}, {0, 10} },  /* loc_date */
 	{ {0, 0}, {0, 10} }, /* loc_credits */
 	{ {0, 0}, {0, 10} }, /* loc_population */
-	//{ {0, 0}, {0, 10} } /* loc_position */
+	{ {0, 0}, {0, 10} } /* loc_position */
 };
 
 /*! \brief the positions of the items on screen - low resolution */
@@ -1860,7 +1879,7 @@ static const struct StatusPositions lrpositions[] = {
 	{ {0, 0} , {0, 1}, MIDX },  /* loc_date */
 	{ {0, 0}, {0, 1}, ENDY }, /* loc_credits */
 	{ {0, 0}, {0, 1}, MIDX | ENDY }, /* loc_population */
-	//{ {0, 0}, {0, 1}, ENDX | ENDY } /* loc_position */
+	{ {0, 0}, {0, 1}, ENDX | ENDY } /* loc_position */
 };
 
 #ifdef HRSUPPORT
@@ -1869,8 +1888,8 @@ static const struct StatusPositions lrpositions[] = {
 static const struct StatusPositions hrpositions[] = {
 	{ {1, 0}, {0, 1}, ENDY },  /* loc_date */
 	{ {40, 0}, {0, 1}, ENDY }, /* loc_credits */
-	{ {80, 0}, {0, 1}, ENDY } /* loc_population */
-	//{ {140, 0}, {0, 1}, ENDY } /* loc_position */
+	{ {80, 0}, {0, 1}, ENDY }, /* loc_population */
+	{ {140, 0}, {0, 1}, ENDY } /* loc_position */
 };
 
 /*!
@@ -1997,9 +2016,10 @@ CheckTextClick(Coord x, Coord y)
 	case loc_population:
 		doButtonEvent(BePopulation);
 		break;
-	/*case loc_position:
-		doButtonEvent(BeMap);
-		break;*/
+	case loc_position:
+		if (!GETMINIMAPVISIBLE())
+			doButtonEvent(BeMap);
+		break;
 	default:
 		break;
 	}
@@ -2051,9 +2071,8 @@ UIPaintCredits(void)
 }
 
 void
-UIPaintLoc(void)
+UIPaintLocation(void)
 {
-/*
 	char temp[20];
 #ifdef HRSUPPORT
 	MemHandle bitmapHandle;
@@ -2080,7 +2099,6 @@ UIPaintLoc(void)
 		DmReleaseResource(bitmapHandle);
 	}
 #endif
-*/
 }
 
 void

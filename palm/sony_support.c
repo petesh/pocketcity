@@ -367,13 +367,18 @@ SonySilk(void)
 		silk_ref = 0;
 		return (0);
 	}
-	WriteLog("found sony silk library\n");
+	WriteLog("found sony silk library ");
 
 	error = FtrGet(sonySysFtrCreator, sonySysFtrNumVskVersion, &version);
-	if (error)
+	if (error) {
 		silk_ver = 0;
-	else
+		SilkLibOpen(silk_ref);
+	} else {
+		VskOpen(silk_ref);
 		silk_ver = 1;
+	}
+
+	WriteLog("version: %d\n", silk_ver);
 
 	SonySetSilkResizable(true);
 
@@ -388,18 +393,20 @@ SonySilk(void)
 void
 SonyEndSilk(void)
 {
-	if (silk_ref != -1 && silk_ref != 0) {
-		if (silk_ver == 0) {
-			SilkLibResizeDispWin(silk_ref, silkResizeNormal);
-			SilkLibDisableResize(silk_ref);
-			SilkLibClose(silk_ref);
-		} else {
-			VskSetState(silk_ref, vskStateResize, vskResizeMin);
-			VskSetState(silk_ref, vskStateEnable, 0);
-			VskClose(silk_ref);
-		}
+	if (silk_ref < 0)
+		return;
+
+	WriteLog("Will Close\n");
+	if (silk_ver == 0) {
+		//SilkLibResizeDispWin(silk_ref, silkResizeNormal);
+		//SilkLibDisableResize(silk_ref);
+		SilkLibClose(silk_ref);
+	} else {
+		//VskSetState(silk_ref, vskStateResize, vskResizeMin);
+		//VskSetState(silk_ref, vskStateEnable, 0);
+		VskClose(silk_ref);
 	}
-	silk_ref = 0;
+	silk_ref = -1;
 }
 
 void
