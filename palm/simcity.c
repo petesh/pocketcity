@@ -297,8 +297,23 @@ extern int UIDisplayError(int nError)
 }
 
 
-extern void UIInitDrawing(void) {}
-extern void UIFinishDrawing(void) {}
+extern void UIInitDrawing(void) {};
+extern void UIFinishDrawing(void) {};
+
+// by using these two APIs we can get faster, flickerless allscreen updating
+extern void UILockScreen(void)
+{
+    if (oldROM != 1) {
+        WinScreenLock(winLockCopy); 
+    }
+}
+
+extern void UIUnlockScreen(void)
+{
+    if (oldROM != 1) {
+        WinScreenUnlock();
+    }
+}
 
 void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth)
 {

@@ -22,7 +22,9 @@ extern void RedrawAllFields(void)
     int i,j;
 
     LockWorld();
+    LockWorldFlags();
     UIInitDrawing();
+    UILockScreen();
     for (i=map_xpos; i<visible_x+map_xpos; i++)
     {
         for (j=map_ypos; j<visible_y+map_ypos; j++)
@@ -35,7 +37,9 @@ extern void RedrawAllFields(void)
     UIDrawCredits();
     UIDrawPop();
 
+    UIUnlockScreen();
     UIFinishDrawing();
+    UnlockWorldFlags();
     UnlockWorld();
 }
 
@@ -106,15 +110,23 @@ extern void DrawField(int xpos, int ypos)
 
 extern void DrawCross(int xpos, int ypos)
 {
-    if (xpos > 0) { DrawField(xpos-1, ypos);}
-    if (ypos > 0) { DrawField(xpos, ypos-1);}
-    if (xpos+1 < mapsize) { DrawField(xpos+1, ypos);}
-    if (ypos+1 < mapsize) { DrawField(xpos, ypos+1);}
-    DrawField(xpos, ypos);
+    UIInitDrawing();
+    LockWorld();
+    LockWorldFlags();
+    if (xpos > 0) { DrawFieldWithoutInit(xpos-1, ypos);}
+    if (ypos > 0) { DrawFieldWithoutInit(xpos, ypos-1);}
+    if (xpos+1 < mapsize) { DrawFieldWithoutInit(xpos+1, ypos);}
+    if (ypos+1 < mapsize) { DrawFieldWithoutInit(xpos, ypos+1);}
+    DrawFieldWithoutInit(xpos, ypos);
+    UnlockWorld();
+    UnlockWorldFlags();
+    UIFinishDrawing();
 }
 
 
-
+// ONLY call this function if you make sure to call
+// UIInitDrawing and UIFinishDrawing in the caller
+// Also remember to call (Un)lockWorld(flags) (4 functions)
 void DrawFieldWithoutInit(int xpos, int ypos)
 {
     if (xpos < map_xpos ||
@@ -127,14 +139,10 @@ void DrawFieldWithoutInit(int xpos, int ypos)
 
     UIDrawField(xpos-map_xpos, ypos-map_ypos,GetGraphicNumber(WORLDPOS(xpos,ypos)));
 
-    LockWorldFlags();
-    LockWorld();
     if ((GetWorldFlags(WORLDPOS(xpos,ypos)) & 0x01) == 0 && CarryPower(GetWorld(WORLDPOS(xpos, ypos))))
     {
         UIDrawPowerLoss(xpos-map_xpos, ypos-map_ypos);
     }
-    UnlockWorld();
-    UnlockWorldFlags();
 
     if (xpos == cursor_xpos && ypos == cursor_ypos)
     {

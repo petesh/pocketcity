@@ -7,6 +7,8 @@
 extern int  UIDisplayError(int nError);
 extern void UIInitDrawing(void);
 extern void UIFinishDrawing(void);
+extern void UIUnlockScreen(void);
+extern void UILockScreen(void);
 extern void UIDrawBorder(void);
 extern void UISetUpGraphic(void);
 extern void UIDrawCredits(void);
