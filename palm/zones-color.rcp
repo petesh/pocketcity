@@ -1,5 +1,5 @@
 #include "simcity.h"
 
 BITMAPCOLOR ID bitmapID_zones "graphic/zones_16x16-color.bmp" COMPRESS
-BITMAPCOLOR ID bitmapID_monsters "graphic/monsters_16x16-color.bmp" COMPRESS
+BITMAPCOLOR ID bitmapID_monsters "graphic/monsters_16x16-color.bmp"
 

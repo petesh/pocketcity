@@ -160,13 +160,12 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
             if (game_in_progress == 1 && building == 0) {
                 timeTemp = TimGetSeconds();
                 if (timeTemp >= timeStampDisaster+SIM_GAME_LOOP_DISASTER) {
-                    UIWriteLog("Disaster update\n");
                     MoveAllObjects();
                     if (UpdateDisasters()) {
                         RedrawAllFields();
                     }
                     timeStampDisaster = timeTemp;
-                    // TODO: Tthis would be the place to create animation...
+                    // TODO: This would be the place to create animation...
                     // perhaps with a second offscreen window for the
                     // second animation frame of each zone
                     // Then swap the winZones between the two,
@@ -237,7 +236,7 @@ void _PalmInit(void)
     // now, ditto for the monsters
     bitmaphandle = DmGet1Resource( TBMP, bitmapID_monsters);
     bitmap = MemHandleLock(bitmaphandle);
-    winMonsters = WinCreateOffscreenWindow(128,32,genericFormat,&err);
+    winMonsters = WinCreateOffscreenWindow(128,64,genericFormat,&err);
     if (err != errNone) {
         // TODO: alert user, and quit program
         UIWriteLog("Offscreen window for monsters failed\n");
@@ -783,10 +782,18 @@ extern void UIDrawSpecialObject(int i, int xpos, int ypos)
     if (DoDrawing == 0) { return; }
     
     rect.topLeft.x = (objects[i].dir)*TILE_SIZE;
-    rect.topLeft.y = i*TILE_SIZE;
+    rect.topLeft.y = ((i*2)+1)*TILE_SIZE;
     rect.extent.x = TILE_SIZE;
     rect.extent.y = TILE_SIZE;
 
+    WinCopyRectangle(
+            winMonsters,
+            WinGetActiveWindow(),
+            &rect,
+            xpos*TILE_SIZE+XOFFSET,
+            ypos*TILE_SIZE+YOFFSET,
+            winErase);
+    rect.topLeft.y -= 16;
     WinCopyRectangle(
             winMonsters,
             WinGetActiveWindow(),
