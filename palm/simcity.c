@@ -380,15 +380,11 @@ extern unsigned long GetRandomNumber(unsigned long max)
 extern void UIDrawCredits(void)
 {
 	char temp[23];
-	char c[20];
 	RectangleType rect;
 
 	if (DoDrawing == 0) { return; }
 
-	StrCopy(temp, "$: ");
-	LongToString(credits,(char*)c);
-	StrCat(temp, c);
-
+    StrPrintF(temp, "$: %ld", credits);
 
 	rect.topLeft.x = 66;
 	rect.topLeft.y = 1;
@@ -404,27 +400,22 @@ extern void UIDrawCredits(void)
 
 extern void UIDrawPop(void)
 {
-	char temp[23];
-	char c[20];
+	char temp[40];
 	RectangleType rect;
-
-	if (DoDrawing == 0) { return; }
-
-
-	StrCopy(temp, "Pop: ");
-	LongToString(BuildCount[COUNT_RESIDENTIAL]*188,(char*)c);
-	StrCat(temp, c);
-
+    if (DoDrawing == 0) { return; }
+    
+    StrPrintF(temp, "(%02u,%02u) Pop: %09li",
+            map_xpos,
+            map_ypos,
+            (BuildCount[COUNT_RESIDENTIAL]*188));
 
 	rect.topLeft.x = 3;
 	rect.topLeft.y = 148;
-	rect.extent.x = 50;
+	rect.extent.x = 160;
 	rect.extent.y = 11;
 	
 	WinEraseRectangle(&rect,0);
-
-	WinDrawChars((char*)temp,StrLen(temp),3,148);
-
+    WinDrawChars((char*)temp,StrLen(temp),3,148);
 }
 
 extern void UICheckMoney(void)
