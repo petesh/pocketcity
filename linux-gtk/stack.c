@@ -14,10 +14,10 @@
 #include <assert.h>
 
 typedef struct _stacky {
-    long *bp;
-    long *sp;
-    long *se;
-    long sl;
+	long *bp;
+	long *sp;
+	long *se;
+	long sl;
 } Stacky;
 
 /*
@@ -26,12 +26,12 @@ typedef struct _stacky {
 static void
 StackResize(Stacky *sp)
 {
-    long sd = sp->sp - sp->bp;
-    if (sp->sl == 0) sp->sl = 256;
-    sp->sl <<= 1; /* Double the size every time */
-    sp->bp = realloc(sp->bp, sp->sl * sizeof (long));
-    sp->se = sp->bp + (sp->sl - 1);
-    sp->sp = sp->bp + sd;
+	long sd = sp->sp - sp->bp;
+	if (sp->sl == 0) sp->sl = 256;
+	sp->sl <<= 1; /* Double the size every time */
+	sp->bp = realloc(sp->bp, sp->sl * sizeof (long));
+	sp->se = sp->bp + (sp->sl - 1);
+	sp->sp = sp->bp + sd;
 }
 
 /*
@@ -40,8 +40,8 @@ StackResize(Stacky *sp)
 Stacky *
 StackNew(void)
 {
-    Stacky *rv = calloc(sizeof (Stacky), 1);
-    return (rv);
+	Stacky *rv = calloc(sizeof (Stacky), 1);
+	return (rv);
 }
 
 /*
@@ -50,8 +50,8 @@ StackNew(void)
 void
 StackDelete(Stacky *sp)
 {
-    if (sp->bp) free(sp->bp);
-    free(sp);
+	if (sp->bp) free(sp->bp);
+	free(sp);
 }
 
 /*
@@ -60,8 +60,8 @@ StackDelete(Stacky *sp)
 void
 StackPush(Stacky *sp, long value)
 {
-    if (sp->sp >= sp->se) StackResize(sp);
-    *(++sp->sp) = value;
+	if (sp->sp >= sp->se) StackResize(sp);
+	*(++sp->sp) = value;
 }
 
 /*
@@ -70,13 +70,13 @@ StackPush(Stacky *sp, long value)
 long
 StackPop(Stacky *sp)
 {
-    assert(sp->sp != NULL);
-    if (sp->sp >= sp->bp) {
-        assert(sp->sp != NULL && sp->bp != NULL);
-        return (*sp->sp--);
-    }
-    perror("<MyStack> Stack Underflow");
-    return (-1);
+	assert(sp->sp != NULL);
+	if (sp->sp >= sp->bp) {
+		assert(sp->sp != NULL && sp->bp != NULL);
+		return (*sp->sp--);
+	}
+	perror("<MyStack> Stack Underflow");
+	return (-1);
 }
 
 /*
@@ -85,9 +85,9 @@ StackPop(Stacky *sp)
 int
 StackIsEmpty(Stacky *sp)
 {
-    if (sp->sp == NULL)
-        return (1);
-    return (sp->sp < sp->bp);
+	if (sp->sp == NULL)
+		return (1);
+	return (sp->sp < sp->bp);
 }
 
 /*
@@ -96,8 +96,8 @@ StackIsEmpty(Stacky *sp)
 void
 StackDoEmpty(Stacky *sp)
 {
-    if (sp->sp != NULL)
-        sp->sp = sp->bp - 1;
+	if (sp->sp != NULL)
+		sp->sp = sp->bp - 1;
 }
 
 /*
@@ -106,5 +106,5 @@ StackDoEmpty(Stacky *sp)
 int
 StackNElements(Stacky *sp)
 {
-    return ((sp->sp+1) - sp->bp);
+	return ((sp->sp+1) - sp->bp);
 }
