@@ -173,9 +173,17 @@ unsigned long PowerMoveOn(unsigned long pos, int direction)
 
 }
 
-long unsigned int Zones[256];
-signed long ZonePoints[256];
-unsigned int zoneCount=0;
+////////// Zones upgrade/downgrade //////////
+
+typedef struct
+{
+	long unsigned pos;
+	long signed score;
+	int used;
+} ZoneScore;
+
+ZoneScore zones[256];
+
 void FindZonesForUpgrading()
 {
 	int i;
@@ -184,26 +192,16 @@ void FindZonesForUpgrading()
 
 	int max = mapsize*3;
 	if (max > 256) { max = 256; }
-	zoneCount = 0;
-	
-	// find some random zones and their scores
+		
+	// find some random zones
 	for (i=0; i<max; i++)
 	{
+		zones[i].used = 0;
 		randomZone = GetRandomZone();
 		if (randomZone != -1) // -1 means we didn't find a zone
 		{
-//			score = GetZoneScore(randomZone);
-//			if (score != -1)	// -1 means we can't do the road trip from that zone
-//			{
-				Zones[zoneCount] = randomZone;
-//				ZonePoints[zoneCount] = score;
-				zoneCount++;
-//			}
-//			else
-//			{
-//				// this zone should be downgrade right away
-//				DowngradeZone(randomZone);
-//			}
+			zones[i].pos = randomZone;
+			zones[i].used = 1;
 		}
 	}
 }
@@ -225,16 +223,21 @@ int FindScoreForZones()
 {
 	int i;
 	long signed int score;
-	for (i=counter; i<counter+10; i++)
+	counter += 20;
+	for (i=counter-20; i<counter; i++)
 	{
-		if (i>zoneCount) { return 0; } // this was the last zone!
-		score = GetZoneScore(Zones[i]);
-		if (score != -1)
+		if (i>=256) { counter = 0; return 0; } // this was the last zone!
+		
+		if (zones[i].used == 1)
 		{
-			ZonePoints[i] = score;
-		} else {
-			DowngradeZone(Zones[i]);
-			ZonePoints[i] = -1;
+			score = GetZoneScore(zones[i].pos);
+			if (score != -1) {
+				zones[i].score = score;
+			} else {
+				zones[i].used = 0;
+				zones[i].score = -1;
+				DowngradeZone(zones[i].pos);
+			}
 		}
 	}
 	return 1; // there's still more zones that need a score.
@@ -251,17 +254,17 @@ void UpgradeZones()
 	int upCount = (0-8)*tax+250;
 
 	// upgrade the bests
-	for (i=0; i<zoneCount && i<upCount; i++)
+	for (i=0; i<256 && i<upCount; i++)
 	{
 		topscore = 0;
 		topscorer = -1;
 
 		// find the one with max points
-		for (j=0; j<zoneCount; j++)
+		for (j=0; j<256; j++)
 		{
-			if (ZonePoints[j] > topscore)
+			if (zones[j].score > topscore && zones[j].used == 1)
 			{
-				topscore = ZonePoints[j];
+				topscore = zones[j].score;
 				topscorer = j;
 			}
 		}
@@ -269,26 +272,26 @@ void UpgradeZones()
 		// upgrade him/her/it/whatever
 		if (topscorer != -1)
 		{
-			if (ZonePoints[topscorer] != -1)
+			if (zones[topscorer].used == 1)
 			{
-				ZonePoints[topscorer] = -1;
-				UpgradeZone(Zones[topscorer]);
+				zones[topscorer].used = 0;
+				UpgradeZone(zones[topscorer].pos);
 			}
 		}
 	}
 
 	// downgrade the worst
-	for (i=0; i<zoneCount && i<downCount; i++)
+	for (i=0; i<256 && i<downCount; i++)
 	{
-		topscore = -2; // sat to this to avoid downgrading recently upgraded zones
+		topscore = -1;
 		topscorer = -1;
 
 		// find the one with min points
-		for (j=0; j<zoneCount; j++)
+		for (j=0; j<256; j++)
 		{
-			if (ZonePoints[j] < topscore)
+			if (zones[j].score < topscore && zones[j].used == 1)
 			{
-				topscore = ZonePoints[j];
+				topscore = zones[j].score;
 				topscorer = j;
 			}
 		}
@@ -296,14 +299,16 @@ void UpgradeZones()
 		// upgrade him/her/it/whatever
 		if (topscorer != -1)
 		{
-			ZonePoints[topscorer] = 0;
-			DowngradeZone(Zones[topscorer]);
+			if (zones[topscorer].used == 1)
+			{
+				zones[topscorer].used = 0;
+				DowngradeZone(zones[topscorer].pos);
+			}
 		}
 	}
-	
-
-
 }
+
+	
 
 void DowngradeZone(long unsigned pos)
 {
@@ -368,6 +373,8 @@ int DoTheRoadTrip(long unsigned int startPos)
 
 signed long GetZoneScore(long unsigned int pos)
 {
+	// return -1 to make this zone be downgraded _right now_ (ie. if missing things as power or roads)
+
 	signed long score = 0;
 	int x = pos%mapsize;
 	int y = pos/mapsize;
@@ -382,6 +389,7 @@ signed long GetZoneScore(long unsigned int pos)
 	LockWorldFlags();
 	if ((GetWorldFlags(pos) & 0x01) == 0) { UnlockWorldFlags(); UnlockWorld(); return -1; } // whoops, no power
 	UnlockWorldFlags();
+
 	// take a look around at the enviroment ;)
 	for (i=x-3; i<4+x; i++)
 	{
@@ -409,9 +417,9 @@ signed long GetZoneScore(long unsigned int pos)
 
 signed int GetScoreFor(unsigned char iamthis, unsigned char what)
 {
-	if (IsZone(what,1)) { return iamthis==1?0:(iamthis==2?50:(iamthis==3?50:50)); } // com
-	if (IsZone(what,2)) { return iamthis==1?50:(iamthis==2?0:(iamthis==3?50:50)); } // res
-	if (IsZone(what,3)) { return iamthis==1?(0-25):(iamthis==2?(0-75):(iamthis==3?25:(0-50))); } // ind
+	if (IsZone(what,1)) { return iamthis==1?1:(iamthis==2?50:(iamthis==3?50:50)); } // com
+	if (IsZone(what,2)) { return iamthis==1?50:(iamthis==2?1:(iamthis==3?50:50)); } // res
+	if (IsZone(what,3)) { return iamthis==1?(0-25):(iamthis==2?(0-75):(iamthis==3?1:(0-50))); } // ind
 	if (IsRoad(what)  ) { return iamthis==1?75:(iamthis==2?50:(iamthis==3?75:66)); } // roads
 	if (what == 60    ) { return iamthis==1?(0-75):(iamthis==2?(0-100):(iamthis==3?30:(0-75))); } // powerplant
 	if (what == 61    ) { return iamthis==1?(0-150):(iamthis==2?(0-200):(iamthis==3?15:(0-175))); } // nuclearplant
@@ -428,7 +436,7 @@ long unsigned int GetRandomZone()
 	unsigned char type;
 
 	LockWorld();
-	for (i=0; i<10; i++)
+	for (i=0; i<5; i++) // try five times to hit a valid zone
 	{
 		pos = GetRandomNumber(mapsize*mapsize);
 		type = GetWorld(pos);
@@ -451,30 +459,29 @@ extern int Sim_DoPhase(int nPhase)
 	{
 	case 1:
 		Sim_DistributePower();
-		nPhase++;
+		nPhase=2;
 		break;
 	case 2:
 		FindZonesForUpgrading();
-		nPhase++;
+		nPhase=3;
 		break;
 	case 3:
 		if (FindScoreForZones() == 0) {
-			nPhase++;
+			nPhase=4;
 		}
 		break;
 	case 4:
 		UpgradeZones();
-		nPhase++;
+		nPhase=5;
 		break;
 	case 5:
 		TimeElapsed++;
-		nPhase++;
+		nPhase=0;
 		UIInitDrawing();
 		UIDrawCredits();
 		UIFinishDrawing();
 		break;
 	}
 
-	if (nPhase == 5) { return 0; }
 	return nPhase;
 }
