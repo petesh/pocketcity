@@ -1,4 +1,12 @@
 #include "../source/zakdef.h"
+
+// global vars from simcity.c
+extern short int game_in_progress;
+extern MemPtr worldPtr;
+extern MemPtr worldFlagsPtr;
+extern void UIWriteLog(char * s);
+
+
 #define formID_pocketCity                1000
 #define formID_budget                    1001
 #define formID_map                       1002
