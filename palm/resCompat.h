@@ -25,6 +25,7 @@ Boolean canHires(void);
 void scaleEvent(EventPtr event);
 void unhookHoldSwitch(void);
 void hookHoldSwitch(void (*CallBack)(UInt32));
+int IsDrawWindowMostOfScreen(void);
 
 Err _WinScreenMode(WinScreenModeOperation op, UInt32 *width, UInt32 *height,
   UInt32 *depth, Boolean *enableColor);
@@ -52,6 +53,7 @@ void _FntSetFont(FontID font);
 #define scaleEvent(t)
 #define unhookHoldSwitch()
 #define hookHoldSwitch(x)
+#define IsDrawWindowMostOfScreen() true
 
 #define _WinScreenMode WinScreenMode
 #define _WinEraseRectangle WinEraseRectangle

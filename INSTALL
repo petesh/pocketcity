@@ -1,0 +1,51 @@
+README - Pocket City
+--------------------
+Pocket City is a Sim City clone for embedded devices, right now it runs on
+PalmOS and GTK+ (Linux).
+
+Pocket City is licensed under the GPL, see COPYING file for more
+information.
+
+Don't forget to read the GAMEHINTS file.
+
+INSTALLATION
+-----------
+To compile for PalmOS:
+ type `make` in the 'palm' folder
+ 
+ install:           for this:
+ pcity.prc          black/white displays
+ pcity-grey.prc     16 greyscale displays (like the Vx)
+ pcity-color.prc    256 color displays    (like the IIIc)
+ mg-pcity.prc	    can be used on b/w, grey & color devices
+ sy-pcity.prc	    black & white for sony devices
+ sy-pcity-grey.prc  grey scale for sony devices
+ sy-pcity-color.prc color for sony devices.
+
+To compile for GTK+ (Linux):
+ type `make` in the 'linux-gtk' folder
+ then run the game with `./pcity`
+
+Special Features:
+=================
+Keys/strokes
+    Palm:    /B for bulldozer
+             /R for residential zoning
+             /C for commercial zoning
+             /I for industrial zoning
+             Tap or drag the pen for building
+             Use the hardware keys for scrolling (up/down/phone/todo)
+             Tap the "calculator" button on the silk screen for shortcuts
+
+Sony Devices:
+  * Jog dial scrolls the map
+  * High Resolution where available (layout changes)
+  * Using the hold switch pauses the game.
+
+PalmOS 3.1:
+===========
+The game _does_ run on 3.1 devices, but some features are disabled:
+ * The map won't be shown, but you can still use it to scroll around quickly
+ * The "calculator" quicklist are not availble. You will get the full list
+   instead
+ 

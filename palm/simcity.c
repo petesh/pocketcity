@@ -551,7 +551,7 @@ static Boolean hPocketCity(EventPtr event)
             break;
 #ifdef SONY_CLIE
         case vchrJogUp:
-            UIWriteLog("up\n");
+            if (!IsDrawWindowMostOfScreen()) break;
             if (jog_lr)
                 ScrollMap(dtLeft);
             else
@@ -559,7 +559,7 @@ static Boolean hPocketCity(EventPtr event)
             handled = 1;
             break;
         case vchrJogDown:
-            UIWriteLog("down\n");
+            if (!IsDrawWindowMostOfScreen()) break;
             if (jog_lr)
                 ScrollMap(dtRight);
             else
@@ -567,7 +567,7 @@ static Boolean hPocketCity(EventPtr event)
             handled = 1;
             break;
         case vchrJogRelease:
-            UIWriteLog("leggo my eggo\n");
+            if (!IsDrawWindowMostOfScreen()) break;
             jog_lr = 1 - jog_lr;
             UIDrawLoc();
             handled = 1;
@@ -584,16 +584,25 @@ static Boolean hPocketCity(EventPtr event)
 static void
 DoAbout(void)
 {
-    MemHandle mhp;
-    MemPtr mp = NULL;
+    MemHandle vh;
+    MemPtr vs = NULL;
+    MemHandle bh;
+    MemPtr bs = NULL;
 
-    mhp = DmGetResource('tver', 1);
-    if (mhp != NULL) mp = MemHandleLock(mhp);
-    if (mp == NULL) mp = "??";
-    FrmCustomAlert(alertID_about, mp, NULL, NULL);
-    if (mhp) {
-        MemPtrUnlock(mp);
-        DmReleaseResource(mhp);
+    vh = DmGetResource('tver', 1);
+    if (vh != NULL) vs = MemHandleLock(vh);
+    if (vh == NULL) vs = "Unknown Version";
+    bh = DmGetResource('tSTR', StrID_build);
+    if (bh != NULL) bs = MemHandleLock(bh);
+    if (bh == NULL) bs = "Unknown Build Time";
+    FrmCustomAlert(alertID_about, vs, bs, NULL);
+    if (vh) {
+        MemPtrUnlock(vs);
+        DmReleaseResource(vh);
+    }
+    if (bh) {
+        MemPtrUnlock(bs);
+        DmReleaseResource(bh);
     }
 }
 
@@ -1270,7 +1279,8 @@ void UIDrawItem(int location, char *text)
         _FntSetFont(stdFont);
 }
 
-extern void UIDrawDate(void)
+extern void
+UIDrawDate(void)
 {
     char temp[23];
 
@@ -1281,7 +1291,8 @@ extern void UIDrawDate(void)
 }
 
 
-extern void UIDrawCredits(void)
+extern void
+UIDrawCredits(void)
 {
     char temp[23];
 #ifdef SONY_CLIE
@@ -1306,7 +1317,8 @@ extern void UIDrawCredits(void)
     UIDrawDate();
 }
 
-extern void UIDrawLoc(void)
+extern void
+UIDrawLoc(void)
 {
     char temp[25];
 #ifdef SONY_CLIE
@@ -1366,7 +1378,8 @@ UIUpdateBuildIcon(void)
 #endif
 }
 
-extern void UIDrawSpeed(void)
+extern void
+UIDrawSpeed(void)
 {
     MemHandle  bitmaphandle;
     BitmapPtr  bitmap;
@@ -1380,7 +1393,8 @@ extern void UIDrawSpeed(void)
     DmReleaseResource(bitmaphandle);
 }
 
-extern void UIDrawPop(void)
+extern void
+UIDrawPop(void)
 {
     char temp[25];
 #ifdef SONY_CLIE
@@ -1406,7 +1420,8 @@ extern void UIDrawPop(void)
 #endif
 }
 
-extern void UICheckMoney(void)
+extern void
+UICheckMoney(void)
 {
     if (game.credits == 0) {
         if(noShown == 0) {
@@ -1653,14 +1668,16 @@ HoldHook(UInt32 held)
     if (held) game.gameLoopSeconds = SPEED_PAUSED;
     UIDrawSpeed();
 }
+
 #endif
 
 #ifdef DEBUG
-extern void UIWriteLog(char *s)
+extern void
+UIWriteLog(char *s)
 {
     HostFILE * hf = NULL;
 
-    hf = HostFOpen("pcity.log", "a");
+    hf = HostFOpen("g:\\pcity.log", "a");
     if (hf) {
         HostFPrintF(hf, s);
         HostFClose(hf);

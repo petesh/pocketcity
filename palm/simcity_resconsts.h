@@ -184,3 +184,4 @@
 #define bitmapID_ltrt   1704
 
 #define StrID_tips   1021
+#define StrID_build   1022

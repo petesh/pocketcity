@@ -1,0 +1,21 @@
+Things left to implement:
+	Scrollbars
+	Demand Indicators
+		- Residential / commercial / Industrial
+	Status Indicators
+	Variable types of maps
+		- pollution
+		- population density
+		- police efficacy
+		- fire efficacy
+	Performance graphs
+		- pop growth over time
+	Evaluation
+	query tool
+		- What's that ?
+	Little Bits?
+
+Save games on external media
+
+Compatibility with < 3.5 palmos ?
+	- I can't commit to this unfortunately

@@ -15,11 +15,15 @@ DMENU = pcitymain_opt.stm
 ##################
 ### make all #####
 ##################
-nearlylive: VERSION = $(shell date +%Y.%m.%d)
-nearlylive: dist
 
-all debug: $(addsuffix .prc,$(PRCTARGETS))
-hires dhires: $(addsuffix .prc,$(addprefix sy-,$(PRCTARGETS)))
+all debug: VER $(addsuffix .prc,$(PRCTARGETS))
+hires dhires: VER $(addsuffix .prc,$(addprefix sy-,$(PRCTARGETS)))
+
+nearlylive: VERSION = $(shell date +%Y.%m.%d)
+nearlylive: VER dist
+
+VER:
+	rm -f version.rcp version.stm
 
 ##################
 ### make cheat ###
@@ -39,30 +43,32 @@ dhires: HCFLAGS = -g -DSONY_CLIE -DDEBUG
 debug: DMENU = pcitymain.stm
 
 #### the different versions
-pcity-%.prc: simcity-%.stm zones-%.stm game.stm grcs.stm version.stm $(DMENU)
+pcity-%.prc: simcity-%.stm zones-%.stm game.stm grcs.stm \
+		version.stm touch.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def *.grc \
 		temp$*/*.bin temp/*.bin
 
-mg-pcity.prc: game.stm grcs.stm mg.stm version.stm $(DMENU)
+mg-pcity.prc: game.stm grcs.stm mg.stm version.stm touch.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def *.grc \
 		mg/*.bin temp/*.bin
 
-pcity.prc: simcity.stm zones.stm game.stm grcs.stm version.stm $(DMENU)
+pcity.prc: simcity.stm zones.stm game.stm grcs.stm \
+		version.stm touch.stm $(DMENU)
 	build-prc -o pcity.prc -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		*.grc tempbw/*.bin temp/*.bin
 
 sy-pcity.prc: sy/ game.stm sy/syicons.stm simcity.stm zones.stm \
-	sy/sy.stm version.stm $(DMENU)
+	sy/sy.stm version.stm touch.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc tempbw/*.bin temp/*.bin
 
 sy-mg-pcity.prc: sy/ game.stm sy/syicons.stm simcity.stm zones.stm \
-	sy/sy.stm mg.stm version.stm $(DMENU)
+	sy/sy.stm mg.stm version.stm touch.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc mg/*.bin temp/*.bin sy/*.bin
 
 sy-pcity-%.prc: sy/ game.stm sy/syicons.stm simcity-%.stm zones-%.stm \
-	sy/sy.stm version.stm $(DMENU)
+	sy/sy.stm version.stm touch.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc temp$*/*.bin temp/*.bin sy/*.bin
 
@@ -94,6 +100,13 @@ pcitymain.stm: pcitymain.rcp
 	@pilrc -q mainmenu.rcp temp
 	@rm -f mainmenu.rcp
 	@echo touching>$@
+
+touch.stm:
+	@echo "#include \"simcity_resconsts.h\"" > touch.rcp
+	@printf "STRING ID StrID_build " >> touch.rcp
+	@date "+\"%Y/%m/%d @ %H:%M %Z\"" >> touch.rcp
+	@pilrc -q touch.rcp temp
+	@rm -f touch.rcp
 
 # This will take care of all *.rcp
 # the files must be called this:
@@ -158,17 +171,17 @@ mg/:
 # dist
 DDIR=pcity-palm_$(VERSION)
 
-DISTFILES=../CHANGELOG ../COPYING ../GAMEHINTS ../README
+DISTFILES=../INSTALL ../CHANGELOG ../COPYING ../GAMEHINTS ../README
 
 dist: all hires
 	@mkdir -p $(DDIR)
 	@cp $(DISTFILES) pc*.prc mg*.prc $(DDIR)
-	@tar cvf - $(DDIR) | gzip -9c >normal-$(DDIR).tar.gz
-	@zip -9R normal-$(DDIR).zip $(DDIR)/*
+	@tar cvf - $(DDIR) | gzip -9c >$(DDIR)-normal.tar.gz
+	@zip -9R $(DDIR)-normal.zip $(DDIR)/*
 	@rm -f $(DDIR)/*
 	@cp $(DISTFILES) sy*.prc $(DDIR)
-	@tar cvf - $(DDIR) | gzip -9c >sony-$(DDIR).tar.gz
-	@zip -9R sony-$(DDIR).zip $(DDIR)/*
+	@tar cvf - $(DDIR) | gzip -9c >$(DDIR)-sony.tar.gz
+	@zip -9R $(DDIR)-sony.zip $(DDIR)/*
 	@rm -rf $(DDIR)
 
 #

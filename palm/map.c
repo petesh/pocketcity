@@ -84,10 +84,10 @@ void DrawMap(void)
     WinHandle swh;
     Err e;
     char *addr;
-    int shift = 7;
+    int shift = 0;
     UInt32 depth;
 
-    wh = WinCreateOffscreenWindow(100, 100, screenFormat, &e);
+    wh = WinCreateOffscreenWindow(400, 400, screenFormat, &e);
     if (e != errNone) return;
 
     LockWorld();
@@ -148,11 +148,11 @@ void DrawMap(void)
                 if (wt == TYPE_DIRT) { /* it's dirt or other */
                     *addr &= (unsigned char)~(1U << shift);
                 } else {
-                    *addr |= (unsigned char)~(1U << shift);
+                    *addr |= (unsigned char)(1U << shift);
                 }
-                shift--;
-                if ((shift < 0) || (x >= (GetMapSize()-1))) {
-                    shift = 7;
+                shift++;
+                if ((shift > 8)) {// || (x >= GetMapSize())) {
+                    shift = 0;
                     addr++;
                 }
             } else if (depth == 4) {
@@ -170,7 +170,7 @@ void DrawMap(void)
         }
     }
     WinSetDrawWindow(swh);
-    _WinCopyRectangle(wh, swh, (RectangleType *)&rect, 2, 18, winPaint);
+    WinCopyRectangle(wh, swh, (RectangleType *)&rect, 2, 18, winPaint);
 
     UIUnlockScreen();
     WinDeleteWindow(wh, false);

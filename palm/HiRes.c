@@ -233,7 +233,8 @@ void _WinDrawRectangleFrame(FrameType frame, RectangleType *rP)
         WinDrawRectangleFrame(frame, rP);
 }
 
-void _FntSetFont(FontID font)
+void
+_FntSetFont(FontID font)
 {
     if (hires)
         HRFntSetFont(hires, font);
@@ -241,12 +242,31 @@ void _FntSetFont(FontID font)
         FntSetFont(font);
 }
 
-void _WinDrawPixel(Coord x, Coord y)
+void
+_WinDrawPixel(Coord x, Coord y)
 {
     if (hires)
         HRWinDrawPixel(hires, x, y);
     else
         WinDrawPixel(x, y);
+}
+
+void
+_WinGetDrawWindowBounds(RectangleType *rP)
+{
+    if (hires)
+        HRWinGetWindowBounds(hires, rP);
+    else
+        WinGetDrawWindowBounds(rP);
+}
+
+/* check if the draw-window occupies most of the screen */
+int
+IsDrawWindowMostOfScreen()
+{
+    RectangleType rt;
+    _WinGetDrawWindowBounds(&rt);
+    return (((UInt32)rt.extent.x * rt.extent.y * 12) >= ((UInt32)sWidth * sHeight * 10));
 }
 
 #endif /* SONY_CLIE */
