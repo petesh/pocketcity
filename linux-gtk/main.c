@@ -9,6 +9,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
 #include <main.h>
@@ -381,10 +382,11 @@ setupToolBox(void)
 	GtkWidget *button;
 	GtkWidget *handle;
 	int i;
-	char image_path[MAXPATHLEN];
+	char *image_path;
+	size_t max_path = (size_t)pathconf("/", _PC_PATH_MAX) + 1;
 	/* If you change the order here you need to change the xpm... */
 	/*! \todo make the file names related to the items */
-	struct gaa {
+	const struct gaa {
 		gint entry; const char *text;
 	} actions[] = {
 		{ Be_Bulldozer, "Bulldozer" },
@@ -411,6 +413,8 @@ setupToolBox(void)
 		{ -1, NULL }, { -1, NULL }, { -1, NULL }
 	};
 
+	image_path = malloc(max_path);
+
 	tips = gtk_tooltips_new();
 
 	toolbox = gtk_table_new(9, 3, TRUE);
@@ -422,7 +426,7 @@ setupToolBox(void)
 
 		button = gtk_button_new();
 		sprintf(image_path, "interface_%02i.png", i);
-		if (searchForFile(image_path, MAXPATHLEN, PATHSEARCH))
+		if (searchForFile(image_path, max_path, PATHSEARCH))
 			button_image = gtk_image_new_from_file(image_path);
 		else {
 			perror(image_path);
@@ -442,6 +446,7 @@ setupToolBox(void)
 	gtk_handle_box_set_handle_position(
 	    (GtkHandleBox *)handle, GTK_POS_TOP);
 	gtk_container_add(GTK_CONTAINER(handle), toolbox);
+	free(image_path);
 	return (handle);
 }
 
@@ -583,32 +588,38 @@ static struct image_pms {
 void
 UISetUpGraphic(void)
 {
-	char image_path[MAXPATHLEN];
+	char *image_path;
 	int i;
 	struct image_pms *ipm;
+	size_t max_path = (size_t)pathconf("/", _PC_PATH_MAX) + 1;
+
+	image_path = malloc(max_path);
 
 	for (i = 0; image_pixmaps[i].filename != NULL; i++) {
 		ipm = image_pixmaps + i;
-		strlcpy(image_path, ipm->filename, MAXPATHLEN);
-		if (searchForFile(image_path, MAXPATHLEN, PATHSEARCH)) {
+		strlcpy(image_path, ipm->filename, max_path);
+		if (searchForFile(image_path, max_path, PATHSEARCH)) {
 			*ipm->pm = gdk_pixmap_create_from_xpm(
 			    mw.drawing->window, ipm->mask, NULL, image_path);
 			if (*ipm->pm == NULL) {
 				WriteLog("Could not create pixmap from file %s",
 				    ipm->filename);
+				free(image_path);
 				exit(1);
 			}
 		} else {
 			perror(image_path);
+			free(image_path);
 			exit(1);
 		}
 	}
 	/* load the icon */
-	strlcpy(image_path, "pcityicon.png", MAXPATHLEN);
-	if (searchForFile(image_path, MAXPATHLEN, PATHSEARCH)) {
+	strlcpy(image_path, "pcityicon.png", max_path);
+	if (searchForFile(image_path, max_path, PATHSEARCH)) {
 		gtk_window_set_icon_from_file(GTK_WINDOW(mw.window),
 		    image_path, NULL);
 	}
+	free(image_path);
 }
 
 /*!

@@ -22,26 +22,31 @@
 int
 searchForFile(Char *file, UInt16 length, Char *path)
 {
-	char buffer[MAXPATHLEN];
+	char *buffer;
 	char *atp = strdup(path);
 	char *tat = atp;
 	char *cap;
 	struct stat sbuf;
+	size_t max_path = pathconf("/", _PC_PATH_MAX);
+
+	buffer = malloc(max_path + 1);
 
 	do {
 		cap = strchr(atp, ':');
 		if (cap != NULL)
 			*cap = '\0';
-		snprintf(buffer, MAXPATHLEN - 1, "%s/%s", atp, file);
+		snprintf(buffer, max_path, "%s/%s", atp, file);
 		if (stat(buffer, &sbuf) != -1) {
 			strlcpy(file, buffer, length);
 			free(tat);
+			free(buffer);
 			return (1);
 		}
 		if (cap != NULL)
 			atp = cap + 1;
 	} while (cap != NULL);
 	if (tat != NULL) free(tat);
+	free(buffer);
 	return (0);
 }
 

@@ -18,6 +18,7 @@
 #include <main.h>
 #include <drawing.h>
 #include <string.h>
+#include <strings.h>
 
 /*! \brief window handle */
 static GtkWidget *pw_win;
