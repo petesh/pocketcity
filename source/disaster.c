@@ -110,7 +110,9 @@ void CreateWaste(int x, int y)
     LockWorld();
     type = GetWorld(WORLDPOS(x,y));
     Build_Destroy(x,y);
-    SetWorld(WORLDPOS(x,y), TYPE_WASTE);
+    if (type != TYPE_REAL_WATER) {
+        SetWorld(WORLDPOS(x,y), TYPE_WASTE);
+    }
     DrawCross(x,y);
     BuildCount[COUNT_WASTE]++;
     UnlockWorld();
