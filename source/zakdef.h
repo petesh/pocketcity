@@ -2,6 +2,7 @@
 
 
 #define ERROR_OUT_OF_MEMORY		1
+#define ERROR_OUT_OF_MONEY		2
 
 
 
@@ -21,6 +22,5 @@
 #define WORLDPOS(x,y)			((x)+(y)*mapsize)
 
 
-#define SIM_GAME_LOOP_SECONDS	10	// minimum number of seconds a game frame lasts
-
+short unsigned int SIM_GAME_LOOP_SECONDS;
 

@@ -1,21 +1,20 @@
 
 
 int mapsize = 100;
-int map_xpos = 0;
-int map_ypos = 0;
+int map_xpos = 50;
+int map_ypos = 50;
 int cursor_xpos = 2;
 int cursor_ypos = 2;
-long signed int credits = 80000;
+long signed int credits = 50000;
 long unsigned int BuildCount[6];
 long unsigned int TimeElapsed=0; // months since Jan 2000
-int tax=8;
 
 
 
 
 #ifdef __palmos__
 int TILE_SIZE = 16;
-int visible_x = 8;
+int visible_x = 10;
 int visible_y = 8;
 #else // we have a nokia :) (still running without zoom)
 int TILE_SIZE = 24;

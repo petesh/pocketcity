@@ -1,8 +1,8 @@
-
+#include <PalmOS.h>
+#include "../palm/simcity.h"
 #include "build.h"
 #include "globals.h"
 #include "ui.h"
-#include "zakdef.h"
 #include "drawing.h"
 
 void Build_Destroy(int xpos, int ypos);
@@ -59,7 +59,10 @@ extern void Build_Bulldoze(int xpos, int ypos)
 		if (SpendMoney(BUILD_COST_BULLDOZER))
 		{
 			Build_Destroy(xpos, ypos);
+		} else {
+			UIDisplayError(ERROR_OUT_OF_MONEY);
 		}
+
 	}
 	UnlockWorld();
 }
@@ -99,6 +102,8 @@ void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nT
 			BuildCount[COUNT_ROADS] += IsRoad(nType);
 			BuildCount[COUNT_TREES] += (nType == 21);
 			BuildCount[COUNT_WATER] += (nType == 22);
+		} else {
+            UIDisplayError(ERROR_OUT_OF_MONEY);
 		}
 	}
 	UnlockWorld();
@@ -121,6 +126,8 @@ void Build_Road(int xpos, int ypos)
                     {
                         SetWorld(WORLDPOS(xpos, ypos),6);
                         DrawCross(xpos, ypos);
+                    } else {
+                        UIDisplayError(ERROR_OUT_OF_MONEY);
                     }
                     break;
                 case 71:
@@ -128,7 +135,10 @@ void Build_Road(int xpos, int ypos)
                     {
                         SetWorld(WORLDPOS(xpos, ypos),7);
                         DrawCross(xpos, ypos);
+                    } else {
+			            UIDisplayError(ERROR_OUT_OF_MONEY);
                     }
+
                     break;
                 default:
                     break;
@@ -140,7 +150,10 @@ void Build_Road(int xpos, int ypos)
             {
                 SetWorld(WORLDPOS(xpos, ypos), 4);
                 DrawCross(xpos, ypos);
-            }
+            } else {
+    			UIDisplayError(ERROR_OUT_OF_MONEY);
+	        }
+
         }
 	}
 	UnlockWorld();
@@ -163,14 +176,20 @@ void Build_PowerLine(int xpos, int ypos)
                     {
                         SetWorld(WORLDPOS(xpos, ypos),7);
                         DrawCross(xpos, ypos);
-                    }
+                    } else {
+	        			UIDisplayError(ERROR_OUT_OF_MONEY);
+			        }
+
                     break;
                 case 11:
                     if (SpendMoney(BUILD_COST_POWER_LINE)) 
                     {
                         SetWorld(WORLDPOS(xpos, ypos),6);
                         DrawCross(xpos, ypos);
-                    }
+                    } else {
+    	    			UIDisplayError(ERROR_OUT_OF_MONEY);
+		            }
+
                     break;
             }
         }
@@ -180,7 +199,10 @@ void Build_PowerLine(int xpos, int ypos)
             {
                 SetWorld(WORLDPOS(xpos, ypos),5);
                 DrawCross(xpos, ypos);
-            }
+            } else {
+			    UIDisplayError(ERROR_OUT_OF_MONEY);
+    		}
+
         }
 	}
 	UnlockWorld();

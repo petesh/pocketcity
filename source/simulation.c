@@ -9,6 +9,7 @@ int powerleft=0;
 
 
 void PowerMoveOnFromThisPoint(unsigned long pos);
+void DoTaxes(void);
 unsigned long PowerMoveOn(unsigned long pos, int direction);
 int PowerNumberOfSquaresAround(unsigned long pos);
 int PowerFieldCanCarry(unsigned long pos);
@@ -21,6 +22,9 @@ signed int GetScoreFor(unsigned char iamthis, unsigned char what);
 long unsigned int GetRandomZone(void);
 void FindZonesForUpgrading(void);
 int FindScoreForZones(void);
+
+long unsigned int usablePop;
+long unsigned int availPop;
 
 extern void Sim_DistributePower(void)
 {
@@ -250,8 +254,8 @@ void UpgradeZones()
 	int i,j,topscorer;
 	long signed topscore;
 
-	int downCount = 11*tax+30;
-	int upCount = (0-8)*tax+250;
+	int downCount = 11*10+30;
+	int upCount = (0-8)*10+250;
 
 	// upgrade the bests
 	for (i=0; i<256 && i<upCount; i++)
@@ -340,14 +344,23 @@ void UpgradeZone(long unsigned pos)
 {
 	int type;
 
+
+	usablePop = BuildCount[COUNT_RESIDENTIAL]*176/3*2;
+	availPop = usablePop-(BuildCount[COUNT_COMMERCIAL]*176)-(BuildCount[COUNT_INDUSTRIAL]*176);
+
 	LockWorld();
 	
 	type = GetWorld(pos);
 
 	if (type == 1 || (type >= 30 && type <= 38))
 	{
-		SetWorld(pos, (type == 1) ? 30 : type+1);
-		BuildCount[COUNT_COMMERCIAL]++;
+		if(availPop<=(BuildCount[COUNT_COMMERCIAL]*176+(BuildCount[COUNT_INDUSTRIAL]*176))) {
+            UnlockWorld();
+			return;
+		} else if(availPop>=(BuildCount[COUNT_COMMERCIAL]*176+(BuildCount[COUNT_INDUSTRIAL]*176))){
+			SetWorld(pos, (type == 1) ? 30 : type+1);
+			BuildCount[COUNT_COMMERCIAL]++;
+		}
 	}
 	else if (type == 2 || (type >= 40 && type <= 48))
 	{
@@ -356,8 +369,13 @@ void UpgradeZone(long unsigned pos)
 	}
 	else if (type == 3 || (type >= 50 && type <= 58))
 	{
-		SetWorld(pos, (type == 3) ? 50 : type+1);
-		BuildCount[COUNT_INDUSTRIAL]++;
+        if(availPop<=(BuildCount[COUNT_COMMERCIAL]*176+(BuildCount[COUNT_INDUSTRIAL]*176))) {
+            UnlockWorld();
+			return;
+		} else if(availPop>=(BuildCount[COUNT_COMMERCIAL]*176+(BuildCount[COUNT_INDUSTRIAL]*176))) {
+			SetWorld(pos, (type == 3) ? 50 : type+1);
+			BuildCount[COUNT_INDUSTRIAL]++;
+		}
 	}
 	UnlockWorld();
 }
@@ -452,6 +470,25 @@ long unsigned int GetRandomZone()
 
 }
 
+void DoTaxes()
+{
+    short unsigned int thisMonthsTaxes;
+    short unsigned int popTax;
+    short unsigned int comTax;
+    short unsigned int indTax;
+
+    popTax = (BuildCount[COUNT_RESIDENTIAL]*775)/100;
+    comTax = (BuildCount[COUNT_COMMERCIAL]*775)/100;
+    indTax = (BuildCount[COUNT_INDUSTRIAL]*775)/100;
+
+    thisMonthsTaxes = popTax+comTax+indTax;
+    credits += thisMonthsTaxes;
+    credits += thisMonthsTaxes;
+    credits += thisMonthsTaxes;
+}
+
+
+
 
 extern int Sim_DoPhase(int nPhase)
 {
@@ -475,13 +512,18 @@ extern int Sim_DoPhase(int nPhase)
 		nPhase=5;
 		break;
 	case 5:
+		DoTaxes();
 		TimeElapsed++;
 		nPhase=0;
 		UIInitDrawing();
 		UIDrawCredits();
+		UIDrawPop();
+		UICheckMoney();
 		UIFinishDrawing();
 		break;
 	}
 
 	return nPhase;
 }
+
+

@@ -14,4 +14,6 @@ extern int TILE_SIZE;
 
 extern void LongToString(signed long value, char* out);
 extern char* GetDate(char * temp);
+extern void UIDrawPop(void);
+extern void UIDoTaxes(void);
 

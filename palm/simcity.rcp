@@ -10,7 +10,7 @@ BEGIN
     TITLE "Pocket City"
 END
 
-VERSION 1 "1.0"
+VERSION 1 "0.6"
 ICON "graphic/pcity.bmp"
 smallicon "graphic/pcitysmall.bmp"
 
@@ -26,8 +26,8 @@ BEGIN
   END
   PULLDOWN "Build"
   BEGIN
-    MENUITEM "Bulldoze -$5"				menuitemID_buildBulldoze		"B"
-    MENUITEM "Residential -$50"			menuitemID_buildResidential		"R"
+	MENUITEM "Bulldoze -$5"				menuitemID_buildBulldoze		"B"
+	MENUITEM "Residential -$50"			menuitemID_buildResidential		"R"
 	MENUITEM "Commercial -$50"			menuitemID_buildCommercial		"C"
 	MENUITEM "Industrial -$50"			menuitemID_buildIndustrial		"I"
 	MENUITEM "Road -$20"				menuitemID_buildRoad
@@ -37,10 +37,14 @@ BEGIN
 	MENUITEM "Tree -$10"				menuitemID_buildTree
 	MENUITEM "Water -$200"				menuitemID_buildWater
   END
-  PULLDOWN "View"
+  PULLDOWN "View/Speed"
   BEGIN
-	MENUITEM "32px"	menuID_view32	"1"
+        MENUITEM "32px" menuID_view32   "1"
 	MENUITEM "16px" menuID_view16	"2"
+	MENUITEM SEPARATOR
+	MENUITEM "Slow" menuID_SlowSpeed
+	MENUITEM "Medium" menuID_MediumSpeed
+	MENUITEM "Fast"   menuID_FastSpeed
   END
 END
 
@@ -60,11 +64,19 @@ begin
   buttons "Quit" "Try anyway"
 end
 
+alert id alertID_outMoney
+error
+begin
+	title "Got Money?"
+	message "Got money? Nope, you don't!"
+	buttons "Nooo!"
+end
 
-
-
-
-
-
-
+alert id alertID_lowFunds
+error
+begin
+        title "Low Funds"
+        message "You're running low on money!!"
+        buttons "Uh-oh!"
+end
 

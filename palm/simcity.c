@@ -14,11 +14,13 @@
 #include <StringMgr.h>
 #include <KeyMgr.h>
 #include "simcity.h"
+#include "../source/zakdef.h"
 #include "../source/ui.h"
+#include "../source/drawing.h"
+#include "../source/build.h"
 #include "../source/handler.h"
 #include "../source/globals.h"
 #include "../source/simulation.h"
-
 
 MemHandle worldHandle;
 MemHandle worldFlagsHandle;
@@ -27,17 +29,19 @@ MemPtr worldFlagsPtr;
 RectangleType rPlayGround;
 unsigned char nSelectedBuildItem = 0;
 
+short lowShown = 0;
+short noShown = 0;
+
 UInt32 timeStamp = 0;
 short simState = 0;
 short DoDrawing = 0;
 unsigned short XOFFSET =0;
 unsigned short YOFFSET =15;
 
-
-
 static Boolean hPocketCity(EventPtr event);
 void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth);
 void _PalmInit(void);
+
 void _UIGetFieldToBuildOn(int x, int y);
 Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags);
 
@@ -77,6 +81,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 				formID = event.data.frmLoad.formID;
 				form = FrmInitForm(formID);
 				FrmSetActiveForm(form);
+				
 				switch (formID)
 				{
 				case formID_pocketCity:
@@ -117,6 +122,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 				if (simState == 0)
 				{
 					RedrawAllFields();
+
 				}
 			}
 			
@@ -181,6 +187,18 @@ static Boolean hPocketCity(EventPtr event)
 				UISetTileSize(5);
 				handled = 1;
 				break;
+			case menuID_SlowSpeed:
+				SIM_GAME_LOOP_SECONDS = 15;
+				handled = 1;
+				break;
+			case menuID_MediumSpeed:
+				SIM_GAME_LOOP_SECONDS = 10;
+				handled = 1;
+				break;
+			case menuID_FastSpeed:
+				SIM_GAME_LOOP_SECONDS = 5;
+				handled = 1;
+				break;
 			}
 		}
 		break;
@@ -208,6 +226,8 @@ static Boolean hPocketCity(EventPtr event)
 			handled = 1;
 			break;
 		}
+        default:
+            break;
 
 	}
 
@@ -248,8 +268,10 @@ extern int UIDisplayError(int nError)
 {
 	switch (nError)
 	{
-	case MSG_ERROR_OUT_OF_MEMORY: FrmAlert(alertID_errorOutOfMemory); break;
+	case ERROR_OUT_OF_MEMORY: FrmAlert(alertID_errorOutOfMemory); break;
+	case ERROR_OUT_OF_MONEY: FrmAlert(alertID_outMoney); break;
 	}
+    return 0;
 }
 
 
@@ -380,6 +402,49 @@ extern void UIDrawCredits(void)
 	WinDrawChars((char*)temp,StrLen(temp),120,1);
 }
 
+extern void UIDrawPop(void)
+{
+	char temp[23];
+	char c[20];
+	RectangleType rect;
+
+	if (DoDrawing == 0) { return; }
+
+
+	StrCopy(temp, "Pop: ");
+	LongToString(BuildCount[COUNT_RESIDENTIAL]*775,(char*)c);
+	StrCat(temp, c);
+
+
+	rect.topLeft.x = 3;
+	rect.topLeft.y = 148;
+	rect.extent.x = 50;
+	rect.extent.y = 11;
+	
+	WinEraseRectangle(&rect,0);
+
+	WinDrawChars((char*)temp,StrLen(temp),3,148);
+
+}
+
+extern void UICheckMoney(void)
+{
+	if(credits==0) {
+		if(noShown==0) {
+			FrmAlert(alertID_outMoney);
+			noShown=1;
+		} else {
+			return;
+		}
+	} else if((credits <= 1000) || (credits == 1000)) {
+		if(lowShown==0) {
+			FrmAlert(alertID_lowFunds);
+			lowShown=1;
+		} else {
+			return;
+		}
+	}
+}
 
 extern void UISetTileSize(int size)
 {
@@ -391,7 +456,7 @@ extern void UISetTileSize(int size)
 	5 = 16x16	8
 	6 = 32x32	4
 	*/
-	if (!(size >= 5 && size <= 6)) { return; }
+	if (!(size >= 4 && size <= 6)) { return; }
 
 	switch (size)
 	{
@@ -445,7 +510,7 @@ extern int InitWorld(void)
 
 extern int ResizeWorld(long unsigned size)
 {
-	char * pWorld;
+	char pWorld;
 	int i;
 	
 	if (MemHandleResize(worldHandle, size) != 0 || MemHandleResize(worldFlagsHandle, size) != 0)
@@ -550,6 +615,8 @@ Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags)
 
 	return (0);
 }
+
+
 
 
 

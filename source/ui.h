@@ -2,7 +2,6 @@
 #include "zakdef.h"
 
 
-#define MSG_ERROR_OUT_OF_MEMORY		0
 #define MSG_QUESTION_REALLY_QUIT	1
 
 
@@ -12,6 +11,8 @@ extern void UIFinishDrawing(void);
 extern void UIDrawBorder(void);
 extern void UISetUpGraphic(void);
 extern void UIDrawCredits(void);
+
+extern void UICheckMoney(void);
 
 
 extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic);

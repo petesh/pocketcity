@@ -8,7 +8,11 @@
 #define menuitemID_about				1003
 #define menuID_view32					1050
 #define menuID_view16					1051
+#define menuID_SlowSpeed				1052
+#define menuID_MediumSpeed				1053
+#define menuID_FastSpeed				1054
 
+#define poplabel					1055
 
 #define menuitemID_buildBulldoze		1100
 #define menuitemID_buildResidential		1101
@@ -24,6 +28,8 @@
 
 #define alertID_errorOutOfMemory		1000
 #define alertID_RomIncompatible			1001
+#define alertID_outMoney			1002
+#define alertID_lowFunds			1003
 
 
 //#define bitmapID_ScrollBars				2000 FREE FOR NEW USE!
@@ -181,5 +187,6 @@
 #define bitmapID_PowerLeftRightDown2	1278
 #define bitmapID_PowerLeftRightUp2		1279
 #define bitmapID_PowerCross2			1280
+
 
 
