@@ -80,7 +80,7 @@ static const struct updateentity {
 	{ bnCurrentBalance, "%li%c", labelID_budget_now },
 	{ bnChange, "%+li%c", labelID_budget_tot },
 	{ bnNextMonth, "%li%c", labelID_budget_bal },
-	{ 0, NULL, 0 }
+	{ bnResidential, NULL, 0 }
 };
 
 /*
@@ -123,10 +123,10 @@ budgetSetup(void)
 	for (i = 0; i < 3; i++) {
 		texthandle = MemHandleNew(5);
 		text = MemHandleLock(texthandle);
-		StrPrintF(text, "%u", game.upkeep[i]);
+		StrPrintF((char *)text, "%u", game.upkeep[i]);
 		MemHandleUnlock(texthandle);
-		FldSetTextHandle(GetObjectPtr(form, fieldID_budget_tra+i),
-		    texthandle);
+		FldSetTextHandle((FieldPtr)GetObjectPtr(form,
+		    fieldID_budget_tra+i), texthandle);
 	}
 	return (form);
 }
@@ -142,8 +142,8 @@ budgetCleanup(void)
 	FormPtr form = FrmGetActiveForm();
 
 	for (i = 0; i < 3; i++) {
-		j = atol(FldGetTextPtr(
-		    GetObjectPtr(form, fieldID_budget_tra+i)));
+		j = atol(FldGetTextPtr((FieldPtr)GetObjectPtr(form,
+		    fieldID_budget_tra+i)));
 		if (j < 0)
 			j = 0;
 		if (j > 100)

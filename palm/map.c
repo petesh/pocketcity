@@ -111,7 +111,7 @@ static void DrawMap(void)
 
 	if (!IsNewROM()) {
 		/* Draw On The Bitmap Using direct write */
-		addr = wh->displayAddrV20;
+		addr = (char *)wh->displayAddrV20;
 	}
 	depth = getDepth();
 

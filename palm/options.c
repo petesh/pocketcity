@@ -68,10 +68,11 @@ static FormPtr
 setupOptions(void)
 {
 	FormPtr form = FrmGetActiveForm();
-	CtlSetValue(GetObjectPtr(form, buttonID_dis_off+GetDisasterLevel()), 1);
-	CtlSetValue(GetObjectPtr(form,
+	CtlSetValue((ControlPtr)GetObjectPtr(form,
+		    buttonID_dis_off+GetDisasterLevel()), 1);
+	CtlSetValue((ControlPtr)GetObjectPtr(form,
 	    buttonID_Easy + GetDifficultyLevel()), 1);
-	CtlSetValue(GetObjectPtr(form, checkboxID_autobulldoze),
+	CtlSetValue((ControlPtr)GetObjectPtr(form, checkboxID_autobulldoze),
 	    game.auto_bulldoze);
 	return (form);
 }
@@ -85,23 +86,27 @@ static void
 saveOptions(void)
 {
 	FormPtr form = FrmGetActiveForm();
-	if (CtlGetValue(GetObjectPtr(form, buttonID_dis_off))) {
+	if (CtlGetValue((ControlPtr)GetObjectPtr(form, buttonID_dis_off))) {
 		SetDisasterLevel(0);
-	} else if (CtlGetValue(GetObjectPtr(form, buttonID_dis_one))) {
+	} else if (CtlGetValue((ControlPtr)GetObjectPtr(form,
+			    buttonID_dis_one))) {
 		SetDisasterLevel(1);
-	} else if (CtlGetValue(GetObjectPtr(form, buttonID_dis_two))) {
+	} else if (CtlGetValue((ControlPtr)GetObjectPtr(form,
+			    buttonID_dis_two))) {
 		SetDisasterLevel(2);
-	} else if (CtlGetValue(GetObjectPtr(form, buttonID_dis_three))) {
+	} else if (CtlGetValue((ControlPtr)GetObjectPtr(form,
+			    buttonID_dis_three))) {
 		SetDisasterLevel(3);
 	}
-	if (CtlGetValue(GetObjectPtr(form, buttonID_Easy))) {
+	if (CtlGetValue((ControlPtr)GetObjectPtr(form, buttonID_Easy))) {
 		SetDifficultyLevel(0);
-	} else if (CtlGetValue(GetObjectPtr(form, buttonID_Medium))) {
+	} else if (CtlGetValue((ControlPtr)GetObjectPtr(form,
+			    buttonID_Medium))) {
 		SetDifficultyLevel(1);
-	} else if (CtlGetValue(GetObjectPtr(form, buttonID_Hard))) {
+	} else if (CtlGetValue((ControlPtr)GetObjectPtr(form, buttonID_Hard))) {
 		SetDifficultyLevel(2);
 	}
-	game.auto_bulldoze = CtlGetValue(GetObjectPtr(form,
+	game.auto_bulldoze = CtlGetValue((ControlPtr)GetObjectPtr(form,
 	    checkboxID_autobulldoze));
 }
 
@@ -193,6 +198,18 @@ static const struct bc_chelts {
 static char **Popups;
 
 /*
+ * c++ isms
+ */
+#if defined(__cplusplus)
+ButtonKey
+operator++(ButtonKey &bk, int x)
+{
+	bk = (ButtonKey)((int)bk++);
+	return (bk);
+}
+#endif
+
+/*
  * set up the button config form.
  * Adds the string lists to the popups on the screen.
  * Saves having to have multiple copies in the form
@@ -203,16 +220,16 @@ static FormPtr
 setupButtonConfig(void)
 {
 	FormPtr form = FrmGetActiveForm();
-	Int16 poplen;
+	UInt16 poplen;
 	ButtonKey bk;
 
 	Popups = FillStringList(StrID_Popups, &poplen);
 	/* do the buttons */
 	for (bk = BkCalendar; bc_elts[bk].popup != 0; bk++) {
-		ListType *lp;
-		CtlSetLabel(GetObjectPtr(form, bc_elts[bk].popup),
+		ListPtr lp;
+		CtlSetLabel((ControlPtr)GetObjectPtr(form, bc_elts[bk].popup),
 		    Popups[gameConfig.pc.keyOptions[bk]]);
-		lp = GetObjectPtr(form, bc_elts[bk].list);
+		lp = (ListPtr)GetObjectPtr(form, bc_elts[bk].list);
 		LstSetListChoices(lp, (Char **)Popups, poplen);
 		LstSetSelection(lp, gameConfig.pc.keyOptions[bk]);
 	}
@@ -231,7 +248,8 @@ saveButtonConfig(void)
 
 	for (bk = BkCalendar; bc_elts[bk].popup != 0; bk++) {
 		gameConfig.pc.keyOptions[bk] =
-		    LstGetSelection(GetObjectPtr(form, bc_elts[bk].list));
+		    (ButtonEvent)LstGetSelection((ListPtr)GetObjectPtr(form,
+				bc_elts[bk].list));
 	}
 }
 

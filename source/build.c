@@ -60,7 +60,7 @@ static const struct _bldStruct {
 void
 BuildSomething(Int16 xpos, Int16 ypos)
 {
-	int item = UIGetSelectedBuildItem();
+	UInt16 item = UIGetSelectedBuildItem();
 	struct _bldStruct *be = (struct _bldStruct *)&(buildStructure[item]);
 
 	if (item >= (sizeof (buildStructure) / sizeof (buildStructure[0]))) {
@@ -80,7 +80,8 @@ RemoveDefence(Int16 xpos, Int16 ypos)
 {
 	int i;
 	for (i = 0; i < NUM_OF_UNITS; i++) {
-		if (game.units[i].x == xpos && game.units[i].y == ypos) {
+		if (game.units[i].x == xpos &&
+		    game.units[i].y == ypos) {
 			game.units[i].active = 0;
 			DrawCross(game.units[i].x, game.units[i].y);
 		}
@@ -122,16 +123,16 @@ Build_Defence(Int16 xpos, Int16 ypos, UInt16 type)
 {
 	int oldx;
 	int oldy;
-	int i;
+	UInt16 i;
 	int sel = -1;
 	int newactive = 1;
 	UInt16 start;
 	UInt16 end;
-	int max;
+	UInt16 max;
 	int nCounter;
 	const struct buildCounters *cnt;
 
-	if (type < DuFireman || type > DuMilitary)
+	if (type > DuMilitary)
 		return;
 
 	cnt = &counters[type];
@@ -150,7 +151,7 @@ Build_Defence(Int16 xpos, Int16 ypos, UInt16 type)
 		    (unsigned)(vgame.BuildCount[nCounter] / 3)))
 		max = end;
 	else
-		max = (int)(vgame.BuildCount[nCounter] / 3 + start);
+		max = (UInt16)(vgame.BuildCount[nCounter] / 3 + start);
 
 	/* first remove all defence on this tile */
 	for (i = 0; i < NUM_OF_UNITS; i++) {
@@ -158,7 +159,7 @@ Build_Defence(Int16 xpos, Int16 ypos, UInt16 type)
 			ypos == game.units[i].y &&
 			game.units[i].active != 0) {
 			/* no need to build something already here */
-			if (game.units[i].type == type)
+			if ((UInt16)game.units[i].type == type)
 				return;
 			game.units[i].active = 0;
 		}
@@ -200,7 +201,7 @@ Build_Defence(Int16 xpos, Int16 ypos, UInt16 type)
 	game.units[sel].x = xpos;
 	game.units[sel].y = ypos;
 	game.units[sel].active = newactive;
-	game.units[sel].type = type;
+	game.units[sel].type = (DefenceUnitTypes)type;
 
 	LockWorld();
 	DrawCross(oldx, oldy);

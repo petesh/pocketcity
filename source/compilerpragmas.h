@@ -14,6 +14,9 @@ extern "C" {
 #define	LOCAL static
 
 #if defined(__GNUC__)
+#if defined(__cplusplus)
+#define __attribute__(X)
+#endif
 
 #else
 #if defined(__SUNPRO_C)

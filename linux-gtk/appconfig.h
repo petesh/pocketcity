@@ -7,7 +7,8 @@
 
 #if !defined(LP64)
 /* assume ILP32 ... terrible, I know */
-typedef signed char Int8;
+typedef char Int8;
+typedef char Char;
 typedef unsigned char UInt8;
 typedef signed short Int16;
 typedef unsigned short UInt16;

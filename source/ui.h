@@ -2,6 +2,7 @@
 #define	_UI_H
 
 #include <zakdef.h>
+#include <build.h>
 
 #define	MSG_QUESTION_REALLY_QUIT	1
 
@@ -34,8 +35,7 @@ void UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos);
 void UIDrawCursor(Int16 xpos, Int16 ypos);
 void UIDrawPowerLoss(Int16 xpos, Int16 ypos);
 void UIDrawWaterLoss(Int16 xpos, Int16 ypos);
-UInt8 UIGetSelectedBuildItem(void);
-
+BuildCodes UIGetSelectedBuildItem(void);
 
 Int16 InitWorld(void);
 Int16 ResizeWorld(UInt32 size);
@@ -60,7 +60,11 @@ void UISetTileSize(Int16 size);
 #ifdef DEBUG
 void WriteLog(char *, ...);
 #else
+#if defined(__cplusplus)
+inline void WriteLog(char *, ...) {}
+#else
 #define	WriteLog(...)
+#endif
 #endif
 
 #if defined(__cplusplus)

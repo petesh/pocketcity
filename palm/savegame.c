@@ -104,7 +104,8 @@ cnCreateButtonPressed(void)
 	if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Hard)))
 		SetDifficultyLevel(2);
 
-	pGameName = FldGetTextPtr(GetObjectPtr(form, fieldID_newGameName));
+	pGameName = FldGetTextPtr((FieldPtr)GetObjectPtr(form,
+	    fieldID_newGameName));
 	if (pGameName != NULL) {
 		MemSet(game.cityname, CITYNAMELEN, '\0');
 		StrNCopy((char *)game.cityname, pGameName, CITYNAMELEN);
@@ -255,7 +256,7 @@ UpdateSaveGameList(void)
 {
 	int count;
 	FormPtr files_form;
-	ListType *list;
+	ListPtr list;
 
 	if (citylist != NULL)
 		FreeCityNames(citylist);
@@ -268,7 +269,7 @@ UpdateSaveGameList(void)
 		WriteLog("could not get the files form pointer\n");
 		return;
 	}
-	list = GetObjectPtr(files_form, listID_FilesList);
+	list = (ListPtr)GetObjectPtr(files_form, listID_FilesList);
 
 	if (list == NULL) {
 		WriteLog("Could not get the pointer for list\n");
@@ -295,12 +296,12 @@ UpdateSaveGameList(void)
 static void
 CleanSaveGameList(void)
 {
-	ListType *listp;
+	ListPtr listp;
 	FormPtr form = FrmGetFormPtr(formID_files);
 
 	if (form == NULL)
 		return;
-	listp = GetObjectPtr(form, listID_FilesList);
+	listp = (ListPtr)GetObjectPtr(form, listID_FilesList);
 	if (listp == NULL)
 		return;
 
@@ -319,10 +320,10 @@ static int
 LoadFromList(void)
 {
 	FormPtr form = FrmGetFormPtr(formID_files);
-	ListType *listp;
+	ListPtr listp;
 	int index;
 
-	listp = GetObjectPtr(form, listID_FilesList);
+	listp = (ListPtr)GetObjectPtr(form, listID_FilesList);
 	index = LstGetSelection(listp);
 	if (index >= 0) {
 		char *text = LstGetSelectionText(listp, index);
@@ -341,10 +342,10 @@ static void
 DeleteFromList(void)
 {
 	FormPtr form = FrmGetFormPtr(formID_files);
-	ListType *listp;
+	ListPtr listp;
 	Int16 index;
 
-	listp = GetObjectPtr(form, listID_FilesList);
+	listp = (ListPtr)GetObjectPtr(form, listID_FilesList);
 	index = LstGetSelection(listp);
 	if (index != noListSelection) {
 		char *name;

@@ -206,7 +206,7 @@ DrawCross(Int16 xpos, Int16 ypos)
 void
 DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 {
-	Int16 i;
+	UInt16 i;
 	UInt8 flag;
 	UInt8 content;
 
@@ -238,8 +238,8 @@ DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 
 	/* draw monster */
 	for (i = 0; i < NUM_OF_OBJECTS; i++) {
-		if (xpos == game.objects[i].x &&
-			ypos == game.objects[i].y &&
+		if ((UInt16)xpos == game.objects[i].x &&
+			(UInt16)ypos == game.objects[i].y &&
 			game.objects[i].active != 0) {
 			UIDrawSpecialObject(i, xpos - game.map_xpos,
 			    ypos - game.map_ypos);

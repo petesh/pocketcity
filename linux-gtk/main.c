@@ -650,7 +650,7 @@ UIDrawWaterLoss(Int16 xpos, Int16 ypos)
 	gdk_gc_destroy(gc);
 }
 
-UInt8
+BuildCodes
 UIGetSelectedBuildItem(void)
 {
 	return (selectedBuildItem);

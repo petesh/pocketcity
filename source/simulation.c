@@ -686,12 +686,13 @@ GetZoneScore(UInt32 pos)
 	int y = pos / GetMapSize();
 	int i, j;
 	int bRoad = 0;
-	zoneType type = 0;
+	zoneType type = ztWhat;
+	UInt8 zone;
 
 	LockWorld();
-	type = GetWorld(pos);
-	type = (IsZone(type, ztCommercial) ? ztCommercial :
-	    (IsZone(type, ztResidential) ? ztResidential : ztIndustrial));
+	zone = GetWorld(pos);
+	type = (IsZone(zone, ztCommercial) ? ztCommercial :
+	    (IsZone(zone, ztResidential) ? ztResidential : ztIndustrial));
 
 	LockWorldFlags();
 	if (((GetWorldFlags(pos) & POWEREDBIT) == 0) ||
@@ -829,7 +830,7 @@ UInt32
 GetRandomZone()
 {
 	UInt32 pos = 0;
-	int i;
+	UInt16 i;
 	UInt8 type;
 
 	LockWorld();
@@ -843,7 +844,7 @@ GetRandomZone()
 	}
 
 	UnlockWorld();
-	return (-1);
+	return (~(UInt32)0);
 }
 
 static const struct countCosts {

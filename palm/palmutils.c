@@ -212,8 +212,8 @@ FillStringList(UInt16 resID, UInt16 *length)
 			max++;
 		} else break;
 	} while (foo);
-	rv = MemPtrNew(sizeof (*rv) * (max + 1));
-	lom = MemPtrNew(sizeof (*lom) * maxlen);
+	rv = (Char **)MemPtrNew(sizeof (*rv) * (max + 1));
+	lom = (Char *)MemPtrNew(sizeof (*lom) * maxlen);
 	rv[0] = lom;
 	while (atitem < max) {
 		SysStringByIndex(resID, atitem, item, 200);

@@ -29,6 +29,8 @@ LANGDIRS = $(LANGUAGES:%=(OBJDIR)/%)
 
 # Resource PDBs (graphical; non-language)
 COLORTYPES := bw grey color merged
+# high density:- bw_hd grey_hd color_hd merged_hd
+
 COLORTARGETS := $(COLORTYPES:%=pcity-%.pdb)
 
 .PHONY: all debug clean cheat hires dhires VER

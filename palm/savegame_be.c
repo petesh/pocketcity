@@ -45,41 +45,42 @@ OpenMyDB()
 	return (db);
 }
 
-static int FindGameByName(char *name) MAP_SECTION;
+static UInt16 FindGameByName(char *name) MAP_SECTION;
 /*
  * Find a savegame by the name passed
  */
-static int
+static UInt16
 FindGameByName(char *name)
 {
 	DmOpenRef db = NULL;
 	MemHandle rec;
 	GameStruct *pRec;
-	unsigned short int nRec;
-	int gameindex = -1;
+	UInt16 nRec;
+	UInt16 gameindex = LASTGAME;
 
 	db = OpenMyDB();
 	if (db == NULL) {
-	FrmCustomAlert(alertID_majorbad,
-		"Can't Open/Create the savegame database", NULL, NULL);
-	return (gameindex);
+		FrmCustomAlert(alertID_majorbad,
+		    "Can't Open/Create the savegame database", NULL, NULL);
+		return (gameindex);
 	}
 	nRec = DmNumRecords(db);
 	for (gameindex = 1; gameindex < nRec; gameindex++) {
-	rec = DmQueryRecord(db, gameindex);
-	if (rec) {
-		pRec = (GameStruct *)MemHandleLock(rec);
-		if (StrCompare(pRec->cityname, name) == 0) {
-		MemHandleUnlock(rec);
-		break;
+		rec = DmQueryRecord(db, gameindex);
+		if (rec) {
+			pRec = (GameStruct *)MemHandleLock(rec);
+			if (StrCompare((const Char *)pRec->cityname,
+				    name) == 0) {
+				MemHandleUnlock(rec);
+				break;
+			}
+			MemHandleUnlock(rec);
 		}
-		MemHandleUnlock(rec);
-	}
 	}
 	if (db != NULL) DmCloseDatabase(db);
 
 	if (gameindex >= nRec)
-	return (LASTGAME);
+		return (LASTGAME);
 	else
 		return (gameindex);
 }
@@ -109,7 +110,7 @@ ReadCityRecord(MemHandle rec)
 	char *ptemp;
 	int rv = -1;
 
-	ptemp = (unsigned char *)MemHandleLock(rec);
+	ptemp = (char *)MemHandleLock(rec);
 	if (ptemp == NULL)
 		return (-1);
 	if (StrNCompare(DEAD, (char *)ptemp, 4) == 0)
@@ -204,7 +205,7 @@ GameExists(char *name)
 void
 SaveGameByName(char *name)
 {
-	int index;
+	UInt16 index;
 	index = FindGameByName(name);
 
 	SaveGameByIndex(index);
@@ -300,12 +301,12 @@ LoadGameByIndex(UInt16 index)
 int
 LoadGameByName(char *name)
 {
-	int gameindex = FindGameByName(name);
+	UInt16 gameindex = FindGameByName(name);
 
 	if (gameindex != LASTGAME)
 		return (LoadGameByIndex(gameindex));
 	else
-	return (-1);
+		return (-1);
 }
 
 static void getAutoSaveName(char *name) MAP_SECTION;
@@ -321,13 +322,13 @@ getAutoSaveName(char *name)
 
 	*name = '\0';
 	if (db == NULL)
-	return;
+		return;
 
 	rec = DmQueryRecord(db, 0);
 	if (rec) {
-	ptr = MemHandleLock(rec);
-	MemMove(name, ptr, CITYNAMELEN);
-	MemHandleUnlock(rec);
+		ptr = MemHandleLock(rec);
+		MemMove(name, ptr, CITYNAMELEN);
+		MemHandleUnlock(rec);
 	}
 
 	DmCloseDatabase(db);
@@ -437,10 +438,10 @@ close_me:
 void
 DeleteGameByName(char *name)
 {
-	int gameindex = FindGameByName(name);
+	UInt16 gameindex = FindGameByName(name);
 
 	if (gameindex != LASTGAME)
-	DeleteGameByIndex(gameindex);
+		DeleteGameByIndex(gameindex);
 }
 
 static Int16 comparator(void *p1, void *p2, Int32 other) MAP_SECTION;
@@ -480,8 +481,8 @@ CityNames(int *count)
 	return (NULL);
 	}
 
-	cities = MemPtrNew(nRec * sizeof (*cities));
-	citystring = MemPtrNew(nRec * CITYNAMELEN);
+	cities = (char **)MemPtrNew(nRec * sizeof (*cities));
+	citystring = (char *)MemPtrNew(nRec * CITYNAMELEN);
 
 	for (index = 1; index < nRec; index++) {
 		rec = DmQueryRecord(db, index);

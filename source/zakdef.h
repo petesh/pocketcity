@@ -62,10 +62,10 @@ typedef enum {
 } dirType;
 
 struct zoneTypeValue {
-	char		description[255];
-	UInt8	   value;
-	UInt8	   pollution;
-	UInt8	   crime;
+	char	description[255];
+	UInt8	value;
+	UInt8	pollution;
+	UInt8	crime;
 };
 
 /*
@@ -194,10 +194,10 @@ typedef enum DefenceUnitTypes {
 } DefenceUnitTypes;
 
 typedef struct _defence_unit {
-		UInt16 x;
-		UInt16 y;
-		UInt16 active;
-		DefenceUnitTypes type;
+	Int16	x;
+	Int16	y;
+	UInt16	active;
+	DefenceUnitTypes type;
 } DefenceUnit;
 
 #define	CITYNAMELEN 20
@@ -223,7 +223,7 @@ typedef struct _game_struct05 {
 	UInt8		tax;		/* Tax rate */
 	UInt8		auto_bulldoze;	/* was _tilesize ... Deprecated */
 	UInt16		gameLoopSeconds; /* Speed */
-	Int8		cityname[CITYNAMELEN]; /* Name of city */
+	Char		cityname[CITYNAMELEN]; /* Name of city */
 	UInt8		upkeep[3];	/* upkeep %ages for bits */
 	UInt8		diff_disaster;	/* rate of disasters */
 	DefenceUnit	units[10];	/* Defence Units */

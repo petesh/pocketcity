@@ -96,12 +96,12 @@ querySetup(void)
 {
 	Char *temp;
 	FormPtr form;
-	ControlType *ctl;
+	ControlPtr ctl;
 
 	form = FrmGetActiveForm();
-	temp = MemPtrNew(255);
+	temp = (Char *)MemPtrNew(255);
 	zonetoPtr(temp, GetItemClicked(), 255);
-	ctl = GetObjectPtr(form, labelID_zonetype);
+	ctl = (ControlPtr)GetObjectPtr(form, labelID_zonetype);
 	CtlSetLabel(ctl, temp);
 	return (form);
 }
@@ -117,6 +117,7 @@ queryCleanup(void)
 
 	form = FrmGetActiveForm();
 
-	temp = (char *)CtlGetLabel(GetObjectPtr(form, labelID_zonetype));
+	temp = (char *)CtlGetLabel((ControlPtr)GetObjectPtr(form,
+	    labelID_zonetype));
 	if (temp) MemPtrFree(temp);
 }
