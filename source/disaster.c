@@ -127,7 +127,9 @@ int BurnField(int x, int y)
         type != TYPE_FIRE2 &&
         type != TYPE_FIRE3 &&
         type != TYPE_DIRT  &&
-        type != TYPE_WASTE) {
+        type != TYPE_WASTE &&
+        type != TYPE_WATER &&
+        type != TYPE_REAL_WATER) {
         Build_Destroy(x,y);
         SetWorld(WORLDPOS(x,y), TYPE_FIRE1);
         DrawCross(x,y);
