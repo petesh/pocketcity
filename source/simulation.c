@@ -441,10 +441,10 @@ signed int GetScoreFor(unsigned char iamthis, unsigned char what)
     if (IsZone(what,2)) { return iamthis==1?50:(iamthis==2?1:(iamthis==3?50:50)); } // res
     if (IsZone(what,3)) { return iamthis==1?(0-25):(iamthis==2?(0-75):(iamthis==3?1:(0-50))); } // ind
     if (IsRoad(what)  ) { return iamthis==1?75:(iamthis==2?50:(iamthis==3?75:66)); } // roads
-    if (what == 60    ) { return iamthis==1?(0-75):(iamthis==2?(0-100):(iamthis==3?30:(0-75))); } // powerplant
-    if (what == 61    ) { return iamthis==1?(0-150):(iamthis==2?(0-200):(iamthis==3?15:(0-175))); } // nuclearplant
-    if (what == 21    ) { return iamthis==1?50:(iamthis==2?85:(iamthis==3?25:50)); } // tree
-    if (what == 22    ) { return iamthis==1?150:(iamthis==2?500:(iamthis==3?85:200)); } // water
+    if (what == TYPE_POWER_PLANT) { return iamthis==1?(0-75):(iamthis==2?(0-100):(iamthis==3?30:(0-75))); } // powerplant
+    if (what == TYPE_NUCLEAR_PLANT) { return iamthis==1?(0-150):(iamthis==2?(0-200):(iamthis==3?15:(0-175))); } // nuclearplant
+    if (what == TYPE_TREE) { return iamthis==1?50:(iamthis==2?85:(iamthis==3?25:50)); } // tree
+    if (what == TYPE_WATER||what == TYPE_REAL_WATER) { return iamthis==1?175:(iamthis==2?550:(iamthis==3?95:250)); } // water
     return 0;
 }
 
