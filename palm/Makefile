@@ -5,7 +5,7 @@ OBJECTS = simcity.o handler.o drawing.o globals.o build.o simulation.o \
 	HiRes.o savegame.o disaster.o map.o budget.o
 PROGNAME = "Pocket City"
 PROGTOKEN = PCit
-PRCTARGETS = pcity pcity-grey pcity-color
+PRCTARGETS = pcity pcity-grey pcity-color mg-pcity
 
 .PHONY: all debug clean cheat
 .PRECIOUS: simcity-grey.stm zones-grey.stm simcity-color.stm zones-color.stm
@@ -36,6 +36,10 @@ pcity-%.prc: simcity-%.stm zones-%.stm game.stm grcs.stm
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def *.grc \
 		temp$*/*.bin temp/*.bin
 
+mg-pcity.prc: game.stm grcs.stm mg.stm
+	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def *.grc \
+		mg/*.bin temp/*.bin
+
 pcity.prc: simcity.stm zones.stm game.stm grcs.stm
 	build-prc -o pcity.prc -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		*.grc tempbw/*.bin temp/*.bin
@@ -43,6 +47,11 @@ pcity.prc: simcity.stm zones.stm game.stm grcs.stm
 sy-pcity.prc: sy/ game.stm syicons.stm simcity.stm zones.stm sy/sy.stm
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc tempbw/*.bin temp/*.bin
+
+sy-mg-pcity.prc: sy/ game.stm syicons.stm simcity.stm zones.stm \
+	sy/sy.stm mg.stm
+	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
+		sy/*.grc mg/*.bin temp/*.bin sy/*.bin
 
 sy-pcity-%.prc: sy/ game.stm syicons.stm simcity-%.stm zones-%.stm sy/sy.stm
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
@@ -60,7 +69,6 @@ game.stm: game.rcp
 	pilrc -q game.rcp temp
 	echo touching>$@
 
-#
 # This will take care of all *.rcp
 # the files must be called this:
 # *-color.rcp => tempcolor/
@@ -112,10 +120,19 @@ syicons.stm: hricons.rcp
 	pilrc -q hricons.rcp sy
 	echo touching>$@
 
+mg.stm: mg/ mg.rcp
+	pilrc -q mg.rcp mg
+	echo touching>$@
+
+mg/:
+	mkdir -p mg/
+#
+
 #
 # make clean 
 #
 
 clean:
 	rm -f *.bin *.o *.grc *.stm simcity *.prc \
-		tempbw/*.bin tempcolor/*.bin temp/*.bin tempgrey/*.bin sy/*
+		tempbw/*.bin tempcolor/*.bin temp/*.bin tempgrey/*.bin sy/* \
+		mg/*
