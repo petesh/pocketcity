@@ -1,5 +1,4 @@
 #include <gtk/gtk.h>
-#include <glib/gthread.h>
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
@@ -15,12 +14,13 @@
 GtkWidget *drawingarea;
 GtkWidget *window;
 GtkWidget *creditslabel;
+GtkWidget *poplabel;
 void * worldPtr;
 void * worldFlagsPtr;
 GdkPixmap *zones,*monsters,*units;
 GdkBitmap *zones_mask,*monsters_mask,*units_mask;
 unsigned char selectedBuildItem = 0;
-static GStaticMutex drawingmutex;
+unsigned short drawing = 0;
 
 
 void SetUpMainWindow(void);
@@ -29,10 +29,8 @@ gint mainloop_callback(gpointer data);
 int main(int argc, char *argv[])
 {
     gint timerID;
-    g_thread_init(NULL);
     gtk_init (&argc, &argv);
     srand(time(0));
-    g_static_mutex_init(&drawingmutex);
 
     SetUpMainWindow();
     // start the timer
@@ -99,7 +97,9 @@ gint delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 
 static gint drawing_exposed_callback(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
+    drawing = 1;
     RedrawAllFields();
+    drawing = 0;
 
     return FALSE;
 }
@@ -163,7 +163,7 @@ static gint motion_notify_event(GtkWidget *widget, GdkEventMotion *event)
 
 void SetUpMainWindow(void)
 {
-    GtkWidget *fieldbox,*box, *toolbox;
+    GtkWidget *fieldbox,*box, *toolbox, *headerbox;
     GtkWidget *button;
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -173,21 +173,25 @@ void SetUpMainWindow(void)
     box = gtk_hbox_new(FALSE,0);
     fieldbox = gtk_vbox_new(FALSE,0);
     toolbox = gtk_table_new(10,3,TRUE);
+    headerbox = gtk_hbox_new(FALSE, 0);
+    
     gtk_container_add(GTK_CONTAINER(window), box);
 
     gtk_container_set_border_width(GTK_CONTAINER(toolbox), 3);
 
-    creditslabel = gtk_label_new("test?");
+    creditslabel = gtk_label_new("Credits");
+    poplabel = gtk_label_new("Population");
 
     // the actual playfield is a GtkDrawingArea
     drawingarea = gtk_drawing_area_new();
-    gtk_widget_set_double_buffered(drawingarea, FALSE);
     gtk_drawing_area_size((GtkDrawingArea*)drawingarea,320,240);
     // arange in boxes 
     gtk_box_pack_start(GTK_BOX(box), toolbox, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(box), fieldbox, TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(fieldbox), creditslabel, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(fieldbox), headerbox, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(fieldbox), drawingarea, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(headerbox), poplabel, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(headerbox), creditslabel, TRUE, TRUE, 0);
 
     g_signal_connect(G_OBJECT(drawingarea),"expose_event",
             G_CALLBACK(drawing_exposed_callback), NULL);
@@ -245,7 +249,9 @@ void SetUpMainWindow(void)
 
     
     // show all the widgets
+    gtk_widget_show(poplabel);
     gtk_widget_show(creditslabel);
+    gtk_widget_show(headerbox);
     gtk_widget_show(drawingarea);
     gtk_widget_show(fieldbox);
     gtk_widget_show(toolbox);
@@ -357,12 +363,13 @@ extern void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth)
 
 extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
 {
-    GdkGC *gc;
-
-    g_static_mutex_lock(&drawingmutex);
-
-    gc = gdk_gc_new(drawingarea->window);
-    gdk_draw_drawable(
+    if (drawing == 0) {
+        gtk_widget_queue_draw(drawingarea);
+    } else {
+        GdkGC *gc;
+    
+        gc = gdk_gc_new(drawingarea->window);
+        gdk_draw_drawable(
             drawingarea->window,
             gc,
             zones,
@@ -372,21 +379,22 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
             ypos*game.tileSize,
             game.tileSize,
             game.tileSize);
-
-    g_static_mutex_unlock(&drawingmutex);
+    }
 }
 
 extern void UIDrawSpecialObject(int i, int xpos, int ypos)
 {
-    GdkGC *gc;
-    
-    gc = gdk_gc_new(drawingarea->window);
-    gdk_gc_set_clip_mask(gc,monsters_mask);
-    gdk_gc_set_clip_origin(gc,
+    if (drawing == 0) {
+        gtk_widget_queue_draw(drawingarea);
+    } else {
+        GdkGC *gc;
+        gc = gdk_gc_new(drawingarea->window);
+        gdk_gc_set_clip_mask(gc,monsters_mask);
+        gdk_gc_set_clip_origin(gc,
             xpos*game.tileSize-(game.objects[i].dir*game.tileSize),
             ypos*game.tileSize-(i*game.tileSize));
 
-    gdk_draw_drawable(
+        gdk_draw_drawable(
             drawingarea->window,
             gc,
             monsters,
@@ -396,19 +404,22 @@ extern void UIDrawSpecialObject(int i, int xpos, int ypos)
             ypos*game.tileSize,
             game.tileSize,
             game.tileSize);
+    }
 }
 
 extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
 {
-    GdkGC *gc;
-    
-    gc = gdk_gc_new(drawingarea->window);
-    gdk_gc_set_clip_mask(gc,units_mask);
-    gdk_gc_set_clip_origin(gc,
+    if (drawing == 0) {
+        gtk_widget_queue_draw(drawingarea);
+    } else {
+        GdkGC *gc;
+        gc = gdk_gc_new(drawingarea->window);
+        gdk_gc_set_clip_mask(gc,units_mask);
+        gdk_gc_set_clip_origin(gc,
             xpos*game.tileSize-(game.units[i].type*game.tileSize),
             ypos*game.tileSize);
 
-    gdk_draw_drawable(
+        gdk_draw_drawable(
             drawingarea->window,
             gc,
             units,
@@ -418,6 +429,7 @@ extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
             ypos*game.tileSize,
             game.tileSize,
             game.tileSize);
+    }
 }
 
 extern void UIDrawCursor(int xpos, int ypos)
@@ -427,15 +439,17 @@ extern void UIDrawCursor(int xpos, int ypos)
 
 extern void UIDrawPowerLoss(int xpos, int ypos)
 {
-    GdkGC *gc;
-    
-    gc = gdk_gc_new(drawingarea->window);
-    gdk_gc_set_clip_mask(gc,zones_mask);
-    gdk_gc_set_clip_origin(gc,
+    if (drawing == 0) {
+        gtk_widget_queue_draw(drawingarea);
+    } else {
+        GdkGC *gc;
+        gc = gdk_gc_new(drawingarea->window);
+        gdk_gc_set_clip_mask(gc,zones_mask);
+        gdk_gc_set_clip_origin(gc,
             xpos*game.tileSize-128,
             ypos*game.tileSize);
 
-    gdk_draw_drawable(
+        gdk_draw_drawable(
             drawingarea->window,
             gc,
             zones,
@@ -445,7 +459,7 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
             ypos*game.tileSize,
             game.tileSize,
             game.tileSize);
-    
+    }
 }
 
 extern unsigned char UIGetSelectedBuildItem(void)
@@ -539,7 +553,13 @@ extern void UISetTileSize(int size)
 
 extern void UIDrawPop(void) 
 {
-    g_print("UIDrawPop\n");
+    char temp[50];
+    sprintf(temp, "(%02u,%02u) Population: %-9li",
+            game.map_xpos,
+            game.map_ypos,
+            game.BuildCount[COUNT_RESIDENTIAL]*150);
+
+    gtk_label_set_text((GtkLabel*)poplabel, temp);
 }
 
 
