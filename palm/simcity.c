@@ -1172,8 +1172,8 @@ void
 _UIGetFieldToBuildOn(Int16 x, Int16 y)
 {
 	RectangleType rect;
-	rect.extent.x = vgame.visible_x * gameTileSize();
-	rect.extent.y = vgame.visible_y * gameTileSize();
+	rect.extent.x = getVisibleX() * gameTileSize();
+	rect.extent.y = getVisibleY() * gameTileSize();
 	rect.topLeft.x = XOFFSET;
 	rect.topLeft.y = YOFFSET;
 
@@ -1325,8 +1325,8 @@ UIDrawBorder()
 	if (IsDeferDrawing())
 		return;
 
-	_UIDrawRect(YOFFSET, XOFFSET, vgame.visible_y * gameTileSize(),
-	    vgame.visible_x * gameTileSize());
+	_UIDrawRect(YOFFSET, XOFFSET, getVisibleY() * gameTileSize(),
+	    getVisibleX() * gameTileSize());
 }
 
 /*
@@ -1485,6 +1485,26 @@ UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
 	EndHiresDraw();
 }
 
+/*!
+ * \brief Draw the play area
+ */
+void
+UIDrawPlayArea()
+{
+	Int16 x;
+	Int16 y;
+	Int16 maxx = x + getVisibleX() < getMapWidth() ? x + getVisibleX() :
+	    getMapWidth();
+	Int16 maxy = y + getVisibleY() < getMapHeight() ? y + getVisibleY() :
+	    getMapHeight();
+
+	for (x = getMapXPos(); x < maxx; x++) {
+		for (y = getMapYPos(); y < maxy; y++) {
+			DrawFieldWithoutInit(x, y);
+		}
+	}
+}
+
 /*
  * Scroll the map in the direction specified
  */
@@ -1501,9 +1521,9 @@ UIScrollDisplay(dirType direction)
 
 	rect.topLeft.x = XOFFSET + gameTileSize() * (direction == dtRight);
 	rect.topLeft.y = YOFFSET + gameTileSize() * (direction == dtDown);
-	rect.extent.x = (vgame.visible_x -
+	rect.extent.x = (getVisibleX() -
 	    1 * (direction == dtRight || direction == dtLeft)) * gameTileSize();
-	rect.extent.y = (vgame.visible_y -
+	rect.extent.y = (getVisibleY() -
 	    1 * (direction == dtUp || direction == dtDown)) * gameTileSize();
 	to_x = XOFFSET + gameTileSize() * (direction == dtLeft);
 	to_y = YOFFSET + gameTileSize() * (direction == dtUp);
@@ -1521,14 +1541,14 @@ UIScrollDisplay(dirType direction)
 	mapy = getMapYPos();
 	mapx = getMapXPos();
 	if (direction == dtRight || direction == dtLeft) {
-		for (i = mapy; i < vgame.visible_y + mapy; i++) {
+		for (i = mapy; i < getVisibleY() + mapy; i++) {
 			DrawFieldWithoutInit(mapx +
-			    (vgame.visible_x - 1) * (direction == dtRight), i);
+			    (getVisibleX() - 1) * (direction == dtRight), i);
 		}
 	} else {
-		for (i = mapx; i < vgame.visible_x + mapx; i++) {
+		for (i = mapx; i < getVisibleX() + mapx; i++) {
 			DrawFieldWithoutInit(i, mapy +
-			    (vgame.visible_y - 1) * (direction == dtDown));
+			    (getVisibleY() - 1) * (direction == dtDown));
 		}
 	}
 

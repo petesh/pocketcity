@@ -105,8 +105,8 @@ ResetViewable(void)
 {
 	WriteLog("Reset viewable\n");
 	vgame.TileSize = 16;
-	vgame.visible_x = sWidth / gameTileSize();
-	vgame.visible_y = (sHeight / gameTileSize()) - 2;
+	setVisibleX(sWidth / gameTileSize());
+	setVisibleY((sHeight / gameTileSize()) - 2);
 }
 
 /*
@@ -293,6 +293,9 @@ LoadGameByIndex(UInt16 index)
 	}
 	if (loaded != -1) {
 		PostLoadGame();
+		game.units[NUM_OF_UNITS - 1].type = 0xbb;
+		game.objects[0].x = 0x2222;
+		game.objects[NUM_OF_OBJECTS - 1].dir = 0x3333;
 		ResetViewable();
 	}
 	DmCloseDatabase(db);
