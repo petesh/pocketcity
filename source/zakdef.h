@@ -62,12 +62,19 @@
 #define INCOME_COMMERCIAL       35
 #define INCOME_INDUSTRIAL       30
 
+// for the upkeep[] array
+#define UPKEEPS_TRAFFIC         0
+#define UPKEEPS_POWER           1
+#define UPKEEPS_DEFENCE         2
+
 //upkeep cost pr. tile
 #define UPKEEP_ROAD             2
 #define UPKEEP_POWERLINE        1
 #define UPKEEP_NUCLEARPLANT     500
 #define UPKEEP_POWERPLANT       200
-#define UPKEEP_FIRE_STATIONS    100
+#define UPKEEP_FIRE_STATIONS    150
+#define UPKEEP_POLICE_STATIONS  100
+#define UPKEEP_MILITARY_BASES   500
 
 #define WORLDPOS(x,y)		(x+y*mapsize)
 

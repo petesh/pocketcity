@@ -41,6 +41,8 @@ Disasters:
 
 Misc:
 =====
+* When you've changed something on the budget page, you need to reload it
+  to see the changes (will auto-refresh in later versions)
 * In some versions there's a 'Test' menuoption under the 'File' menu - this
   is for testing and debugging. It should not be used.
 

@@ -481,42 +481,55 @@ void DoTaxes()
 
 void DoUpkeep()
 {
-
+    long unsigned int change = 0;
     // roads
-    if (credits < BuildCount[COUNT_ROADS]*UPKEEP_ROAD) {
+    change = BuildCount[COUNT_ROADS]*UPKEEP_ROAD;
+    change = (change*upkeep[UPKEEPS_TRAFFIC])/100;
+    
+    if (credits < change) {
         // can't pay
         credits = 0;
         DoNastyStuffTo(TYPE_ROAD,1);
     } else {
-        credits -= BuildCount[COUNT_ROADS]*UPKEEP_ROAD;
+        credits -= change;
     }
 
     // power lines
-    if (credits < BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE) {
+    change = BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE;
+    change = (change*upkeep[UPKEEPS_POWER])/100;
+    if (credits < change) {
         // can't pay
         credits = 0;
         DoNastyStuffTo(TYPE_POWER_LINE,5);
     } else {
-        credits -= BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE;
+        credits -= change;
     }
 
     // power plants
-    if (credits < (BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT + BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT)) {
+    change = BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT + BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT;
+    change = (change*upkeep[UPKEEPS_POWER])/100;
+    if (credits < change) {
         // can't pay
         credits = 0;
         DoNastyStuffTo(TYPE_POWER_PLANT,15);
         DoNastyStuffTo(TYPE_NUCLEAR_PLANT,30);
     } else {
-        credits -= (BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT + BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT);
+        credits -= change;
     }
 
     // fire stations
-    if (credits < BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS) {
+    change = BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS;
+    change += BuildCount[COUNT_POLICE_STATIONS]*UPKEEP_POLICE_STATIONS;
+    change += BuildCount[COUNT_MILITARY_BASES]*UPKEEP_MILITARY_BASES;
+    change = (change*upkeep[UPKEEPS_DEFENCE])/100;    
+    if (credits < change) {
         // can't friggin pay...
         credits = 0;
         DoNastyStuffTo(TYPE_FIRE_STATION,10);
+        DoNastyStuffTo(TYPE_POLICE_STATION,10);
+        DoNastyStuffTo(TYPE_MILITARY_BASE,30);
     } else {
-        credits -= (BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS);
+        credits -= change;
     }
     
 }

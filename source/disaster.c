@@ -50,10 +50,11 @@ extern void DoRandomDisaster(void)
 #ifdef DEBUG
     char temp[10];
 #endif
+    if (disaster_level == 0) { return; } // for those who can't handle the game (truth?) :P
 
     LockWorld();
 
-    for (i=0; i<100; i++) {
+    for (i=0; i<100; i++) { // give em' a 100 tries to hit a useful tile
         randomTile = GetRandomNumber(mapsize*mapsize);
         type = GetWorld(randomTile);
         if (type != TYPE_DIRT &&
@@ -61,7 +62,7 @@ extern void DoRandomDisaster(void)
             type != TYPE_CRATER) {
             x = randomTile % mapsize;
             y = randomTile / mapsize;
-            random = GetRandomNumber(3000); // TODO: shuld depend on difficulty
+            random = GetRandomNumber((4-disaster_level) * 1000); // TODO: should depend on difficulty
 #ifdef DEBUG
             LongToString(random, temp);
             UIWriteLog("Random disaster: ");

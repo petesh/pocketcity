@@ -1,12 +1,11 @@
 #include <PalmOS.h>
+#include <unix_stdlib.h>
 #include "simcity.h"
 #include "../source/globals.h"
 #include "../source/ui.h"
 
 void BudgetInit(void);
 void BudgetFreeMem(void);
-
-
 
 extern Boolean hBudget(EventPtr event)
 {
@@ -85,6 +84,7 @@ void BudgetInit(void)
 
     temp = MemPtrNew(12);
     change = BuildCount[COUNT_ROADS]*UPKEEP_ROAD;
+    change = (change*upkeep[UPKEEPS_TRAFFIC])/100;
     cashflow -= change;
     StrPrintF(temp,"%lu", change);
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_tra)), temp);
@@ -93,12 +93,14 @@ void BudgetInit(void)
     change = BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE +
              BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT +
              BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT;
+    change = (change*upkeep[UPKEEPS_POWER])/100;
     cashflow -= change;
     StrPrintF(temp,"%lu", change);
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_pow)), temp);
 
     temp = MemPtrNew(12);
     change = BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS; 
+    change = (change*upkeep[UPKEEPS_DEFENCE])/100;
     cashflow -= change;
     StrPrintF(temp,"%lu", change);
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_def)), temp);
@@ -114,6 +116,21 @@ void BudgetInit(void)
     temp = MemPtrNew(12);
     StrPrintF(temp,"%li", credits);
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_now)), temp);
+
+
+    // set up editable upkeep fields
+    {
+        MemHandle texthandle;
+        MemPtr text;
+        int i;
+        for (i=0; i<3; i++) {
+            texthandle = MemHandleNew(4);
+            text = MemHandleLock(texthandle);
+            StrPrintF(text, "%u", upkeep[i]);
+            MemHandleUnlock(texthandle);
+            FldSetTextHandle(FrmGetObjectPtr(form,FrmGetObjectIndex(form,fieldID_budget_tra+i)) , texthandle);
+        }
+    }
 }
 
 void BudgetFreeMem(void)
@@ -130,5 +147,15 @@ void BudgetFreeMem(void)
     MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_tot))));
     MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_bal))));
     MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_now))));
-}
 
+    // don't forget to save the upkeep settings ;)
+    {
+        int i,j;
+        for (i=0; i<3; i++) {
+            j = atol(FldGetTextPtr(FrmGetObjectPtr(form, FrmGetObjectIndex(form, fieldID_budget_tra+i))));
+            if (j < 0)   {j = 0;}
+            if (j > 100) {j = 100;}
+            upkeep[i] = j;
+        }
+    }
+}

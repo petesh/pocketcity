@@ -56,13 +56,27 @@ BEGIN
     LABEL "Industrial" AUTOID AT (0 PrevBottom)
     LABEL "-" labelID_budget_ind AT (115 PrevTop)
 
+
     LABEL "Expenses" AUTOID AT (CENTER PrevBottom)
+    
     LABEL "Traffic" AUTOID AT (0 PrevBottom)
+    FIELD ID fieldID_budget_tra AT (60 prevtop 20 auto) 
+        EDITABLE UNDERLINED MAXCHARS 3 NUMERIC RIGHTALIGN
+    LABEL "%" AUTOID AT (prevright prevtop)
     LABEL "-" labelID_budget_tra AT (115 PrevTop)
+    
     LABEL "Power" AUTOID AT (0 PrevBottom)
+    FIELD ID fieldID_budget_pow AT (60 prevtop 20 auto) 
+        EDITABLE UNDERLINED MAXCHARS 3 NUMERIC RIGHTALIGN
+    LABEL "%" AUTOID AT (prevright prevtop)
     LABEL "-" labelID_budget_pow AT (115 PrevTop)
+    
     LABEL "Defense" AUTOID AT (0 PrevBottom)
+    FIELD ID fieldID_budget_def AT (60 prevtop 20 auto) 
+        EDITABLE UNDERLINED MAXCHARS 3 NUMERIC RIGHTALIGN
+    LABEL "%" AUTOID AT (prevright prevtop)
     LABEL "-" labelID_budget_def AT (115 PrevTop)
+
 
     LABEL "Total" AUTOID AT (CENTER PrevBottom)
     LABEL "Current balance" AUTOID AT (0 PrevBottom)
@@ -73,9 +87,10 @@ BEGIN
     LABEL "-" labelID_budget_bal AT (115 PrevTop)
     LABEL "" AUTOID AT (0 PrevBottom)
 
-    /* formchangers (shapeshifters?) */
     POPUPTRIGGER "Budget" ID listID_shifter_popup AT (100 1 auto auto) LEFTANCHOR
-    LIST "Budget" "Map" ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 2
+    LIST 
+        "Budget" "Map" "Options"
+        ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 3
     POPUPLIST ID listID_shifter_popup listID_shifter
     
 END
@@ -88,16 +103,44 @@ BEGIN
   END
 END
 
+FORM ID formID_options AT ( 0 0 160 160 )
+NOFRAME
+USABLE
+BEGIN
+    TITLE "Options"
+    /* disasters - some people wants to adjust the frequency :/ */
+    LABEL "Disasters" AUTOID AT (0 18)
+    PUSHBUTTON "Off" ID buttonID_dis_off   AT (80 prevtop auto auto) GROUP 1
+    PUSHBUTTON "I"   ID buttonID_dis_one   AT (prevright prevtop auto auto) GROUP 1
+    PUSHBUTTON "II"  ID buttonID_dis_two   AT (prevright prevtop auto auto) GROUP 1
+    PUSHBUTTON "III" ID buttonID_dis_three AT (prevright prevtop auto auto) GROUP 1
+
+
+    /* formchangers (shapeshifters?) */
+    POPUPTRIGGER "Options" ID listID_shifter_popup AT (100 1 auto auto) LEFTANCHOR
+    LIST 
+        "Budget" "Map" "Options"
+        ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 3
+    POPUPLIST ID listID_shifter_popup listID_shifter
+END
+
 
 FORM ID formID_map AT ( 0 0 160 160 )
 NOFRAME
 USABLE
 MENUID menuID_map
 BEGIN
+    /* The map doesnt have a control for the map itself
+     * it is drawn directly onto the screen in map.c 
+     */
+    
     TITLE "Map"
+    
     /* formchangers (shapeshifters?) */
     POPUPTRIGGER "Map" ID listID_shifter_popup AT (100 1 auto auto) LEFTANCHOR
-    LIST "Budget" "Map" ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 2
+    LIST
+        "Budget" "Map" "Options"
+        ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 3
     POPUPLIST ID listID_shifter_popup listID_shifter
 END
 

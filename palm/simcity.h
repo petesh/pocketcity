@@ -15,6 +15,7 @@ extern void UIWriteLog(char * s);
 #define formID_filesNew                  1004
 #define formID_quickList                 1005
 #define formID_extraBuild                1006
+#define formID_options                   1007
 
 #define menuID_pocketCity                1000
 #define menuID_budget                    1001
@@ -107,6 +108,10 @@ extern void UIWriteLog(char * s);
 #define labelID_budget_now              1317
 #define labelID_budget_def              1318
 
+#define fieldID_budget_tra              1300
+#define fieldID_budget_pow              1301
+#define fieldID_budget_def              1302
+
 // menu for map
 #define menuitemID_MapBack              1340
 
@@ -120,11 +125,16 @@ extern void UIWriteLog(char * s);
 #define menuitemID_FilesOpen            1361
 #define menuitemID_FilesDelete          1362
 
-
 // controls for files=>new
 #define fieldID_newGameName             1010
 #define buttonID_FilesNewCreate         1011
 #define buttonID_FilesNewCancel         1012
+
+// controls for options form
+#define buttonID_dis_off                1010
+#define buttonID_dis_one                1011
+#define buttonID_dis_two                1012
+#define buttonID_dis_three              1013
 
 // controls for extra Build list
 #define listID_extraBuildList           1013

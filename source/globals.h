@@ -15,6 +15,8 @@ extern int TILE_SIZE;
 extern short updatePowerGrid;
 extern short unsigned int SIM_GAME_LOOP_SECONDS;
 extern char cityname[20];
+extern unsigned char upkeep[3];
+extern unsigned char disaster_level;
 
 
 extern void LongToString(signed long value, char* out);

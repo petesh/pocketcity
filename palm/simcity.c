@@ -47,6 +47,7 @@ unsigned short YOFFSET =15;
 static Boolean hPocketCity(EventPtr event);
 static Boolean hQuickList(EventPtr event);
 static Boolean hExtraList(EventPtr event);
+static Boolean hOptions(EventPtr event);
 void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth);
 void _PalmInit(void);
 void UIDoQuickList(void);
@@ -108,6 +109,9 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
                         break;
                     case formID_map:
                         FrmSetEventHandler(form, hMap);
+                        break;
+                    case formID_options:
+                        FrmSetEventHandler(form, hOptions);
                         break;
                     case formID_files:
                         FrmSetEventHandler(form, hFiles);
@@ -497,6 +501,9 @@ extern void UIGotoForm(int n)
         case 1:
             FrmGotoForm(formID_map);
             break;
+        case 2:
+            FrmGotoForm(formID_options);
+            break;
         default:
             break;
     }
@@ -658,6 +665,52 @@ static Boolean hQuickList(EventPtr event)
     return handled;
 }
 
+static Boolean hOptions(EventPtr event)
+{
+    FormPtr form;
+    int handled = 0;
+        
+    switch (event->eType)
+    {       
+        case frmOpenEvent:
+            form = FrmGetActiveForm();
+            FrmDrawForm(form);
+            CtlSetValue(FrmGetObjectPtr(form,FrmGetObjectIndex(form, buttonID_dis_off+disaster_level)), 1);
+            handled = 1;
+            break;      
+        case frmCloseEvent:
+            form = FrmGetActiveForm();
+            if (CtlGetValue(FrmGetObjectPtr(form,FrmGetObjectIndex(form, buttonID_dis_off)))) {
+                disaster_level = 0;
+            } else if (CtlGetValue(FrmGetObjectPtr(form,FrmGetObjectIndex(form, buttonID_dis_one)))) {
+                disaster_level = 1;
+            } else if (CtlGetValue(FrmGetObjectPtr(form,FrmGetObjectIndex(form, buttonID_dis_two)))) {
+                disaster_level = 2;
+            } else if (CtlGetValue(FrmGetObjectPtr(form,FrmGetObjectIndex(form, buttonID_dis_three)))) {
+                disaster_level = 3;
+            }                  
+            break;      
+        case keyDownEvent:
+            UIWriteLog("Key down\n");
+            switch (event->data.keyDown.chr)
+            {
+                case vchrLaunch:
+                    FrmGotoForm(formID_pocketCity);
+                    handled = 1;
+                    break;
+            }
+        case popSelectEvent:
+            if (event->data.popSelect.controlID == listID_shifter_popup) {
+                UIGotoForm(event->data.popSelect.selection);
+                handled = 1;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return handled;
+}
 
 
 extern unsigned char UIGetSelectedBuildItem(void) { return nSelectedBuildItem; }

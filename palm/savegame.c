@@ -197,7 +197,11 @@ void UINewGame(void)
     memset((void*)&BuildCount[0],0,80);
     memset((void*)objects,0,sizeof(MoveableObject)*NUM_OF_OBJECTS);
     memset((void*)units,0,sizeof(DefenceUnit)*NUM_OF_UNITS);
+    upkeep[0] = 100;
+    upkeep[1] = 100;
+    upkeep[2] = 100;
     mapsize = 100;
+    disaster_level = 1; // TODO: = difficulty_level
     ResizeWorld(mapsize*mapsize);
     SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
     CreateFullRiver();
@@ -258,6 +262,10 @@ int UILoadGame(UInt16 index)
             MemMove(&map_ypos,      pTemp+9,1);
             MemMove(&mapsize,       pTemp+10,1);
             MemMove(&TimeElapsed,   pTemp+11,4);
+            MemMove(&upkeep[0],     pTemp+15,3);
+            MemMove(&disaster_level,pTemp+18,1);
+            //                      pTemp+19,1 is reserved for
+            //                      difficulty_level
             MemMove(&BuildCount[0], pTemp+20,80);
             MemMove(cityname,       pTemp+100,20);
             MemMove(&objects,       pTemp+120,sizeof(MoveableObject)*NUM_OF_OBJECTS);
@@ -327,7 +335,10 @@ extern void UISaveGame(UInt16 index)
             DmWrite(pRec,9,&map_ypos,1);
             DmWrite(pRec,10,&mapsize,1);
             DmWrite(pRec,11,&TimeElapsed,4);
-            
+            DmWrite(pRec,15,&upkeep[0],3);
+            DmWrite(pRec,18,&disaster_level,1);
+            //           19,               ,1  is reserved for
+            //                                 difficulty_level
             DmWrite(pRec,20,&BuildCount[0],80);
             DmWrite(pRec,100,(char*)cityname,20);
             DmWrite(pRec,120,(void*)&objects, sizeof(MoveableObject)*NUM_OF_OBJECTS); // 8 bytes each
