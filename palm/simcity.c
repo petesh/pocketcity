@@ -224,10 +224,8 @@ EventLoop(void)
         EvtGetEvent(&event, 1);
         if (event.eType == appStopEvent) break;
 
-        if (event.eType == keyDownEvent) {
-            WriteLog("keydown event\n");
+        if (event.eType == keyDownEvent)
             if (FrmDispatchEvent(&event)) continue;
-        }
  
         if (SysHandleEvent(&event)) continue;
 
