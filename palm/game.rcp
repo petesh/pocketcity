@@ -29,7 +29,7 @@ BEGIN
   PULLDOWN "Build"
   BEGIN
 	MENUITEM "Remove defence"               menuitemID_removeDefence
-	MENUITEM "List..."                      menuitemID_buildExtra
+	MENUITEM "List..."                      menuitemID_buildExtra "i"
   END
   PULLDOWN "Speed"
   BEGIN

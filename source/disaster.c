@@ -235,7 +235,7 @@ extern int CreateDragon(int x, int y)
 
 void MonsterCheckSurrounded(int i) 
 {
-    if (GetDefenceValue(objects[i].x,objects[i].y) >= 11) {
+    if (GetDefenceValue(objects[i].x,objects[i].y) >= 11 || GetRandomNumber(50) < 2) {
         objects[i].active = 0; // kill the sucker
         UIWriteLog("killing a monster\n");
     }
