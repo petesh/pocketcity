@@ -509,6 +509,15 @@ void DoUpkeep()
     } else {
         credits -= (BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT + BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT);
     }
+
+    // fire stations
+    if (credits < BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS) {
+        // can't friggin pay...
+        credits = 0;
+        DoNastyStuffTo(TYPE_FIRE_STATION,10);
+    } else {
+        credits -= (BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS);
+    }
     
 }
 

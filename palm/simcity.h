@@ -13,6 +13,7 @@ extern void UIWriteLog(char * s);
 #define formID_files                     1003
 #define formID_filesNew                  1004
 #define formID_quickList                 1005
+#define formID_extraBuild                1006
 
 #define menuID_pocketCity                1000
 #define menuID_budget                    1001
@@ -33,6 +34,8 @@ extern void UIWriteLog(char * s);
 
 #define poplabel                         1055
 
+#define menuitemID_removeDefence         1057
+
 #define menuitemID_buildBulldoze         1100
 #define menuitemID_buildResidential      1101
 #define menuitemID_buildCommercial       1102
@@ -43,8 +46,13 @@ extern void UIWriteLog(char * s);
 #define menuitemID_buildPowerLine        1107
 #define menuitemID_buildTree             1108
 #define menuitemID_buildWater            1109
+#define menuitemID_buildExtra            1110 // pops up an extra list
 
-// notice how the IDs here are the same as the menuIDs
+#define menuitemID_defenceFire           1350 // equals to 250
+#define menuitemID_defencePolice         1351 // 251
+#define menuitemID_defenceMilitary       1352 // 252
+
+// notice how the IDs here are the same as the menuIDs (uptil the "extra")
 #define bitmapID_iconBulldoze            1100
 #define bitmapID_iconResidential         1101
 #define bitmapID_iconCommercial          1102
@@ -55,6 +63,10 @@ extern void UIWriteLog(char * s);
 #define bitmapID_iconPowerline           1107
 #define bitmapID_iconTree                1108
 #define bitmapID_iconWater               1109
+#define bitmapID_iconExtra               1110
+#define bitmapID_iconDefFire             1350
+#define bitmapID_iconDefPolice           1351
+#define bitmapID_iconDefMilitary         1352
 #define bitmapID_iconPushed              1400
 
 #define alertID_errorOutOfMemory         1000
@@ -89,6 +101,7 @@ extern void UIWriteLog(char * s);
 #define labelID_budget_tot              1315
 #define labelID_budget_bal              1316
 #define labelID_budget_now              1317
+#define labelID_budget_def              1318
 
 // menu for map
 #define menuitemID_MapBack              1340
@@ -107,8 +120,15 @@ extern void UIWriteLog(char * s);
 // controls for files=>new
 #define fieldID_newGameName             1010
 #define buttonID_FilesNewCreate         1011
-#define buttonID_FilesNewCancel        1012
+#define buttonID_FilesNewCancel         1012
+
+// controls for extra Build list
+#define listID_extraBuildList           1013
+#define buttonID_extraBuildSelect       1014
+
+
 
 #define bitmapID_zones      1600
 #define bitmapID_monsters   1601
+#define bitmapID_units      1602
 

@@ -8,7 +8,9 @@
 void Build_Road(int xpos, int ypos);
 void Build_PowerLine(int xpos, int ypos);
 void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nType);
+void Build_Defence(int xpos, int ypos, int type);
 void CreateForest(long unsigned int pos, int size);
+void RemoveDefence(int xpos, int ypos);
 
 int SpendMoney(unsigned long howMuch);
 
@@ -53,7 +55,102 @@ extern void BuildSomething(int xpos, int ypos)
         case BUILD_TREE:
             Build_Generic(xpos, ypos, BUILD_COST_TREE, TYPE_TREE);
             break;
+        case BUILD_FIRE_STATION:
+            Build_Generic(xpos, ypos, BUILD_COST_FIRE_STATION, TYPE_FIRE_STATION);
+            break;
+        case BUILD_DEFENCE_FIRE:     // fall through
+        case BUILD_DEFENCE_POLICE:   // fall through
+        case BUILD_DEFENCE_MILITARY:
+            Build_Defence(xpos, ypos, UIGetSelectedBuildItem() - BUILD_DEFENCE_FIRE);
+            break;
     }
+}
+
+void RemoveDefence(int xpos, int ypos)
+{
+    int i;
+    for (i=0; i<NUM_OF_UNITS; i++) {
+        if (units[i].x == xpos &&
+            units[i].y == ypos) {
+            
+            units[i].active = 0;
+            DrawCross(units[i].x, units[i].y);
+        }
+    }
+}
+
+extern void RemoveAllDefence(void)
+{
+    int i;
+    for (i=0; i<NUM_OF_UNITS; i++) {
+       units[i].active = 0;
+       DrawCross(units[i].x, units[i].y);
+    }
+}
+
+void Build_Defence(int xpos, int ypos, int type)
+{
+    int oldx, oldy, i, sel=-1,newactive=1,e,s,m,nCounter;
+    nCounter = ((type == DEFENCE_POLICE) ? COUNT_POLICE_STATIONS : (type == DEFENCE_FIREMEN ? COUNT_FIRE_STATIONS : COUNT_MILITARY_BASES));
+    if (BuildCount[nCounter] == 0) { return; } // no special building....
+    s = ((type == DEFENCE_POLICE) ? DEF_POLICE_START : (type == DEFENCE_FIREMEN ? DEF_FIREMEN_START : DEF_MILITARY_START));
+    e = ((type == DEFENCE_POLICE) ? DEF_POLICE_END : (type == DEFENCE_FIREMEN ? DEF_FIREMEN_END : DEF_MILITARY_END));
+    m = ((e-s)+1 < BuildCount[nCounter]/3) ? e : BuildCount[nCounter]/3+s; // make sure we can't make too many objects
+
+
+    // first remove all defence on this tile
+    for (i=0; i<NUM_OF_UNITS; i++) {
+        if (xpos == units[i].x &&
+            ypos == units[i].y &&
+            units[i].active != 0) {
+            if (units[i].type == type) { return; } // no need to build something already here
+            units[i].active = 0;
+        }
+    }
+
+    // find an empty slot for the new
+    // defence unit
+    for (i=s; i<=m; i++) {
+        if (units[i].active == 0) {
+            sel = i;
+            break;
+        }
+    }
+    if (sel == -1) {
+        // none found - start from the beginning
+        for (i=s; i<=m; i++) {
+            if (units[i].active == 1) {
+                sel = i;
+                newactive=2;
+                break;
+            } else {
+                units[i].active = 2;
+            }
+        }
+    }
+    if (sel == -1) {
+        // if STILL none found - then it's number 0
+        for (i=s; i<=m; i++) {
+            if (units[i].active != 0) {
+                units[i].active = 1;
+            }
+        }
+        sel = s;
+        newactive=2;
+    }
+        
+    
+
+    oldx = units[sel].x;
+    oldy = units[sel].y;
+
+    units[sel].x = xpos;
+    units[sel].y = ypos;
+    units[sel].active = newactive;
+    units[sel].type = type;
+
+    DrawCross(oldx, oldy);
+    DrawCross(xpos, ypos);
 }
 
 
@@ -76,6 +173,7 @@ extern void Build_Bulldoze(int xpos, int ypos)
         }
 
     }
+    RemoveDefence(xpos, ypos); 
     UnlockWorld();
 }
 
@@ -86,6 +184,7 @@ extern void Build_Destroy(int xpos, int ypos)
 
     LockWorld();
     type = GetWorld(WORLDPOS(xpos,ypos));
+    RemoveDefence(xpos, ypos);
 
     BuildCount[COUNT_COMMERCIAL] -= (type >= (ZONE_COMMERCIAL*10+20) && type <= (ZONE_COMMERCIAL*10+29)) ? (type%10)+1 : 0;
     BuildCount[COUNT_RESIDENTIAL] -= (type >= (ZONE_RESIDENTIAL*10+20) && type <= (ZONE_RESIDENTIAL*10+29)) ? (type%10)+1 : 0;
@@ -100,6 +199,7 @@ extern void Build_Destroy(int xpos, int ypos)
     BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE1);
     BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE2);
     BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE3);
+    BuildCount[COUNT_FIRE_STATIONS] -= (type == TYPE_FIRE_STATION);
     updatePowerGrid = 1; // to make sure the powergrid is uptodate
     if (type == 81 || type == TYPE_REAL_WATER) {
         // A bridge turns into real_water when detroyed
@@ -127,6 +227,7 @@ void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nT
             BuildCount[COUNT_WATER] += (nType == TYPE_WATER);
             BuildCount[COUNT_POWERPLANTS] += (nType == TYPE_POWER_PLANT);
             BuildCount[COUNT_NUCLEARPLANTS] += (nType == TYPE_NUCLEAR_PLANT);
+            BuildCount[COUNT_FIRE_STATIONS] += (nType == TYPE_FIRE_STATION);
         } else {
             UIDisplayError(ERROR_OUT_OF_MONEY);
         }

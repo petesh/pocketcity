@@ -9,13 +9,16 @@ Legend:
  '-' = removed feature
 
 Version 0.11
-============
+(The 'disasterous' update)
+==========================
 Kean Pedersen:
   + Naming of savegames
   + Quick list on calculator button
   + Bridges (not over homemade water on purpose)
   + 16bpp greyscale
   + A real monster :D (actually two of them)
+  + Fire fighters, police, and military added
+  + Fire Stations
   * Fire/disasters now spreads at it own rate - pause won't help (!)
   * Cleaned compiler warnings
   * Uses less stackspace in recursive function (should fix the FE)

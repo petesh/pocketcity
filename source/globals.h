@@ -24,5 +24,5 @@ extern void UIDoTaxes(void);
 
 
 
-
+extern DefenceUnit    units[10];
 extern MoveableObject objects[10];

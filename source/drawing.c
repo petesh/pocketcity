@@ -164,6 +164,14 @@ extern void DrawFieldWithoutInit(int xpos, int ypos)
             UIDrawSpecialObject(i, xpos - map_xpos, ypos - map_ypos);
         }
     }
+    // draw extra units
+    for (i=0; i<NUM_OF_UNITS; i++) {
+        if (xpos == units[i].x &&
+            ypos == units[i].y &&
+            units[i].active != 0) {
+            UIDrawSpecialUnit(i, xpos - map_xpos, ypos - map_ypos);
+        }
+    }
 
 }
 
@@ -239,7 +247,7 @@ extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
 }
 
 
-extern int CarryPower(unsigned char x)            { return ((x)>=1&&(x)<=7&&(x)!=4) || ((x)>=30&&(x)<=61)  ?1:0; }
+extern int CarryPower(unsigned char x)            { return ((x)>=1&&(x)<=7&&(x)!=4) || ((x)>=23&&(x)<=61)  ?1:0; }
 extern int IsPowerLine(unsigned char x)        { return ((x)>=5 && (x)<=7)  ?1:0; }
 
 extern int IsRoad(unsigned char x)        { return ((x)==4 || (x)==6 || (x)==7 || (x)==81)  ?1:0; }

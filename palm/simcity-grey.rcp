@@ -17,3 +17,4 @@ BITMAP ID bitmapID_iconNuclear         "graphic/icons/nuclear.bmp"      COMPRESS
 BITMAP ID bitmapID_iconPowerline       "graphic/icons/powerline.bmp"    COMPRESS
 BITMAP ID bitmapID_iconTree            "graphic/icons/tree.bmp"         COMPRESS
 BITMAP ID bitmapID_iconWater           "graphic/icons/water.bmp"        COMPRESS
+BITMAP ID bitmapID_iconExtra           "graphic/icons/extra.bmp"        COMPRESS

@@ -28,16 +28,8 @@ BEGIN
   END
   PULLDOWN "Build"
   BEGIN
-	MENUITEM "Bulldoze -$5"	                menuitemID_buildBulldoze                "B"
-	MENUITEM "Residential -$50"             menuitemID_buildResidential             "R"
-	MENUITEM "Commercial -$50"              menuitemID_buildCommercial              "C"
-	MENUITEM "Industrial -$50"              menuitemID_buildIndustrial              "I"
-	MENUITEM "Road -$20"                    menuitemID_buildRoad
-	MENUITEM "Power Plant -$3000"           menuitemID_buildPowerPlant
-	MENUITEM "Nuclear Plant -$10000"        menuitemID_buildNuclearPlant
-	MENUITEM "Power Line -$5"               menuitemID_buildPowerLine
-	MENUITEM "Tree -$10"                    menuitemID_buildTree
-	MENUITEM "Water -$200"                  menuitemID_buildWater
+	MENUITEM "Remove defence"               menuitemID_removeDefence
+	MENUITEM "List..."                      menuitemID_buildExtra
   END
   PULLDOWN "Speed"
   BEGIN
@@ -49,8 +41,6 @@ BEGIN
 	MENUITEM "Pause"                        menuID_PauseSpeed
   END
 END
-
-
 
 FORM ID formID_budget AT ( 0 0 160 160 )
 NOFRAME
@@ -71,6 +61,8 @@ BEGIN
     LABEL "-" labelID_budget_tra AT (115 PrevTop)
     LABEL "Power" AUTOID AT (0 PrevBottom)
     LABEL "-" labelID_budget_pow AT (115 PrevTop)
+    LABEL "Defense" AUTOID AT (0 PrevBottom)
+    LABEL "-" labelID_budget_def AT (115 PrevTop)
 
     LABEL "Total" AUTOID AT (CENTER PrevBottom)
     LABEL "Current balance" AUTOID AT (0 PrevBottom)
@@ -146,7 +138,7 @@ END
 
 BITMAP ID bitmapID_iconPushed "graphic/icon_pushed.bmp" COMPRESS
 
-FORM ID formID_quickList AT ( 1 129 158 30 )
+FORM ID formID_quickList AT ( 1 119 158 40 )
 USABLE
 MODAL
 BEGIN
@@ -161,7 +153,30 @@ BEGIN
     BUTTON "" ID menuitemID_buildPowerLine AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconPowerline SELECTEDBITMAPID bitmapID_iconPushed
     BUTTON "" ID menuitemID_buildTree AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconTree SELECTEDBITMAPID bitmapID_iconPushed
     BUTTON "" ID menuitemID_buildWater AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconWater SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID menuitemID_buildExtra AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconExtra SELECTEDBITMAPID bitmapID_iconPushed
+    /* next line  - defence and such */
+
+    BUTTON "" ID menuitemID_defenceFire     AT (3 PREVBOTTOM AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefFire SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID menuitemID_defencePolice   AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefPolice SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID menuitemID_defenceMilitary AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefMilitary SELECTEDBITMAPID bitmapID_iconPushed
+    
 END
+
+
+FORM ID formID_extraBuild AT ( 0 0 160 160 )
+USABLE
+BEGIN
+    TITLE "Build extra stuff"
+
+    LIST "Bulldoze - $5" "Residential -$50" "Commercial -$50" "Industrial -$50" "Road -$20" 
+         "Power Plant -$3000" "Nuclear Plant -$10000" "Power Line -$5" "Tree -$10" "Water -$200" 
+         "Fire Station -$700" "**Police Station -$700"
+         ID listID_extraBuildList AT (1 18 158 121) USABLE 
+
+    BUTTON "Select"     ID buttonID_extraBuildSelect     AT (2 prevbottom+5 AUTO AUTO)
+END
+
+
 
 
 ALERT ID alertID_errorOutOfMemory

@@ -28,9 +28,14 @@ Disasters:
 * The fire spreads quickly. Hint: it cannot spread across clear land, so
   use that bulldozer :)
 * Even if you pause the game duing a disaster, it will still spread. 
+* To stop the fire, place a fire fighter or a military unit next to it. The 
+  police can also stop the fire, but only if they have two units next to it.
+* The monsters can be killed by 2 military units (place them next to it), or
+  4 fire fighters.
 
 
 Misc:
 =====
 * In some versions there's a 'Test' menuoption under the 'File' menu - this
   is for testing and debugging. It should not be used.
+

@@ -10,6 +10,10 @@
 
 void FireSpread(int x, int y);
 void CreateWaste(int x, int y);
+unsigned short int GetDefenceValue(int xpos, int ypos);
+unsigned short int ContainsDefence(int x, int y);
+void MonsterCheckSurrounded(int i);
+        
 
 
 extern void DoNastyStuffTo(int type, unsigned int probability)
@@ -89,29 +93,33 @@ extern int UpdateDisasters(void)
     int i,j,type, retval=0;
 
     LockWorld();
+    LockWorldFlags();
+    for (j=0; j<mapsize*mapsize; j++) { SetWorldFlags(j, GetWorldFlags(j) & 0xfc); } // clear used flag
     for (i=0; i<mapsize; i++) {
         for (j=0; j<mapsize; j++) {
             type = GetWorld(WORLDPOS(i,j));
-            if (type == TYPE_FIRE2) {
-                retval = 1;
-                if (GetRandomNumber(5) != 0) {
-                    // TODO: fire is spreading to quickly in down-right
-                    // direction - use the WorldFlags like in the power
-                    // distribution functions
-                    FireSpread(i,j);
-                    SetWorld(WORLDPOS(i,j),TYPE_FIRE3);
-                } else {
+            if ((GetWorldFlags(WORLDPOS(i,j)) & 0x02) == 0) { // already looked at this one?
+                if (type == TYPE_FIRE2) {
+                    retval = 1;
+                    if (GetRandomNumber(5) != 0) {
+                        if (GetDefenceValue(i,j) < 3) { // hmm, are there any defence here? :)
+                            FireSpread(i,j);
+                        }
+                        SetWorld(WORLDPOS(i,j),TYPE_FIRE3);
+                    } else {
+                        CreateWaste(i,j);
+                    }
+                } else if (type == TYPE_FIRE1) {
+                    retval = 1;
+                    SetWorld(WORLDPOS(i,j),TYPE_FIRE2);
+                } else if (type == TYPE_FIRE3) {
+                    retval = 1;
                     CreateWaste(i,j);
                 }
-            } else if (type == TYPE_FIRE1) {
-                retval = 1;
-                SetWorld(WORLDPOS(i,j),TYPE_FIRE2);
-            } else if (type == TYPE_FIRE3) {
-                retval = 1;
-                CreateWaste(i,j);
             }
         }
     }
+    UnlockWorldFlags();
     UnlockWorld();
     return retval;
 }
@@ -148,6 +156,7 @@ extern int BurnField(int x, int y, int forceit)
     int type;
     
     LockWorld();
+    LockWorldFlags();
     type = GetWorld(WORLDPOS(x,y));
     if (forceit != 0 ||
         (type != TYPE_FIRE1 &&
@@ -156,14 +165,18 @@ extern int BurnField(int x, int y, int forceit)
         type != TYPE_DIRT  &&
         type != TYPE_WASTE &&
         type != TYPE_WATER &&
-        type != TYPE_REAL_WATER)) {
+        type != TYPE_REAL_WATER &&
+        ContainsDefence(x,y) == 0)) {
         Build_Destroy(x,y);
         SetWorld(WORLDPOS(x,y), TYPE_FIRE1);
+        SetWorldFlags(WORLDPOS(x,y), GetWorldFlags(WORLDPOS(x,y)) | 0x02); // set used flag
         DrawCross(x,y);
         BuildCount[COUNT_FIRE]++;
+        UnlockWorldFlags();
         UnlockWorld();
         return 1;
     }
+    UnlockWorldFlags();
     UnlockWorld();
     return 0;
 }
@@ -205,6 +218,50 @@ extern int CreateDragon(int x, int y)
     return 0;
 }
 
+
+void MonsterCheckSurrounded(int i) 
+{
+    if (GetDefenceValue(objects[i].x,objects[i].y) >= 11) {
+        objects[i].active = 0; // kill the sucker
+        UIWriteLog("killing a monster\n");
+    }
+}
+
+unsigned short int GetDefenceValue(int xpos, int ypos)
+{
+    // police = 2
+    // firemen = 3
+    // military = 6
+    short int def = 
+    ContainsDefence(xpos+1, ypos)+
+    ContainsDefence(xpos+1, ypos+1)+
+    ContainsDefence(xpos+1, ypos-1)+
+    ContainsDefence(xpos,ypos+1)+
+    ContainsDefence(xpos,ypos-1)+
+    ContainsDefence(xpos-1,ypos)+
+    ContainsDefence(xpos-1,ypos+1)+
+    ContainsDefence(xpos-1,ypos+1);
+    return def;
+}
+
+unsigned short int ContainsDefence(int x, int y)
+{
+    int i;
+    for (i=0; i<NUM_OF_UNITS; i++) {
+        if (units[i].x == x &&
+            units[i].y == y &&
+            units[i].active != 0) {
+            switch(units[i].type) {
+                case DEFENCE_POLICE: return 2;
+                case DEFENCE_FIREMEN: return 3;
+                case DEFENCE_MILITARY: return 6;
+                default: return 0;
+            }
+        }
+    }
+    return 0;
+}
+
 extern void MoveAllObjects(void)
 {
     int i,x,y;
@@ -217,9 +274,11 @@ extern void MoveAllObjects(void)
                 if (!BurnField(objects[i].x, objects[i].y,1)) {
                     CreateWaste(objects[i].x, objects[i].y);
                 }
+                MonsterCheckSurrounded(i);
             } else if (i == OBJ_MONSTER) {
                 // whoo-hoo, bingo again
                 CreateWaste(objects[i].x, objects[i].y);
+                MonsterCheckSurrounded(i);
             }
 
             x = objects[i].x; // save old position

@@ -176,8 +176,9 @@ void UINewGame(void)
     map_xpos = 50;
     map_ypos = 50;
     credits = 50000;
-    memset((void*)&BuildCount[0],0,40);
+    memset((void*)&BuildCount[0],0,80);
     memset((void*)objects,0,sizeof(MoveableObject)*NUM_OF_OBJECTS);
+    memset((void*)units,0,sizeof(DefenceUnit)*NUM_OF_UNITS);
     mapsize = 100;
     ResizeWorld(mapsize*mapsize);
     SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
@@ -232,7 +233,7 @@ int UILoadGame(UInt16 index)
             UINewGame();
             UISaveGame(index); // save the newly created map
             loaded = 2;
-        } else if (StrNCompare("PC03",(char*)pTemp,4) == 0) { // version check
+        } else if (StrNCompare("PC04",(char*)pTemp,4) == 0) { // version check
             LockWorld();
             MemMove(&credits,       pTemp+4,4);
             MemMove(&map_xpos,      pTemp+8,1);
@@ -242,7 +243,8 @@ int UILoadGame(UInt16 index)
             MemMove(&BuildCount[0], pTemp+20,80);
             MemMove(cityname,       pTemp+100,20);
             MemMove(&objects,       pTemp+120,sizeof(MoveableObject)*NUM_OF_OBJECTS);
-            MemMove(worldPtr,       pTemp+200,mapsize*mapsize);
+            MemMove(&units,         pTemp+200,sizeof(DefenceUnit)*NUM_OF_UNITS);
+            MemMove(worldPtr,       pTemp+300,mapsize*mapsize);
             UnlockWorld();
             // update the power grid:
             Sim_DistributePower();
@@ -296,12 +298,12 @@ extern void UISaveGame(UInt16 index)
         if (DmNumRecords(db) > index) {
             DmRemoveRecord(db, index);
         }
-        rec = DmNewRecord(db,&index, mapsize*mapsize+200);
+        rec = DmNewRecord(db,&index, mapsize*mapsize+300);
         if (rec) {
             pRec = MemHandleLock(rec);
             LockWorld();
             // write the header and some globals
-            DmWrite(pRec,0,"PC03",4);
+            DmWrite(pRec,0,"PC04",4);
             DmWrite(pRec,4,&credits,4);
             DmWrite(pRec,8,&map_xpos,1);
             DmWrite(pRec,9,&map_ypos,1);
@@ -311,7 +313,8 @@ extern void UISaveGame(UInt16 index)
             DmWrite(pRec,20,&BuildCount[0],80);
             DmWrite(pRec,100,(char*)cityname,20);
             DmWrite(pRec,120,(void*)&objects, sizeof(MoveableObject)*NUM_OF_OBJECTS); // 8 bytes each
-            DmWrite(pRec,200,(void*)(unsigned char*)worldPtr,mapsize*mapsize);
+            DmWrite(pRec,200,(void*)&units,   sizeof(DefenceUnit)*NUM_OF_UNITS); // 8 bytes each
+            DmWrite(pRec,300,(void*)(unsigned char*)worldPtr,mapsize*mapsize);
             UnlockWorld();
             MemHandleUnlock(rec);
             DmReleaseRecord(db,index,true);

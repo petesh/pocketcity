@@ -25,6 +25,7 @@ MemPtr worldFlagsPtr;
 RectangleType rPlayGround;
 WinHandle winZones;
 WinHandle winMonsters;
+WinHandle winUnits;
 unsigned char nSelectedBuildItem = 0;
 unsigned char nPreviousBuildItem = 0;
 short int game_in_progress = 0;
@@ -45,10 +46,12 @@ static Boolean hPocketCity(EventPtr event);
 static Boolean hBudget(EventPtr event);
 static Boolean hMap(EventPtr event);
 static Boolean hQuickList(EventPtr event);
+static Boolean hExtraList(EventPtr event);
 void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth);
 void _PalmInit(void);
 void DrawMap(void);
 void UIDoQuickList(void);
+void UIPopUpExtraBuildList(void);
 
 void BudgetInit(void);
 void BudgetFreeMem(void);
@@ -81,6 +84,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
             EvtGetEvent(&event, 1);
 
             if (event.eType == keyDownEvent) {
+                UIWriteLog("keydown event\n");
                 if (FrmDispatchEvent(&event)) continue;
             }
 
@@ -114,6 +118,9 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
                     case formID_quickList:
                         FrmSetEventHandler(form, hQuickList);
                         break;
+                    case formID_extraBuild:
+                        FrmSetEventHandler(form, hExtraList);
+                        break;
                 }
             }
             else if (event.eType == winExitEvent) {
@@ -127,7 +134,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
                 {
                     UIWriteLog("Setting drawing to 1\n");
                     DoDrawing = 1;
-                    RedrawAllFields(); //update screen with after menu etc.
+                    RedrawAllFields(); //update screen after menu etc.
                 } else {
                     UIWriteLog("Setting drawing to 0\n");
                     DoDrawing = 0;
@@ -182,6 +189,8 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
         }
         // clean up
         WinDeleteWindow(winZones,0);
+        WinDeleteWindow(winMonsters,0);
+        WinDeleteWindow(winUnits,0);
     }
 
     return 0;
@@ -242,6 +251,18 @@ void _PalmInit(void)
         UIWriteLog("Offscreen window for monsters failed\n");
     }
     WinSetDrawWindow(winMonsters); // note we don't save the old winhandle here
+    WinDrawBitmap(bitmap,0,0);
+    MemHandleUnlock(bitmaphandle);
+    
+    // and, at last, the units
+    bitmaphandle = DmGet1Resource( TBMP, bitmapID_units);
+    bitmap = MemHandleLock(bitmaphandle);
+    winUnits = WinCreateOffscreenWindow(48,32,genericFormat,&err);
+    if (err != errNone) {
+        // TODO: alert user, and quit program
+        UIWriteLog("Offscreen window for units failed\n");
+    }
+    WinSetDrawWindow(winUnits); // note we don't save the old winhandle here
     WinDrawBitmap(bitmap,0,0);
     MemHandleUnlock(bitmaphandle);
     
@@ -390,20 +411,25 @@ void BudgetInit(void)
              BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT;
     cashflow -= change;
     StrPrintF(temp,"%lu", change);
-   CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_pow)), temp);
+    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_pow)), temp);
 
+    temp = MemPtrNew(12);
+    change = BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS; 
+    cashflow -= change;
+    StrPrintF(temp,"%lu", change);
+    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_def)), temp);
 
-   temp = MemPtrNew(12);
-   StrPrintF(temp,"%+li", cashflow);
-   CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_tot)), temp);
+    temp = MemPtrNew(12);
+    StrPrintF(temp,"%+li", cashflow);
+    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_tot)), temp);
 
-   temp = MemPtrNew(12);
-   StrPrintF(temp,"%li", credits+cashflow);
-   CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_bal)), temp);
+    temp = MemPtrNew(12);
+    StrPrintF(temp,"%li", credits+cashflow);
+    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_bal)), temp);
 
-   temp = MemPtrNew(12);
-   StrPrintF(temp,"%li", credits);
-   CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_now)), temp);
+    temp = MemPtrNew(12);
+    StrPrintF(temp,"%li", credits);
+    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_now)), temp);
 }
 
 void BudgetFreeMem(void)
@@ -416,6 +442,7 @@ void BudgetFreeMem(void)
     MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_ind))));
     MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_tra))));
     MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_pow))));
+    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_def))));
 }
 
 static Boolean hPocketCity(EventPtr event)
@@ -480,8 +507,12 @@ static Boolean hPocketCity(EventPtr event)
         case menuEvent:
             if (event->data.menu.itemID >= menuitemID_buildBulldoze)
             {
-                nSelectedBuildItem = event->data.menu.itemID - menuitemID_buildBulldoze;
-                UIUpdateBuildIcon();
+                if (event->data.menu.itemID == menuitemID_buildExtra) {
+                    UIPopUpExtraBuildList();
+                } else {
+                    nSelectedBuildItem = event->data.menu.itemID - menuitemID_buildBulldoze;
+                    UIUpdateBuildIcon();
+                }
                 handled = 1;
             } else {
                 switch (event->data.menu.itemID)
@@ -490,8 +521,11 @@ static Boolean hPocketCity(EventPtr event)
                         // change this to whatever testing you're doing ;)
                         // just handy with a 'trigger' button for testing
                         // ie. disaters
-                        CreateDragon(5,5);
-                        CreateMonster(5,5);
+                        BurnField(5,5,1);
+                        handled = 1;
+                        break;
+                    case menuitemID_removeDefence:
+                        RemoveAllDefence();
                         handled = 1;
                         break;
                     case menuitemID_Map:
@@ -604,13 +638,54 @@ static Boolean hPocketCity(EventPtr event)
     return handled;
 }
 
+void UIPopUpExtraBuildList(void)
+{
+    FormType * ftList;
+
+    if (oldROM != 1) {
+        ftList = FrmInitForm(formID_extraBuild);
+        FrmSetEventHandler(ftList, hExtraList);
+        if (FrmDoDialog(ftList) == buttonID_extraBuildSelect) {
+            nSelectedBuildItem = LstGetSelection(FrmGetObjectPtr(ftList,FrmGetObjectIndex(ftList,listID_extraBuildList)));
+        }
+        UIUpdateBuildIcon();
+        FrmDeleteForm(ftList);
+    }
+}
+
+static Boolean hExtraList(EventPtr event)
+{
+    FormPtr form;
+    int handled = 0;
+        
+    switch (event->eType)
+    {       
+        case frmOpenEvent:
+            game_in_progress = 0;
+            form = FrmGetActiveForm();
+            FrmDrawForm(form);
+            handled = 1;
+            break;      
+        case frmCloseEvent:
+            break;      
+        default:
+            break;
+    }
+
+    return handled;
+}
+
 void UIDoQuickList(void)
 {
     FormType * ftList;
 
     if (oldROM != 1) {
         ftList = FrmInitForm(formID_quickList);
+        FrmSetEventHandler(ftList, hQuickList);
         nSelectedBuildItem = FrmDoDialog(ftList) - menuitemID_buildBulldoze;
+        if (nSelectedBuildItem == 10) {
+            UIPopUpExtraBuildList();
+        }            
         UIUpdateBuildIcon();
         FrmDeleteForm(ftList);
     }
@@ -633,11 +708,13 @@ static Boolean hQuickList(EventPtr event)
         case frmCloseEvent:
             break;      
         case keyDownEvent:
+            UIWriteLog("Key down\n");
             switch (event->data.keyDown.chr)
             {
                 case vchrCalc:
-                    /* close the quicksheet */
-                    FrmReturnToForm(0);
+                    /* close the quicksheet - simulate we pushed the bulldozer */
+                    CtlHitControl(FrmGetObjectPtr(FrmGetActiveForm(),FrmGetObjectIndex(FrmGetActiveForm(),menuitemID_buildBulldoze)));
+                    handled = 1;
                     break;
             }
         default:
@@ -777,6 +854,34 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
             winOverlay);
 }
 
+extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
+{
+    RectangleType rect;
+    if (DoDrawing == 0) { return; }
+    
+    rect.topLeft.x = units[i].type*TILE_SIZE;
+    rect.topLeft.y = TILE_SIZE;
+    rect.extent.x = TILE_SIZE;
+    rect.extent.y = TILE_SIZE;
+
+    WinCopyRectangle(
+            winUnits,
+            WinGetActiveWindow(),
+            &rect,
+            xpos*TILE_SIZE+XOFFSET,
+            ypos*TILE_SIZE+YOFFSET,
+            winErase);
+    rect.topLeft.y = 0;
+    WinCopyRectangle(
+            winUnits,
+            WinGetActiveWindow(),
+            &rect,
+            xpos*TILE_SIZE+XOFFSET,
+            ypos*TILE_SIZE+YOFFSET,
+            winOverlay);
+
+}
+
 extern void UIDrawSpecialObject(int i, int xpos, int ypos)
 {
     RectangleType rect;
@@ -909,7 +1014,8 @@ extern void UIUpdateBuildIcon(void)
     BitmapPtr bitmap;
     if (DoDrawing == 0) { return; }
 
-    bitmaphandle = DmGet1Resource(TBMP,bitmapID_iconBulldoze + nSelectedBuildItem);
+    bitmaphandle = DmGet1Resource(TBMP,bitmapID_iconBulldoze + 
+            ((nSelectedBuildItem<=9 || (nSelectedBuildItem>=250 && nSelectedBuildItem<=252))?nSelectedBuildItem:10));
     if (bitmaphandle == NULL) { return; } // TODO: onscreen error? +save?
     bitmap = MemHandleLock(bitmaphandle);
     WinDrawBitmap(bitmap,140,150);
@@ -1064,14 +1170,18 @@ extern void SetWorld(unsigned long pos, unsigned char value)
 Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags)
 {
     UInt32 romVersion;
+#ifdef DEBUG
     char temp[20];
+#endif
 
     // See if we're on in minimum required version of the ROM or later.
     FtrGet(sysFtrCreator, sysFtrNumROMVersion, &romVersion);
+#ifdef DEBUG
     LongToString(romVersion,(char*)temp);
     UIWriteLog("Rom version: ");
     UIWriteLog(temp);
     UIWriteLog("\n");
+#endif
 
     if (romVersion < requiredVersion)
     {
