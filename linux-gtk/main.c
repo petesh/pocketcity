@@ -9,6 +9,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include <main.h>
 #include <savegame_fe.h>
@@ -37,11 +38,11 @@ static GtkObject *playscrollerh;
 /*! \brief handle to the vertical scroll bar for moving the map around */
 static GtkObject *playscrollerv;
 /*! \brief handle to the bitmaps for rendering the zones */
-static GdkPixmap *zones;
+static GdkPixmap *pzones;
 /*! \brief handle to the bitmaps for rendering the monsters */
-static GdkPixmap *monsters;
+static GdkPixmap *pmonsters;
 /*! \brief handle to the bitmaps for rendering the units */
-static GdkPixmap *units;
+static GdkPixmap *punits;
 /*! \brief handle to the bitmap masks for rendering the units */
 static GdkPixmap *zones_mask;
 /*! \brief handle to the bitmap masks for rendering the monsters */
@@ -131,7 +132,7 @@ SetSpeed(GtkWidget *w __attribute__((unused)), gpointer data)
 	int result = GPOINTER_TO_INT(data);
 
 	WriteLog("Setting speed to %i\n", result);
-	game.gameLoopSeconds = result;
+	setLoopSeconds(result);
 }
 
 /*!
@@ -155,10 +156,10 @@ mainloop_callback(gpointer data __attribute__((unused)))
 		}
 	}
 
-	if (timekeeper >= game.gameLoopSeconds &&
-	    game.gameLoopSeconds != SPEED_PAUSED) {
+	if (timekeeper >= getLoopSeconds() &&
+	    getLoopSeconds() != SPEED_PAUSED) {
 		WriteLog("A month has gone by - total months: %lu\n",
-		    (unsigned long)game.TimeElapsed);
+		    (unsigned long)getMonthsElapsed());
 		timekeeper = 0;
 		do {
 			phase = Sim_DoPhase(phase);
@@ -309,12 +310,12 @@ button_press_event(GtkWidget *widget __attribute__((unused)),
 {
 	if (event->button == 1) {
 		BuildSomething(
-		    (int)(event->x / vgame.tileSize) + game.map_xpos,
-		    (int)(event->y / vgame.tileSize) + game.map_ypos);
+		    (int)(event->x / vgame.tileSize) + getMapXPos(),
+		    (int)(event->y / vgame.tileSize) + getMapYPos());
 	} else if (event->button == 3) {
 		Build_Bulldoze(
-		    (int)(event->x / vgame.tileSize) + game.map_xpos,
-		    (int)(event->y / vgame.tileSize) + game.map_ypos, 0);
+		    (int)(event->x / vgame.tileSize) + getMapXPos(),
+		    (int)(event->y / vgame.tileSize) + getMapYPos(), 0);
 	}
 
 	return (TRUE);
@@ -344,14 +345,14 @@ motion_notify_event(GtkWidget *widget __attribute__((unused)),
 	    x > 0 && x < vgame.visible_x*vgame.tileSize &&
 	    y > 0 && y < vgame.visible_y*vgame.tileSize) {
 		BuildSomething(
-		    (int)(x / vgame.tileSize) + game.map_xpos,
-		    (int)(y / vgame.tileSize) + game.map_ypos);
+		    (int)(x / vgame.tileSize) + getMapXPos(),
+		    (int)(y / vgame.tileSize) + getMapYPos());
 	} else if (state & GDK_BUTTON3_MASK &&
 	    x > 0 && x < vgame.visible_x*vgame.tileSize &&
 	    y > 0 && y < vgame.visible_y*vgame.tileSize) {
 		Build_Bulldoze(
-		    (int)(x / vgame.tileSize) + game.map_xpos,
-		    (int)(y / vgame.tileSize) + game.map_ypos, 1);
+		    (int)(x / vgame.tileSize) + getMapXPos(),
+		    (int)(y / vgame.tileSize) + getMapYPos(), 1);
 	}
 
 	return (TRUE);
@@ -553,15 +554,28 @@ void
 UISetUpGraphic(void)
 {
 	char image_path[MAXPATHLEN];
+	struct stat sbuf;
 	
-	sprintf(image_path, "%s/graphic/zones_16x16-color.png", exec_dir);
-	zones = gdk_pixmap_create_from_xpm(drawingarea->window,
+	sprintf(image_path, "%s/graphic/tile-16x16-color.png", exec_dir);
+	if (stat(image_path, &sbuf) == -1) {
+		perror(image_path);
+		exit(1);
+	}
+	pzones = gdk_pixmap_create_from_xpm(drawingarea->window,
 	    &zones_mask, NULL, image_path);
 	sprintf(image_path, "%s/graphic/monsters_16x16-color.png", exec_dir);
-	monsters = gdk_pixmap_create_from_xpm(drawingarea->window,
+	if (stat(image_path, &sbuf) == -1) {
+		perror(image_path);
+		exit(1);
+	}
+	pmonsters = gdk_pixmap_create_from_xpm(drawingarea->window,
 	    &monsters_mask, NULL, image_path);
 	sprintf(image_path, "%s/graphic/units_16x16-color.png", exec_dir);
-	units = gdk_pixmap_create_from_xpm(drawingarea->window,
+	if (stat(image_path, &sbuf) == -1) {
+		perror(image_path);
+		exit(1);
+	}
+	punits = gdk_pixmap_create_from_xpm(drawingarea->window,
 	    &units_mask, NULL, image_path);
 }
 
@@ -663,7 +677,7 @@ UIDrawCredits(void)
 {
 	char temp[23];
 
-	sprintf(temp, "$: %ld", (long)game.credits);
+	sprintf(temp, "$: %ld", (long)getCredits());
 	gtk_label_set_text((GtkLabel *)creditslabel, temp);
 	GetDate((char *)temp);
 	gtk_label_set_text((GtkLabel *)timelabel, temp);
@@ -721,7 +735,7 @@ _UIDrawRect(Int16 nTop __attribute__((unused)),
  * \param nGraphic the item to paint
  */
 void
-UIDrawField(Int16 xpos, Int16 ypos, UInt8 nGraphic)
+UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
 {
 	GdkGC *gc;
 
@@ -729,9 +743,9 @@ UIDrawField(Int16 xpos, Int16 ypos, UInt8 nGraphic)
 	gdk_draw_drawable(
 	    drawingarea->window,
 	    gc,
-	    zones,
-	    (nGraphic % 64) * vgame.tileSize,
-	    (nGraphic / 64) * vgame.tileSize,
+	    pzones,
+	    (nGraphic % HORIZONTAL_TILESIZE) * vgame.tileSize,
+	    (nGraphic / HORIZONTAL_TILESIZE) * vgame.tileSize,
 	    xpos * vgame.tileSize,
 	    ypos * vgame.tileSize,
 	    vgame.tileSize,
@@ -753,14 +767,14 @@ UIDrawSpecialObject(Int16 i, Int16 xpos, Int16 ypos)
 	gc = gdk_gc_new(drawingarea->window);
 	gdk_gc_set_clip_mask(gc, monsters_mask);
 	gdk_gc_set_clip_origin(gc,
-	    xpos * vgame.tileSize - (game.objects[i].dir * vgame.tileSize),
+	    xpos * vgame.tileSize - (GG.objects[i].dir * vgame.tileSize),
 	    ypos * vgame.tileSize - (i * vgame.tileSize));
 
 	gdk_draw_drawable(
 	    drawingarea->window,
 	    gc,
-	    monsters,
-	    game.objects[i].dir * vgame.tileSize,
+	    pmonsters,
+	    GG.objects[i].dir * vgame.tileSize,
 	    i * vgame.tileSize,
 	    xpos * vgame.tileSize,
 	    ypos * vgame.tileSize,
@@ -783,14 +797,14 @@ UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos)
 	gc = gdk_gc_new(drawingarea->window);
 	gdk_gc_set_clip_mask(gc, units_mask);
 	gdk_gc_set_clip_origin(gc,
-	    xpos * vgame.tileSize - (game.units[i].type * vgame.tileSize),
+	    xpos * vgame.tileSize - (GG.units[i].type * vgame.tileSize),
 	    ypos * vgame.tileSize);
 
 	gdk_draw_drawable(
 	    drawingarea->window,
 	    gc,
-	    units,
-	    game.units[i].type * vgame.tileSize,
+	    punits,
+	    GG.units[i].type * vgame.tileSize,
 	    0,
 	    xpos * vgame.tileSize,
 	    ypos * vgame.tileSize,
@@ -814,22 +828,22 @@ UIDrawCursor(Int16 xpos __attribute__((unused)),
  * \param offset the offst of the item to paint.
  */
 void
-UIDrawOverlay(Int16 xpos, Int16 ypos, UInt16 offset)
+UIDrawOverlay(Int16 xpos, Int16 ypos, welem_t offset)
 {
 	GdkGC *gc;
 
 	gc = gdk_gc_new(drawingarea->window);
 	gdk_gc_set_clip_mask(gc, zones_mask);
 	gdk_gc_set_clip_origin(gc,
-	    xpos * vgame.tileSize - offset,
-	    ypos * vgame.tileSize);
+	    (xpos - (offset % HORIZONTAL_TILESIZE)) * vgame.tileSize,
+	    (ypos - (offset / HORIZONTAL_TILESIZE)) * vgame.tileSize);
 
 	gdk_draw_drawable(
 	    drawingarea->window,
 	    gc,
-	    zones,
-	    offset,
-	    0,
+	    pzones,
+	    (offset % HORIZONTAL_TILESIZE) * vgame.tileSize,
+	    (offset / HORIZONTAL_TILESIZE) * vgame.tileSize,
 	    xpos * vgame.tileSize,
 	    ypos * vgame.tileSize,
 	    vgame.tileSize,
@@ -843,7 +857,7 @@ UIDrawOverlay(Int16 xpos, Int16 ypos, UInt16 offset)
 void
 UIDrawPowerLoss(Int16 xpos, Int16 ypos)
 {
-	UIDrawOverlay(xpos, ypos, 128);
+	UIDrawOverlay(xpos, ypos, Z_POWER_OUT);
 }
 
 /*!
@@ -852,7 +866,7 @@ UIDrawPowerLoss(Int16 xpos, Int16 ypos)
 void
 UIDrawWaterLoss(Int16 xpos, Int16 ypos)
 {
-	UIDrawOverlay(xpos, ypos, 64);
+	UIDrawOverlay(xpos, ypos, Z_WATER_OUT);
 }
 
 /*!
@@ -899,8 +913,8 @@ GetRandomNumber(UInt32 max)
 void
 MapHasJumped(void)
 {
-	((GtkAdjustment *)playscrollerh)->value = game.map_xpos+10;
-	((GtkAdjustment *)playscrollerv)->value = game.map_ypos+7;
+	((GtkAdjustment *)playscrollerh)->value = getMapXPos()+10;
+	((GtkAdjustment *)playscrollerv)->value = getMapYPos()+7;
 	gtk_adjustment_value_changed(GTK_ADJUSTMENT(playscrollerh));
 	gtk_adjustment_value_changed(GTK_ADJUSTMENT(playscrollerv));
 }
@@ -924,8 +938,7 @@ UIDrawPop(void)
 {
 	char temp[50];
 	sprintf(temp, "(%02u, %02u) Population: %-9li",
-	    game.map_xpos, game.map_ypos,
-	    vgame.BuildCount[bc_residential]*150);
+	    getMapXPos(), getMapYPos(), (long)getPopulation());
 
 	gtk_label_set_text((GtkLabel*)poplabel, temp);
 }

@@ -3,7 +3,7 @@ CC = gcc
 GFLAGS := $(shell pkg-config --cflags gtk+-2.0) \
 	-DGTK_DISABLE_COMPAT_H -DGDK_DISABLE_DEPRECATED
 GCCFLAGS = -Wall -Werror
-INCLUDEDIRS = -I . -I ../source -I ../nix-common
+INCLUDEDIRS = -I . -I ../source -I ../nix-common -I ../graphic
 OPTFLAGS = -O2
 CFLAGS = $(GCCFLAGS) $(OPTFLAGS) -DLINUX $(GFLAGS) $(INCLUDEDIRS)
 GLFLAGS = $(shell pkg-config --libs gtk+-2.0) 

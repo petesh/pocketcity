@@ -135,7 +135,7 @@ NewGame(GtkWidget *w __attribute__((unused)),
 {
 	SetupNewGame();
 	UIResetViewable();
-	game.gameLoopSeconds = SPEED_FAST;
+	setLoopSeconds(SPEED_FAST);
 }
 
 /*!

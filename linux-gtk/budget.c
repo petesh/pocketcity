@@ -83,8 +83,7 @@ budget_traffic(GtkAdjustment *adj)
 {
 	char temp[20];
 
-	game.upkeep[ue_traffic] = gtk_adjustment_get_value(
-	    GTK_ADJUSTMENT(adj));
+	setUpkeep(ue_traffic, gtk_adjustment_get_value(GTK_ADJUSTMENT(adj)));
 	sprintf(temp, "%li", (long)BudgetGetNumber(bnTraffic));
 	gtk_label_set_text((GtkLabel*)ltra, temp);
 }
@@ -98,8 +97,7 @@ budget_power(GtkAdjustment *adj)
 {
 	char temp[20];
 
-	game.upkeep[ue_power] = gtk_adjustment_get_value(
-	    GTK_ADJUSTMENT(adj));
+	setUpkeep(ue_power, gtk_adjustment_get_value(GTK_ADJUSTMENT(adj)));
 	sprintf(temp, "%li", (long)BudgetGetNumber(bnPower));
 	gtk_label_set_text((GtkLabel*)lpow, temp);
 }
@@ -113,8 +111,7 @@ budget_defence(GtkAdjustment *adj)
 {
 	char temp[20];
 
-	game.upkeep[ue_defense] = gtk_adjustment_get_value(
-	    GTK_ADJUSTMENT(adj));
+	setUpkeep(ue_defense, gtk_adjustment_get_value(GTK_ADJUSTMENT(adj)));
 	sprintf(temp, "%li", (long)BudgetGetNumber(bnDefence));
 	gtk_label_set_text((GtkLabel*)ldef, temp);
 }
@@ -241,21 +238,21 @@ ViewBudget(GtkWidget *w __attribute__((unused)),
 	gtk_table_attach_defaults(GTK_TABLE(table), lnex, 2, 3, 13, 14);
 
 	/* and the adjustments */
-	adjust_tra = gtk_adjustment_new(game.upkeep[ue_traffic], 0, 100,
+	adjust_tra = gtk_adjustment_new(getUpkeep(ue_traffic), 0, 100,
 	    1, 10, 0);
 	spinner = gtk_spin_button_new(GTK_ADJUSTMENT(adjust_tra), 0.1, 0);
 	gtk_table_attach_defaults(GTK_TABLE(table), spinner, 1, 2, 6, 7);
 	g_signal_connect(G_OBJECT(spinner), "value_changed",
 	    G_CALLBACK(budget_traffic), NULL);
 
-	adjust_pow = gtk_adjustment_new(game.upkeep[ue_power], 0, 100, 1,
+	adjust_pow = gtk_adjustment_new(getUpkeep(ue_power), 0, 100, 1,
 	    10, 0);
 	spinner = gtk_spin_button_new(GTK_ADJUSTMENT(adjust_pow), 0.1, 0);
 	gtk_table_attach_defaults(GTK_TABLE(table), spinner, 1, 2, 7, 8);
 	g_signal_connect(G_OBJECT(spinner), "value_changed",
 	    G_CALLBACK(budget_power), NULL);
 
-	adjust_def = gtk_adjustment_new(game.upkeep[ue_defense], 0, 100,
+	adjust_def = gtk_adjustment_new(getUpkeep(ue_defense), 0, 100,
 	    1, 10, 0);
 	spinner = gtk_spin_button_new(GTK_ADJUSTMENT(adjust_def), 0.1, 0);
 	gtk_table_attach_defaults(GTK_TABLE(table), spinner, 1, 2, 8, 9);
