@@ -7,10 +7,14 @@
 #include <simcity.h>
 #include <ui.h>
 #include <simcity_resconsts.h>
+#include "../source/zakdef.h"
 
-static void zonetoPtr(UInt8 type, Char *zonemesg) MAP_SECTION;
+
+static void zonetoPtr(Char *zonemesg) MAP_SECTION;
 static FormPtr querySetup(void) MAP_SECTION;
 static void queryCleanup(void) MAP_SECTION;
+
+extern int type;
 
 /*
  * Handler for the query form
@@ -58,9 +62,29 @@ hQuery(EventPtr event)
  * Probably should ahve an array of all zone entries -> zonetype
  */
 static void
-zonetoPtr(UInt8 type, Char *zonemesg)
+zonetoPtr(Char *zonemsg)
 {
-    StrPrintF(zonemesg, "wakka!");
+    switch(type)
+	{
+		case TYPE_DIRT:
+			StrCopy(zonemsg, "Empty land");
+			break;
+		case TYPE_POWER_LINE:
+			StrCopy(zonemsg, "Power line");
+			break;
+		case TYPE_ROAD:
+			StrCopy(zonemsg, "Road");
+			break;
+		case TYPE_REAL_WATER:
+			StrCopy(zonemsg, "Water");
+			break;
+		case TYPE_TREE:
+			StrCopy(zonemsg, "Forest");
+			break;
+		default:
+			StrIToA(zonemsg, type);
+			break;
+	}
 }
 
 /*
@@ -69,15 +93,13 @@ zonetoPtr(UInt8 type, Char *zonemesg)
 static FormPtr
 querySetup(void)
 {
-    UInt8 type;
     Char *temp;
     FormPtr form;
     ControlType *ctl;
 
-    type = GetItemClicked();
     form = FrmGetActiveForm();
     temp = MemPtrNew(255);
-    zonetoPtr(type, temp);
+    zonetoPtr(temp);
     ctl = FrmGetObjectPtr(form, FrmGetObjectIndex(form, labelID_zonetype));
     CtlSetLabel(ctl, temp);
     return (form);

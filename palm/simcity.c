@@ -47,6 +47,7 @@ UInt16 YOFFSET = 15;
 UInt16 jog_lr = 0;
 #endif
 
+int type;//Zone type for transfer into Query form
 static Boolean hPocketCity(EventPtr event);
 static Boolean hQuickList(EventPtr event);
 static Boolean hExtraList(EventPtr event);
@@ -1071,8 +1072,7 @@ _UIGetFieldToBuildOn(Int16 x, Int16 y)
     rect.extent.y = vgame.visible_y * vgame.tileSize;
     rect.topLeft.x = XOFFSET;
     rect.topLeft.y = YOFFSET;
-
-    if (RctPtInRectangle(x, y, &rect)) {
+	 if (RctPtInRectangle(x, y, &rect)) {
         UInt32 xpos = (x - XOFFSET)/vgame.tileSize + game.map_xpos;
         UInt32 ypos = (y - YOFFSET)/vgame.tileSize + game.map_ypos;
         LockWorld();
@@ -1081,7 +1081,10 @@ _UIGetFieldToBuildOn(Int16 x, Int16 y)
         if (UIGetSelectedBuildItem() != Be_Query)
             BuildSomething(xpos, ypos);
         else {
-            FrmGotoForm(formID_Query);
+        	LockWorld();
+        	type=GetWorld(WORLDPOS(xpos, ypos));
+        	UnlockWorld();
+        	FrmGotoForm(formID_Query);
         }
     }
 }
