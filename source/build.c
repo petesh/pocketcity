@@ -12,25 +12,25 @@
 #include <ui.h>
 #include <drawing.h>
 
-typedef void (*BuildF)(int xpos, int ypos, unsigned int type);
+typedef void (*BuildF)(Int16 xpos, Int16 ypos, UInt16 type);
 
-static void Build_Road(int xpos, int ypos, unsigned int type);
-static void Build_PowerLine(int xpos, int ypos, unsigned int type);
-static void Build_WaterPipe(int xpos, int ypos, unsigned int type);
-static void Build_Generic(int xpos, int ypos, unsigned int type);
-static void Build_Defence(int xpos, int ypos, unsigned int type);
+static void Build_Road(Int16 xpos, Int16 ypos, UInt16 type);
+static void Build_PowerLine(Int16 xpos, Int16 ypos, UInt16 type);
+static void Build_WaterPipe(Int16 xpos, Int16 ypos, UInt16 type);
+static void Build_Generic(Int16 xpos, Int16 ypos, UInt16 type);
+static void Build_Defence(Int16 xpos, Int16 ypos, UInt16 type);
 
-static void CreateForest(long unsigned int pos, int size);
-static void RemoveDefence(int xpos, int ypos);
+static void CreateForest(UInt32 pos, Int16 size);
+static void RemoveDefence(Int16 xpos, Int16 ypos);
 
-static int SpendMoney(unsigned long howMuch);
+static Int16 SpendMoney(UInt32 howMuch);
 
 /* this array is dependent on mirroring the BuildCodes enumeration */
 static const struct _bldStruct {
-    unsigned int bt; /* build type */
+    UInt16 bt; /* build type */
     BuildF func;        /* Function to call */
-    unsigned int type;
-    unsigned int gridsToUpdate;
+    UInt16 type;
+    UInt16 gridsToUpdate;
 } buildStructure[] = {
     { Be_Bulldozer, Build_Bulldoze, 0, GRID_ALL },
     { Be_Zone_Residential, Build_Generic, ZONE_RESIDENTIAL, GRID_ALL },
@@ -57,7 +57,7 @@ static const struct _bldStruct {
  * Looks up the item in the buildStructure
  */
 void
-BuildSomething(int xpos, int ypos)
+BuildSomething(Int16 xpos, Int16 ypos)
 {
     int item = UIGetSelectedBuildItem();
     struct _bldStruct *be = (struct _bldStruct *)&(buildStructure[item]);
@@ -75,7 +75,7 @@ BuildSomething(int xpos, int ypos)
  * Remove a defence unit from a location
  */
 static void
-RemoveDefence(int xpos, int ypos)
+RemoveDefence(Int16 xpos, Int16 ypos)
 {
     int i;
     for (i=0; i<NUM_OF_UNITS; i++) {
@@ -107,7 +107,7 @@ RemoveAllDefence(void)
  * Allows function to be generic
  */
 static void
-Build_Defence(int xpos, int ypos, unsigned int type)
+Build_Defence(Int16 xpos, Int16 ypos, UInt16 type)
 {
     int oldx;
     int oldy;
@@ -194,7 +194,7 @@ Build_Defence(int xpos, int ypos, unsigned int type)
  * XXX: wasteland?
  */
 void
-Build_Bulldoze(int xpos, int ypos, unsigned int _type __attribute__((unused)))
+Build_Bulldoze(Int16 xpos, Int16 ypos, UInt16 _type __attribute__((unused)))
 {
     int type;
     LockWorld();
@@ -220,7 +220,7 @@ Build_Bulldoze(int xpos, int ypos, unsigned int _type __attribute__((unused)))
  * Done by the bulldoze and the auto bulldoze.
  */
 void
-Build_Destroy(int xpos, int ypos)
+Build_Destroy(Int16 xpos, Int16 ypos)
 {
     unsigned char type;
 
@@ -275,9 +275,9 @@ Build_Destroy(int xpos, int ypos)
  * Mapping of zone to cost of building on a zone
  */
 static const struct _costMappings {
-  unsigned int type;
-  unsigned long int cost;
-  int count;
+  UInt16 type;
+  UInt32 cost;
+  Int16 count;
 } genericMappings[] = {
   { ZONE_RESIDENTIAL, BUILD_COST_ZONE, -1 },
   { ZONE_INDUSTRIAL, BUILD_COST_ZONE, -1 },
@@ -296,8 +296,8 @@ static const struct _costMappings {
 /*
  * returns non-zero if the zone is an auto-bulldozable item
  */
-static int
-IsBulldozable(unsigned char zone)
+static Int16
+IsBulldozable(UInt8 zone)
 {
     return ((zone == TYPE_DIRT) || ((zone == TYPE_TREE) && game.auto_bulldoze));
 }
@@ -307,7 +307,7 @@ IsBulldozable(unsigned char zone)
  * Based on the type passed in
  */
 void
-Build_Generic(int xpos, int ypos, unsigned int type)
+Build_Generic(Int16 xpos, Int16 ypos, UInt16 type)
 {
     unsigned char worldItem;
     unsigned long toSpend = 0;
@@ -354,7 +354,7 @@ Build_Generic(int xpos, int ypos, unsigned int type)
  * XXX: replace the constants here with symbolic values.
  */
 void
-Build_Road(int xpos, int ypos, unsigned int type __attribute__((unused)))
+Build_Road(Int16 xpos, Int16 ypos, UInt16 type __attribute__((unused)))
 {
     int old;
     unsigned long toSpend = 0;
@@ -432,7 +432,7 @@ Build_Road(int xpos, int ypos, unsigned int type __attribute__((unused)))
  * XXX: Replace magic numbers with symbolic constants
  */
 static void
-Build_PowerLine(int xpos, int ypos, unsigned int type __attribute__((unused)))
+Build_PowerLine(Int16 xpos, Int16 ypos, UInt16 type __attribute__((unused)))
 {
     int old;
     unsigned long toSpend = 0;
@@ -483,7 +483,7 @@ Build_PowerLine(int xpos, int ypos, unsigned int type __attribute__((unused)))
  * XXX: replace magic numbers with symbolic constants
  */
 static void
-Build_WaterPipe(int xpos, int ypos, unsigned int type __attribute__((unused)))
+Build_WaterPipe(Int16 xpos, Int16 ypos, UInt16 type __attribute__((unused)))
 {
     int old;
     unsigned long toSpend = 0;
@@ -532,8 +532,8 @@ Build_WaterPipe(int xpos, int ypos, unsigned int type __attribute__((unused)))
  * Spend a chunk of cash.
  * Won't allow you to go negative.
  */
-static int
-SpendMoney(unsigned long howMuch)
+static Int16
+SpendMoney(UInt32 howMuch)
 {
     if (howMuch > (unsigned long)game.credits)
 	    return (0);
@@ -619,7 +619,7 @@ CreateForests(void)
 
 /* create a single forest - look above */
 static void
-CreateForest(long unsigned int pos, int size)
+CreateForest(UInt32 pos, Int16 size)
 {
     int x,y,i,j,s;
     x = pos % GetMapSize();

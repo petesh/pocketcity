@@ -77,7 +77,7 @@ SetupNewGame(void)
  * Draw the entire game arena
  */
 void
-DrawGame(int full)
+DrawGame(Int8 full)
 {
     UIInitDrawing();
 

@@ -9,14 +9,14 @@
 #include <ErrorMgr.h>
 #include <FeatureMgr.h>
 
-#include "resCompat.h"
+#include <resCompat.h>
 
 typedef struct _stacky {
     MemHandle   sh; /* Start of stack... handle */
-    long       *ss; /* Start of stack */
-    long       *sp; /* Stack pointer */
-    long       *se; /* Stack pointer */
-    long        sl; /* Stack Len */
+    Int32      *ss; /* Start of stack */
+    Int32      *sp; /* Stack pointer */
+    Int32      *se; /* Stack pointer */
+    Int32       sl; /* Stack Len */
 } Stacky;
 
 /*
@@ -56,7 +56,7 @@ StackDelete(Stacky *sp)
 /*
  * remove the top most item from the stack
  */
-long
+Int32
 StackPop(Stacky *sp)
 {
     if (sp->sp >= sp->ss) {
@@ -70,7 +70,7 @@ StackPop(Stacky *sp)
  * add an element to the stack
  */
 void
-StackPush(Stacky *sp, long elt)
+StackPush(Stacky *sp, Int32 elt)
 {
     if (sp->sp >= sp->se) {
         long sd = sp->sp - sp->ss;
@@ -91,7 +91,7 @@ StackPush(Stacky *sp, long elt)
 /*
  * check if the stack is empty
  */
-int
+Int16
 StackIsEmpty(Stacky *sp)
 {
     return (sp->sp < sp->ss);
@@ -109,7 +109,7 @@ StackDoEmpty(Stacky *sp)
 /*
  * get the count of the number of elements on the stack
  */
-int
+Int16
 StackNElements(Stacky *sp)
 {
     return ((sp->sp+1) - sp->ss);

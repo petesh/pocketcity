@@ -8,11 +8,11 @@ extern "C" {
 
 void *StackNew(void);
 void StackDelete(void *);
-long StackPop(void *);
-void StackPush(void *, long);
-int StackIsEmpty(void *);
+Int32 StackPop(void *);
+void StackPush(void *, Int32);
+Int16 StackIsEmpty(void *);
 void StackDoEmpty(void *);
-int StackNElements(void *);
+Int16 StackNElements(void *);
 
 #ifdef __cplusplus
 }

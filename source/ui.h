@@ -9,8 +9,8 @@
 extern "C" {
 #endif
 
-int UIDisplayError(erdiType nError);
-int UIDisplayError1(char *message);
+Int16 UIDisplayError(erdiType nError);
+Int16 UIDisplayError1(char *message);
 
 void UIInitDrawing(void);
 void UIFinishDrawing(void);
@@ -20,41 +20,41 @@ void UIDrawBorder(void);
 void UISetUpGraphic(void);
 void UIDrawCredits(void);
 void UIUpdateBuildIcon(void);
-void UIGotoForm(int);
+void UIGotoForm(Int16);
 void UIDrawPop(void);
 
 void UICheckMoney(void);
 void UIScrollMap(dirType direction);
-void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth);
+void _UIDrawRect(Int16 nTop, Int16 nLeft, Int16 nHeight, Int16 nWidth);
 
 
-void UIDrawField(int xpos, int ypos, unsigned char nGraphic);
-void UIDrawSpecialObject(int i, int xpos, int ypos);
-void UIDrawSpecialUnit(int i, int xpos, int ypos);
-void UIDrawCursor(int xpos, int ypos);
-void UIDrawPowerLoss(int xpos, int ypos);
-void UIDrawWaterLoss(int xpos, int ypos);
-unsigned char UIGetSelectedBuildItem(void);
+void UIDrawField(Int16 xpos, Int16 ypos, UInt8 nGraphic);
+void UIDrawSpecialObject(Int16 i, Int16 xpos, Int16 ypos);
+void UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos);
+void UIDrawCursor(Int16 xpos, Int16 ypos);
+void UIDrawPowerLoss(Int16 xpos, Int16 ypos);
+void UIDrawWaterLoss(Int16 xpos, Int16 ypos);
+UInt8 UIGetSelectedBuildItem(void);
 
 
-int InitWorld(void);
-int ResizeWorld(unsigned long size);
+Int16 InitWorld(void);
+Int16 ResizeWorld(UInt32 size);
 void LockWorld(void);
 void UnlockWorld(void);
-unsigned char GetWorld(unsigned long pos);
-void SetWorld(unsigned long pos, unsigned char value);
+UInt8 GetWorld(UInt32 pos);
+void SetWorld(UInt32 pos, UInt8 value);
 void LockWorldFlags(void);
 void UnlockWorldFlags(void);
 
-unsigned char GetWorldFlags(unsigned long pos);
-void SetWorldFlags(unsigned long pos, unsigned char value);
-void OrWorldFlags(unsigned long pos, unsigned char value);
-void AndWorldFlags(unsigned long pos, unsigned char value);
+UInt8 GetWorldFlags(UInt32 pos);
+void SetWorldFlags(UInt32 pos, UInt8 value);
+void OrWorldFlags(UInt32 pos, UInt8 value);
+void AndWorldFlags(UInt32 pos, UInt8 value);
 void MapHasJumped(void);
 
 
-unsigned long GetRandomNumber(unsigned long max);
-void UISetTileSize(int size);
+UInt32 GetRandomNumber(UInt32 max);
+void UISetTileSize(Int16 size);
 #ifdef DEBUG
 void WriteLog(char*, ...);
 #else

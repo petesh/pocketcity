@@ -45,10 +45,9 @@ typedef enum {
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-void Build_Bulldoze(int xpos, int ypos, unsigned int _unused);
-void BuildSomething(int xpos, int ypos);
-void Build_Destroy(int xpos, int ypos);
+void Build_Bulldoze(Int16 xpos, Int16 ypos, UInt16 _unused);
+void BuildSomething(Int16 xpos, Int16 ypos);
+void Build_Destroy(Int16 xpos, Int16 ypos);
 void CreateFullRiver(void);
 void CreateForests(void);
 void RemoveAllDefence(void);

@@ -22,9 +22,9 @@ extern "C" {
 #endif
 
 void Sim_Distribute(void);
-void Sim_Distribute_Specific(int type);
-int Sim_DoPhase(int nPhase);
-long int BudgetGetNumber(BudgetNumber type);
+void Sim_Distribute_Specific(Int16 type);
+Int16 Sim_DoPhase(Int16 nPhase);
+Int32 BudgetGetNumber(BudgetNumber type);
 void UpdateVolatiles(void);
 
 #ifdef __cplusplus

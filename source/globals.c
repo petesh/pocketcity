@@ -47,10 +47,10 @@ GetDate(char *temp)
  * Array is an array of possibly structs with key as the first element
  */
 void *
-getIndexOf(char *ary, int addit, int key)
+getIndexOf(char *ary, Int16 addit, Int16 key)
 {
-    while (*(int *)ary) {
-        if (key == *(int *)ary)
+    while (*(Int16 *)ary) {
+        if (key == *(Int16 *)ary)
             return (ary);
         ary += addit;
     }

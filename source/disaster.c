@@ -15,19 +15,19 @@
 #include <stdio.h>
 #endif
 
-void FireSpread(int x, int y);
-void CreateWaste(int x, int y);
-unsigned short int GetDefenceValue(int xpos, int ypos);
-unsigned short int ContainsDefence(int x, int y);
-void MonsterCheckSurrounded(int i);
-void CreateMeteor(int x, int y, int size);
+static void FireSpread(Int16 x, Int16 y);
+static void CreateWaste(Int16 x, Int16 y);
+static UInt16 GetDefenceValue(Int16 xpos, Int16 ypos);
+static UInt16 ContainsDefence(Int16 x, Int16 y);
+static void MonsterCheckSurrounded(Int16 i);
+static void CreateMeteor(Int16 x, Int16 y, Int16 size);
 
 /*
  * Do nasty things to a location.
  * based on the probability which is normalized from 0 - 100
  */
 void
-DoNastyStuffTo(int type, unsigned int probability)
+DoNastyStuffTo(Int16 type, UInt16 probability)
 {
     /* nasty stuff means: turn it into wasteland */
     long unsigned int randomTile;
@@ -141,7 +141,7 @@ DoSpecificDisaster(erdiType disaster)
 /*
  * Make sure the disasters are still happening
  */
-int
+Int16
 UpdateDisasters(void)
 {
     /* return false if no disasters are found */
@@ -185,7 +185,7 @@ UpdateDisasters(void)
  * Turn the zone into slag
  */
 void
-CreateWaste(int x, int y)
+CreateWaste(Int16 x, Int16 y)
 {
     int type;
 
@@ -210,7 +210,7 @@ CreateWaste(int x, int y)
  * Cause a fire to spread out from the point chosen
  */
 void
-FireSpread(int x, int y) 
+FireSpread(Int16 x, Int16 y) 
 {
     if (x > 0)
         BurnField(x-1,y,0);
@@ -226,8 +226,8 @@ FireSpread(int x, int y)
  * burn the field specified.
  * Can be forced to burn.
  */
-int
-BurnField(int x, int y, int forceit)
+Int16
+BurnField(Int16 x, Int16 y, Int16 forceit)
 {
     int type;
     
@@ -264,8 +264,8 @@ BurnField(int x, int y, int forceit)
 /*
  * Create a monster at the location specified.
  */
-int
-CreateMonster(int x, int y)
+Int16
+CreateMonster(Int16 x, Int16 y)
 {
     int type;
 
@@ -286,8 +286,8 @@ CreateMonster(int x, int y)
 /*
  * Create a dragon at the location.
  */
-int
-CreateDragon(int x, int y)
+Int16
+CreateDragon(Int16 x, Int16 y)
 {
     int type;
 
@@ -309,7 +309,7 @@ CreateDragon(int x, int y)
  * Check if a monster is surrounded by defensive units.
  */
 void
-MonsterCheckSurrounded(int i) 
+MonsterCheckSurrounded(Int16 i) 
 {
     if (GetDefenceValue(game.objects[i].x, game.objects[i].y) >= 11 ||
         GetRandomNumber(50) < 2) {
@@ -321,8 +321,8 @@ MonsterCheckSurrounded(int i)
 /*
  * Get the value of the defence fields around this point
  */
-unsigned short int
-GetDefenceValue(int xpos, int ypos)
+UInt16
+GetDefenceValue(Int16 xpos, Int16 ypos)
 {
     /* police = 2 */
     /* firemen = 3 */
@@ -343,8 +343,8 @@ GetDefenceValue(int xpos, int ypos)
  * check if the node has a defence position within it.
  * If it does, return the value of that defence.
  */
-unsigned short int
-ContainsDefence(int x, int y)
+UInt16
+ContainsDefence(Int16 x, Int16 y)
 {
     int i;
 
@@ -458,8 +458,8 @@ MoveAllObjects(void)
 /*
  * We've had a meteor strike on the map at that location.
  */
-int
-MeteorDisaster(int x, int y)
+Int16
+MeteorDisaster(Int16 x, Int16 y)
 {
     int k;
 
@@ -472,7 +472,7 @@ MeteorDisaster(int x, int y)
  * Create a waste zone for the meteor.
  */
 void
-CreateMeteor(int x, int y, int size)
+CreateMeteor(Int16 x, Int16 y, Int16 size)
 {
     int i, j;
 

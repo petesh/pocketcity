@@ -14,14 +14,17 @@ To compile for PalmOS:
  type `make` in the 'palm' folder
  
  install:               for this:
- pcity.prc              black/white displays
- pcity-grey.prc         16 greyscale displays (like the Vx)
- pcity-color.prc        256 color displays    (like the IIIc)
- mg-pcity.prc           can be used on b/w, grey & color devices
- sy-pcity.prc           black & white for sony devices
- sy-pcity-grey.prc      grey scale for sony devices
- sy-pcity-color.prc     color for sony devices
- sy-mg-pcity.prc        can be used on b/w, grey & color devices
+
+ pcity-EN.prc		pocketcity in english
+ hires-pcity-EN.prc	pocketcity in english for high resolution (sony)
+ 
+ 		--- but also install one of:
+ pcity-bw.pdb		black/white displays
+ pcity-grey.pdb         16 greyscale displays (like the Vx)
+ pcity-color.pdb        256 color displays    (like the IIIc)
+ pcity-merged.pdb       can be used on b/w, grey & color devices
+
+ to actually use the game; they contain the tiles.
 
 To compile for GTK+ (Linux):
  type `make` in the 'linux-gtk' folder

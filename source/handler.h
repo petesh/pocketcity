@@ -9,7 +9,7 @@ extern "C" {
 
 void PCityMain(void);
 void SetupNewGame(void);
-void DrawGame(int full);
+void DrawGame(Int8 full);
 void PostLoadGame(void);
 
 #ifdef __cplusplus

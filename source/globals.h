@@ -11,11 +11,11 @@ extern GameStruct game;
 extern vGameStruct vgame;
 extern AppConfig_t gameConfig;
 
-void LongToString(signed long value, char* out);
+void LongToString(Int32 value, char * out);
 char* GetDate(char * temp);
 void UIDrawPop(void);
 void UIDoTaxes(void);
-void *getIndexOf(char *ary, int addit, int key);
+void *getIndexOf(char *ary, Int16 addit, Int16 key);
 UInt8 GetDisasterLevel(void);
 void SetDisasterLevel(UInt8 value);
 UInt8 GetDifficultyLevel(void);

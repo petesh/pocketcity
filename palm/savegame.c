@@ -207,7 +207,7 @@ filesSetup(void)
 Boolean
 hFiles(EventPtr event)
 {
-    int handled = 0;
+    Boolean handled = 0;
 
     switch (event->eType) {
     case frmOpenEvent:
@@ -263,20 +263,30 @@ UpdateSaveGameList(void)
 
     citylist = CityNames(&count);
 
-    files_form = FrmGetFormPtr(formID_files);
+    files_form = FrmGetFormPtr((UInt16)formID_files);
+
+    if (files_form == NULL) {
+        WriteLog("could not get the files form pointer\n");
+        return;
+    }
     list = FrmGetObjectPtr(files_form,
 	FrmGetObjectIndex(files_form, listID_FilesList));
 
+    if (list == NULL) {
+        WriteLog("Could not get the pointer for list\n");
+        return;
+    }
+
     if (NULL == citylist) {
         LstSetListChoices(list, NULL, 0);
-        if (files_form == FrmGetActiveForm())
+        if (files_form == FrmGetActiveForm() && FrmVisible(files_form))
             LstDrawList(list);
         return; /* no cities */
     }
 
     /* update list */
     LstSetListChoices(list, citylist, count);
-    if (files_form == FrmGetActiveForm())
+    if (files_form == FrmGetActiveForm() && FrmVisible(files_form))
         LstDrawList(list);
 }
 
@@ -334,12 +344,13 @@ DeleteFromList(void)
 {
     FormPtr form = FrmGetFormPtr(formID_files);
     ListType *listp;
-    int index;
+    Int16 index;
 
     listp = FrmGetObjectPtr(form, FrmGetObjectIndex(form, listID_FilesList));
     index = LstGetSelection(listp);
     if (index != noListSelection) {
-        char *name = LstGetSelectionText(listp, index);
+        char *name;
+        name = LstGetSelectionText(listp, index);
         DeleteGameByName(name);
     }
 }

@@ -51,6 +51,8 @@ DDIR=pcity-palm_$(VERSION)
 
 DISTFILES=../INSTALL ../CHANGELOG ../COPYING ../GAMEHINTS ../README
 
+full: all debug hires dhires
+
 dist nearlylive: all hires
 	@mkdir -p $(DDIR)
 	@cp $(DISTFILES) out-nd/*.prc *.pdb $(DDIR)

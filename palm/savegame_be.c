@@ -21,7 +21,8 @@
 #define	MAXSAVEGAMECOUNT    50
 #define DEAD            "PCNO"
 
-static void NewGame(void);
+static void NewGame(void) MAP_SECTION;
+static DmOpenRef OpenMyDB(void) MAP_SECTION;
 
 /*
  * Open up the savegame database.
@@ -29,7 +30,7 @@ static void NewGame(void);
  * It will return a reference to the database if successful, NULL otherwise.
  */
 static DmOpenRef
-OpenMyDB(void)
+OpenMyDB()
 {
     Err err = 0;
     DmOpenRef db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(),
@@ -44,6 +45,7 @@ OpenMyDB(void)
     return (db);
 }
 
+static int FindGameByName(char *name) MAP_SECTION;
 /*
  * Find a savegame by the name passed
  */
@@ -57,7 +59,7 @@ FindGameByName(char *name)
     int gameindex = -1;
 
     db = OpenMyDB();
-    if (!db) {
+    if (db == NULL) {
 	FrmCustomAlert(alertID_majorbad,
 	    "Can't Open/Create the savegame database", NULL, NULL);
 	return (gameindex);
@@ -74,7 +76,7 @@ FindGameByName(char *name)
 	    MemHandleUnlock(rec);
 	}
     }
-    if (db) DmCloseDatabase(db);
+    if (db != NULL) DmCloseDatabase(db);
 
     if (gameindex >= nRec)
 	return (LASTGAME);
@@ -82,6 +84,7 @@ FindGameByName(char *name)
     	return (gameindex);
 }
 
+static void ResetViewable(void) MAP_SECTION;
 /*
  * Reset the viewable elements of the volatile game configuration.
  * We set the tile size (16 pels).
@@ -96,6 +99,7 @@ ResetViewable(void)
     vgame.visible_y = (sHeight / vgame.tileSize) - 2;
 }
 
+static int ReadCityRecord(MemHandle rec) MAP_SECTION;
 /*
  * Read the city record.
  */
@@ -127,6 +131,7 @@ leave_me:
     return (rv);
 }
 
+static void WriteCityRecord(MemHandle rec) MAP_SECTION;
 /*
  * Write the city record
  */
@@ -145,6 +150,7 @@ WriteCityRecord(MemHandle rec)
     MemHandleUnlock(rec);
 }
 
+static int SaveGameByIndex(UInt16 index) MAP_SECTION;
 /*
  * Save a game into the database of savegames.
  */
@@ -159,8 +165,10 @@ SaveGameByIndex(UInt16 index)
 	return (0);
 
     db = OpenMyDB();
+    if (db == NULL) return (-1);
     if (index <= DmNumRecords(db)) {
         rec = DmResizeRecord(db, index, GetMapMul() + sizeof (GameStruct));
+        rec = DmGetRecord(db, index);
     } else {
         index = DmNumRecords(db) + 1;
 	rec = DmNewRecord(db, &index, GetMapMul() + sizeof (GameStruct));
@@ -194,11 +202,13 @@ GameExists(char *name)
 void
 SaveGameByName(char *name)
 {
-    int index = FindGameByName(name);
+    int index;
+    index = FindGameByName(name);
 
     SaveGameByIndex(index);
 }
 
+static void NewGame(void) MAP_SECTION;
 /*
  * Set up a new game.
  * Hands off everything to other routines
@@ -227,7 +237,7 @@ CreateNewSaveGame(char *name)
     db = OpenMyDB();
 
     /* no, this should NOT be an "else if" */
-    if (db) {
+    if (db != NULL) {
         if (DmNumRecords(db) >= MAXSAVEGAMECOUNT) {
             /* TODO: alert user - max is 50 savegames */
         } else {
@@ -254,6 +264,7 @@ CreateNewSaveGame(char *name)
     }
 }
 
+static int LoadGameByIndex(UInt16 index) MAP_SECTION;
 /*
  * Load a game by index into the list of savegames.
  */
@@ -294,6 +305,7 @@ LoadGameByName(char *name)
 	return (-1);
 }
 
+static void getAutoSaveName(char *name) MAP_SECTION;
 /*
  * Get the name of the autosave city
  */
@@ -349,13 +361,13 @@ SetAutoSave(char *name)
     MemHandle mh;
     MemPtr mp;
 
-    if (!db)
+    if (db == NULL)
         return;
 
     if (DmNumRecords(db) < 1)
         goto close_me;
 
-    mh = DmQueryRecord(db, 0);
+    mh = DmGetRecord(db, 0);
     if (mh == NULL) {
         goto close_me;
     } else {
@@ -389,6 +401,7 @@ DeleteAutoSave(void)
     SetAutoSave(buffer);
 }
 
+static void DeleteGameByIndex(UInt16 index) MAP_SECTION;
 /*
  * Delete the savegame from the list of savegames.
  * This will also compact the database of savegames. i.e. when the
@@ -400,17 +413,18 @@ DeleteGameByIndex(UInt16 index)
     DmOpenRef db;
 
     db = OpenMyDB();
-    if (!db) {
+    if (db == NULL) {
         return;
     }
 
     if (DmNumRecords(db) < index) {
-        return; /* index doesn't exist */
+        goto close_me; /* index doesn't exist */
     }
 
     if (index > 0)
     	DmRemoveRecord(db, index);
 
+close_me:
     DmCloseDatabase(db);
 }
 
@@ -426,6 +440,7 @@ DeleteGameByName(char *name)
 	DeleteGameByIndex(gameindex);
 }
 
+static Int16 comparator(void *p1, void *p2, Int32 other) MAP_SECTION;
 /*
  * comparison function for CityNames list
  */
@@ -451,13 +466,15 @@ CityNames(int *count)
     char *citystring;
 
     db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(), dmModeReadOnly);
-    if (!db) {
+    if (db == NULL) {
         return (NULL); /* no database */
     }
     nRec = DmNumRecords(db);
 
-    if (nRec < 2)
+    if (nRec < 2) {
+        DmCloseDatabase(db);
 	return (NULL);
+    }
 
     cities = MemPtrNew(nRec * sizeof (*cities));
     citystring = MemPtrNew(nRec * CITYNAMELEN);
@@ -495,10 +512,12 @@ void
 FreeCityNames(char **names)
 {
     char **at = names;
-    char *gnat = *at;
+    char *gnat;
 
     if (names == NULL)
         return;
+
+    gnat = *at;
 
     while(*at != NULL) {
 	if (gnat > *at)

@@ -2,6 +2,7 @@
 #define _APPCONFIG_H
 
 #include <PalmTypes.h>
+#include <sections.h>
 
 /*
  * if you add in here don't forget the entries in game.rcp for the

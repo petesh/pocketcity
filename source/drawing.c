@@ -4,7 +4,7 @@
 #include <drawing.h>
 #include <simulation.h>
 
-unsigned char GetGraphicNumber(long unsigned int pos);
+static UInt8 GetGraphicNumber(UInt32 pos);
 
 /*
  * Set up the graphics.
@@ -21,7 +21,7 @@ SetUpGraphic(void)
  * XXX: should only do visuals and location.
  */
 void
-Goto(int x, int y)
+Goto(Int16 x, Int16 y)
 {
     game.map_xpos = x - (vgame.visible_x / 2);
     game.map_ypos = y - (vgame.visible_y / 2);
@@ -44,7 +44,7 @@ Goto(int x, int y)
 void
 RedrawAllFields(void)
 {
-    int i,j;
+    Int16 i, j;
 
     LockWorld();
     LockWorldFlags();
@@ -56,8 +56,6 @@ RedrawAllFields(void)
         }
     }
 
-    UIDrawCursor(vgame.cursor_xpos - game.map_xpos,
-      vgame.cursor_ypos - game.map_ypos);
     UIDrawCredits();
     UIDrawPop();
 
@@ -163,7 +161,7 @@ MoveCursor(dirType direction)
  * Draw the field at the specified location
  */
 void
-DrawField(int xpos, int ypos)
+DrawField(Int16 xpos, Int16 ypos)
 {
     UIInitDrawing();
     LockWorld();
@@ -181,7 +179,7 @@ DrawField(int xpos, int ypos)
  * Draw a cursor cross
  */
 void
-DrawCross(int xpos, int ypos)
+DrawCross(Int16 xpos, Int16 ypos)
 {
     UIInitDrawing();
     LockWorld();
@@ -207,9 +205,11 @@ DrawCross(int xpos, int ypos)
  * Also remember to call (Un)lockWorld(flags) (4 functions)
  */
 void
-DrawFieldWithoutInit(int xpos, int ypos)
+DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 {
-    int i;
+    Int16 i;
+    UInt8 flag;
+    UInt8 content;
 
     if (xpos < game.map_xpos ||
         xpos >= game.map_xpos + vgame.visible_x ||
@@ -221,13 +221,14 @@ DrawFieldWithoutInit(int xpos, int ypos)
     UIDrawField(xpos - game.map_xpos, ypos - game.map_ypos,
         GetGraphicNumber(WORLDPOS(xpos,ypos)));
 
-    if ((GetWorldFlags(WORLDPOS(xpos, ypos)) & POWEREDBIT) == 0 &&
-        CarryPower(GetWorld(WORLDPOS(xpos, ypos)))) {
+    flag = GetWorldFlags(WORLDPOS(xpos, ypos));
+    content = GetWorld(WORLDPOS(xpos, ypos));
+    
+    if ((flag & POWEREDBIT) == 0 && CarryPower(content)) {
         UIDrawPowerLoss(xpos - game.map_xpos, ypos - game.map_ypos);
     }
     
-    if ((GetWorldFlags(WORLDPOS(xpos, ypos)) & WATEREDBIT) == 0 &&
-        CarryWater(GetWorld(WORLDPOS(xpos, ypos)))) {
+    if ((flag & WATEREDBIT) == 0 && CarryWater(content)) {
         UIDrawWaterLoss(xpos - game.map_xpos, ypos - game.map_ypos);
     }
 
@@ -257,12 +258,11 @@ DrawFieldWithoutInit(int xpos, int ypos)
 /*
  * Get the graphic to use for the position in question.
  */
-unsigned char
-GetGraphicNumber(unsigned long pos)
+static UInt8
+GetGraphicNumber(UInt32 pos)
 {
-    unsigned char retval = 0;
+    UInt8 retval = 0;
 
-    LockWorld();
     retval = GetWorld(pos);
     switch (retval) {
     case TYPE_ROAD:    /* special case: roads */
@@ -280,15 +280,14 @@ GetGraphicNumber(unsigned long pos)
     default:
         break;
     }
-    UnlockWorld();
     return retval;
 }
 
 /*
  * Deals with special graphics fields
  */
-unsigned char
-GetSpecialGraphicNumber(unsigned long pos, int nType)
+UInt8
+GetSpecialGraphicNumber(UInt32 pos, Int16 nType)
 {
     /* type: 0 = road
      *       1 = power line
@@ -367,8 +366,8 @@ GetSpecialGraphicNumber(unsigned long pos, int nType)
  * Can the node carry power
  * XXX: Magic numbers.
  */
-int
-CarryPower(unsigned char x)
+Int16
+CarryPower(UInt8 x)
 {
     return (((x >= 1) && (x <= 7) && (x != 4)) ||
       ((x >= 23) && (x <= 61)) ? 1 : 0);
@@ -378,8 +377,8 @@ CarryPower(unsigned char x)
  * can the node carry water
  * XXX: Magic numbers.
  */
-int
-CarryWater(unsigned char x)
+Int16
+CarryWater(UInt8 x)
 {
     return (((x >= 1) && (x <= 3)) || ((x >= 23) && (x <= 61)) || (x == 68) ||
       (x == 69) || (x ==8) ? 1 : 0);
@@ -389,8 +388,8 @@ CarryWater(unsigned char x)
  * Is this node a power line
  * XXX: Magic numbers.
  */
-int
-IsPowerLine(unsigned char x)
+Int16
+IsPowerLine(UInt8 x)
 {
     return ((x >= 5) && (x <= 7))  ? 1 : 0;
 }
@@ -399,8 +398,8 @@ IsPowerLine(unsigned char x)
  * Is this node a road
  * XXX: Magic numbers.
  */
-int
-IsRoad(unsigned char x)
+Int16
+IsRoad(UInt8 x)
 {
     return (((x == 4) || (x == 6) || (x == 7) || (x == 68) || (x == 69) ||
           (x == 81)) ? 1 : 0);
@@ -410,8 +409,8 @@ IsRoad(unsigned char x)
  * Is this node of the zone type passed in.
  * XXX: Magic numbers.
  */
-int
-IsZone(unsigned char x, zoneType nType)
+Int16
+IsZone(UInt8 x, zoneType nType)
 {
     if (x == nType) {
         return (1);

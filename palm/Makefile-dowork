@@ -32,7 +32,7 @@ COLORTYPES := bw grey color merged
 COLORTARGETS := $(COLORTYPES:%=pcity-%.pdb)
 
 .PHONY: all debug clean cheat hires dhires VER
-.PRECIOUS: %.stm $(OBJDIR)/%-lang $(OBJDIR)/lang-%/game.stm \
+.PRECIOUS: %.stm $(OBJDIR)/%-lang $(OBJDIR)/%-lang/game.stm \
 		$(OBJDIR) temp temp-%
 
 TEMPENDS=$(LANGUAGES) $(COLORTYPES)
@@ -65,12 +65,12 @@ hires dhires: HIRES=1
 # the different language versions
 $(OBJDIR)/$(BINARY)-%.prc: $(OBJDIR) $(OBJDIR)/pcity $(OBJDIR)/%-lang/game.stm
 	$(BUILDPRC) -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
-		$(OBJDIR)/pcity $(OBJDIR)/$*-lang/*.bin
+		$(OBJDIR)/pcity $(OBJDIR)/$*-lang/*.bin temp/*.bin
 
 # The tile databases
 pcity-%.pdb: simcity-%.stm zones-%.stm
 	$(BUILDPRC) -o $@ -n $(DBNAME) -c $(PROGTOKEN) -t $(COLORDBTOKEN) \
-		temp-$*/*.bin
+		--read-only temp-$*/*.bin
 
 $(OBJDIR)/pcity-sections.o: $(OBJDIR)/pcity-sections.s
 	$(CC) -c $< -o $@
@@ -121,10 +121,11 @@ $(OBJDIR)/pcity: $(OBJDIR) $(DESTOBJS)
 $(OBJDIR)/simcity.o: simcity.c simcity.h ../source/handler.h ../source/ui.h \
 	../source/zakdef.h simcity_resconsts.h
 
-$(OBJDIR)/%.o: ../source/%.c ../source/%.h ../source/zakdef.h ../source/ui.h
+$(OBJDIR)/%.o: ../source/%.c ../source/%.h ../source/zakdef.h ../source/ui.h \
+                Makefile-include
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJDIR)/%.o: %.c
+$(OBJDIR)/%.o: %.c Makefile-include
 	$(CC) $(CFLAGS) -c $< -o $@
 
 #
