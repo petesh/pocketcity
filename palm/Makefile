@@ -2,8 +2,11 @@
 CC = m68k-palmos-gcc
 AWK = gawk
 MULTIGEN = m68k-palmos-multigen
+RC = pilrc
 
 VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
+
+RCFLAGS = -q
 CFLAGS = -O2 -Wall -DPALM -I . -I ../source
 #LDFLAGS = -T text_64k
 LDLIBS =
@@ -20,6 +23,7 @@ HIRES=0
 
 DSTAMP := $(shell date "+%Y/%m/%d@%H:%M")
 
+RC.rcp=$(RC) $(RCFLAGS)
 
 .PHONY: all debug clean cheat hires dhires
 .PRECIOUS: simcity-grey.stm zones-grey.stm simcity-color.stm zones-color.stm
@@ -101,22 +105,25 @@ pcity-sections.s pcity-sections.ld: pcity.def
 
 # for all
 
-version.stm: ../CHANGELOG
+temp:
+	@mkdir -p temp
+
+version.stm: temp ../CHANGELOG
 	@echo "VERSION 1 \"$(VERSION)\"" > version.rcp
-	@pilrc -q version.rcp temp
+	$(RC.rcp) version.rcp temp
 	@rm -f version.rcp
 	@echo touching>$@
 
-game.stm: game.rcp simcity_resconsts.h
+game.stm: temp game.rcp simcity_resconsts.h
 	@$(AWK) -v DEBUG=$(DEBUG) -v HIRES=$(HIRES) -f filter.awk \
 		game.rcp > ngame.rcp
-	@pilrc -q ngame.rcp temp
+	$(RC.rcp) ngame.rcp temp
 	@cat ngame.rcp > $@ && rm -f ngame.rcp
 
-touch.stm:
+touch.stm: temp
 	@echo "#include \"simcity_resconsts.h\"" > touch.rcp
 	@printf "STRING ID StrID_build \"$(DSTAMP)\"" >> touch.rcp
-	@pilrc -q touch.rcp temp
+	$(RC.rcp) touch.rcp temp
 	@rm -f touch.rcp
 
 # This will take care of all *.rcp
@@ -127,7 +134,9 @@ touch.stm:
 
 # simcity_resconsts.h
 %.stm: %.rcp
-	@pilrc -q $< temp$(if $(findstring -,$*),$(word 2, $(subst -, ,$*)),bw)
+	@dir=temp$(if $(findstring -,$*),$(word 2, $(subst -, ,$*)),bw);\
+	if [ ! -d $$dir ]; then mkdir -p $$dir; fi
+	$(RC.rcp) $< temp$(if $(findstring -,$*),$(word 2, $(subst -, ,$*)),bw)
 	@echo touching>$*.stm
 
 #
@@ -168,11 +177,11 @@ sy/%.o: %.c
 #	@echo touching>sy/sy.stm
 
 sy/syicons.stm: hricons.rcp
-	@pilrc -q hricons.rcp sy
+	$(RC.rcp) hricons.rcp sy
 	@echo touching>$@
 
 mg.stm: mg/ mg.rcp simcity_resconsts.h
-	@pilrc -q mg.rcp mg
+	$(RC.rcp) mg.rcp mg
 	@echo touching>$@
 
 mg/:
@@ -205,4 +214,4 @@ clean:
 	rm -f *.bin *.o *.grc *.stm pcity *.prc \
 		tempbw/*.bin tempcolor/*.bin temp/*.bin tempgrey/*.bin sy/* \
 		mg/* *.zip *.gz pcity-sections.s pcity-sections.ld
-	rm -rf mg/ sy/
+	rm -rf mg/ sy/ tempbw/ tempcolor/ temp/ tempgrey/
