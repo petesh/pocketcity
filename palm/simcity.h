@@ -1,11 +1,14 @@
-#define formID_pocketCity        1000
+#define formID_pocketCity				1000
 
-#define menuID_pocketCity        1000
+#define menuID_pocketCity				1000
 
 #define menuitemID_newGame				1000
 #define menuitemID_loadGame				1001
 #define menuitemID_saveGame				1002
 #define menuitemID_about				1003
+#define menuID_view32					1050
+#define menuID_view16					1051
+
 
 #define menuitemID_buildBulldoze		1100
 #define menuitemID_buildResidential		1101
@@ -23,78 +26,160 @@
 #define alertID_RomIncompatible			1001
 
 
+#define bitmapID_ScrollBars				2000
+#define bitmapID_PowerLossOverlay		2001 // 32x32
+#define bitmapID_PowerLossOverlay2		2002 // 16x16
+
+
+/*
+	1x1		\
+	2x2		 } These are specials
+	4x4		/
+	8x8		ID: 1000-1199
+	16x16	ID: 1200-1399
+	32x32	ID: 1400-1599
+
+*/
 
 
 
-#define bitmapID_DirtBmp				1000
-#define bitmapID_CommZone				1001
-#define bitmapID_ResZone				1002
-#define bitmapID_IndZone				1003
+// IDs for 32x32 tiles
+#define bitmapID_DirtBmp				1400
+#define bitmapID_CommZone				1401
+#define bitmapID_ResZone				1402
+#define bitmapID_IndZone				1403
 
-#define bitmapID_PowerRoadUpDown		1006
-#define bitmapID_PowerRoadLeftRight		1007
-#define bitmapID_PowerLoss				1008
-#define bitmapID_CursorBmp				1009
-#define bitmapID_RoadLeftRight			1010
-#define bitmapID_RoadUpDown				1011	
-#define bitmapID_RoadRightDown			1012
-#define bitmapID_RoadLeftDown			1013
-#define bitmapID_RoadLeftUp				1014	
-#define bitmapID_RoadRightUp			1015	
-#define bitmapID_RoadLeftUpDown			1016	
-#define bitmapID_RoadRightUpDown		1017	
-#define bitmapID_RoadRightLeftDown		1018
-#define bitmapID_RoadRightLeftUp		1019
-#define bitmapID_RoadCross				1020
-#define bitmapID_TreeBmp				1021
-#define bitmapID_WaterBmp				1022
+#define bitmapID_PowerRoadUpDown		1406
+#define bitmapID_PowerRoadLeftRight		1407
+#define bitmapID_PowerLoss				1408
+#define bitmapID_CursorBmp				1409
+#define bitmapID_RoadLeftRight			1410
+#define bitmapID_RoadUpDown				1411	
+#define bitmapID_RoadRightDown			1412
+#define bitmapID_RoadLeftDown			1413
+#define bitmapID_RoadLeftUp				1414	
+#define bitmapID_RoadRightUp			1415	
+#define bitmapID_RoadLeftUpDown			1416	
+#define bitmapID_RoadRightUpDown		1417	
+#define bitmapID_RoadRightLeftDown		1418
+#define bitmapID_RoadRightLeftUp		1419
+#define bitmapID_RoadCross				1420
+#define bitmapID_TreeBmp				1421
+#define bitmapID_WaterBmp				1422
 
-#define bitmapID_CommOne				1030
-#define bitmapID_CommTwo				1031
-#define bitmapID_CommThree				1032
-#define bitmapID_CommFour				1033
-#define bitmapID_CommFive				1034
-#define bitmapID_CommSix				1035
-#define bitmapID_CommSeven				1036
-#define bitmapID_CommEight				1037
-#define bitmapID_CommNine				1038
-#define bitmapID_CommTen				1039
-#define bitmapID_ResOne					1040
-#define bitmapID_ResTwo					1041
-#define bitmapID_ResThree				1042
-#define bitmapID_ResFour				1043
-#define bitmapID_ResFive				1044
-#define bitmapID_ResSix					1045
-#define bitmapID_ResSeven				1046
-#define bitmapID_ResEight				1047
-#define bitmapID_ResNine				1048
-#define bitmapID_ResTen					1049
-#define bitmapID_IndOne					1050
-#define bitmapID_IndTwo					1051
-#define bitmapID_IndThree				1052
-#define bitmapID_IndFour				1053
-#define bitmapID_IndFive				1054
-#define bitmapID_IndSix					1055
-#define bitmapID_IndSeven				1056
-#define bitmapID_IndEight				1057
-#define bitmapID_IndNine				1058
-#define bitmapID_IndTen					1059
-#define bitmapID_PowerPlant				1060
-#define bitmapID_NulearPlant			1061
+#define bitmapID_CommOne				1430
+#define bitmapID_CommTwo				1431
+#define bitmapID_CommThree				1432
+#define bitmapID_CommFour				1433
+#define bitmapID_CommFive				1434
+#define bitmapID_CommSix				1435
+#define bitmapID_CommSeven				1436
+#define bitmapID_CommEight				1437
+#define bitmapID_CommNine				1438
+#define bitmapID_CommTen				1439
+#define bitmapID_ResOne					1440
+#define bitmapID_ResTwo					1441
+#define bitmapID_ResThree				1442
+#define bitmapID_ResFour				1443
+#define bitmapID_ResFive				1444
+#define bitmapID_ResSix					1445
+#define bitmapID_ResSeven				1446
+#define bitmapID_ResEight				1447
+#define bitmapID_ResNine				1448
+#define bitmapID_ResTen					1449
+#define bitmapID_IndOne					1450
+#define bitmapID_IndTwo					1451
+#define bitmapID_IndThree				1452
+#define bitmapID_IndFour				1453
+#define bitmapID_IndFive				1454
+#define bitmapID_IndSix					1455
+#define bitmapID_IndSeven				1456
+#define bitmapID_IndEight				1457
+#define bitmapID_IndNine				1458
+#define bitmapID_IndTen					1459
+#define bitmapID_PowerPlant				1460
+#define bitmapID_NulearPlant			1461
 
-#define bitmapID_PowerLeftRight			1070
-#define bitmapID_PowerUpDown			1071
-#define bitmapID_PowerRightDown			1072
-#define bitmapID_PowerLeftDown			1073
-#define bitmapID_PowerLeftUp			1074	
-#define bitmapID_PowerRightUp			1075
-#define bitmapID_PowerLeftUpDown		1076	
-#define bitmapID_PowerRightUpDown		1077
-#define bitmapID_PowerLeftRightDown		1078
-#define bitmapID_PowerLeftRightUp		1079
-#define bitmapID_PowerCross				1080
+#define bitmapID_PowerLeftRight			1470
+#define bitmapID_PowerUpDown			1471
+#define bitmapID_PowerRightDown			1472
+#define bitmapID_PowerLeftDown			1473
+#define bitmapID_PowerLeftUp			1474	
+#define bitmapID_PowerRightUp			1475
+#define bitmapID_PowerLeftUpDown		1476	
+#define bitmapID_PowerRightUpDown		1477
+#define bitmapID_PowerLeftRightDown		1478
+#define bitmapID_PowerLeftRightUp		1479
+#define bitmapID_PowerCross				1480
 
 
+// IDs for 16x16 tiles
+#define bitmapID_DirtBmp2				1200
+#define bitmapID_CommZone2				1201
+#define bitmapID_ResZone2				1202
+#define bitmapID_IndZone2				1203
 
-#define bitmapID_ScrollBars				1200
-#define bitmapID_PowerLossOverlay		1201
+#define bitmapID_PowerRoadUpDown2		1206
+#define bitmapID_PowerRoadLeftRight2	1207
+#define bitmapID_PowerLoss2				1208
+#define bitmapID_CursorBmp2				1209
+#define bitmapID_RoadLeftRight2			1210
+#define bitmapID_RoadUpDown2			1211	
+#define bitmapID_RoadRightDown2			1212
+#define bitmapID_RoadLeftDown2			1213
+#define bitmapID_RoadLeftUp2			1214	
+#define bitmapID_RoadRightUp2			1215	
+#define bitmapID_RoadLeftUpDown2		1216	
+#define bitmapID_RoadRightUpDown2		1217	
+#define bitmapID_RoadRightLeftDown2		1218
+#define bitmapID_RoadRightLeftUp2		1219
+#define bitmapID_RoadCross2				1220
+#define bitmapID_TreeBmp2				1221
+#define bitmapID_WaterBmp2				1222
+
+#define bitmapID_CommOne2				1230
+#define bitmapID_CommTwo2				1231
+#define bitmapID_CommThree2				1232
+#define bitmapID_CommFour2				1233
+#define bitmapID_CommFive2				1234
+#define bitmapID_CommSix2				1235
+#define bitmapID_CommSeven2				1236
+#define bitmapID_CommEight2				1237
+#define bitmapID_CommNine2				1238
+#define bitmapID_CommTen2				1239
+#define bitmapID_ResOne2				1240
+#define bitmapID_ResTwo2				1241
+#define bitmapID_ResThree2				1242
+#define bitmapID_ResFour2				1243
+#define bitmapID_ResFive2				1244
+#define bitmapID_ResSix2				1245
+#define bitmapID_ResSeven2				1246
+#define bitmapID_ResEight2				1247
+#define bitmapID_ResNine2				1248
+#define bitmapID_ResTen2				1249
+#define bitmapID_IndOne2				1250
+#define bitmapID_IndTwo2				1251
+#define bitmapID_IndThree2				1252
+#define bitmapID_IndFour2				1253
+#define bitmapID_IndFive2				1254
+#define bitmapID_IndSix2				1255
+#define bitmapID_IndSeven2				1256
+#define bitmapID_IndEight2				1257
+#define bitmapID_IndNine2				1258
+#define bitmapID_IndTen2				1259
+#define bitmapID_PowerPlant2			1260
+#define bitmapID_NulearPlant2			1261
+
+#define bitmapID_PowerLeftRight2		1270
+#define bitmapID_PowerUpDown2			1271
+#define bitmapID_PowerRightDown2		1272
+#define bitmapID_PowerLeftDown2			1273
+#define bitmapID_PowerLeftUp2			1274	
+#define bitmapID_PowerRightUp2			1275
+#define bitmapID_PowerLeftUpDown2		1276	
+#define bitmapID_PowerRightUpDown2		1277
+#define bitmapID_PowerLeftRightDown2	1278
+#define bitmapID_PowerLeftRightUp2		1279
+#define bitmapID_PowerCross2			1280
+
+

@@ -24,8 +24,3 @@
 #define SIM_GAME_LOOP_SECONDS	10	// minimum number of seconds a game frame lasts
 
 
-#ifdef __palmos__
-#define TILE_SIZE 24
-#else // we have a nokia :)
-#define TILE_SIZE 24
-#endif

@@ -13,12 +13,17 @@ CC = m68k-palmos-gcc
 
 CCFLAGS = -g
 
-pcity.prc:  bin.stm grcs.stm
+pcity.prc:  bin.stm grcs.stm zones.stm
         build-prc pcity.prc "Pocket City" PCit *.grc *.bin
 
 bin.stm: simcity.rcp
 	pilrc simcity.rcp
 	echo touching>bin.stm
+
+zones.stm: zones.rcp
+	pilrc zones.rcp
+	echo touching>zones.stm
+
 
 grcs.stm: simcity
         m68k-palmos-obj-res simcity

@@ -1,6 +1,7 @@
 
 #include "simcity.h"
 
+
 FORM ID formID_pocketCity AT ( 0 0 160 160 )
 NOFRAME
 USABLE
@@ -36,6 +37,11 @@ BEGIN
 	MENUITEM "Tree -$10"				menuitemID_buildTree
 	MENUITEM "Water -$200"				menuitemID_buildWater
   END
+  PULLDOWN "View"
+  BEGIN
+	MENUITEM "32px"	menuID_view32
+	MENUITEM "16px" menuID_view16
+  END
 END
 
 ALERT ID alertID_errorOutOfMemory
@@ -62,76 +68,3 @@ end
 
 
 
-
-BITMAP ID bitmapID_ScrollBars			"graphic/scrollbars.bmp" COMPRESS
-
-
-
-BITMAP ID bitmapID_DirtBmp				"graphic/dirt.bmp" COMPRESS
-BITMAP ID bitmapID_CommZone				"graphic/c_01.bmp" COMPRESS
-BITMAP ID bitmapID_ResZone				"graphic/r_01.bmp" COMPRESS
-BITMAP ID bitmapID_IndZone				"graphic/i_01.bmp" COMPRESS
-	
-BITMAP ID bitmapID_PowerRoadUpDown		"graphic/powerroad2.bmp" COMPRESS
-BITMAP ID bitmapID_PowerRoadLeftRight	"graphic/powerroad1.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerLoss			"graphic/powerloss.bmp" COMPRESS
-BITMAP ID bitmapID_PowerLossOverlay		"graphic/powerloss2.bmp" COMPRESS
-BITMAP ID bitmapID_CursorBmp			"graphic/cursor.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadLeftRight		"graphic/road01.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadUpDown			"graphic/road02.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadRightDown		"graphic/road03.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadLeftDown			"graphic/road04.bmp" COMPRESS
-BITMAP ID bitmapID_RoadLeftUp			"graphic/road05.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadRightUp			"graphic/road06.bmp" COMPRESS
-BITMAP ID bitmapID_RoadLeftUpDown		"graphic/road07.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadRightUpDown		"graphic/road08.bmp" COMPRESS
-BITMAP ID bitmapID_RoadRightLeftDown	"graphic/road09.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadRightLeftUp		"graphic/road10.bmp" COMPRESS
-BITMAP ID bitmapID_RoadCross			"graphic/road11.bmp" COMPRESS	
-BITMAP ID bitmapID_TreeBmp				"graphic/tree.bmp" COMPRESS
-BITMAP ID bitmapID_WaterBmp				"graphic/water.bmp" COMPRESS
-
-BITMAP ID bitmapID_CommOne				"graphic/c_02.bmp" COMPRESS
-BITMAP ID bitmapID_CommTwo				"graphic/c_03.bmp" COMPRESS
-BITMAP ID bitmapID_CommThree			"graphic/c_04.bmp" COMPRESS	
-BITMAP ID bitmapID_CommFour				"graphic/c_05.bmp" COMPRESS
-BITMAP ID bitmapID_CommFive				"graphic/c_06.bmp" COMPRESS
-BITMAP ID bitmapID_CommSix				"graphic/c_07.bmp" COMPRESS
-BITMAP ID bitmapID_CommSeven			"graphic/c_08.bmp" COMPRESS	
-BITMAP ID bitmapID_CommEight			"graphic/c_09.bmp" COMPRESS	
-BITMAP ID bitmapID_CommNine				"graphic/c_10.bmp" COMPRESS
-BITMAP ID bitmapID_CommTen				"graphic/c_11.bmp" COMPRESS
-BITMAP ID bitmapID_ResOne				"graphic/r_02.bmp" COMPRESS	
-BITMAP ID bitmapID_ResTwo				"graphic/r_03.bmp" COMPRESS	
-BITMAP ID bitmapID_ResThree				"graphic/r_04.bmp" COMPRESS
-BITMAP ID bitmapID_ResFour				"graphic/r_05.bmp" COMPRESS
-BITMAP ID bitmapID_ResFive				"graphic/r_06.bmp" COMPRESS
-BITMAP ID bitmapID_ResSix				"graphic/r_07.bmp" COMPRESS	
-BITMAP ID bitmapID_ResSeven				"graphic/r_08.bmp" COMPRESS
-BITMAP ID bitmapID_ResEight				"graphic/r_09.bmp" COMPRESS
-BITMAP ID bitmapID_ResNine				"graphic/r_10.bmp" COMPRESS
-BITMAP ID bitmapID_ResTen				"graphic/r_11.bmp" COMPRESS	
-BITMAP ID bitmapID_IndOne				"graphic/i_02.bmp" COMPRESS	
-BITMAP ID bitmapID_IndTwo				"graphic/i_03.bmp" COMPRESS	
-BITMAP ID bitmapID_IndThree				"graphic/i_04.bmp" COMPRESS
-BITMAP ID bitmapID_IndFour				"graphic/i_05.bmp" COMPRESS
-BITMAP ID bitmapID_IndFive				"graphic/i_06.bmp" COMPRESS
-BITMAP ID bitmapID_IndSix				"graphic/i_07.bmp" COMPRESS	
-BITMAP ID bitmapID_IndSeven				"graphic/i_08.bmp" COMPRESS
-BITMAP ID bitmapID_IndEight				"graphic/i_09.bmp" COMPRESS
-BITMAP ID bitmapID_IndNine				"graphic/i_10.bmp" COMPRESS
-BITMAP ID bitmapID_IndTen				"graphic/i_11.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerPlant			"graphic/power_plant.bmp" COMPRESS	
-BITMAP ID bitmapID_NulearPlant			"graphic/nuclear_plant.bmp" COMPRESS
-
-BITMAP ID bitmapID_PowerLeftRight		"graphic/power01.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerUpDown			"graphic/power02.bmp" COMPRESS
-BITMAP ID bitmapID_PowerRightDown		"graphic/power03.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerLeftDown		"graphic/power04.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerLeftUp			"graphic/power06.bmp" COMPRESS
-BITMAP ID bitmapID_PowerRightUp			"graphic/power05.bmp" COMPRESS
-BITMAP ID bitmapID_PowerLeftUpDown		"graphic/power07.bmp" COMPRESS
-BITMAP ID bitmapID_PowerRightUpDown		"graphic/power08.bmp" COMPRESS
-BITMAP ID bitmapID_PowerLeftRightDown	"graphic/power09.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerLeftRightUp		"graphic/power10.bmp" COMPRESS
-BITMAP ID bitmapID_PowerCross			"graphic/power11.bmp" COMPRESS	

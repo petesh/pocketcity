@@ -14,4 +14,8 @@ echo *************
 
 cd palm
 C:\cygnus\cygwin-b20\H-i586-cygwin32\bin\make
+del *.bin
+del *.o
+del *.stm
+del *.grc
 cd ..

@@ -176,6 +176,16 @@ static Boolean hPocketCity(EventPtr event)
 		if (event->data.menu.itemID >= menuitemID_buildBulldoze)
 		{
 			nSelectedBuildItem = event->data.menu.itemID - menuitemID_buildBulldoze;
+		} else {
+			switch (event->data.menu.itemID)
+			{
+			case menuID_view32:
+				UISetTileSize(6);
+				break;
+			case menuID_view16:
+				UISetTileSize(5);
+				break;
+			}
 		}
 		break;
 	}
@@ -199,8 +209,8 @@ void _UIGetFieldToBuildOn(int x, int y)
 {
 	RectangleType rect;
 	int i,j;
-	rect.extent.x = 24;
-	rect.extent.y = 24;
+	rect.extent.x = TILE_SIZE;
+	rect.extent.y = TILE_SIZE;
 
 	for (i=0; i<visible_x; i++)
 	{
@@ -280,21 +290,27 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
 {
 	MemHandle  bitmaphandle;
 	BitmapPtr  bitmap;
+	int overlayID = bitmapID_PowerLossOverlay;
+	int powerID = bitmapID_PowerLoss;
 
 	if (DoDrawing == 0) { return; }
 
 	WinPushDrawState();
+
+
+	if (TILE_SIZE == 32) { overlayID = bitmapID_PowerLossOverlay; powerID = bitmapID_PowerLoss; };
+	if (TILE_SIZE == 16) { overlayID = bitmapID_PowerLossOverlay2; powerID = bitmapID_PowerLoss2; };
 	
 	// first draw the overlay
 	WinSetDrawMode(winErase);
-	bitmaphandle = DmGet1Resource( TBMP, bitmapID_PowerLossOverlay);
+	bitmaphandle = DmGet1Resource( TBMP, overlayID);
 	bitmap = MemHandleLock(bitmaphandle);
 	WinPaintBitmap(bitmap, xpos*TILE_SIZE+1, ypos*TILE_SIZE+15);
 	MemHandleUnlock(bitmaphandle);
 	
 	// now draw the 's'
 	WinSetDrawMode(winOverlay);
-	bitmaphandle = DmGet1Resource( TBMP , bitmapID_PowerLoss);
+	bitmaphandle = DmGet1Resource( TBMP , powerID);
 	bitmap = MemHandleLock(bitmaphandle);
 	WinPaintBitmap(bitmap, xpos*TILE_SIZE+1, ypos*TILE_SIZE+15);
 	MemHandleUnlock(bitmaphandle);
@@ -308,10 +324,14 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
 {
 	MemHandle  bitmaphandle;
 	BitmapPtr  bitmap;
+	int startID = 0;
 
 	if (DoDrawing == 0) { return; }
 
-	bitmaphandle = DmGet1Resource( TBMP , nGraphic + bitmapID_DirtBmp);
+	if (TILE_SIZE == 32) { startID = bitmapID_DirtBmp; };
+	if (TILE_SIZE == 16) { startID = bitmapID_DirtBmp2; };
+
+	bitmaphandle = DmGet1Resource( TBMP , nGraphic + startID);
 	bitmap = MemHandleLock(bitmaphandle);
 	WinDrawBitmap(bitmap, xpos*TILE_SIZE+1, ypos*TILE_SIZE+15);
 	MemHandleUnlock(bitmaphandle);
@@ -354,12 +374,23 @@ extern void UIDrawCredits(void)
 
 
 
+extern void UISetTileSize(int size)
+{
+	/*
+	1 = 1x1		128
+	2 = 2x2		64
+	3 = 4x4		32
+	4 = 8x8		16
+	5 = 16x16	8
+	6 = 32x32	4
+	*/
+	if (!(size >= 1 && size <= 6)) { return; }
 
-
-
-
-
-
+	visible_x = 1<<(8-size);
+	visible_y = 1<<(8-size);
+	TILE_SIZE = 1<<(size-1);
+	RedrawAllFields();
+}
 
 
 
