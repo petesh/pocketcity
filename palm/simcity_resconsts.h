@@ -32,6 +32,7 @@
 
 #define	menuitemID_Configuration 1006
 #define	menuitemID_Buttons 1007
+#define menuitemID_ForceResupply	1008
 
 #define	mi_removeDefence		1011
 #define	mi_buildExtra 1012 /* pops up an extra list */
@@ -123,6 +124,10 @@
 #define	alertID_majorbad 1010
 #define	alertID_programmingNiggle 1011
 #define	alertID_tilesMissing		 1012
+#define alertID_lowPower	1013
+#define alertID_outPower	1014
+#define alertID_lowWater	1015
+#define alertID_outWater	1016
 
 #define	st_disasters			2000
 

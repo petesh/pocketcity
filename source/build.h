@@ -13,6 +13,10 @@
 #include <sections.h>
 #include <compilerpragmas.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /*!
  * \brief The codes that are mapped for building items.
  *
@@ -81,10 +85,6 @@ typedef enum {
 /*! \brief The cost of building a water pump */
 #define	BUILD_COST_WATER_PUMP	   3000
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*!
  * \brief Bulldoze a zone
  * \param xpos X position on the map
@@ -115,7 +115,7 @@ EXPORT void CreateForests(void) BUILD_SECTION;
 /*! \brief Remove all the defences on the map */
 EXPORT void RemoveAllDefence(void) BUILD_SECTION;
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif
 

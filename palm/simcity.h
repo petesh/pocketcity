@@ -23,7 +23,7 @@ UInt32 GetPositionClicked(void);
 /* For the 'dialogs' */
 void PauseGame(void);
 void ResumeGame(void);
-UInt8 IsGamePlaying(void);
+UInt16 IsGamePlaying(void);
 /*
  * For the 'is there a game in progress'.
  * Faffing around with save games causes games to not be in progress.
@@ -31,15 +31,17 @@ UInt8 IsGamePlaying(void);
  */
 void SetGameInProgress(void);
 void SetGameNotInProgress(void);
-UInt8 IsGameInProgress(void);
+UInt16 IsGameInProgress(void);
 
 void ClearNewROM(void);
 void SetNewROM(void);
-UInt8 IsNewROM(void);
+UInt16 IsNewROM(void);
 
 void ClearDirectBmps(void);
 void SetDirectBmps(void);
-UInt8 IsDirectBmps(void);
+UInt16 IsDirectBmps(void);
+
+void clearProblemFlags(void);
 void ResGetString(UInt16 index, char *string, UInt16 length);
 
 #endif

@@ -7,7 +7,7 @@
 #ifndef _COMPILERPRAGMAS_H
 #define	_COMPILERPRAGMAS_H
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -59,7 +59,7 @@ extern "C" {
 #endif
 #endif
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif
 

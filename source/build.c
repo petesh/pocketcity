@@ -304,7 +304,7 @@ Build_Bulldoze(Int16 xpos, Int16 ypos, welem_t _type __attribute__((unused)))
 		Build_Destroy(xpos, ypos);
 		rv = 1;
 	} else {
-		UIDisplayError(enOutOfMoney);
+		UIProblemNotify(peOutOfMoney);
 	}
 end:
 	UnlockZone(lz_world);
@@ -461,21 +461,22 @@ finish:
 
 	if (IsRoadBridge(type) || IsRailTunnel(type) || IsRealWater(type)) {
 		/* A bridge turns into real_water when detroyed */
-		setWorld(WORLDPOS(xpos, ypos), Z_REALWATER);
+		setWorldAndFlag(WORLDPOS(xpos, ypos), Z_REALWATER, 0);
 	} else {
 		if ((x_destroy != 1) || (y_destroy != 1)) {
 			ty_destroy = y_destroy;
 			while(ty_destroy) {
 				tx_destroy=x_destroy;
 				while(tx_destroy) {
-					setWorld(WORLDPOS(xpos - 1 + tx_destroy,
-					    ypos - 1 + ty_destroy), Z_DIRT);
+					setWorldAndFlag(
+					    WORLDPOS(xpos - 1 + tx_destroy,
+					    ypos - 1 + ty_destroy), Z_DIRT, 0);
 					tx_destroy--;
 				}
 				ty_destroy--;
 			}
 		} else {
-			setWorld(WORLDPOS(xpos, ypos), Z_DIRT);
+			setWorldAndFlag(WORLDPOS(xpos, ypos), Z_DIRT, 0);
 		}
 	}
 
@@ -565,7 +566,8 @@ Build_Generic4(Int16 xpos, Int16 ypos, welem_t type)
 	if (SpendMoney(toSpend)) {
 		for (loopy = ypos; loopy < ypos + 2; loopy++) {
 			for (loopx = xpos; loopx < xpos + 2; loopx++)
-				setWorld(WORLDPOS(loopx, loopy), type++);
+				setWorldAndFlag(WORLDPOS(loopx, loopy),
+				    type++, 0);
 			}
 
 		if (cmi->count != -1)
@@ -574,7 +576,7 @@ Build_Generic4(Int16 xpos, Int16 ypos, welem_t type)
 		DrawCross(xpos, ypos, 2, 2);
 		rv = 1;
 	} else {
-		UIDisplayError(enOutOfMoney);
+		UIProblemNotify(peOutOfMoney);
 	}
 	UnlockZone(lz_world);
 	return (rv);
@@ -619,7 +621,8 @@ Build_Generic(Int16 xpos, Int16 ypos, welem_t type)
 	if (IsBulldozable(worldItem)) {
 		if (worldItem == Z_REALTREE) toSpend += BUILD_COST_BULLDOZER;
 		if (SpendMoney(toSpend)) {
-			setWorld(WORLDPOS(xpos, ypos), (unsigned char)type);
+			setWorldAndFlag(WORLDPOS(xpos, ypos),
+			    (welem_t)type, 0);
 			DrawCross(xpos, ypos, 1, 1);
 
 			/*  update counter */
@@ -631,7 +634,7 @@ Build_Generic(Int16 xpos, Int16 ypos, welem_t type)
 			}
 			rv = 1;
 		} else {
-			UIDisplayError(enOutOfMoney);
+			UIProblemNotify(peOutOfMoney);
 		}
 	}
 	UnlockZone(lz_world);
@@ -679,12 +682,12 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			break;
 		}
 		if (SpendMoney(toSpend)) {
-			setWorld(WORLDPOS(xpos, ypos), tobuil);
+			setWorldAndFlag(WORLDPOS(xpos, ypos), tobuil, 0);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_count_roads]++;
 			rv = 1;
 		} else {
-			UIDisplayError(enOutOfMoney);
+			UIProblemNotify(peOutOfMoney);
 		}
 	} else if (IsRealWater(old)) {
 		welem_t tobuil = 0;
@@ -724,22 +727,22 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 		toSpend = BUILD_COST_BRIDGE;
 success_build:
 		if (SpendMoney(toSpend)) {
-			setWorld(WORLDPOS(xpos, ypos), tobuil);
+			setWorldAndFlag(WORLDPOS(xpos, ypos), tobuil, 0);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_count_roads]++;
 			rv = 1;
 		} else {
-			UIDisplayError(enOutOfMoney);
+			UIProblemNotify(peOutOfMoney);
 		}
 	} else if (IsBulldozable(old)) {
 		if (old == Z_REALTREE) toSpend += BUILD_COST_BULLDOZER;
 		if (SpendMoney(toSpend)) {
-			setWorld(WORLDPOS(xpos, ypos), Z_ROAD);
+			setWorldAndFlag(WORLDPOS(xpos, ypos), Z_ROAD, 0);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_count_roads]++;
 			rv = 1;
 		} else {
-			UIDisplayError(enOutOfMoney);
+			UIProblemNotify(peOutOfMoney);
 		}
 	}
 leaveme:
@@ -788,12 +791,12 @@ Build_Rail(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			break;
 		}
 		if (SpendMoney(toSpend)) {
-			setWorld(WORLDPOS(xpos, ypos), tobuil);
+			setWorldAndFlag(WORLDPOS(xpos, ypos), tobuil, 0);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_count_rail]++;
 			rv = 1;
 		} else {
-			UIDisplayError(enOutOfMoney);
+			UIProblemNotify(peOutOfMoney);
 		}
 	} else if (IsRealWater(old)) {
 		welem_t tobuil = 0;
@@ -835,22 +838,22 @@ Build_Rail(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 		toSpend = BUILD_COST_RAILTUNNEL;
 success_build:
 		if (SpendMoney(toSpend)) {
-			setWorld(WORLDPOS(xpos, ypos), tobuil);
+			setWorldAndFlag(WORLDPOS(xpos, ypos), tobuil, 0);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_count_rail]++;
 			rv = 1;
 		} else {
-			UIDisplayError(enOutOfMoney);
+			UIProblemNotify(peOutOfMoney);
 		}
 	} else if (IsBulldozable(old)) {
 		if (old == Z_REALTREE) toSpend += BUILD_COST_BULLDOZER;
 		if (SpendMoney(toSpend)) {
-			setWorld(WORLDPOS(xpos, ypos), Z_RAIL);
+			setWorldAndFlag(WORLDPOS(xpos, ypos), Z_RAIL, 0);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_count_rail]++;
 			rv = 1;
 		} else {
-			UIDisplayError(enOutOfMoney);
+			UIProblemNotify(peOutOfMoney);
 		}
 	}
 leaveme:
@@ -880,12 +883,12 @@ Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 	if (IsBulldozable(old)) {
 		if (old == Z_REALTREE) toSpend += BUILD_COST_BULLDOZER;
 		if (SpendMoney(toSpend)) {
-			setWorld(WORLDPOS(xpos, ypos), Z_POWERLINE);
+			setWorldAndFlag(WORLDPOS(xpos, ypos), Z_POWERLINE, 0);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_powerlines]++;
 			rv = 1;
 		} else {
-			UIDisplayError(enOutOfMoney);
+			UIProblemNotify(peOutOfMoney);
 		}
 	}
 	if (IsRoad(old) || IsWaterPipe(old) || IsRail(old)) {
@@ -912,12 +915,12 @@ Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			break;
 		}
 		if (SpendMoney(toSpend)) {
-			setWorld(WORLDPOS(xpos, ypos), tobuil);
+			setWorldAndFlag(WORLDPOS(xpos, ypos), tobuil, 0);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_powerlines]++;
 			rv = 1;
 		} else {
-			UIDisplayError(enOutOfMoney);
+			UIProblemNotify(peOutOfMoney);
 		}
 	}
 	UnlockZone(lz_world);
@@ -947,12 +950,12 @@ Build_WaterPipe(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 	if (IsBulldozable(old)) {
 		if (old == Z_REALTREE) toSpend += BUILD_COST_BULLDOZER;
 		if (SpendMoney(toSpend)) {
-			setWorld(WORLDPOS(xpos, ypos), Z_PIPE);
+			setWorldAndFlag(WORLDPOS(xpos, ypos), Z_PIPE, 0);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_waterpipes]++;
 			rv = 1;
 		} else {
-			UIDisplayError(enOutOfMoney);
+			UIProblemNotify(peOutOfMoney);
 		}
 	}
 	if (IsRoad(old) || IsPowerLine(old) || IsRail(old)) {
@@ -977,12 +980,12 @@ Build_WaterPipe(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			break;
 		}
 		if (SpendMoney(toSpend)) {
-			setWorld(WORLDPOS(xpos, ypos), elt);
+			setWorldAndFlag(WORLDPOS(xpos, ypos), elt, 0);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_waterpipes]++;
 			rv = 1;
 		} else {
-			UIDisplayError(enOutOfMoney);
+			UIProblemNotify(peOutOfMoney);
 		}
 	}
 	UnlockZone(lz_world);
@@ -1035,11 +1038,11 @@ CreateFullRiver(void)
 		for (k = j; k < (width + j); k++) {
 			if ((k >= 0) && (k < kmax)) {
 				if (axis)
-					setWorld(WORLDPOS(i, k),
-					    Z_REALWATER);
+					setWorldAndFlag(WORLDPOS(i, k),
+					    Z_REALWATER, 0);
 				else
-					setWorld(WORLDPOS(k, i),
-					    Z_REALWATER);
+					setWorldAndFlag(WORLDPOS(k, i),
+					    Z_REALWATER, 0);
 			}
 		}
 
@@ -1116,7 +1119,7 @@ CreateForest(UInt32 pos, Int16 size)
 			    ((x > i) ? (x - i) : (i - x));
 			if (GetRandomNumber(s) < 2) {
 				/*! \todo count_trees or count_real_trees */
-				setWorld(WORLDPOS(i, j), Z_REALTREE);
+				setWorldAndFlag(WORLDPOS(i, j), Z_REALTREE, 0);
 				vgame.BuildCount[bc_count_trees]++;
 			}
 		}

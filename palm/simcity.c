@@ -94,14 +94,12 @@ static void pcResizeDisplay(FormPtr form, Int16 hOff, Int16 vOff, Boolean draw);
 #endif
 
 /* Collects what would otherwise be several variables */
-static UInt8 IsBuilding(void);
+static UInt16 IsBuilding(void);
 static void SetBuilding(void);
 static void SetNotBuilding(void);
-static void SetLowNotShown(void);
-static void SetOutNotShown(void);
 static void SetDeferDrawing(void);
 static void SetDrawing(void);
-static UInt8 IsDeferDrawing(void);
+static UInt16 IsDeferDrawing(void);
 
 void UIDrawSpeed(void);
 
@@ -147,8 +145,6 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP __attribute__((unused)), UInt16 launchFlags)
 
 	PCityMain();
 	if (-1 != UILoadAutoGame()) {
-		SetLowNotShown();
-		SetOutNotShown();
 		FrmGotoForm(formID_pocketCity);
 	} else {
 		FrmGotoForm(formID_files);
@@ -561,13 +557,9 @@ DoPCityMenuProcessing(UInt16 itemID)
 		case 0: /* save game */
 			UISaveMyCity();
 			UIClearAutoSaveSlot();
-			SetLowNotShown();
-			SetOutNotShown();
 			FrmGotoForm(formID_files);
 			break;
 		case 1: /* don't save */
-			SetLowNotShown();
-			SetOutNotShown();
 			UIClearAutoSaveSlot();
 			FrmGotoForm(formID_files);
 			break;
@@ -617,6 +609,11 @@ DoPCityMenuProcessing(UInt16 itemID)
 		handled = true;
 		break;
 
+	case menuitemID_ForceResupply:
+		AddGridUpdate(GRID_ALL);
+		handled = true;
+		break;
+
 		/* next menu ... build */
 
 	case mi_removeDefence:
@@ -635,7 +632,7 @@ DoPCityMenuProcessing(UInt16 itemID)
 	case mi_CauseMonster:
 	case mi_CauseDragon:
 	case mi_CauseMeteor:
-		DoSpecificDisaster((erdiType)(itemID - mi_CauseFire +
+		DoSpecificDisaster((disaster_t)(itemID - mi_CauseFire +
 			    diFireOutbreak));
 		handled = true;
 		break;
@@ -832,11 +829,17 @@ DoAbout(void)
 	}
 }
 
+void
+UIPostLoadGame(void)
+{
+	clearProblemFlags();
+}
+
 /*
  * Go to one of the Budget and map forms.
  * Only if we're not already at that form to begin with.
  */
-extern void
+void
 UIGotoForm(Int16 n)
 {
 	UInt16 formid = FrmGetActiveFormID();
@@ -1135,13 +1138,13 @@ UISetSelectedBuildItem(BuildCode item)
 }
 
 /* is Building logic and data */
-static UInt8 __state;
+static UInt16 __state;
 
 /*
  * First the Macro.
  * You Define the Bit, Clearer, Setter and Tester
  * of the Bit field you care about.
- * If you need more than 8 bits (0..7) then change the return type here and
+ * If you need more than 16 bits (0..15) then change the return type here and
  * in any of the entries shared in the header file.
  */
 #define	BUILD_STATEBITACCESSOR(BIT, CLEARER, SETTER, TESTER, VISIBILITY) \
@@ -1155,7 +1158,7 @@ SETTER(void) \
 { \
 	__state |= (1<<(BIT)); \
 } \
-VISIBILITY UInt8 \
+VISIBILITY UInt16 \
 TESTER(void) \
 { \
 	return (__state & (1<<(BIT))); \
@@ -1167,11 +1170,51 @@ BUILD_STATEBITACCESSOR(0, PauseGame, ResumeGame, IsGamePlaying, GLOBAL)
 BUILD_STATEBITACCESSOR(1, SetNotBuilding, SetBuilding, IsBuilding, static)
 BUILD_STATEBITACCESSOR(2, SetGameNotInProgress, SetGameInProgress,
     IsGameInProgress, GLOBAL)
-BUILD_STATEBITACCESSOR(3, SetLowNotShown, SetLowShown, IsLowShown, static)
-BUILD_STATEBITACCESSOR(4, SetOutNotShown, SetOutShown, IsOutShown, static)
-BUILD_STATEBITACCESSOR(5, ClearNewROM, SetNewROM, IsNewROM, GLOBAL)
-BUILD_STATEBITACCESSOR(6, SetDrawing, SetDeferDrawing, IsDeferDrawing, static)
-BUILD_STATEBITACCESSOR(7, ClearDirectBmps, SetDirectBmps, IsDirectBmps, GLOBAL)
+BUILD_STATEBITACCESSOR(3, SetLowMoneyNotShown, SetLowMoneyShown, \
+    IsLowMoneyShown, static)
+BUILD_STATEBITACCESSOR(4, SetOutMoneyNotShown, SetOutMoneyShown, \
+    IsOutMoneyShown, static)
+BUILD_STATEBITACCESSOR(5, SetLowPowerNotShown, SetLowPowerShown, \
+    IsLowPowerShown, static)
+BUILD_STATEBITACCESSOR(6, SetOutPowerNotShown, SetOutPowerShown, \
+    IsOutPowerShown, static)
+BUILD_STATEBITACCESSOR(7, SetLowWaterNotShown, SetLowWaterShown, \
+    IsLowWaterShown, static)
+BUILD_STATEBITACCESSOR(8, SetOutWaterNotShown, SetOutWaterShown, \
+    IsOutWaterShown, static)
+BUILD_STATEBITACCESSOR(9, ClearNewROM, SetNewROM, IsNewROM, GLOBAL)
+BUILD_STATEBITACCESSOR(10, SetDrawing, SetDeferDrawing, IsDeferDrawing, static)
+BUILD_STATEBITACCESSOR(11, ClearDirectBmps, SetDirectBmps, IsDirectBmps, GLOBAL)
+
+/*!
+ * \brief clear the low and out of power flags
+ */
+static void
+ClearLowOutPowerFlags(void)
+{
+	SetLowPowerNotShown();
+	SetOutPowerNotShown();
+}
+
+/*!
+ * \brief clear the low and out water flags
+ */
+static void
+ClearLowOutWaterFlags(void)
+{
+	SetLowWaterNotShown();
+	SetOutWaterNotShown();
+}
+
+/*!
+ * \brief clear the low and out of money flags
+ */
+static void
+ClearLowOutMoneyFlags(void)
+{
+	SetLowMoneyNotShown();
+	SetOutMoneyNotShown();
+}
 
 /*
  * Memory of what was clicked under the pen
@@ -1225,32 +1268,63 @@ _UIGetFieldToBuildOn(Int16 x, Int16 y)
 	}
 }
 
-/*
- * Display an error to the user of a specific error / disaster type
- */
 void
-UIDisplayError(erdiType nError)
+UIDisasterNotify(disaster_t disaster)
 {
-	/* errors */
-	if ((nError > enSTART) && (nError < enEND)) {
-		switch (nError) {
-		case enOutOfMemory:
-			FrmAlert(alertID_errorOutOfMemory);
-			break;
-		case enOutOfMoney:
-			FrmAlert(alertID_outMoney);
-			break;
-		default:
+	char string[512];
+	SysStringByIndex(st_disasters, disaster - diFireOutbreak, string, 511);
+	if (*string == '\0') StrPrintF(string, "generic disaster??");
+
+	FrmCustomAlert(alertID_generic_disaster, string, 0, 0);
+}
+
+/*! \brief table containing the problem_table input/output function */
+static struct problemtable {
+	problem_t entry; /*!< the problem entry */
+	UInt16 (*test)(void); /*!< the testing function */
+	void (*set)(void); /*!< the setting function */
+	Int16 alert; /*!< the alert to display */
+} problem_table[] = {
+	{ peFineOnMoney, NULL, ClearLowOutMoneyFlags, 0 },
+	{ peLowOnMoney, IsLowMoneyShown, SetLowMoneyShown, alertID_lowFunds },
+	{ peOutOfMoney, IsOutMoneyShown, SetOutMoneyShown, alertID_outMoney },
+	{ peFineOnPower, NULL, ClearLowOutPowerFlags, 0 },
+	{ peLowOnPower, IsLowPowerShown, SetLowPowerShown, alertID_lowPower },
+	{ peOutOfPower, IsOutPowerShown, SetOutPowerShown, alertID_outPower },
+	{ peFineOnWater, NULL, ClearLowOutWaterFlags, 0 },
+	{ peLowOnWater, IsLowWaterShown, SetLowWaterShown, alertID_lowWater },
+	{ peOutOfWater, IsOutWaterShown, SetOutWaterShown, alertID_outWater }
+};
+
+#define PROBLEMTABLE_SIZE (sizeof (problem_table) / sizeof (problem_table[0]))
+
+void
+UIProblemNotify(problem_t problem)
+{
+	UInt16 alert = 0;
+	UInt16 i;
+
+	for (i = 0; i < PROBLEMTABLE_SIZE; i++) {
+		if (problem_table[i].entry == problem) {
+			if (problem_table[i].test != NULL &&
+			    problem_table[i].test()) return;
+			problem_table[i].set();
+			alert = problem_table[i].alert;
 			break;
 		}
 	}
-	if ((nError > diSTART) && (nError < diEND)) {
-		char string[512];
-		SysStringByIndex(st_disasters, nError - diFireOutbreak,
-		    string, 511);
-		if (*string == '\0') StrPrintF(string, "generic disaster??");
+	if (alert == 0) return;
+	FrmAlert(alert);
+}
 
-		FrmCustomAlert(alertID_generic_disaster, string, 0, 0);
+/*
+ * Display an specific system error to the user
+ */
+void
+UISystemErrorNotify(syserror_t error)
+{
+	if (error == seOutOfMemory) {
+		FrmAlert(alertID_errorOutOfMemory);
 	}
 }
 
@@ -1760,10 +1834,6 @@ UIDrawItem(loc_screen location, char *text)
 	}
 	if (isDoubleOrMoreResolution())
 		_FntSetFont(stdFont);
-	if (location == loc_position) {
-		WriteLog("(%d, %d) -> (%d, %d)\n", rt->topLeft.x,
-		    rt->topLeft.y, rt->extent.x, rt->extent.y);
-	}
 }
 
 /*!
@@ -2012,19 +2082,9 @@ void
 UICheckMoney(void)
 {
 	if (getCredits() == 0) {
-		if (!IsOutShown()) {
-			FrmAlert(alertID_outMoney);
-			SetOutShown();
-		} else {
-			return;
-		}
+		UIProblemNotify(peOutOfMoney);
 	} else if (getCredits() <= 1000) {
-		if (!IsLowShown()) {
-			FrmAlert(alertID_lowFunds);
-			SetLowShown();
-		} else {
-			return;
-		}
+		UIProblemNotify(peLowOnMoney);
 	}
 }
 
@@ -2207,6 +2267,14 @@ static Int16
 HardButtonEvent(ButtonKey key)
 {
 	return (doButtonEvent(gameConfig.pc.keyOptions[key]));
+}
+
+void
+clearProblemFlags(void)
+{
+	ClearLowOutMoneyFlags();
+	ClearLowOutPowerFlags();
+	ClearLowOutWaterFlags();
 }
 
 /*!

@@ -37,7 +37,10 @@ static void WriteLogX(char *s, ...) {}
 #endif
 #endif
 
-void UIDisplayError(erdiType nError);
+void UIDisasterNotify(disaster_t disaster);
+void UIProblemNotify(problem_t problem);
+
+void UISystemErrorNotify(syserror_t error);
 void UIDisplayError1(char *message);
 
 /*! \brief Initialize the drawing area */
@@ -53,6 +56,9 @@ void UILockScreen(void);
 
 /*! \brief Draw the border around the playing area */
 void UIDrawBorder(void);
+
+/*! \brief UI post load game handler */
+void UIPostLoadGame(void);
 
 /*!
  * \brief initialize the graphics

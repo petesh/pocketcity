@@ -331,8 +331,15 @@ showMap(void)
 {
 	GtkWidget *table;
 
+	if (pw_win != NULL) {
+		gtk_widget_show(pw_win);
+		return;
+	}
+
 	pw_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(pw_win), "Power/Water Distribution");
+	gtk_window_set_skip_taskbar_hint(GTK_WINDOW(pw_win), TRUE);
+
 	g_signal_connect(G_OBJECT(pw_win), "delete_event",
 	    G_CALLBACK(close_window), NULL);
 

@@ -8,7 +8,7 @@
 #if !defined(_STACK_H_)
 #define	_STACK_H_
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -99,7 +99,7 @@ void ListInsert(dsObj *obj, Int32 index, Int32 value);
  */
 Int32 ListRemove(dsObj *obj, Int32 index);
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif
 

@@ -7,7 +7,7 @@
 #include <zakdef.h>
 #include <compilerpragmas.h>
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -25,7 +25,7 @@ EXPORT void InitGameStruct(void);
 EXPORT void DrawGame(Int8 full);
 EXPORT void PostLoadGame(void);
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif
 

@@ -10,6 +10,7 @@ BEGIN
     "TEST"	= "Test"
     "SETTINGS"	= "Settings"
     "BUTTONS"   = "Buttons"
+    "FORCERESUPPLY" = "Distribute"
 
     "M_BUILD"	= "Build"
     "REMOVEDEF" = "Remove Defence"
@@ -202,6 +203,11 @@ BEGIN
 
     "MSG_LOWONMONEY" = "You're running low on money!!"
     "B_UHOH" = "Uh-oh!"
+
+    "MSG_LOWPOWER" = "You're running short on power"
+    "MSG_OUTPOWER" = "Some zones are without power"
+    "MSG_LOWWATER" = "You're running low on water"
+    "MSG_OUTWATER" = "Some zones are not being supplied with water"
 
     "MSG_SAVEBEFORELOAD" = "Do you want to save your city before loading a new one?"
     "YES" = "Yes"

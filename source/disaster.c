@@ -96,7 +96,7 @@ DoRandomDisaster(void)
 }
 
 void
-DoSpecificDisaster(erdiType disaster)
+DoSpecificDisaster(disaster_t disaster)
 {
 	unsigned long randomTile;
 	unsigned int x, y;
@@ -128,7 +128,7 @@ DoSpecificDisaster(erdiType disaster)
 		}
 	}
 	if (ce) {
-		UIDisplayError(disaster);
+		UIDisasterNotify(disaster);
 		Goto(x, y, goto_center);
 		MapHasJumped();
 	}
@@ -155,14 +155,15 @@ UpdateDisasters(void)
 						if (GetDefenceValue(i, j) < 3) {
 							FireSpread(i, j);
 						}
-						setWorld(WORLDPOS(i, j),
-						    Z_FIRE3);
+						setWorldAndFlag(WORLDPOS(i, j),
+						    Z_FIRE3, 0);
 					} else {
 						CreateWaste(i, j);
 					}
 				} else if (type == Z_FIRE1) {
 					retval = 1;
-					setWorld(WORLDPOS(i, j), Z_FIRE2);
+					setWorldAndFlag(WORLDPOS(i, j),
+					    Z_FIRE2, 0);
 				} else if (type == Z_FIRE3) {
 					retval = 1;
 					CreateWaste(i, j);
@@ -213,7 +214,7 @@ BurnField(Int16 x, Int16 y, Int16 forceit)
 	    node != Z_BRIDGE &&
 	    ContainsDefence(x, y) == 0)) {
 		Build_Destroy(x, y);
-		setWorld(WORLDPOS(x, y), Z_FIRE1);
+		setWorldAndFlag(WORLDPOS(x, y), Z_FIRE1, 1);
 		setScratch(WORLDPOS(x, y));
 		DrawCross(x, y, 1, 1);
 		vgame.BuildCount[bc_fire]++;
@@ -468,7 +469,7 @@ CreateMeteor(Int16 x, Int16 y, Int16 size)
 		}
 	}
 	Build_Destroy(x, y);
-	setWorld(WORLDPOS(x, y), Z_CRATER);
+	setWorldAndFlag(WORLDPOS(x, y), Z_CRATER, 0);
 	UnlockZone(lz_world);
 	UIUnlockScreen();
 	RedrawAllFields();
@@ -491,12 +492,12 @@ CreateWaste(Int16 x, Int16 y)
 		UnlockZone(lz_world);
 		return;
 	}
-	setWorld(WORLDPOS(x, y), Z_WASTE);
+	setWorldAndFlag(WORLDPOS(x, y), Z_WASTE, 0);
 	vgame.BuildCount[bc_waste]++;
 	DrawCross(x, y, 1, 1);
 	UnlockZone(lz_world);
 	if (node == Z_COALPLANT || node == Z_NUCLEARPLANT)  {
-		UIDisplayError(diPlantExplosion);
+		UIDisasterNotify(diPlantExplosion);
 		FireSpread(x, y);
 	}
 }

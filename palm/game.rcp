@@ -43,6 +43,8 @@ BEGIN
 /* <<DEBUG */
 	MENUITEM "SETTINGS"           	menuitemID_Configuration
 	MENUITEM "BUTTONS"		menuitemID_Buttons
+	MENUITEM SEPARATOR
+	MENUITEM "FORCERESUPPLY"	menuitemID_ForceResupply
   END
   PULLDOWN "M_BUILD"
   BEGIN
@@ -57,12 +59,12 @@ BEGIN
   END
   PULLDOWN "M_SPEED"
   BEGIN
-	MENUITEM "SLOW"                         menuID_SlowSpeed
-	MENUITEM "MEDIUM"                       menuID_MediumSpeed
-	MENUITEM "FAST"                         menuID_FastSpeed
-	MENUITEM "TURBO"                        menuID_TurboSpeed
+	MENUITEM "PAUSE"                        menuID_PauseSpeed "0"
 	MENUITEM SEPARATOR
-	MENUITEM "PAUSE"                        menuID_PauseSpeed
+	MENUITEM "SLOW"                         menuID_SlowSpeed "1"
+	MENUITEM "MEDIUM"                       menuID_MediumSpeed "2"
+	MENUITEM "FAST"                         menuID_FastSpeed "3"
+	MENUITEM "TURBO"                        menuID_TurboSpeed "4"
   END
   PULLDOWN "M_HELP"
   BEGIN
@@ -758,3 +760,34 @@ BEGIN
     BUTTON "OK"
 END
 
+ALERT ID alertID_lowPower
+WARNING
+BEGIN
+  TITLE "T_GAMENAME"
+  MESSAGE "MSG_LOWPOWER"
+  BUTTONS "OK"
+END
+
+ALERT ID alertID_outPower
+WARNING
+BEGIN
+  TITLE "T_GAMENAME"
+  MESSAGE "MSG_OUTPOWER"
+  BUTTONS "OK"
+END
+
+ALERT ID alertID_lowWater
+WARNING
+BEGIN
+  TITLE "T_GAMENAME"
+  MESSAGE "MSG_LOWWATER"
+  BUTTONS "OK"
+END
+
+ALERT ID alertID_outWater
+WARNING
+BEGIN
+  TITLE "T_GAMENAME"
+  MESSAGE "MSG_OUTWATER"
+  BUTTONS "OK"
+END

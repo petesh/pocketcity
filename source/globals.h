@@ -38,6 +38,7 @@ EXPORT void setWorldFlags(UInt32 pos, selem_t value);
 EXPORT void orWorldFlags(UInt32 pos, selem_t value);
 EXPORT void andWorldFlags(UInt32 pos, selem_t value);
 EXPORT void getWorldAndFlag(UInt32 pos, welem_t *world, selem_t *flag);
+EXPORT void setWorldAndFlag(UInt32 pos, welem_t value, selem_t status);
 
 #if defined(__cplusplus)
 }

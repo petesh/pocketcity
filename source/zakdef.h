@@ -277,19 +277,33 @@ typedef UInt8	selem_t;
  *
  * Make sure they don't intersect as the overlap in the warning dialogs.
  */
-typedef enum erdiType_en {
-	enSTART = 0, /*!< starting guard for errors */
-	enOutOfMemory, /*!< out of memory error */
-	enOutOfMoney, /*!< out of money */
-	enEND, /*!< ending guard for errors */
-	diSTART = 79, /*!< starting disaster guard */
+typedef enum disaster_enumeration {
+	diSTART = 0, /*!< starting disaster guard */
 	diFireOutbreak, /*!< a fire disaster */
 	diPlantExplosion, /*!< a power plant explosion */
 	diMonster, /*!< a monster */
 	diDragon, /*!< a dragon */
 	diMeteor, /*!< a meteor */
 	diEND /*!< ending guard for disasters */
-} erdiType;
+} disaster_t;
+
+typedef enum system_error_enumeration {
+	seOutOfMemory = 1 /*!< out of memory error */
+} syserror_t;
+
+typedef enum problem_enumeration {
+	peSTART = 0, /*!< starting guard for errors */
+	peFineOnMoney, /*!< money status is OK */
+	peLowOnMoney, /*!< low on money */
+	peOutOfMoney, /*!< out of money */
+	peFineOnPower, /*!< power is OK */
+	peLowOnPower, /*!< running low on power */
+	peOutOfPower, /*!< power consumption > power supply */
+	peFineOnWater, /*!< water is OK */
+	peLowOnWater, /*!< running low on water */
+	peOutOfWater, /*!< running out of water */
+	peEND /*!< ending guard for errors */
+} problem_t;
 
 /*! \brief zone identification for scoring */
 typedef enum {

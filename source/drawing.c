@@ -198,6 +198,8 @@ DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 	getWorldAndFlag(worldpos, &content, &flag);
 	special = GetGraphicNumber(worldpos);
 
+	orWorldFlags(worldpos, PAINTEDBIT);
+
 	UIDrawField(xpos, ypos, special);
 	UIDrawMapField(xpos, ypos, special);
 	UIDrawMapStatus(xpos, ypos, special, flag);

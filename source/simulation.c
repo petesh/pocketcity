@@ -18,10 +18,14 @@
 #include <compilerpragmas.h>
 #include <mem_compat.h>
 
+/*! \brief short and out bits */
+#define	SHORT_BIT	1
+#define	OUT_BIT		2
 /*! \brief Structure for performing distribution */
 typedef struct _distrib {
 	carryfn_t	doescarry; /*!< Does the node carry the item */
 	/*! Is the node a supplier */
+	problem_t	error_flag; /*!< Error flag */
 	Int16 (*isplant)(welem_t, UInt32, selem_t);
 	void *needSourceList; /*!< list of nodes that need to be powered */
 	void *unvisitedNodes; /*!< nodes that have not been visited */
@@ -30,6 +34,7 @@ typedef struct _distrib {
 	Int16 SourceTotal; /*!< total source available */
 	Int16 NodesTotal; /*!< nodes visited */
 	Int16 NodesSupplied; /*!< nodes supplied */
+	Int16 ShortOrOut; /*!< was short or out of the chosen item */
 } distrib_t;
 
 static void DoTaxes(void);
@@ -161,7 +166,9 @@ static void
 SetSupplied(distrib_t *distrib, UInt32 point)
 {
 	distrib->NodesSupplied++;
-	orWorldFlags(point, distrib->flagToSet);
+	if (!(getWorldFlags(point) & distrib->flagToSet)) {
+		orWorldFlags(point, distrib->flagToSet);
+	}
 }
 
 /*!
@@ -212,6 +219,7 @@ DoDistribute(Int16 grid)
 	distrib->SourceTotal = 0;
 	distrib->NodesTotal = 0;
 	distrib->NodesSupplied = 0;
+	distrib->ShortOrOut = 0;
 	distrib->needSourceList = StackNew();
 	distrib->unvisitedNodes = StackNew();
 
@@ -220,15 +228,20 @@ DoDistribute(Int16 grid)
 		distrib->isplant = &IsItAPowerPlant;
 		distrib->doescarry = &CarryPower;
 		distrib->flagToSet = POWEREDBIT;
+		distrib->error_flag = peFineOnPower;
 	} else {
 		distrib->isplant = &IsItAWaterPump;
 		distrib->doescarry = &CarryWater;
 		distrib->flagToSet = WATEREDBIT;
+		distrib->error_flag = peFineOnWater;
 	}
 
 	LockZone(lz_world); /* this lock locks for ALL power subs */
-	for (j = 0; j < MapMul(); j++)
-		andWorldFlags(j, ~(distrib->flagToSet | SCRATCHBIT));
+	for (j = 0; j < MapMul(); j++) {
+		if (distrib->doescarry(getWorld(j)))
+			andWorldFlags(j,
+			    ~(distrib->flagToSet | SCRATCHBIT | PAINTEDBIT));
+	}
 
 	for (i = 0; i < MapMul(); i++) {
 		gw = getWorld(i);
@@ -244,6 +257,11 @@ DoDistribute(Int16 grid)
 				    (int)distrib->NodesTotal,
 				    (int)distrib->SourceLeft,
 				    (int)distrib->SourceTotal);
+				if (distrib->SourceLeft < 25) {
+					distrib->ShortOrOut |= SHORT_BIT;
+					if (distrib->SourceLeft == 0)
+						distrib->ShortOrOut |= OUT_BIT;
+				}
 				distrib->SourceLeft = 0;
 				distrib->SourceTotal = 0;
 				distrib->NodesSupplied = 0;
@@ -254,6 +272,13 @@ DoDistribute(Int16 grid)
 	UnlockZone(lz_world);
 	StackDelete(distrib->needSourceList);
 	StackDelete(distrib->unvisitedNodes);
+	if (distrib->ShortOrOut & OUT_BIT) {
+		UIProblemNotify(distrib->error_flag + 2);
+	} else if (distrib->ShortOrOut & SHORT_BIT) {
+		UIProblemNotify(distrib->error_flag + 1);
+	} else {
+		UIProblemNotify(distrib->error_flag);
+	}
 	gFree(distrib);
 }
 
@@ -594,6 +619,7 @@ reGradeZones(void)
 	for (i = 0; i < downCount && i < (at_pos - upCount); i++) {
 		/* downgrade him/her/it/whatever */
 		if (ran_zone[i].pos == -1) continue;
+		if (ran_zone[i].score > 0) continue;
 		DowngradeZone(ran_zone[i].pos);
 		WriteLog("Downgrade (%d, %d)(%ld)\n",
 		    (int)(ran_zone[i].pos % getMapWidth()),

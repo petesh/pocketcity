@@ -4,7 +4,7 @@
 #if !defined(_DISASTER_H_)
 #define	_DISASTER_H_
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -28,7 +28,7 @@ EXPORT void DoRandomDisaster(void) DISASTER_SECTION;
  * \brief Deliberately cause a disaster.
  * \param disaster the type of the disaster to cause.
  */
-EXPORT void DoSpecificDisaster(erdiType disaster) DISASTER_SECTION;
+EXPORT void DoSpecificDisaster(disaster_t disaster) DISASTER_SECTION;
 
 /*!
  * \brief Make sure the disasters are still happening.
@@ -76,7 +76,7 @@ EXPORT void MoveAllObjects(void) DISASTER_SECTION;
  */
 EXPORT Int16 MeteorDisaster(Int16 x, Int16 y) DISASTER_SECTION;
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif
 

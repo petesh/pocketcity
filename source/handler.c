@@ -128,4 +128,7 @@ PostLoadGame(void)
 	memset((void *)&vgame.BuildCount, 0, sizeof (vgame.BuildCount));
 	setMapVariables(getMapWidth(), getMapHeight());
 	UpdateVolatiles();
+	AddGridUpdate(GRID_ALL);
+	UIMapResize();
+	UIPostLoadGame();
 }

@@ -147,7 +147,7 @@ ResizeWorld(UInt32 size)
 	worldPtr = gRealloc(worldPtr, size);
 
 	if (worldPtr == NULL) {
-		UIDisplayError(enOutOfMemory);
+		UISystemErrorNotify(seOutOfMemory);
 		WriteLog("realloc failed - resizeworld\n");
 		return (0);
 	}
@@ -202,6 +202,21 @@ setWorld(UInt32 pos, welem_t value)
 	/* Clear the world value */
 	*ptr &= WORLD_ANDMASK;
 	*ptr |= value;
+}
+
+/*!
+ * \brief set the world field and field flag
+ * \param pos the position
+ * \param value the value
+ * \param flag the flagvalue
+ */
+void
+setWorldAndFlag(UInt32 pos, welem_t value, selem_t status)
+{
+	if (pos > MapMul())
+		return;
+
+	((UInt16 *)(worldPtr))[pos] = (status << FLAGS_SHIFTVALUE) | value;
 }
 
 /*!

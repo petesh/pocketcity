@@ -25,6 +25,7 @@
 #include <compilerpragmas.h>
 #include <nix_utils.h>
 #include <simulation-ui.h>
+#include <zonemon.h>
 
 /*! \brief path to search for graphics */
 #define PATHSEARCH	".:./graphic:./graphic/icons:../graphic"
@@ -69,6 +70,7 @@ static void SetSpeed(gpointer data, guint action, GtkWidget *w);
 static void cleanupPixmaps(void);
 static void ResetViewable(void);
 static void ShowMainWindow(void);
+static void forceRedistribute(void);
 
 /*! \brief the menu items for the main application */
 const GtkItemFactoryEntry menu_items[] = {
@@ -78,18 +80,24 @@ const GtkItemFactoryEntry menu_items[] = {
 	{ "/File/_Save", "<control>S", savegame_handler, 0, NULL, 0 },
 	{ "/File/Save _As", NULL, savegameas_handler, 0, NULL, 0 },
 	{ "/File/sep1",	NULL, NULL, 0, "<Separator>", 0 },
-	{ "/File/E_xit", NULL, QuitGame, 0, NULL, 0 },
+	{ "/File/E_xit", "<alt>F4", QuitGame, 0, NULL, 0 },
 	{ "/_View", NULL, NULL,	0, "<Branch>", 0 },
-	{ "/View/_Budget", NULL, ViewBudget, 0, NULL, 0 },
+	{ "/View/_Budget", "<control>B", ViewBudget, 0, NULL, 0 },
+	{ "/View/_Map", "<control>M", showMap, 0, NULL, 0 },
+	{ "/View/_Hover", NULL, hoverShow, 0, NULL, 0 },
 	{ "/_Speed", NULL, NULL, 0, "<Branch>", 0 },
-	{ "/Speed/_Pause", NULL, SetSpeed, 1 + SPEED_PAUSED, NULL, NULL },
+	{ "/Speed/_Pause", "<control>0", SetSpeed, 1 + SPEED_PAUSED, NULL,
+		NULL },
 	{ "/Speed/sep1", NULL, NULL, 0, "<Separator>", 0 },
-	{ "/Speed/_Slow", NULL, SetSpeed, 1 + SPEED_SLOW, NULL, NULL },
-	{ "/Speed/_Medium", NULL, SetSpeed, 1 + SPEED_MEDIUM, NULL, NULL },
-	{ "/Speed/_Fast", NULL, SetSpeed, 1 + SPEED_FAST, NULL, NULL },
-	{ "/Speed/_Turbo", NULL, SetSpeed, 1 + SPEED_TURBO, NULL, NULL },
-	{ "/_Map", NULL, NULL, 0, "<Branch>", 0 },
-	{ "/Map/_Display", NULL, showMap, 0, NULL, 0 },
+	{ "/Speed/_Slow", "<control>1", SetSpeed, 1 + SPEED_SLOW, NULL, NULL },
+	{ "/Speed/_Medium", "<control>2", SetSpeed, 1 + SPEED_MEDIUM, NULL,
+		NULL },
+	{ "/Speed/_Fast", "<control>3", SetSpeed, 1 + SPEED_FAST, NULL, NULL },
+	{ "/Speed/_Turbo", "<control>4", SetSpeed, 1 + SPEED_TURBO, NULL,
+		NULL },
+	{ "/S_imulation", NULL, NULL, 0, "<Branch>", 0 },
+	{ "/Simulation/_Redistribute", NULL, forceRedistribute, 0, NULL, NULL }
+
 };
 #define NMENU_ITEMS	(sizeof (menu_items) / sizeof (menu_items[0]))
 
@@ -245,7 +253,7 @@ void
 scrollbar(GtkAdjustment *adj __attribute__((unused)))
 {
 	Goto(GTK_ADJUSTMENT(mw.sc_hor)->value,
-	    GTK_ADJUSTMENT(mw.sc_vert)->value, goto_plain);
+	    GTK_ADJUSTMENT(mw.sc_vert)->value, goto_center);
 }
 
 /*!
@@ -367,7 +375,6 @@ drawing_realized_callback(GtkWidget *widget __attribute__((unused)),
     GdkEvent *event __attribute__((unused)),
     gpointer data __attribute__((unused)))
 {
-	ResizeCheck(320, 320);
 	return (FALSE);
 }
 
@@ -441,77 +448,86 @@ GtkWidget *
 setupToolBox(void)
 {
 	GtkWidget *button_image;
-	GtkTooltips *tips;
+	//GtkTooltips *tips;
 	GtkWidget *toolbox;
-	GtkWidget *button;
-	GtkWidget *handle;
-	int i;
+	//GtkWidget *button;
+	//GtkWidget *handle;
+	unsigned int i;
 	char *image_path;
 	size_t max_path = (size_t)pathconf("/", _PC_PATH_MAX) + 1;
 	/* If you change the order here you need to change the xpm... */
 	/*! \todo make the file names related to the items */
 	const struct gaa {
-		gint entry; const char *text;
+		gint entry;
+		const char *text;
+		const char *file;
 	} actions[] = {
-		{ Be_Bulldozer, "Bulldozer" },
-		{ Be_Road, "Road" },
-		{ Be_Power_Line, "Power Line" },
-		{ Be_Zone_Residential, "Residential" },
-		{ Be_Zone_Commercial, "Commercial" },
-		{ Be_Zone_Industrial, "Industrial" },
-		{ Be_Tree, "Tree" },
-		{ Be_Water, "Water" },
-		{ Be_Water_Pipe, "Water Pipe" },
-		{ Be_Power_Plant, "Power Plant" },
-		{ Be_Nuclear_Plant, "Nuclear Power Plant" },
-		{ Be_Water_Pump, "Water Pump" },
-		{ Be_Fire_Station, "Fire Station" },
-		{ Be_Police_Station, "Police Station" },
-		{ Be_Military_Base, "Military Base" },
-		{ -1, NULL }, { -1, NULL }, { -1, NULL },
-		{ Be_Defence_Fire, "Fire Brigade" },
-		{ Be_Defence_Police, "Police Car" },
-		{ Be_Defence_Military, "Tank" },
-		{ -1, NULL }, { -1, NULL }, { -1, NULL },
-		{ -1, NULL }, { -1, NULL }, { -1, NULL },
-		{ -1, NULL }, { -1, NULL }, { -1, NULL }
+		{ Be_Bulldozer, "Bulldozer", "interface_00.png" },
+		{ Be_Road, "Road", "interface_01.png" },
+		{ Be_Power_Line, "Power Line", "interface_02.png" },
+		{ Be_Zone_Residential, "Residential", "interface_03.png" },
+		{ Be_Zone_Commercial, "Commercial", "interface_04.png" },
+		{ Be_Zone_Industrial, "Industrial", "interface_05.png" },
+		{ Be_Tree, "Tree", "interface_06.png" },
+		{ Be_Water, "Water", "interface_07.png" },
+		{ Be_Water_Pipe, "Water Pipe", "interface_08.png" },
+		{ Be_Power_Plant, "Power Plant", "interface_09.png" },
+		{ Be_Nuclear_Plant, "Nuclear Power Plant", "interface_10.png" },
+		{ Be_Water_Pump, "Water Pump", "interface_11.png" },
+		{ Be_Fire_Station, "Fire Station", "interface_12.png" },
+		{ Be_Police_Station, "Police Station", "interface_13.png" },
+		{ Be_Military_Base, "Military Base", "interface_14.png" },
+		{ -1, NULL, NULL },
+		{ Be_Defence_Fire, "Fire Brigade", "interface_18.png" },
+		{ Be_Defence_Police, "Police Car", "interface_19.png" },
+		{ Be_Defence_Military, "Tank", "interface_20.png" }
 	};
+
+#define SIZE_ACTIONS	(sizeof (actions) / sizeof (actions[0]))
 
 	image_path = malloc(max_path);
 
-	tips = gtk_tooltips_new();
+	//tips = gtk_tooltips_new();
 
-	toolbox = gtk_table_new(9, 3, TRUE);
-	gtk_container_set_border_width(GTK_CONTAINER(toolbox), 3);
+	//toolbox = gtk_table_new(9, 3, TRUE);
+	toolbox = gtk_toolbar_new();
+	gtk_container_set_border_width(GTK_CONTAINER(toolbox), 0);
 
-	for (i = 0; i < 30; i++) {
-		if (actions[i].entry == -1)
+	for (i = 0; i < SIZE_ACTIONS; i++) {
+		if (actions[i].entry == -1) {
+			gtk_toolbar_append_space(GTK_TOOLBAR(toolbox));
 			continue;
+		}
 
-		button = gtk_button_new();
-		sprintf(image_path, "interface_%02i.png", i);
+		//button = gtk_button_new();
+		strcpy(image_path, actions[i].file);
 		if (searchForFile(image_path, max_path, PATHSEARCH))
 			button_image = gtk_image_new_from_file(image_path);
 		else {
 			perror(image_path);
 			exit(1);
 		}
-		gtk_container_add(GTK_CONTAINER(button), button_image);
+		gtk_toolbar_append_item(GTK_TOOLBAR(toolbox),
+		    NULL, actions[i].text, NULL, button_image,
+		    G_CALLBACK(toolbox_callback),
+		    GINT_TO_POINTER(actions[i].entry));
+		/*gtk_container_add(GTK_CONTAINER(button), button_image);
 		gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), button,
 		    actions[i].text, NULL);
 		g_signal_connect(G_OBJECT(button), "clicked",
 		    G_CALLBACK(toolbox_callback),
-		GINT_TO_POINTER(actions[i].entry));
-		gtk_table_attach_defaults(GTK_TABLE(toolbox), button,
-		    (i%3), (i%3)+1, (i/3), (i/3)+1);
+		GINT_TO_POINTER(actions[i].entry));*/
+		//gtk_table_attach_defaults(GTK_TABLE(toolbox), button,
+		//    (i%3), (i%3)+1, (i/3), (i/3)+1);
 	}
 
-	handle = gtk_handle_box_new();
+	/*handle = gtk_handle_box_new();
 	gtk_handle_box_set_handle_position(
 	    (GtkHandleBox *)handle, GTK_POS_TOP);
-	gtk_container_add(GTK_CONTAINER(handle), toolbox);
+	gtk_container_add(GTK_CONTAINER(handle), toolbox);*/
+
 	free(image_path);
-	return (handle);
+	return (toolbox);
 }
 
 /*!
@@ -538,6 +554,21 @@ createMenu(GtkWidget *main_box)
 }
 
 /*!
+ * \brief hovering over the drawing area
+ * \param widget unused
+ * \param event unused
+ * \param data unused
+ */
+static gboolean
+hoveringDrawing(GtkWidget *widget __attribute__((unused)),
+    GdkEventMotion *event, gpointer data __attribute__((unused)))
+{
+	hoverUpdate((event->x / gameTileSize()) + getMapXPos(),
+	    (event->y / gameTileSize()) + getMapYPos(), 0);
+	return (0);
+}
+
+/*!
  * \brief set up and configure the main window.
  *
  * Creates the main window. Creates all the elements of the main window
@@ -556,7 +587,7 @@ SetUpMainWindow(void)
 	    G_CALLBACK(delete_event), NULL);
 
 	main_box = gtk_vbox_new(FALSE, 0);
-	box = gtk_hbox_new(FALSE, 0);
+	box = gtk_vbox_new(FALSE, 0);
 	fieldbox = gtk_vbox_new(FALSE, 0);
 	headerbox = gtk_hbox_new(FALSE, 0);
 	playingbox = gtk_table_new(2, 2, FALSE);
@@ -609,6 +640,9 @@ SetUpMainWindow(void)
 
 	g_signal_connect_after(G_OBJECT(mw.drawing), "realize",
 	    G_CALLBACK(drawing_realized_callback), NULL);
+
+	g_signal_connect(G_OBJECT(mw.drawing), "motion_notify_event",
+	    G_CALLBACK(hoveringDrawing), NULL);
 
 	/* set up some mouse events */
 	gtk_signal_connect(GTK_OBJECT(mw.drawing), "motion_notify_event",
@@ -729,22 +763,12 @@ UIDisplayError1(char *error)
 	gtk_widget_destroy(GTK_WIDGET(dialog));
 }
 
-/*!
- * \brief display and error involving a specific error type
- * \param nError the error number to invoke.
- */
 void
-UIDisplayError(erdiType nError)
+UIDisasterNotify(disaster_t disaster)
 {
 	char temp[100];
 
-	switch (nError) {
-	case enOutOfMemory:
-		strcpy(temp, "Out of memory");
-		break;
-	case enOutOfMoney:
-		strcpy(temp, "Out of money");
-		break;
+	switch (disaster) {
 	case diFireOutbreak:
 		strcpy(temp, "An Australian fire has broken out somewhere!");
 		break;
@@ -762,8 +786,61 @@ UIDisplayError(erdiType nError)
 		strcpy(temp, "A gigantic meteor has hit your city!");
 		break;
 	default:
-		strcpy(temp, "An unknown error/disaster?");
+		return;
+	}
+	UIDisplayError1(temp);
+}
+
+/*! 
+ * \brief notify that theres a problem in the city.
+ * \param problem the problem to notify.
+ */
+void
+UIProblemNotify(problem_t problem)
+{
+	char temp[100];
+
+	switch (problem) {
+	case peFineOnMoney:
+		return;
+	case peLowOnMoney:
+		strcpy(temp, "Low on money");
 		break;
+	case peOutOfMoney:
+		strcpy(temp, "Out of money");
+		break;
+	case peFineOnPower:
+		return;
+	case peLowOnPower:
+		strcpy(temp, "Low On Power");
+		break;
+	case peOutOfPower:
+		strcpy(temp, "Out of Power");
+		break;
+	case peFineOnWater:
+		return;
+	case peLowOnWater:
+		strcpy(temp, "Low on Water");
+		break;
+	case peOutOfWater:
+		strcpy(temp, "Out of Water");
+		break;
+	default:
+		return;
+	}
+
+	UIDisplayError1(temp);
+}
+
+void
+UISystemErrorNotify(syserror_t error)
+{
+	char temp[100];
+
+	if (error == seOutOfMemory) {
+		strcpy(temp, "Out of memory. Save and exit now!!!!");
+	} else {
+		return;
 	}
 	UIDisplayError1(temp);
 }
@@ -777,6 +854,12 @@ UIInitDrawing(void)
 /*! unused */
 void
 UIFinishDrawing(void)
+{
+}
+
+/*! unused */
+void
+UIPostLoadGame(void)
 {
 }
 
@@ -1127,23 +1210,18 @@ UIDrawPlayArea(void)
 {
 	Int16 x;
 	Int16 y;
-	Int16 maxx = getMapWidth();
-	Int16 maxy = getMapHeight();
+	Int16 maxx = getMapXPos() + getVisibleX() >= getMapWidth() ?
+	    getMapWidth() : getMapXPos() + getVisibleX();
+	Int16 maxy = getMapYPos() + getVisibleY() >= getMapHeight() ?
+	    getMapHeight() : getMapYPos() + getVisibleY();
 
-	if (getPaintedFlag()) {
-		gtk_widget_queue_draw(mw.drawing);
-		return;
-	}
-
-	for (x = 0; x < maxx; x++) {
-		for (y = 0; y < maxy; y++) {
-			DrawFieldWithoutInit(x, y);
+	for (x = getMapXPos(); x < maxx; x++) {
+		for (y = getMapYPos(); y < maxy; y++) {
+			if (!(getWorldFlags(WORLDPOS(x, y)) & PAINTEDBIT))
+				DrawFieldWithoutInit(x, y);
 		}
 	}
 
-	WriteLog("(%d, %d)\n", maxx, maxy);
-
-	setPaintedFlag();
 	gtk_widget_queue_draw(mw.drawing);
 }
 
@@ -1219,6 +1297,15 @@ static void
 QuitGame(void)
 {
 	gtk_main_quit();
+}
+
+/*!
+ * \brief force a redistribution next iteration
+ */
+static void
+forceRedistribute(void)
+{
+	AddGridUpdate(GRID_ALL);
 }
 
 #ifdef DEBUG

@@ -24,8 +24,10 @@ typedef enum {
 #define	WATEREDBIT	((unsigned char)0x02)
 /*! \brief the bit associated with scratch/unvisited in the worldflags */
 #define	SCRATCHBIT	((unsigned char)0x80)
+/*! \brief the bit associated with knowing if the field has been painted */
+#define PAINTEDBIT	((unsigned char)0x40)
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -394,7 +396,7 @@ EXPORT Int16 CarryWater(welem_t x);
  */
 void endSimulation(void);
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif
 
