@@ -617,10 +617,8 @@ static Boolean hPocketCity(EventPtr event)
             {
                 case vchrCalc:
                     /* popup a quicksheet */
-                    if (!oldROM) {
-                        UIDoQuickList();
-                        handled = 1;
-                    }
+                    UIDoQuickList();
+                    handled = 1;
                     break;
                 case vchrFind:
                     /* goto map */
@@ -659,15 +657,27 @@ void UIPopUpExtraBuildList(void)
 {
     FormType * ftList;
 
-    if (oldROM != 1) {
-        ftList = FrmInitForm(formID_extraBuild);
-        FrmSetEventHandler(ftList, hExtraList);
-        if (FrmDoDialog(ftList) == buttonID_extraBuildSelect) {
-            nSelectedBuildItem = LstGetSelection(FrmGetObjectPtr(ftList,FrmGetObjectIndex(ftList,listID_extraBuildList)));
-        }
-        UIUpdateBuildIcon();
-        FrmDeleteForm(ftList);
+    ftList = FrmInitForm(formID_extraBuild);
+    FrmSetEventHandler(ftList, hExtraList);
+    switch (FrmDoDialog(ftList)) 
+    {
+    case buttonID_extraBuildSelect:
+        nSelectedBuildItem = LstGetSelection(FrmGetObjectPtr(ftList,FrmGetObjectIndex(ftList,listID_extraBuildList)));
+        break;
+    case buttonID_extraBuildFireMen:
+        nSelectedBuildItem = 250;
+        break;
+    case buttonID_extraBuildPolice:
+        nSelectedBuildItem = 251;
+        break;
+    case buttonID_extraBuildMilitary:
+        nSelectedBuildItem = 252;
+        break;
+    default:
+        break;        
     }
+    UIUpdateBuildIcon();
+    FrmDeleteForm(ftList);
 }
 
 static Boolean hExtraList(EventPtr event)
@@ -685,6 +695,16 @@ static Boolean hExtraList(EventPtr event)
             break;      
         case frmCloseEvent:
             break;      
+        case keyDownEvent:
+            UIWriteLog("Key down\n");
+            switch (event->data.keyDown.chr)
+            {
+                case vchrCalc:
+                    /* close the quicksheet - simulate we pushed the bulldozer */
+                    CtlHitControl(FrmGetObjectPtr(FrmGetActiveForm(),FrmGetObjectIndex(FrmGetActiveForm(),buttonID_extraBuildCancel)));
+                    handled = 1;
+                    break;
+            }
         default:
             break;
     }
@@ -705,6 +725,10 @@ void UIDoQuickList(void)
         }            
         UIUpdateBuildIcon();
         FrmDeleteForm(ftList);
+    } else {
+        // darn, I hate that 3.1 - can't do bitmapped buttons
+        // so I'll just throw the ExtraBuildList up
+        UIPopUpExtraBuildList();
     }
 }
                             

@@ -34,4 +34,5 @@ PalmOS 3.1:
 ===========
 The game _does_ run on 3.1 devices, but some features are disabled:
  * The map won't be shown, but you can still use it to scroll around quickly
+ * The "calculator" quicklist are not availble. You will get the full list instead
  

@@ -22,6 +22,7 @@ Kean Pedersen:
   * Fire/disasters now spreads at it own rate - pause won't help (!)
   * Cleaned compiler warnings
   * Uses less stackspace in recursive function (should fix the FE)
+  * OS 3.1 fixups
   * Moved all graphic for the zones onto an offscreen windows
       This speeds up the drawing process.
 

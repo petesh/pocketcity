@@ -126,6 +126,10 @@ extern void UIWriteLog(char * s);
 // controls for extra Build list
 #define listID_extraBuildList           1013
 #define buttonID_extraBuildSelect       1014
+#define buttonID_extraBuildCancel       1015
+#define buttonID_extraBuildFireMen      1016
+#define buttonID_extraBuildPolice       1017
+#define buttonID_extraBuildMilitary     1018
 
 
 

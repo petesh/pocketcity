@@ -171,9 +171,14 @@ BEGIN
     LIST "Bulldoze - $5" "Residential -$50" "Commercial -$50" "Industrial -$50" "Road -$20" 
          "Power Plant -$3000" "Nuclear Plant -$10000" "Power Line -$5" "Tree -$10" "Water -$200" 
          "Fire Station -$700" "**Police Station -$700"
+         /* insert extra stuff here */
          ID listID_extraBuildList AT (1 18 158 121) USABLE 
 
-    BUTTON "Select"     ID buttonID_extraBuildSelect     AT (2 prevbottom+5 AUTO AUTO)
+    BUTTON "Select"     ID buttonID_extraBuildSelect     AT (2 prevbottom+5 AUTO AUTO) BOLDFRAME
+    BUTTON "Cancel"     ID buttonID_extraBuildCancel     AT (prevright+4 prevtop AUTO AUTO)
+    BUTTON "F" ID buttonID_extraBuildFireMen     AT (prevright+4 prevtop 12 AUTO)
+    BUTTON "P" ID buttonID_extraBuildPolice      AT (prevright+1 prevtop 12 AUTO)
+    BUTTON "M" ID buttonID_extraBuildMilitary    AT (prevright+1 prevtop 12 AUTO)
 END
 
 
