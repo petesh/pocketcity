@@ -10,7 +10,7 @@
 ###############################################################################
 
 CC = m68k-palmos-gcc
-CCFLAGS = -O2 -Wall
+CCFLAGS = -O2 -Wall -g
 
 pcity.prc:  bin.stm grcs.stm zones.stm
 	build-prc pcity.prc "Pocket City" PCit *.grc *.bin
@@ -55,3 +55,7 @@ build.o: ../source/build.c
 
 simulation.o: ../source/simulation.c 
 	$(CC) $(CCFLAGS) -O1 -c ../source/simulation.c -o simulation.o
+
+
+clean:
+	rm *.bin *.o *.grc *.stm simcity

@@ -526,7 +526,6 @@ Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags)
 	// See if we're on in minimum required version of the ROM or later.
 	FtrGet(sysFtrCreator, sysFtrNumROMVersion, &romVersion);
 	LongToString(romVersion,(char*)temp);
-	WinDrawChars((char*)temp,10,0,0);
 
 	if (romVersion < requiredVersion)
 	{

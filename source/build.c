@@ -112,28 +112,36 @@ void Build_Road(int xpos, int ypos)
 	old = GetWorld(WORLDPOS(xpos, ypos));
 	if (old == 0 || old == 5)
 	{
-		if (SpendMoney(BUILD_COST_ROAD))
-		{
-			if (old == 5)
-			{
-				switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),1))
-				{
-				case 70:
-					SetWorld(WORLDPOS(xpos, ypos),6);
-					break;
-				case 71:
-					SetWorld(WORLDPOS(xpos, ypos),7);
-					break;
-				default:
-					break;
-				}
-			}
-			else
-			{
-				SetWorld(WORLDPOS(xpos, ypos), 4);
-			}
-			DrawCross(xpos, ypos);
-		}
+        if (old == 5)
+        {
+            switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),1))
+            {
+                case 70:
+                    if (SpendMoney(BUILD_COST_ROAD))
+                    {
+                        SetWorld(WORLDPOS(xpos, ypos),6);
+                        DrawCross(xpos, ypos);
+                    }
+                    break;
+                case 71:
+                    if (SpendMoney(BUILD_COST_ROAD))
+                    {
+                        SetWorld(WORLDPOS(xpos, ypos),7);
+                        DrawCross(xpos, ypos);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        else
+        {
+            if (SpendMoney(BUILD_COST_ROAD))
+            {
+                SetWorld(WORLDPOS(xpos, ypos), 4);
+                DrawCross(xpos, ypos);
+            }
+        }
 	}
 	UnlockWorld();
 }
@@ -146,25 +154,34 @@ void Build_PowerLine(int xpos, int ypos)
 	old = GetWorld(WORLDPOS(xpos, ypos));
 	if (old == 0 || old == 4)
 	{
-		if (SpendMoney(BUILD_COST_POWER_LINE))
-		{
-			if (old == 4)
-			{
-				switch(GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),0))
-				{
-				case 10:
-					SetWorld(WORLDPOS(xpos, ypos),7);
-					break;
-				case 11:
-					SetWorld(WORLDPOS(xpos, ypos),6);
-				}
-			}
-			else
-			{
-				SetWorld(WORLDPOS(xpos, ypos),5);
-			}
-			DrawCross(xpos, ypos);
-		}
+        if (old == 4)
+        {
+            switch(GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),0))
+            {
+                case 10:
+                    if (SpendMoney(BUILD_COST_POWER_LINE)) 
+                    {
+                        SetWorld(WORLDPOS(xpos, ypos),7);
+                        DrawCross(xpos, ypos);
+                    }
+                    break;
+                case 11:
+                    if (SpendMoney(BUILD_COST_POWER_LINE)) 
+                    {
+                        SetWorld(WORLDPOS(xpos, ypos),6);
+                        DrawCross(xpos, ypos);
+                    }
+                    break;
+            }
+        }
+        else
+        {
+            if (SpendMoney(BUILD_COST_POWER_LINE)) 
+            {
+                SetWorld(WORLDPOS(xpos, ypos),5);
+                DrawCross(xpos, ypos);
+            }
+        }
 	}
 	UnlockWorld();
 }
