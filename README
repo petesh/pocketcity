@@ -1,3 +1,13 @@
+README - Pocket City
+--------------------
+Pocket City is a Sim City clone for embedded devices, right now it runs on
+the Nokia 9000/9110 and on PalmOS.
+
+Pocket City is licensed under the GPL, see COPYING file for more
+information.
+
+INSTALLATION
+-----------
 To compile for Nokia 9000/9110:
  type make in the root folder of pocketcity
 
