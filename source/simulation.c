@@ -206,8 +206,9 @@ DoDistribute(int grid, int pc)
 		/* unpowered points are removed */
     		StackDoEmpty(needSourceList);
 #if defined(DEBUG)
-    		{ char op[40]; sprintf(op, "g[%d] s(%d)/t(%d) [ r(%d) / "
-                  "t(%d) ]\n", grid, NodesSupplied, NodesTotal,
+    		{ char op[80]; sprintf(op, "Grid#%d Supplied Nodes: %d/%d "
+                  " SrcRemain: %d/%d\n", grid,
+                  NodesSupplied, NodesTotal,
                   SourceLeft, SourceTotal);
 		UIWriteLog(op); }
 #endif
