@@ -510,10 +510,13 @@ FindScoreForZones(void)
 	Int32 score;
 	counter += 20;
 
+	LockZone(lz_world);
+
 	for (i = counter - 20; i < (signed)counter; i++) {
 		if (i >= 256 || i > used) {
 			counter = 0;
 			used = 0;
+			UnlockZone(lz_world);
 			return (0);
 		}
 		if (!IsOccupied(getWorld(zones[i].pos)))
@@ -529,6 +532,7 @@ FindScoreForZones(void)
 			zones[i].pos = -1;
 		}
 	}
+	UnlockZone(lz_world);
 	return (1); /* there's still more zones that need a score. */
 }
 
@@ -812,25 +816,35 @@ GetScoreFor(zoneType iamthis, welem_t what)
 		    ((iamthis == ztResidential) ? 50 :
 		    ((iamthis == ztIndustrial) ? 75 : 66));
 	}
-	if (what == Z_COALPLANT) {
+	if (IsCoalPlant(what)) {
 		return (iamthis == ztCommercial) ? (-75) :
 			((iamthis == ztResidential) ? (-100) :
 			((iamthis == ztIndustrial) ? 30 : (-75)));
 	}
-	if (what == Z_NUCLEARPLANT) {
+	if (IsNukePlant(what)) {
 		return (iamthis == ztCommercial) ? (-150) :
 			((iamthis == ztResidential) ? (-200) :
 			((iamthis == ztIndustrial) ? 15 : (-175)));
 	}
-	if (what == Z_FAKETREE || what == Z_REALTREE) {
+	if (IsRealTree(what)) {
 		return (iamthis == ztCommercial) ? 50 :
 			((iamthis == ztResidential) ? 85 :
 			((iamthis == ztIndustrial)? 25 : 50));
 	}
-	if ((what == Z_FAKEWATER) || (what == Z_REALWATER)) {
+	if (IsFakeTree(what)) {
+		return (iamthis == ztCommercial) ? 25 :
+			((iamthis == ztResidential) ? 42 :
+			((iamthis == ztIndustrial)? 12 : 25));
+	}
+	if (IsRealWater(what)) {
 		return (iamthis == ztCommercial) ? 175 :
 			((iamthis == ztResidential) ? 550 :
 			((iamthis == ztIndustrial) ? 95 : 250));
+	}
+	if (IsFakeWater(what)) {
+		return (iamthis == ztCommercial) ? 80 :
+			((iamthis == ztResidential) ? 80 :
+			((iamthis == ztIndustrial) ? 45 : 25));
 	}
 	return (0);
 }
@@ -1347,7 +1361,6 @@ ZoneValue(welem_t x)
 	if ((x >= Z_COMMERCIAL_SLUM) && (x <= Z_INDUSTRIAL_SLUM))
 		return (0);
 	if ((x >= Z_COMMERCIAL_MIN) && (x <= Z_INDUSTRIAL_MAX)) {
-		WriteLog("Value: %d\n", (1 + ((x - Z_COMMERCIAL_MIN) % 10)));
 		return (1 + ((x - Z_COMMERCIAL_MIN) % 10));
 	}
 	if (IsRoad(x))
