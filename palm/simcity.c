@@ -22,7 +22,7 @@ short int lowShown = 0;
 short int noShown = 0;
 short int oldROM = 0;
 short int building = 0;
-short int tempSpeed = 0;
+short int tempSpeed;
 
 UInt32 timeStamp = 0;
 short simState = 0;
@@ -103,6 +103,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
                 if (simState == 0)
                 {
                     timeTemp = TimGetSeconds();
+                    tempSpeed = SIM_GAME_LOOP_SECONDS;
                     if (timeTemp >= timeStamp+SIM_GAME_LOOP_SECONDS)
                     {
                         simState = 1;
@@ -185,18 +186,22 @@ static Boolean hPocketCity(EventPtr event)
 			{
 			case menuID_SlowSpeed:
 				SIM_GAME_LOOP_SECONDS = 15;
+				tempSpeed = SIM_GAME_LOOP_SECONDS;
 				handled = 1;
 				break;
 			case menuID_MediumSpeed:
 				SIM_GAME_LOOP_SECONDS = 10;
+				tempSpeed = SIM_GAME_LOOP_SECONDS;
 				handled = 1;
 				break;
 			case menuID_FastSpeed:
 				SIM_GAME_LOOP_SECONDS = 5;
+				tempSpeed = SIM_GAME_LOOP_SECONDS;
 				handled = 1;
 				break;
 			case menuID_TurboSpeed:
 				SIM_GAME_LOOP_SECONDS = 0;
+				tempSpeed = SIM_GAME_LOOP_SECONDS;
 				handled = 1;
 				break;
 			case menuID_PauseSpeed:
@@ -205,12 +210,9 @@ static Boolean hPocketCity(EventPtr event)
 				handled = 1;
 				break;
 			case menuID_UnPauseSpeed:
-				if(tempSpeed == 0) {
-					break;
-				} else {
-					SIM_GAME_LOOP_SECONDS = tempSpeed;
-					break;
-				}
+				SIM_GAME_LOOP_SECONDS = tempSpeed;
+				handled = 1;
+				break;
 			}
 		}
 		break;
