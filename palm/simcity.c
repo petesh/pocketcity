@@ -21,6 +21,7 @@ unsigned char nSelectedBuildItem = 0;
 short lowShown = 0;
 short noShown = 0;
 short oldROM = 0;
+short building = 0;
 
 UInt32 timeStamp = 0;
 short simState = 0;
@@ -96,24 +97,27 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 			if (FrmDispatchEvent(&event)) continue;
 
 			// the almighty homemade >>"multithreader"<<
-			if (simState == 0)
-			{
-				timeTemp = TimGetSeconds();
-				if (timeTemp >= timeStamp+SIM_GAME_LOOP_SECONDS)
-				{
-					simState = 1;
-					timeStamp = timeTemp;
-				}
-			}
-			else
-			{
-				simState = Sim_DoPhase(simState);
-				if (simState == 0)
-				{
-					RedrawAllFields();
+            if (building == 0) 
+            {
+                if (simState == 0)
+                {
+                    timeTemp = TimGetSeconds();
+                    if (timeTemp >= timeStamp+SIM_GAME_LOOP_SECONDS)
+                    {
+                        simState = 1;
+                        timeStamp = timeTemp;
+                    }
+                }
+                else
+                {
+                    simState = Sim_DoPhase(simState);
+                    if (simState == 0)
+                    {
+                        RedrawAllFields();
 
-				}
-			}
+                    }
+                }
+            }
 			
 
 		} while (event.eType != appStopEvent);
@@ -162,9 +166,14 @@ static Boolean hPocketCity(EventPtr event)
 		if (RctPtInRectangle(event->screenX, event->screenY, &rPlayGround))
 		{
 			_UIGetFieldToBuildOn(event->screenX, event->screenY);
-			handled = 1;
+            handled = 1;
+            building = 1;
 		}
 		break;
+    case penUpEvent:
+        building = 0;
+        handled = 1;
+        break;
 	case menuEvent:
 		if (event->data.menu.itemID >= menuitemID_buildBulldoze)
 		{
