@@ -1491,14 +1491,15 @@ UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
 void
 UIDrawPlayArea()
 {
-	Int16 x;
-	Int16 y;
+	Int16 x = getMapXPos();
+	Int16 y = getMapYPos();
+
 	Int16 maxx = x + getVisibleX() < getMapWidth() ? x + getVisibleX() :
 	    getMapWidth();
 	Int16 maxy = y + getVisibleY() < getMapHeight() ? y + getVisibleY() :
 	    getMapHeight();
 
-	for (x = getMapXPos(); x < maxx; x++) {
+	for (; x < maxx; x++) {
 		for (y = getMapYPos(); y < maxy; y++) {
 			DrawFieldWithoutInit(x, y);
 		}
