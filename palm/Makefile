@@ -9,6 +9,8 @@ PROGTOKEN = PCit
 PRCTARGETS = pcity pcity-grey pcity-color mg-pcity
 DMENU = pcitymain_opt.stm
 
+DSTAMP := $(shell date "+%Y/%m/%d@%H:%M")
+
 .PHONY: all debug clean cheat
 .PRECIOUS: simcity-grey.stm zones-grey.stm simcity-color.stm zones-color.stm
 
@@ -87,6 +89,7 @@ game.stm: game.rcp simcity_resconsts.h
 version.stm: ../CHANGELOG
 	@echo "VERSION 1 \"$(VERSION)\"" > version.rcp
 	@pilrc -q version.rcp temp
+	@rm -f version.rcp
 	@echo touching>$@
 
 pcitymain_opt.stm: pcitymain.rcp
@@ -103,8 +106,7 @@ pcitymain.stm: pcitymain.rcp
 
 touch.stm:
 	@echo "#include \"simcity_resconsts.h\"" > touch.rcp
-	@printf "STRING ID StrID_build " >> touch.rcp
-	@date "+\"%Y/%m/%d @ %H:%M %Z\"" >> touch.rcp
+	@printf "STRING ID StrID_build \"$(DSTAMP)\"" >> touch.rcp
 	@pilrc -q touch.rcp temp
 	@rm -f touch.rcp
 
