@@ -9,10 +9,12 @@ CFLAGS = $(GCCFLAGS) $(OPTFLAGS) -DLINUX $(GFLAGS) $(INCLUDEDIRS)
 GLFLAGS = $(shell pkg-config --libs gtk+-2.0) 
 LIBS = 
 LDLIBS = $(LIBS) $(GLFLAGS)
+# -lefence
 
 OBJECTS = main.o savegame_fe.o budget.o \
 	stack.o savegame_be.o pglobals.o nix_utils.o simulation-ui.o \
-	handler.o build.o disaster.o drawing.o globals.o simulation.o
+	handler.o build.o disaster.o drawing.o globals.o simulation.o \
+	uibits.o stringsearch.o
 
 .PHONY: all debug clean
 
