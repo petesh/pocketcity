@@ -20,38 +20,38 @@ static void queryCleanup(void) MAP_SECTION;
 Boolean
 hQuery(EventPtr event)
 {
-    Boolean handled = 0;
+	Boolean handled = false;
 
-    switch (event->eType) {
-    case frmOpenEvent:
-        PauseGame();
-        WriteLog("query opened\n");
-        FrmDrawForm(querySetup());
-        handled = 1;
-        break;
-    case frmCloseEvent:
-        WriteLog("Query close\n");
-        queryCleanup();
-        break;
-    case keyDownEvent:
-        switch (event->data.keyDown.chr) {
-        case vchrLaunch:
-            FrmGotoForm(formID_pocketCity);
-            handled = 1;
-            break;
-        }
-    case ctlSelectEvent:
-        switch (event->data.ctlEnter.controlID) {
-        case buttonID_OK:
-            FrmGotoForm(formID_pocketCity);
-            handled = 1;
-            break;
-        }
-    default:
-        break;
-    }
+	switch (event->eType) {
+	case frmOpenEvent:
+		PauseGame();
+		WriteLog("query opened\n");
+		FrmDrawForm(querySetup());
+		handled = true;
+		break;
+	case frmCloseEvent:
+		WriteLog("Query close\n");
+		queryCleanup();
+		break;
+	case keyDownEvent:
+		switch (event->data.keyDown.chr) {
+		case vchrLaunch:
+			FrmGotoForm(formID_pocketCity);
+			handled = true;
+			break;
+		}
+	case ctlSelectEvent:
+		switch (event->data.ctlEnter.controlID) {
+		case buttonID_OK:
+			FrmGotoForm(formID_pocketCity);
+			handled = true;
+			break;
+		}
+	default:
+		break;
+	}
 
-    return (handled);
+	return (handled);
 }
 
 /*
@@ -61,26 +61,26 @@ hQuery(EventPtr event)
 static void
 zonetoPtr(Char *zonemsg, UInt8 tile)
 {
-    switch(tile) {
-    case TYPE_DIRT:
-        StrCopy(zonemsg, "Empty land");
-        break;
-    case TYPE_POWER_LINE:
-        StrCopy(zonemsg, "Power line");
-        break;
-    case TYPE_ROAD:
-        StrCopy(zonemsg, "Road");
-        break;
-    case TYPE_REAL_WATER:
-        StrCopy(zonemsg, "Water");
-        break;
-    case TYPE_TREE:
-        StrCopy(zonemsg, "Forest");
-        break;
-    default:
-        StrIToA(zonemsg, tile);
-        break;
-    }
+	switch (tile) {
+	case TYPE_DIRT:
+		StrCopy(zonemsg, "Empty land");
+		break;
+	case TYPE_POWER_LINE:
+		StrCopy(zonemsg, "Power line");
+		break;
+	case TYPE_ROAD:
+		StrCopy(zonemsg, "Road");
+		break;
+	case TYPE_REAL_WATER:
+		StrCopy(zonemsg, "Water");
+		break;
+	case TYPE_TREE:
+		StrCopy(zonemsg, "Forest");
+		break;
+	default:
+		StrIToA(zonemsg, tile);
+		break;
+	}
 }
 
 /*
@@ -89,16 +89,16 @@ zonetoPtr(Char *zonemsg, UInt8 tile)
 static FormPtr
 querySetup(void)
 {
-    Char *temp;
-    FormPtr form;
-    ControlType *ctl;
+	Char *temp;
+	FormPtr form;
+	ControlType *ctl;
 
-    form = FrmGetActiveForm();
-    temp = MemPtrNew(255);
-    zonetoPtr(temp, GetItemClicked());
-    ctl = FrmGetObjectPtr(form, FrmGetObjectIndex(form, labelID_zonetype));
-    CtlSetLabel(ctl, temp);
-    return (form);
+	form = FrmGetActiveForm();
+	temp = MemPtrNew(255);
+	zonetoPtr(temp, GetItemClicked());
+	ctl = GetObjectPtr(form, labelID_zonetype);
+	CtlSetLabel(ctl, temp);
+	return (form);
 }
 
 /*
@@ -107,13 +107,11 @@ querySetup(void)
 static void
 queryCleanup(void)
 {
-    FormPtr form;
-    Char *temp;
-    
-    form = FrmGetActiveForm();
+	FormPtr form;
+	Char *temp;
 
-    temp = (char *)CtlGetLabel(FrmGetObjectPtr(form,
-          FrmGetObjectIndex(form, labelID_zonetype)));
-    if (temp) MemPtrFree(temp);
+	form = FrmGetActiveForm();
+
+	temp = (char *)CtlGetLabel(GetObjectPtr(form, labelID_zonetype));
+	if (temp) MemPtrFree(temp);
 }
-

@@ -1,6 +1,6 @@
 
 #if !defined(_QUERY_H)
-#define _QUERY_H
+#define	_QUERY_H
 
 #include <PalmTypes.h>
 #include <sections.h>

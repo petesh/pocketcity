@@ -18,49 +18,46 @@ static void budgetCleanup(void) MAP_SECTION;
 Boolean
 hBudget(EventPtr event)
 {
-    int handled = 0;
+	Boolean handled = true;
 
-    switch (event->eType)
-    {
-        case frmOpenEvent:
-            PauseGame();
-            WriteLog("opening budget\n");
-            FrmDrawForm(budgetSetup());
-            handled = 1;
-            break;
-        case frmCloseEvent:
-            WriteLog("closing budget\n");
-            budgetCleanup();
-            break;
-        case keyDownEvent:
-            switch (event->data.keyDown.chr)
-            {
-                case vchrLaunch:
-                    FrmGotoForm(formID_pocketCity);
-                    handled = 1;
-                    break;
-            }
-            break;
-        case menuEvent:
-            switch (event->data.menu.itemID)
-            {
-                case menuitemID_BudgetBack:
-                    FrmGotoForm(formID_pocketCity);
-                    handled = 1;
-                    break;
-            }
-            break;
-        case popSelectEvent:
-            if (event->data.popSelect.controlID == listID_shifter_popup) {
-                UIGotoForm(event->data.popSelect.selection);
-                handled = 1;
-            }
-            break;
-        default:
-            break;
-    }
+	switch (event->eType) {
+	case frmOpenEvent:
+		PauseGame();
+		WriteLog("opening budget\n");
+		FrmDrawForm(budgetSetup());
+		handled = true;
+		break;
+	case frmCloseEvent:
+		WriteLog("closing budget\n");
+		budgetCleanup();
+		break;
+	case keyDownEvent:
+		switch (event->data.keyDown.chr) {
+		case vchrLaunch:
+			FrmGotoForm(formID_pocketCity);
+			handled = true;
+			break;
+		}
+		break;
+	case menuEvent:
+		switch (event->data.menu.itemID) {
+		case menuitemID_BudgetBack:
+			FrmGotoForm(formID_pocketCity);
+			handled = true;
+			break;
+		}
+		break;
+	case popSelectEvent:
+		if (event->data.popSelect.controlID == listID_shifter_popup) {
+			UIGotoForm(event->data.popSelect.selection);
+			handled = true;
+		}
+		break;
+	default:
+		break;
+	}
 
-    return handled;
+	return (handled);
 }
 
 /*
@@ -68,20 +65,20 @@ hBudget(EventPtr event)
  * Shrinks the code and makes it more consistent.
  */
 static const struct updateentity {
-    const BudgetNumber  item;
-    const char          *formatstr;
-    const UInt32        label;
+	const BudgetNumber	item;
+	const char		*formatstr;
+	const UInt32		label;
 } entity[] = {
-    { bnResidential, "%lu", labelID_budget_res },
-    { bnCommercial, "%lu", labelID_budget_com },
-    { bnIndustrial, "%lu", labelID_budget_ind },
-    { bnTraffic, "%lu", labelID_budget_tra },
-    { bnPower, "%lu", labelID_budget_pow },
-    { bnDefence, "%lu", labelID_budget_def },
-    { bnCurrentBalance, "%li", labelID_budget_now },
-    { bnChange, "%+li", labelID_budget_tot },
-    { bnNextMonth, "%li", labelID_budget_bal },
-    { 0, NULL, 0 }
+	{ bnResidential, "%lu", labelID_budget_res },
+	{ bnCommercial, "%lu", labelID_budget_com },
+	{ bnIndustrial, "%lu", labelID_budget_ind },
+	{ bnTraffic, "%lu", labelID_budget_tra },
+	{ bnPower, "%lu", labelID_budget_pow },
+	{ bnDefence, "%lu", labelID_budget_def },
+	{ bnCurrentBalance, "%li", labelID_budget_now },
+	{ bnChange, "%+li", labelID_budget_tot },
+	{ bnNextMonth, "%li", labelID_budget_bal },
+	{ 0, NULL, 0 }
 };
 
 /*
@@ -93,37 +90,37 @@ static const struct updateentity {
 static FormPtr
 budgetSetup(void)
 {
-    Char        *temp;
-    FormPtr     form;
-    MemHandle   texthandle;
-    MemPtr      text;
-    int         i;
-    struct updateentity *entityp = (struct updateentity *)&entity[0];
+	Char		*temp;
+	FormPtr	 form;
+	MemHandle   texthandle;
+	MemPtr	  text;
+	int		 i;
+	struct updateentity *entityp = (struct updateentity *)&entity[0];
 
-    form = FrmGetActiveForm();
-    /*
-     * Allocate 12 characters for each budget label in one place
-     */
-    temp = MemPtrNew(12 * (sizeof (entity) / sizeof (entity[0])));
+	form = FrmGetActiveForm();
+	/*
+	 * Allocate 12 characters for each budget label in one place
+	 */
+	temp = MemPtrNew(12 * (sizeof (entity) / sizeof (entity[0])));
 
-    while (entityp->formatstr != NULL) {
-        StrPrintF(temp, entityp->formatstr, BudgetGetNumber(entityp->item));
-        CtlSetLabel(FrmGetObjectPtr(form,
-              FrmGetObjectIndex(form, entityp->label)), temp);
-        temp += 12;
-        entityp++;
-    }
+	while (entityp->formatstr != NULL) {
+		StrPrintF(temp, entityp->formatstr,
+		    BudgetGetNumber(entityp->item));
+		CtlSetLabel(GetObjectPtr(form, entityp->label), temp);
+		temp += 12;
+		entityp++;
+	}
 
-    /* set up editable upkeep fields */
-    for (i = 0; i < 3; i++) {
-        texthandle = MemHandleNew(5);
-        text = MemHandleLock(texthandle);
-        StrPrintF(text, "%u", game.upkeep[i]);
-        MemHandleUnlock(texthandle);
-        FldSetTextHandle(FrmGetObjectPtr(form,
-              FrmGetObjectIndex(form,fieldID_budget_tra+i)), texthandle);
-    }
-    return (form);
+	/* set up editable upkeep fields */
+	for (i = 0; i < 3; i++) {
+		texthandle = MemHandleNew(5);
+		text = MemHandleLock(texthandle);
+		StrPrintF(text, "%u", game.upkeep[i]);
+		MemHandleUnlock(texthandle);
+		FldSetTextHandle(GetObjectPtr(form, fieldID_budget_tra+i),
+		    texthandle);
+	}
+	return (form);
 }
 
 /*
@@ -133,18 +130,19 @@ budgetSetup(void)
 static void
 budgetCleanup(void)
 {
-    int         i, j;
-    FormPtr     form = FrmGetActiveForm();
+	int		 i, j;
+	FormPtr	 form = FrmGetActiveForm();
 
-    for (i = 0; i < 3; i++) {
-        j = atol(FldGetTextPtr(FrmGetObjectPtr(form, FrmGetObjectIndex(form, fieldID_budget_tra+i))));
-        if (j < 0)
-            j = 0;
-        if (j > 100)
-            j = 100;
-        game.upkeep[i] = j;
-    }
+	for (i = 0; i < 3; i++) {
+		j = atol(FldGetTextPtr(
+		    GetObjectPtr(form, fieldID_budget_tra+i)));
+		if (j < 0)
+			j = 0;
+		if (j > 100)
+			j = 100;
+		game.upkeep[i] = j;
+	}
 
-    form = FrmGetActiveForm();
-    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_res))));
+	form = FrmGetActiveForm();
+	MemPtrFree((void*)CtlGetLabel(GetObjectPtr(form, labelID_budget_res)));
 }

@@ -1,5 +1,5 @@
 #if !defined(_STACK_H_)
-#define _STACK_H_
+#define	_STACK_H_
 /* interface to the stack functions */
 
 #ifdef __cplusplus

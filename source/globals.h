@@ -1,5 +1,5 @@
 #if !defined(_GLOBALS_H_)
-#define _GLOBALS_H_
+#define	_GLOBALS_H_
 
 #include <zakdef.h>
 
@@ -11,8 +11,8 @@ extern GameStruct game;
 extern vGameStruct vgame;
 extern AppConfig_t gameConfig;
 
-void LongToString(Int32 value, char * out);
-char* GetDate(char * temp);
+void LongToString(Int32 value, char *out);
+char *GetDate(char *temp);
 void UIDrawPop(void);
 void UIDoTaxes(void);
 void *getIndexOf(char *ary, Int16 addit, Int16 key);
@@ -26,4 +26,3 @@ void SetDifficultyLevel(UInt8 value);
 #endif
 
 #endif
-

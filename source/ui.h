@@ -1,9 +1,9 @@
 #if !defined(_UI_H)
-#define _UI_H
+#define	_UI_H
 
 #include <zakdef.h>
 
-#define MSG_QUESTION_REALLY_QUIT        1
+#define	MSG_QUESTION_REALLY_QUIT	1
 
 #if defined(__cplusplus)
 extern "C" {
@@ -58,9 +58,9 @@ void MapHasJumped(void);
 UInt32 GetRandomNumber(UInt32 max);
 void UISetTileSize(Int16 size);
 #ifdef DEBUG
-void WriteLog(char*, ...);
+void WriteLog(char *, ...);
 #else
-#define WriteLog(...)
+#define	WriteLog(...)
 #endif
 
 #if defined(__cplusplus)

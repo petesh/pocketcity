@@ -11,14 +11,14 @@
 extern "C" {
 #endif
 
-#define LOCAL static
+#define	LOCAL static
 
 #if defined(__GNUC__)
 
 #else
 #if defined(__SUNPRO_C)
 
-#define __attribute__(X)
+#define	__attribute__(X)
 
 #else
 
@@ -31,4 +31,3 @@ extern "C" {
 #endif
 
 #endif /* _COMPILERPRAGMAS_H */
-

@@ -1,5 +1,5 @@
-#if !defined (_SAVEGAME_H)
-#define _SAVEGAME_H
+#if !defined(_SAVEGAME_H)
+#define	_SAVEGAME_H
 
 #include <sections.h>
 

@@ -1,5 +1,5 @@
-#if !defined (_SAVEGAME_BE_H)
-#define _SAVEGAME_BE_H
+#if !defined(_SAVEGAME_BE_H)
+#define	_SAVEGAME_BE_H
 
 #include <palmutils.h>
 #include <sections.h>

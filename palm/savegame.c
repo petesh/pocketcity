@@ -27,8 +27,8 @@ static void CleanSaveGameList(void) MAP_SECTION;
 static void DeleteFromList(void) MAP_SECTION;
 static int  LoadFromList(void) MAP_SECTION;
 
-#define LASTGAME        ((UInt16)~0)
-#define	MAXSAVEGAMECOUNT    50
+#define	LASTGAME		((UInt16)~0)
+#define	MAXSAVEGAMECOUNT	50
 
 static char **citylist = NULL;
 
@@ -38,7 +38,7 @@ static char **citylist = NULL;
 int
 UILoadAutoGame(void)
 {
-    return (LoadAutoSave());
+	return (LoadAutoSave());
 }
 
 /*
@@ -47,7 +47,7 @@ UILoadAutoGame(void)
 void
 UIClearAutoSaveSlot(void)
 {
-    DeleteAutoSave();
+	DeleteAutoSave();
 }
 
 /*
@@ -57,7 +57,7 @@ UIClearAutoSaveSlot(void)
 void
 UISaveMyCity(void)
 {
-    SaveGameByName(game.cityname);
+	SaveGameByName(game.cityname);
 }
 
 /*
@@ -70,8 +70,8 @@ UISaveMyCity(void)
 void
 UISaveAutoGame(void)
 {
-    SetAutoSave(game.cityname);
-    UISaveMyCity();
+	SetAutoSave(game.cityname);
+	UISaveMyCity();
 }
 
 /*
@@ -83,8 +83,8 @@ UISaveAutoGame(void)
 static void
 cnCancelButtonPressed(void)
 {
-    game.cityname[0] = '\0';
-    FrmReturnToForm(0);
+	game.cityname[0] = '\0';
+	FrmReturnToForm(0);
 }
 
 /*
@@ -93,46 +93,45 @@ cnCancelButtonPressed(void)
 static void
 cnCreateButtonPressed(void)
 {
-    char * pGameName;
-    FormPtr form;
+	char * pGameName;
+	FormPtr form;
 
-    form = FrmGetActiveForm();
-    if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Easy)))
-	SetDifficultyLevel(0);
-    if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Medium)))
-	SetDifficultyLevel(1);
-    if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Hard)))
-	SetDifficultyLevel(2);
+	form = FrmGetActiveForm();
+	if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Easy)))
+		SetDifficultyLevel(0);
+	if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Medium)))
+		SetDifficultyLevel(1);
+	if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Hard)))
+		SetDifficultyLevel(2);
 
-    pGameName = FldGetTextPtr(FrmGetObjectPtr(form,
-	    FrmGetObjectIndex(form, fieldID_newGameName)));
-    if (pGameName != NULL) {
-	MemSet(game.cityname, CITYNAMELEN, '\0');
-	StrNCopy((char*)game.cityname, pGameName, CITYNAMELEN);
-        while (GameExists(game.cityname)) {
-            int slen = StrLen(game.cityname);
-            if (slen < CITYNAMELEN-1) {
-                game.cityname[slen-1] = '0' - 1;
-                game.cityname[slen] = '\0';
-                slen++;
-            }
-            game.cityname[slen - 1]++;
-        }
-	CreateNewSaveGame(game.cityname);
-	CleanSaveGameList();
-	if (LoadGameByName(game.cityname) != -1) {
-	    FrmEraseForm(form);
-	    form = FrmGetFormPtr(formID_files);
-	    if (form != NULL)
-		FrmEraseForm(form);
-	    FrmGotoForm(formID_pocketCity);
+	pGameName = FldGetTextPtr(GetObjectPtr(form, fieldID_newGameName));
+	if (pGameName != NULL) {
+		MemSet(game.cityname, CITYNAMELEN, '\0');
+		StrNCopy((char *)game.cityname, pGameName, CITYNAMELEN);
+		while (GameExists(game.cityname)) {
+			int slen = StrLen(game.cityname);
+			if (slen < CITYNAMELEN-1) {
+				game.cityname[slen-1] = '0' - 1;
+				game.cityname[slen] = '\0';
+				slen++;
+			}
+			game.cityname[slen - 1]++;
+		}
+		CreateNewSaveGame(game.cityname);
+		CleanSaveGameList();
+		if (LoadGameByName(game.cityname) != -1) {
+			FrmEraseForm(form);
+			form = FrmGetFormPtr(formID_files);
+			if (form != NULL)
+				FrmEraseForm(form);
+			FrmGotoForm(formID_pocketCity);
+		} else {
+			UpdateSaveGameList();
+		}
 	} else {
-	    UpdateSaveGameList();
+		game.cityname[0] = '\0';
+		WriteLog("No name specified\n");
 	}
-    } else {
-	game.cityname[0] = '\0';
-	WriteLog("No name specified\n");
-    }
 }
 
 /*
@@ -141,12 +140,12 @@ cnCreateButtonPressed(void)
 static FormPtr
 cityNewSetup(void)
 {
-    FormPtr form = FrmGetActiveForm();
+	FormPtr form = FrmGetActiveForm();
 
-    FrmSetFocus(form, FrmGetObjectIndex(form, fieldID_newGameName));
-    FrmSetControlValue(form, FrmGetObjectIndex(form, buttonID_Easy), 1);
+	FrmSetFocus(form, FrmGetObjectIndex(form, fieldID_newGameName));
+	FrmSetControlValue(form, FrmGetObjectIndex(form, buttonID_Easy), 1);
 
-    return (form);
+	return (form);
 }
 
 /*
@@ -156,33 +155,33 @@ cityNewSetup(void)
 Boolean
 hFilesNew(EventPtr event)
 {
-    int handled = 0;
+	int handled = 0;
 
-    switch (event->eType) {
-    case frmOpenEvent:
-        SetGameNotInProgress();
-	FrmDrawForm(cityNewSetup());
-        handled = 1;
-        break;
-    case frmCloseEvent:
-        break;
-    case ctlSelectEvent:
-        switch (event->data.ctlSelect.controlID) {
-        case buttonID_FilesNewCreate:
-	    cnCreateButtonPressed();
-            handled = 1;
-            break;
-        case buttonID_FilesNewCancel:
-	    cnCancelButtonPressed();
-            handled = 1;
-            break;
-        }
-        break;
-    default:
-        break;
-    }
+	switch (event->eType) {
+	case frmOpenEvent:
+		SetGameNotInProgress();
+		FrmDrawForm(cityNewSetup());
+		handled = 1;
+		break;
+	case frmCloseEvent:
+		break;
+	case ctlSelectEvent:
+		switch (event->data.ctlSelect.controlID) {
+		case buttonID_FilesNewCreate:
+			cnCreateButtonPressed();
+			handled = 1;
+			break;
+		case buttonID_FilesNewCancel:
+			cnCancelButtonPressed();
+			handled = 1;
+			break;
+		}
+		break;
+	default:
+		break;
+	}
 
-    return (handled);
+	return (handled);
 }
 
 /*
@@ -191,12 +190,12 @@ hFilesNew(EventPtr event)
 static FormPtr
 filesSetup(void)
 {
-    FormPtr form = FrmGetActiveForm();
+	FormPtr form = FrmGetActiveForm();
 
-    SetGameNotInProgress();
-    UpdateSaveGameList();
+	SetGameNotInProgress();
+	UpdateSaveGameList();
 
-    return (form);
+	return (form);
 }
 
 /*
@@ -207,42 +206,42 @@ filesSetup(void)
 Boolean
 hFiles(EventPtr event)
 {
-    Boolean handled = 0;
+	Boolean handled = false;
 
-    switch (event->eType) {
-    case frmOpenEvent:
-        FrmDrawForm(filesSetup());
-        handled = 1;
-        break;
-    case frmCloseEvent:
-	CleanSaveGameList();
-        break;
-    case ctlSelectEvent:
-        switch (event->data.ctlSelect.controlID) {
-        case buttonID_FilesNew:
-            /* create new game and add it to the list */
-            FrmPopupForm(formID_filesNew);
-            handled = 1;
-            break;
-        case buttonID_FilesLoad:
-            /* create new game */
-            if (LoadFromList() != -1)
-                FrmGotoForm(formID_pocketCity);
-            handled = 1;
-            break;
-        case buttonID_FilesDelete:
-            DeleteFromList();
-            CleanSaveGameList();
-            UpdateSaveGameList();
-            handled = 1;
-            break;
-        }
-        break;
-    default:
-        break;
-    }
+	switch (event->eType) {
+	case frmOpenEvent:
+		FrmDrawForm(filesSetup());
+		handled = true;
+		break;
+	case frmCloseEvent:
+		CleanSaveGameList();
+		break;
+	case ctlSelectEvent:
+		switch (event->data.ctlSelect.controlID) {
+		case buttonID_FilesNew:
+			/* create new game and add it to the list */
+			FrmPopupForm(formID_filesNew);
+			handled = true;
+			break;
+		case buttonID_FilesLoad:
+			/* create new game */
+			if (LoadFromList() != -1)
+				FrmGotoForm(formID_pocketCity);
+			handled = true;
+			break;
+		case buttonID_FilesDelete:
+			DeleteFromList();
+			CleanSaveGameList();
+			UpdateSaveGameList();
+			handled = true;
+			break;
+		}
+		break;
+	default:
+		break;
+	}
 
-    return (handled);
+	return (handled);
 }
 
 /*
@@ -254,40 +253,39 @@ hFiles(EventPtr event)
 static void
 UpdateSaveGameList(void)
 {
-    int count;
-    FormPtr files_form;
-    ListType *list;
+	int count;
+	FormPtr files_form;
+	ListType *list;
 
-    if (citylist != NULL)
-	FreeCityNames(citylist);
+	if (citylist != NULL)
+		FreeCityNames(citylist);
 
-    citylist = CityNames(&count);
+	citylist = CityNames(&count);
 
-    files_form = FrmGetFormPtr((UInt16)formID_files);
+	files_form = FrmGetFormPtr((UInt16)formID_files);
 
-    if (files_form == NULL) {
-        WriteLog("could not get the files form pointer\n");
-        return;
-    }
-    list = FrmGetObjectPtr(files_form,
-	FrmGetObjectIndex(files_form, listID_FilesList));
+	if (files_form == NULL) {
+		WriteLog("could not get the files form pointer\n");
+		return;
+	}
+	list = GetObjectPtr(files_form, listID_FilesList);
 
-    if (list == NULL) {
-        WriteLog("Could not get the pointer for list\n");
-        return;
-    }
+	if (list == NULL) {
+		WriteLog("Could not get the pointer for list\n");
+		return;
+	}
 
-    if (NULL == citylist) {
-        LstSetListChoices(list, NULL, 0);
-        if (files_form == FrmGetActiveForm() && FrmVisible(files_form))
-            LstDrawList(list);
-        return; /* no cities */
-    }
+	if (NULL == citylist) {
+		LstSetListChoices(list, NULL, 0);
+		if (files_form == FrmGetActiveForm() && FrmVisible(files_form))
+			LstDrawList(list);
+		return; /* no cities */
+	}
 
-    /* update list */
-    LstSetListChoices(list, citylist, count);
-    if (files_form == FrmGetActiveForm() && FrmVisible(files_form))
-        LstDrawList(list);
+	/* update list */
+	LstSetListChoices(list, citylist, count);
+	if (files_form == FrmGetActiveForm() && FrmVisible(files_form))
+		LstDrawList(list);
 }
 
 /*
@@ -297,19 +295,19 @@ UpdateSaveGameList(void)
 static void
 CleanSaveGameList(void)
 {
-    ListType *listp;
-    FormPtr form = FrmGetFormPtr(formID_files);
+	ListType *listp;
+	FormPtr form = FrmGetFormPtr(formID_files);
 
-    if (form == NULL)
-	return;
-    listp = FrmGetObjectPtr(form, FrmGetObjectIndex(form, listID_FilesList));
-    if (listp == NULL)
-	return;
+	if (form == NULL)
+		return;
+	listp = GetObjectPtr(form, listID_FilesList);
+	if (listp == NULL)
+		return;
 
-    LstSetListChoices(listp, NULL, 0);
+	LstSetListChoices(listp, NULL, 0);
 
-    FreeCityNames(citylist);
-    citylist = NULL;
+	FreeCityNames(citylist);
+	citylist = NULL;
 }
 
 /*
@@ -320,18 +318,18 @@ CleanSaveGameList(void)
 static int
 LoadFromList(void)
 {
-    FormPtr form = FrmGetFormPtr(formID_files);
-    ListType *listp;
-    int index;
+	FormPtr form = FrmGetFormPtr(formID_files);
+	ListType *listp;
+	int index;
 
-    listp = FrmGetObjectPtr(form, FrmGetObjectIndex(form, listID_FilesList));
-    index = LstGetSelection(listp);
-    if (index >= 0) {
-        char *text = LstGetSelectionText(listp, index);
-        return (LoadGameByName(text));
-    } else {
-        return (-1);
-    }
+	listp = GetObjectPtr(form, listID_FilesList);
+	index = LstGetSelection(listp);
+	if (index >= 0) {
+		char *text = LstGetSelectionText(listp, index);
+		return (LoadGameByName(text));
+	} else {
+		return (-1);
+	}
 }
 
 /*
@@ -342,15 +340,15 @@ LoadFromList(void)
 static void
 DeleteFromList(void)
 {
-    FormPtr form = FrmGetFormPtr(formID_files);
-    ListType *listp;
-    Int16 index;
+	FormPtr form = FrmGetFormPtr(formID_files);
+	ListType *listp;
+	Int16 index;
 
-    listp = FrmGetObjectPtr(form, FrmGetObjectIndex(form, listID_FilesList));
-    index = LstGetSelection(listp);
-    if (index != noListSelection) {
-        char *name;
-        name = LstGetSelectionText(listp, index);
-        DeleteGameByName(name);
-    }
+	listp = GetObjectPtr(form, listID_FilesList);
+	index = LstGetSelection(listp);
+	if (index != noListSelection) {
+		char *name;
+		name = LstGetSelectionText(listp, index);
+		DeleteGameByName(name);
+	}
 }

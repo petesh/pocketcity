@@ -18,47 +18,47 @@ static void saveOptions(void) MAP_SECTION;
 Boolean
 hOptions(EventPtr event)
 {
-    int handled = 0;
-    static char okHit = 0;
+	int handled = 0;
+	static char okHit = 0;
 
-    switch (event->eType) {
-    case frmOpenEvent:
-        PauseGame();
-        WriteLog("options open\n");
-        FrmDrawForm(setupOptions());
-        okHit = 0;
-        handled = 1;
-        break;
-    case frmCloseEvent:
-        WriteLog("options closed\n");
-        if (okHit)
-            saveOptions();
-        break;
-    case keyDownEvent:
-        switch (event->data.keyDown.chr) {
-        case vchrLaunch:
-            FrmGotoForm(formID_pocketCity);
-            handled = 1;
-            break;
-        }
-    case ctlSelectEvent:
-        switch (event->data.ctlEnter.controlID) {
-        case buttonID_OK:
-            okHit = 1;
-            handled = 1;
-            FrmGotoForm(formID_pocketCity);
-            break;
-        case buttonID_Cancel:
-            okHit = 0;
-            handled = 1;
-            FrmGotoForm(formID_pocketCity);
-            break;
-        }
-    default:
-        break;
-    }
+	switch (event->eType) {
+	case frmOpenEvent:
+		PauseGame();
+		WriteLog("options open\n");
+		FrmDrawForm(setupOptions());
+		okHit = 0;
+		handled = 1;
+		break;
+	case frmCloseEvent:
+		WriteLog("options closed\n");
+		if (okHit)
+			saveOptions();
+		break;
+	case keyDownEvent:
+		switch (event->data.keyDown.chr) {
+		case vchrLaunch:
+			FrmGotoForm(formID_pocketCity);
+			handled = 1;
+			break;
+		}
+	case ctlSelectEvent:
+		switch (event->data.ctlEnter.controlID) {
+		case buttonID_OK:
+			okHit = 1;
+			handled = 1;
+			FrmGotoForm(formID_pocketCity);
+			break;
+		case buttonID_Cancel:
+			okHit = 0;
+			handled = 1;
+			FrmGotoForm(formID_pocketCity);
+			break;
+		}
+	default:
+		break;
+	}
 
-    return (handled);
+	return (handled);
 }
 
 /*
@@ -67,14 +67,13 @@ hOptions(EventPtr event)
 static FormPtr
 setupOptions(void)
 {
-    FormPtr form = FrmGetActiveForm();
-    CtlSetValue(FrmGetObjectPtr(form, FrmGetObjectIndex(form,
-              buttonID_dis_off+GetDisasterLevel())), 1);
-    CtlSetValue(FrmGetObjectPtr(form, FrmGetObjectIndex(form,
-              buttonID_Easy + GetDifficultyLevel())), 1);
-    CtlSetValue(FrmGetObjectPtr(form, FrmGetObjectIndex(form,
-              checkboxID_autobulldoze)), game.auto_bulldoze);
-    return (form);
+	FormPtr form = FrmGetActiveForm();
+	CtlSetValue(GetObjectPtr(form, buttonID_dis_off+GetDisasterLevel()), 1);
+	CtlSetValue(GetObjectPtr(form,
+		    buttonID_Easy + GetDifficultyLevel()), 1);
+	CtlSetValue(GetObjectPtr(form, checkboxID_autobulldoze),
+	    game.auto_bulldoze);
+	return (form);
 }
 
 /*
@@ -85,32 +84,25 @@ setupOptions(void)
 static void
 saveOptions(void)
 {
-    FormPtr form = FrmGetActiveForm();
-    if (CtlGetValue(FrmGetObjectPtr(form,
-              FrmGetObjectIndex(form, buttonID_dis_off)))) {
-        SetDisasterLevel(0);
-    } else if (CtlGetValue(FrmGetObjectPtr(form,
-              FrmGetObjectIndex(form, buttonID_dis_one)))) {
-        SetDisasterLevel(1);
-    } else if (CtlGetValue(FrmGetObjectPtr(form,
-              FrmGetObjectIndex(form, buttonID_dis_two)))) {
-        SetDisasterLevel(2);
-    } else if (CtlGetValue(FrmGetObjectPtr(form,
-              FrmGetObjectIndex(form, buttonID_dis_three)))) {
-        SetDisasterLevel(3);
-    }
-    if (CtlGetValue(FrmGetObjectPtr(form,
-              FrmGetObjectIndex(form, buttonID_Easy)))) {
-        SetDifficultyLevel(0);
-    } else if (CtlGetValue(FrmGetObjectPtr(form,
-              FrmGetObjectIndex(form, buttonID_Medium)))) {
-        SetDifficultyLevel(1);
-    } else if (CtlGetValue(FrmGetObjectPtr(form,
-              FrmGetObjectIndex(form, buttonID_Hard)))) {
-        SetDifficultyLevel(2);
-    }
-    game.auto_bulldoze = CtlGetValue(FrmGetObjectPtr(form,
-          FrmGetObjectIndex(form, checkboxID_autobulldoze)));
+	FormPtr form = FrmGetActiveForm();
+	if (CtlGetValue(GetObjectPtr(form, buttonID_dis_off))) {
+		SetDisasterLevel(0);
+	} else if (CtlGetValue(GetObjectPtr(form, buttonID_dis_one))) {
+		SetDisasterLevel(1);
+	} else if (CtlGetValue(GetObjectPtr(form, buttonID_dis_two))) {
+		SetDisasterLevel(2);
+	} else if (CtlGetValue(GetObjectPtr(form, buttonID_dis_three))) {
+		SetDisasterLevel(3);
+	}
+	if (CtlGetValue(GetObjectPtr(form, buttonID_Easy))) {
+		SetDifficultyLevel(0);
+	} else if (CtlGetValue(GetObjectPtr(form, buttonID_Medium))) {
+		SetDifficultyLevel(1);
+	} else if (CtlGetValue(GetObjectPtr(form, buttonID_Hard))) {
+		SetDifficultyLevel(2);
+	}
+	game.auto_bulldoze = CtlGetValue(GetObjectPtr(form,
+		    checkboxID_autobulldoze));
 }
 
 
@@ -125,47 +117,47 @@ static void clearButtonConfig(void) MAP_SECTION;
 Boolean
 hButtonConfig(EventPtr event)
 {
-    int handled = 0;
-    static char okHit = 0;
+	int handled = 0;
+	static char okHit = 0;
 
-    switch (event->eType) {
-    case frmOpenEvent:
-        WriteLog("open buttonconfig\n");
-        PauseGame();
-        FrmDrawForm(setupButtonConfig());
-        okHit = 0;
-        handled = 1;
-        break;
-    case frmCloseEvent:
-        WriteLog("close buttonconfig\n");
-        if (okHit) saveButtonConfig();
-        clearButtonConfig();
-        break;
-    case keyDownEvent:
-        switch (event->data.keyDown.chr) {
-        case vchrLaunch:
-            FrmGotoForm(formID_pocketCity);
-            handled = 1;
-            break;
-        }
-    case ctlSelectEvent:
-        switch (event->data.ctlEnter.controlID) {
-        case buttonID_OK:
-            okHit = 1;
-            handled = 1;
-            FrmGotoForm(formID_pocketCity);
-            break;
-        case buttonID_Cancel:
-            okHit = 0;
-            handled = 1;
-            FrmGotoForm(formID_pocketCity);
-            break;
-        }
-    default:
-        break;
-    }
+	switch (event->eType) {
+	case frmOpenEvent:
+		WriteLog("open buttonconfig\n");
+		PauseGame();
+		FrmDrawForm(setupButtonConfig());
+		okHit = 0;
+		handled = 1;
+		break;
+	case frmCloseEvent:
+		WriteLog("close buttonconfig\n");
+		if (okHit) saveButtonConfig();
+		clearButtonConfig();
+		break;
+	case keyDownEvent:
+		switch (event->data.keyDown.chr) {
+		case vchrLaunch:
+			FrmGotoForm(formID_pocketCity);
+			handled = 1;
+			break;
+		}
+	case ctlSelectEvent:
+		switch (event->data.ctlEnter.controlID) {
+		case buttonID_OK:
+			okHit = 1;
+			handled = 1;
+			FrmGotoForm(formID_pocketCity);
+			break;
+		case buttonID_Cancel:
+			okHit = 0;
+			handled = 1;
+			FrmGotoForm(formID_pocketCity);
+			break;
+		}
+	default:
+		break;
+	}
 
-    return (handled);
+	return (handled);
 }
 
 /*
@@ -177,24 +169,24 @@ hButtonConfig(EventPtr event)
  * the buttons behave strangely.
  */
 static const struct bc_chelts {
-    UInt16 popup;
-    UInt16 list;
-    UInt16 elt;
+	UInt16 popup;
+	UInt16 list;
+	UInt16 elt;
 } bc_elts[] = {
-    { List_Cal_Popup, List_Cal, BkCalendar },
-    { List_Addr_Popup, List_Addr, BkAddress },
-    { List_HrUp_Popup, List_HrUp, BkHardUp },
-    { List_HrDn_Popup, List_HrDn, BkHardDown },
-    { List_ToDo_Popup, List_ToDo, BkToDo },
-    { List_Memo_Popup, List_Memo, BkMemo },
-    { List_Calc_Popup, List_Calc, BkCalc },
-    { List_Find_Popup, List_Find, BkFind },
+	{ List_Cal_Popup, List_Cal, BkCalendar },
+	{ List_Addr_Popup, List_Addr, BkAddress },
+	{ List_HrUp_Popup, List_HrUp, BkHardUp },
+	{ List_HrDn_Popup, List_HrDn, BkHardDown },
+	{ List_ToDo_Popup, List_ToDo, BkToDo },
+	{ List_Memo_Popup, List_Memo, BkMemo },
+	{ List_Calc_Popup, List_Calc, BkCalc },
+	{ List_Find_Popup, List_Find, BkFind },
 #ifdef SONY_CLIE
-    { List_JogUp_Popup, List_JogUp, BkJogUp },
-    { List_JogDn_Popup, List_JogDn, BkJogDown },
-    { List_JogOut_Popup, List_JogOut, BkJogRelease },
+	{ List_JogUp_Popup, List_JogUp, BkJogUp },
+	{ List_JogDn_Popup, List_JogDn, BkJogDown },
+	{ List_JogOut_Popup, List_JogOut, BkJogRelease },
 #endif
-    { 0, 0, 0 }
+	{ 0, 0, 0 }
 };
 
 /* Remember this between form load and form exit */
@@ -210,21 +202,21 @@ static char **Popups;
 static FormPtr
 setupButtonConfig(void)
 {
-    FormPtr form = FrmGetActiveForm();
-    Int16 poplen;
-    ButtonKey bk;
+	FormPtr form = FrmGetActiveForm();
+	Int16 poplen;
+	ButtonKey bk;
 
-    Popups = FillStringList(StrID_Popups, &poplen);
-    /* do the buttons */
-    for (bk = BkCalendar; bc_elts[bk].popup != 0; bk++) {
-        ListType *lp;
-        CtlSetLabel(FrmGetObjectPtr(form, FrmGetObjectIndex(form, bc_elts[bk].popup)),
-          Popups[gameConfig.pc.keyOptions[bk]]);
-        lp = FrmGetObjectPtr(form, FrmGetObjectIndex(form, bc_elts[bk].list));
-        LstSetListChoices(lp, (Char **)Popups, poplen);
-        LstSetSelection(lp, gameConfig.pc.keyOptions[bk]);
-    }
-    return (form);
+	Popups = FillStringList(StrID_Popups, &poplen);
+	/* do the buttons */
+	for (bk = BkCalendar; bc_elts[bk].popup != 0; bk++) {
+		ListType *lp;
+		CtlSetLabel(GetObjectPtr(form, bc_elts[bk].popup),
+		    Popups[gameConfig.pc.keyOptions[bk]]);
+		lp = GetObjectPtr(form, bc_elts[bk].list);
+		LstSetListChoices(lp, (Char **)Popups, poplen);
+		LstSetSelection(lp, gameConfig.pc.keyOptions[bk]);
+	}
+	return (form);
 }
 
 /*
@@ -234,13 +226,13 @@ setupButtonConfig(void)
 static void
 saveButtonConfig(void)
 {
-    ButtonKey bk;
-    FormPtr form = FrmGetActiveForm();
+	ButtonKey bk;
+	FormPtr form = FrmGetActiveForm();
 
-    for (bk = BkCalendar; bc_elts[bk].popup != 0; bk++) {
-        gameConfig.pc.keyOptions[bk] =
-            LstGetSelection(FrmGetObjectPtr(form, FrmGetObjectIndex(form, bc_elts[bk].list)));
-    }
+	for (bk = BkCalendar; bc_elts[bk].popup != 0; bk++) {
+		gameConfig.pc.keyOptions[bk] =
+		    LstGetSelection(GetObjectPtr(form, bc_elts[bk].list));
+	}
 }
 
 /*
@@ -249,6 +241,5 @@ saveButtonConfig(void)
 static void
 clearButtonConfig(void)
 {
-    FreeStringList(Popups);
+	FreeStringList(Popups);
 }
-

@@ -1,12 +1,12 @@
 #if !defined(_SIMCITY_H)
-#define _SIMCITY_H
+#define	_SIMCITY_H
 
 #include <zakdef.h>
 
 /* global vars from simcity.c */
-#define SGTYP   'DATA'
-#define TILEDBTYPE 'tidb'
-#define SGNAME  "PCitySave"
+#define	SGTYP   'DATA'
+#define	TILEDBTYPE 'tidb'
+#define	SGNAME  "PCitySave"
 
 extern MemPtr worldPtr;
 extern MemPtr worldFlagsPtr;
@@ -28,5 +28,6 @@ UInt8 IsGameInProgress(void);
 void ClearNewROM(void);
 void SetNewROM(void);
 UInt8 IsNewROM(void);
+void *GetObjectPtr(FormType *form, UInt16 index);
 
 #endif

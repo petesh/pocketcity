@@ -12,11 +12,11 @@
 #include <resCompat.h>
 
 typedef struct _stacky {
-    MemHandle   sh; /* Start of stack... handle */
-    Int32      *ss; /* Start of stack */
-    Int32      *sp; /* Stack pointer */
-    Int32      *se; /* Stack pointer */
-    Int32       sl; /* Stack Len */
+	MemHandle   sh; /* Start of stack... handle */
+	Int32	  *ss; /* Start of stack */
+	Int32	  *sp; /* Stack pointer */
+	Int32	  *se; /* Stack pointer */
+	Int32	   sl; /* Stack Len */
 } Stacky;
 
 /*
@@ -25,19 +25,19 @@ typedef struct _stacky {
 void *
 StackNew(void)
 {
-    Stacky *s = MemPtrNew(sizeof (Stacky));
-    if (s == NULL)
-        return (NULL);
-    s->sl = 128;
-    if ((NULL == (s->sh = MemHandleNew(s->sl * sizeof (long)))) ||
-      (NULL == (s->ss = MemHandleLock(s->sh)))) {
-        if (s->sh) MemHandleFree(s->sh);
-        MemPtrFree(s);
-        return (NULL);
-    }
-    s->se = s->ss + (s->sl - 1);
-    s->sp = s->ss - 1;
-    return (s);
+	Stacky *s = MemPtrNew(sizeof (Stacky));
+	if (s == NULL)
+		return (NULL);
+	s->sl = 128;
+	if ((NULL == (s->sh = MemHandleNew(s->sl * sizeof (long)))) ||
+	    (NULL == (s->ss = MemHandleLock(s->sh)))) {
+		if (s->sh) MemHandleFree(s->sh);
+		MemPtrFree(s);
+		return (NULL);
+	}
+	s->se = s->ss + (s->sl - 1);
+	s->sp = s->ss - 1;
+	return (s);
 }
 
 /*
@@ -46,11 +46,11 @@ StackNew(void)
 void
 StackDelete(Stacky *sp)
 {
-    if (sp->sh) {
-        MemHandleUnlock(sp->sh);
-        MemHandleFree(sp->sh);
-    }
-    MemPtrFree(sp);
+	if (sp->sh) {
+		MemHandleUnlock(sp->sh);
+		MemHandleFree(sp->sh);
+	}
+	MemPtrFree(sp);
 }
 
 /*
@@ -59,11 +59,11 @@ StackDelete(Stacky *sp)
 Int32
 StackPop(Stacky *sp)
 {
-    if (sp->sp >= sp->ss) {
-        return (*sp->sp--);
-    }
-    ErrFatalDisplayIf(1, "myStack Underflow");
-    return (-1);
+	if (sp->sp >= sp->ss) {
+		return (*sp->sp--);
+	}
+	ErrFatalDisplayIf(1, "myStack Underflow");
+	return (-1);
 }
 
 /*
@@ -72,20 +72,20 @@ StackPop(Stacky *sp)
 void
 StackPush(Stacky *sp, Int32 elt)
 {
-    if (sp->sp >= sp->se) {
-        long sd = sp->sp - sp->ss;
-        long sn;
-        sp->sl <<= 1;
-        sn = sp->sl * sizeof (long);
-        MemHandleUnlock(sp->sh);
-        if (errNone != MemHandleResize(sp->sh, sn)) {
-            ErrFatalDisplayIf(1, "Resize of myStack Chunk Failed");
-        }
-        sp->ss = MemHandleLock(sp->sh);
-        sp->se = sp->ss + (sp->sl - 1);
-        sp->sp = sp->ss + sd;
-    }
-    *(++sp->sp) = elt;
+	if (sp->sp >= sp->se) {
+		long sd = sp->sp - sp->ss;
+		long sn;
+		sp->sl <<= 1;
+		sn = sp->sl * sizeof (long);
+		MemHandleUnlock(sp->sh);
+		if (errNone != MemHandleResize(sp->sh, sn)) {
+			ErrFatalDisplayIf(1, "Resize of myStack Chunk Failed");
+		}
+		sp->ss = MemHandleLock(sp->sh);
+		sp->se = sp->ss + (sp->sl - 1);
+		sp->sp = sp->ss + sd;
+	}
+	*(++sp->sp) = elt;
 }
 
 /*
@@ -94,7 +94,7 @@ StackPush(Stacky *sp, Int32 elt)
 Int16
 StackIsEmpty(Stacky *sp)
 {
-    return (sp->sp < sp->ss);
+	return (sp->sp < sp->ss);
 }
 
 /*
@@ -103,7 +103,7 @@ StackIsEmpty(Stacky *sp)
 void
 StackDoEmpty(Stacky *sp)
 {
-    sp->sp = sp->ss - 1;
+	sp->sp = sp->ss - 1;
 }
 
 /*
@@ -112,5 +112,5 @@ StackDoEmpty(Stacky *sp)
 Int16
 StackNElements(Stacky *sp)
 {
-    return ((sp->sp+1) - sp->ss);
+	return ((sp->sp+1) - sp->ss);
 }

@@ -1,5 +1,5 @@
 #if !defined(_DISASTER_H_)
-#define _DISASTER_H_
+#define	_DISASTER_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -8,7 +8,7 @@ extern "C" {
 #include <appconfig.h>
 
 #ifndef OTHER_SECTION
-#define OTHER_SECTION
+#define	OTHER_SECTION
 #endif
 
 void DoNastyStuffTo(Int16 type, UInt16 probability) OTHER_SECTION;

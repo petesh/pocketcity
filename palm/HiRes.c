@@ -4,14 +4,14 @@
 #include <ErrorMgr.h>
 #include <SystemMgr.h>
 
-#define _HIRESSOURCE_
+#define	_HIRESSOURCE_
 #include <resCompat.h>
 #include <palmutils.h>
 
 /* The optimizer will remove any if (hires) { } clauses */
-#ifndef SONY_CLIE
+#ifndef	SONY_CLIE
 
-#define hires   0
+#define	hires   0
 
 #else /* SONY_CLIE */
 /* Change Resolution */
@@ -24,259 +24,274 @@ static void (*holdCB)(UInt32 held);
 static Err
 PrvHoldNotificationHandler(SysNotifyParamType *npp)
 {
-    UInt32 held;
-    if (npp->broadcaster != sonySysNotifyBroadcasterCode) return (errNone);
-    held = ((SonySysNotifyHoldStatusChangeDetailsP)
-      (npp->notifyDetailsP))->holdOn;
-    ErrFatalDisplayIf(holdCB == NULL, "Received hold call w/o valid handler");
-    holdCB(held);
-    return (errNone);
+	UInt32 held;
+
+	if (npp->broadcaster != sonySysNotifyBroadcasterCode)
+		return (errNone);
+	held = ((SonySysNotifyHoldStatusChangeDetailsP)
+	    (npp->notifyDetailsP))->holdOn;
+	ErrFatalDisplayIf(holdCB == NULL,
+	    "Received hold call without valid handler");
+	if (holdCB != NULL)
+		holdCB(held);
+	return (errNone);
 }
 
 void
 hookHoldSwitch(void (*CallBack)(UInt32))
 {
-    Err err;
-    UInt32 val;
+	Err err;
+	UInt32 val;
 
-    err = FtrGet(sysFtrCreator, sysFtrNumNotifyMgrVersion, &val);
-    if (!err && val) {
-        UInt16 CardNo;
-        LocalID dbID;
-        DmSearchStateType state;
-        DmGetNextDatabaseByTypeCreator(true, &state, 'appl',
-          GetCreatorID(), true, &CardNo, &dbID);
-        SysNotifyRegister(CardNo, dbID,
-          sonySysNotifyHoldStatusChangeEvent,
-          PrvHoldNotificationHandler, sysNotifyNormalPriority, NULL);
-        holdCB = CallBack;
-    }
+	err = FtrGet(sysFtrCreator, sysFtrNumNotifyMgrVersion, &val);
+	if (!err && val) {
+		UInt16 CardNo;
+		LocalID dbID;
+		DmSearchStateType state;
+		DmGetNextDatabaseByTypeCreator(true, &state, 'appl',
+		    GetCreatorID(), true, &CardNo, &dbID);
+		SysNotifyRegister(CardNo, dbID,
+		    sonySysNotifyHoldStatusChangeEvent,
+		    PrvHoldNotificationHandler, sysNotifyNormalPriority, NULL);
+		holdCB = CallBack;
+	}
 }
 
 void
 unhookHoldSwitch(void)
 {
-    Err err;
-    UInt32 val;
+	Err err;
+	UInt32 val;
 
-    err = FtrGet(sysFtrCreator, sysFtrNumNotifyMgrVersion, &val);
-    if (!err && val) {
-        UInt16 CardNo;
-        LocalID dbID;
-        DmSearchStateType state;
-        DmGetNextDatabaseByTypeCreator(true, &state, 'appl',
-          GetCreatorID(), true, &CardNo, &dbID);
-        SysNotifyUnregister(CardNo, dbID,
-          sonySysNotifyHoldStatusChangeEvent,
-          sysNotifyNormalPriority);
-        holdCB = NULL;
-    }
+	err = FtrGet(sysFtrCreator, sysFtrNumNotifyMgrVersion, &val);
+	if (!err && val) {
+		UInt16 CardNo;
+		LocalID dbID;
+		DmSearchStateType state;
+		DmGetNextDatabaseByTypeCreator(true, &state, 'appl',
+		    GetCreatorID(), true, &CardNo, &dbID);
+		SysNotifyUnregister(CardNo, dbID,
+		    sonySysNotifyHoldStatusChangeEvent,
+		    sysNotifyNormalPriority);
+		holdCB = NULL;
+	}
 }
 
 Err
 loadHiRes(void)
 {
-    SonySysFtrSysInfoP sonySysFtrSysInfoP;
-    Err error = 0;
-    UInt16 refNum;
-    if ((error = FtrGet(sonySysFtrCreator,
-        sonySysFtrNumSysInfoP, (UInt32*)&sonySysFtrSysInfoP))) {
-        /* Not CLIE: maybe not available */
-    } else {
-        if (sonySysFtrSysInfoP->libr & sonySysFtrSysInfoLibrHR) {
-            /* HR available */
-            if ((error = SysLibFind(sonySysLibNameHR, &refNum))){
-                if (error == sysErrLibNotFound) {
-                /* couldn't find lib */
-                error = SysLibLoad( 'libr', sonySysFileCHRLib, &refNum );
-                }
-            }
-            if (!error) {
-                hires = refNum;
-                /* Now we can use HR lib */
-                HROpen(hires);
-            }
-            ErrFatalDisplayIf(error, "could not load hires lib");
-        }
-    }
-    return (error);
+	SonySysFtrSysInfoP sonySysFtrSysInfoP;
+	Err error = 0;
+	UInt16 refNum;
+
+	if ((error = FtrGet(sonySysFtrCreator,
+		sonySysFtrNumSysInfoP, (UInt32*)&sonySysFtrSysInfoP))) {
+		/* Not CLIE: maybe not available */
+	} else {
+		if (sonySysFtrSysInfoP->libr & sonySysFtrSysInfoLibrHR) {
+			/* HR available */
+			if ((error = SysLibFind(sonySysLibNameHR, &refNum))) {
+				if (error == sysErrLibNotFound) {
+				/* couldn't find lib */
+				error = SysLibLoad('libr', sonySysFileCHRLib,
+				    &refNum);
+				}
+			}
+			if (!error) {
+				hires = refNum;
+				/* Now we can use HR lib */
+				HROpen(hires);
+			}
+			ErrFatalDisplayIf(error, "could not load hires lib");
+		}
+	}
+	return (error);
 }
 
 Boolean
 canHires(void)
 {
-    if (hires == 0) {
-        loadHiRes();
-        if (hires != 0) {
-            HRClose(hires);
-            SysLibRemove(hires);
-            hires = 0;
-            return (true);
-        } else
-            return (false);
-    } else
-        return (true);
+	if (hires == 0) {
+		loadHiRes();
+		if (hires != 0) {
+			HRClose(hires);
+			SysLibRemove(hires);
+			hires = 0;
+			return (true);
+		} else
+			return (false);
+	} else
+		return (true);
 }
 
 Boolean
 isHires(void)
 {
-    return (hires != 0);
+	return (hires != 0);
 }
 
 void
 scaleEvent(EventPtr event)
 {
-    if (hires) {
-        event->screenX *= sWidth / 160;
-        event->screenY *= sHeight / 160;
-    }
+	if (hires) {
+		event->screenX *= sWidth / 160;
+		event->screenY *= sHeight / 160;
+	}
 }
 
 UInt32
 xScale()
 {
-    if (hires)
-        return (sWidth / 160);
-    else
-        return (1);
+	if (hires)
+		return (sWidth / 160);
+	else
+		return (1);
 }
 
 UInt32
 yScale()
 {
-    if (hires)
-        return (sHeight / 160);
-    else
-        return (1);
+	if (hires)
+		return (sHeight / 160);
+	else
+		return (1);
 }
 
 Err
 unloadHiRes(void)
 {
-    Err rv = 0;
-    if (hires != 0) {
-        rv = HRClose(hires);
-        hires = 0;
-    }
-    return (rv);
+	Err rv = 0;
+	if (hires != 0) {
+		rv = HRClose(hires);
+		hires = 0;
+	}
+	return (rv);
 }
 
 Err
-_WinScreenMode(WinScreenModeOperation op, UInt32 *width,
-  UInt32 *height, UInt32 *depth, Boolean *enableColor)
+_WinScreenMode(WinScreenModeOperation op, UInt32 *width, UInt32 *height,
+    UInt32 *depth, Boolean *enableColor)
 {
-    if (hires)
-        return HRWinScreenMode(hires, op, width, height, depth, enableColor);
-    else
-        return WinScreenMode(op, width, height, depth, enableColor);
+	if (hires)
+		return (HRWinScreenMode(hires, op, width, height, depth,
+		    enableColor));
+	else
+		return (WinScreenMode(op, width, height, depth, enableColor));
 }
 
 void
 _WinEraseRectangle(RectangleType *r, UInt16 cornerDiam)
 {
-    if (hires)
-        HRWinEraseRectangle(hires, r, cornerDiam);
-    else
-        WinEraseRectangle(r, cornerDiam);
+	if (hires)
+		HRWinEraseRectangle(hires, r, cornerDiam);
+	else
+		WinEraseRectangle(r, cornerDiam);
 }
 
 void
 _WinDrawBitmap(BitmapPtr bmp, Coord x, Coord y)
 {
-    if (hires) {
-        HRWinDrawBitmap(hires, bmp, x, y);
-    } else {
-        WinDrawBitmap(bmp, x, y);
-    }
+	if (hires) {
+		HRWinDrawBitmap(hires, bmp, x, y);
+	} else {
+		WinDrawBitmap(bmp, x, y);
+	}
 }
 
 BitmapType *
 _BmpCreate(Coord width, Coord height, UInt8 depth, ColorTableType *clut,
-  UInt16 *error)
+    UInt16 *error)
 {
-    if (hires)
-        return HRBmpCreate(hires, width, height, depth, clut, error);
-    else
-        return BmpCreate(width, height, depth, clut, error);
+	if (hires)
+		return (HRBmpCreate(hires, width, height, depth, clut, error));
+	else
+		return (BmpCreate(width, height, depth, clut, error));
 }
 
 WinHandle
 _WinCreateBitmapWindow(BitmapType *pBitmap, UInt16 *err)
 {
-    if (hires)
-        return HRWinCreateBitmapWindow(hires, pBitmap, err);
-    else
-        return WinCreateBitmapWindow(pBitmap, err);
-}
-WinHandle _WinCreateOffscreenWindow (Coord width, Coord height,
-  WindowFormatType format, UInt16 *error )
-{
-    if (hires)
-        return HRWinCreateOffscreenWindow(hires, width, height, format, error);
-    else
-        return WinCreateOffscreenWindow(width, height, format, error);
+	if (hires)
+		return (HRWinCreateBitmapWindow(hires, pBitmap, err));
+	else
+		return (WinCreateBitmapWindow(pBitmap, err));
 }
 
-void _WinCopyRectangle(WinHandle srcWin, WinHandle dstWin,
-  RectangleType *srcRect, Coord destX, Coord destY, WinDrawOperation mode)
+WinHandle
+_WinCreateOffscreenWindow(Coord width, Coord height, WindowFormatType format,
+    UInt16 *error)
 {
-    if (hires)
-        HRWinCopyRectangle(hires, srcWin, dstWin, srcRect, destX, destY, mode);
-    else
-        WinCopyRectangle(srcWin, dstWin, srcRect, destX, destY, mode);
+	if (hires)
+		return (HRWinCreateOffscreenWindow(hires, width, height,
+		    format, error));
+	else
+		return (WinCreateOffscreenWindow(width, height, format, error));
 }
 
-void _WinDrawChars(const Char *chars, Int16 len, Coord x, Coord y)
+void
+_WinCopyRectangle(WinHandle srcWin, WinHandle dstWin, RectangleType *srcRect,
+    Coord destX, Coord destY, WinDrawOperation mode)
 {
-    if (hires)
-        HRWinDrawChars(hires, chars, len, x, y);
-    else
-        WinDrawChars(chars, len, x, y);
+	if (hires)
+		HRWinCopyRectangle(hires, srcWin, dstWin, srcRect,
+		    destX, destY, mode);
+	else
+		WinCopyRectangle(srcWin, dstWin, srcRect, destX, destY, mode);
 }
 
-void _WinDrawRectangleFrame(FrameType frame, RectangleType *rP)
+void
+_WinDrawChars(const Char *chars, Int16 len, Coord x, Coord y)
 {
-    if (hires)
-        HRWinDrawRectangleFrame(hires, frame, rP);
-    else
-        WinDrawRectangleFrame(frame, rP);
+	if (hires)
+		HRWinDrawChars(hires, chars, len, x, y);
+	else
+		WinDrawChars(chars, len, x, y);
+}
+
+void
+_WinDrawRectangleFrame(FrameType frame, RectangleType *rP)
+{
+	if (hires)
+		HRWinDrawRectangleFrame(hires, frame, rP);
+	else
+		WinDrawRectangleFrame(frame, rP);
 }
 
 void
 _FntSetFont(FontID font)
 {
-    if (hires)
-        HRFntSetFont(hires, font);
-    else
-        FntSetFont(font);
+	if (hires)
+		HRFntSetFont(hires, font);
+	else
+		FntSetFont(font);
 }
 
 void
 _WinDrawPixel(Coord x, Coord y)
 {
-    if (hires)
-        HRWinDrawPixel(hires, x, y);
-    else
-        WinDrawPixel(x, y);
+	if (hires)
+		HRWinDrawPixel(hires, x, y);
+	else
+		WinDrawPixel(x, y);
 }
 
 void
 _WinGetDrawWindowBounds(RectangleType *rP)
 {
-    if (hires)
-        HRWinGetWindowBounds(hires, rP);
-    else
-        WinGetDrawWindowBounds(rP);
+	if (hires)
+		HRWinGetWindowBounds(hires, rP);
+	else
+		WinGetDrawWindowBounds(rP);
 }
 
 /* check if the draw-window occupies most of the screen */
 int
 IsDrawWindowMostOfScreen()
 {
-    RectangleType rt;
-    _WinGetDrawWindowBounds(&rt);
-    return (((UInt32)rt.extent.x * rt.extent.y * 12) >= ((UInt32)sWidth * sHeight * 10));
+	RectangleType rt;
+	_WinGetDrawWindowBounds(&rt);
+	return (((UInt32)rt.extent.x * rt.extent.y * 12) >=
+	    ((UInt32)sWidth * sHeight * 10));
 }
 
 #endif /* SONY_CLIE */

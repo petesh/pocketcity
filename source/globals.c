@@ -13,8 +13,8 @@ vGameStruct vgame;
 
 /* This is the game configuration */
 AppConfig_t gameConfig = {
-    CONFIG_VERSION,
-    DEFAULT_APPCONFIG
+	CONFIG_VERSION,
+	DEFAULT_APPCONFIG
 };
 
 /*
@@ -24,22 +24,22 @@ AppConfig_t gameConfig = {
 char *
 GetDate(char *temp)
 {
-    char year[10];
-    char months[]="JanFebMarAprMayJunJulAugSepOctNovDec";
+	char year[10];
+	const char months[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
 
-    temp[0] = months[(game.TimeElapsed % 12) * 3];
-    temp[1] = months[(game.TimeElapsed % 12) * 3 + 1];
-    temp[2] = months[(game.TimeElapsed % 12) * 3 + 2];
-    temp[3] = ' ';
+	temp[0] = months[(game.TimeElapsed % 12) * 3];
+	temp[1] = months[(game.TimeElapsed % 12) * 3 + 1];
+	temp[2] = months[(game.TimeElapsed % 12) * 3 + 2];
+	temp[3] = ' ';
 
-    sprintf(year, "%ld", (long)(game.TimeElapsed / 12) + 2000);
-    temp[4] = year[0];
-    temp[5] = year[1];
-    temp[6] = year[2];
-    temp[7] = year[3];
-    temp[8] = (char)0;
+	sprintf(year, "%ld", (long)(game.TimeElapsed / 12) + 2000);
+	temp[4] = year[0];
+	temp[5] = year[1];
+	temp[6] = year[2];
+	temp[7] = year[3];
+	temp[8] = (char)0;
 
-    return (char*)temp;
+	return ((char *)temp);
 }
 
 /*
@@ -49,12 +49,12 @@ GetDate(char *temp)
 void *
 getIndexOf(char *ary, Int16 addit, Int16 key)
 {
-    while (*(Int16 *)ary) {
-        if (key == *(Int16 *)ary)
-            return (ary);
-        ary += addit;
-    }
-    return (0);
+	while (*(Int16 *)ary) {
+		if (key == *(Int16 *)ary)
+			return (ary);
+		ary += addit;
+	}
+	return (0);
 }
 
 /*
@@ -63,7 +63,7 @@ getIndexOf(char *ary, Int16 addit, Int16 key)
 UInt8
 GetDisasterLevel(void)
 {
-    return (game.diff_disaster & 0xF);
+	return (game.diff_disaster & 0xF);
 }
 
 /*
@@ -72,8 +72,8 @@ GetDisasterLevel(void)
 void
 SetDisasterLevel(UInt8 value)
 {
-    game.diff_disaster &= 0xf0;
-    game.diff_disaster |= ((value & 0x0f) << 4);
+	game.diff_disaster &= 0xf0;
+	game.diff_disaster |= ((value & 0x0f) << 4);
 }
 
 /*
@@ -82,7 +82,7 @@ SetDisasterLevel(UInt8 value)
 UInt8
 GetDifficultyLevel(void)
 {
-    return ((game.diff_disaster >> 4) & 0xF);
+	return ((game.diff_disaster >> 4) & 0xF);
 }
 
 /*
@@ -91,7 +91,6 @@ GetDifficultyLevel(void)
 void
 SetDifficultyLevel(UInt8 value)
 {
-    game.diff_disaster &= 0xf;
-    game.diff_disaster |= ((value & 0x0f) << 4);
+	game.diff_disaster &= 0xf;
+	game.diff_disaster |= ((value & 0x0f) << 4);
 }
-

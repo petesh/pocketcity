@@ -1,5 +1,5 @@
 #if !defined(_DRAWING_H_)
-#define _DRAWING_H_
+#define	_DRAWING_H_
 
 #include <zakdef.h>
 
@@ -10,7 +10,7 @@ extern "C" {
 #include <appconfig.h>
 
 #ifndef OTHER_SECTION
-#define OTHER_SECTION
+#define	OTHER_SECTION
 #endif
 
 void SetUpGraphic(void) OTHER_SECTION;
