@@ -6,34 +6,75 @@
 #include "../source/drawing.h"
 #include "../source/globals.h"
 #include "../source/build.h"
+#include "../source/simulation.h"
+#include "../source/disaster.h"
 
 
 GtkWidget *drawingarea;
 void * worldPtr;
 void * worldFlagsPtr;
-GdkPixmap *zones;
+GdkPixmap *zones,*monsters,*units;
+GdkBitmap *zones_mask,*monsters_mask,*units_mask;
 unsigned char selectedBuildItem = 0;
 
 
 void SetUpMainWindow(void);
+gint mainloop_callback(gpointer data);
 
 int main(int argc, char *argv[])
 {
+    gint timerID;
     gtk_init (&argc, &argv);
     srand(time(0));
 
     SetUpMainWindow();
+    // start the timer
+    timerID = gtk_timeout_add(1000, (mainloop_callback),0);
 
     gtk_main();
     g_print("Cleaning up\n");
+    gtk_timeout_remove(timerID);
     free(worldPtr);
     free(worldFlagsPtr);
     return 0;
 }
 
+unsigned int timekeeper = 0;
+unsigned int timekeeperdisaster = 0;
+
+gint mainloop_callback(gpointer data)
+{
+    // this will be called every second
+    unsigned int phase = 1;
+    timekeeper++;
+    timekeeperdisaster++;
+
+    if (timekeeperdisaster >= SIM_GAME_LOOP_DISASTER) {
+        MoveAllObjects();
+        if (UpdateDisasters()) {
+            RedrawAllFields();
+        }
+    }
+    
+    if (timekeeper >= game.gameLoopSeconds) {
+        g_print("A month has gone by - total months: %lu\n", game.TimeElapsed);
+        timekeeper = 0;
+        do {
+            phase = Sim_DoPhase(phase);
+        } while (phase != 0);
+        RedrawAllFields();
+    }
+
+    return TRUE; // yes, call us again in a sec
+}
+
 gint toolbox_callback(GtkWidget *widget, gpointer data)
 {
     gint action = GPOINTER_TO_INT(data);
+    if (action == 270) {
+        CreateDragon(55,55);
+        return FALSE;
+    }
     if (action >= 260) {
         ScrollMap(action-260);
     } else {
@@ -57,11 +98,11 @@ static gint drawing_exposed_callback(GtkWidget *widget, GdkEvent *event, gpointe
 
 static gint drawing_realized_callback(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-    // pre-load the graphic
     PCityMain();
     SetupNewGame();
     game.visible_x = 320/16;
     game.visible_y = 240/16;
+    game.gameLoopSeconds = SPEED_FAST;
     return FALSE;
 }
 
@@ -164,7 +205,7 @@ void SetUpMainWindow(void)
                         "DF\0DP\0DM\0"
                         "  \0/\\\0  \0"
                         "<-\0  \0->\0"
-                        "  \0\\/\0  \0";
+                        "  \0\\/\0Te\0";
         int i;
         gint actions[] = { BUILD_BULLDOZER,BUILD_ROAD,BUILD_POWER_LINE,
                             BUILD_ZONE_RESIDENTIAL,BUILD_ZONE_COMMERCIAL,BUILD_ZONE_INDUSTRIAL,
@@ -175,7 +216,7 @@ void SetUpMainWindow(void)
                             BUILD_DEFENCE_FIRE,BUILD_DEFENCE_POLICE,BUILD_DEFENCE_MILITARY,
                             -1,260,-1,
                             263,-1,261,
-                            -1,262,-1 };
+                            -1,262,270 };
                             
         for (i=0; i<30; i++) {
             if (*(labels+i*3) == ' ') { continue; }
@@ -202,9 +243,17 @@ void SetUpMainWindow(void)
 extern void UISetUpGraphic(void)
 {
     zones = gdk_pixmap_create_from_xpm(drawingarea->window,
-                                       NULL,
+                                       &zones_mask,
                                        NULL,
                                        "graphic/zones_16x16-color.xpm");
+    monsters = gdk_pixmap_create_from_xpm(drawingarea->window,
+                                       &monsters_mask,
+                                       NULL,
+                                       "graphic/monsters_16x16-color.xpm");
+    units = gdk_pixmap_create_from_xpm(drawingarea->window,
+                                       &units_mask,
+                                       NULL,
+                                       "graphic/units_16x16-color.xpm");
 }
 
 
@@ -291,12 +340,46 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
 
 extern void UIDrawSpecialObject(int i, int xpos, int ypos)
 {
-    g_print("UIDrawSpecialObject\n");
+    GdkGC *gc;
+    
+    gc = gdk_gc_new(drawingarea->window);
+    gdk_gc_set_clip_mask(gc,monsters_mask);
+    gdk_gc_set_clip_origin(gc,
+            xpos*game.tileSize-(game.objects[i].dir*game.tileSize),
+            ypos*game.tileSize-(i*game.tileSize));
+
+    gdk_draw_drawable(
+            drawingarea->window,
+            gc,
+            monsters,
+            game.objects[i].dir*game.tileSize,
+            i*game.tileSize,
+            xpos*game.tileSize,
+            ypos*game.tileSize,
+            game.tileSize,
+            game.tileSize);
 }
 
 extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
 {
-    g_print("UIDrawSpecialUnit\n");
+    GdkGC *gc;
+    
+    gc = gdk_gc_new(drawingarea->window);
+    gdk_gc_set_clip_mask(gc,units_mask);
+    gdk_gc_set_clip_origin(gc,
+            xpos*game.tileSize-(game.units[i].type*game.tileSize),
+            ypos*game.tileSize);
+
+    gdk_draw_drawable(
+            drawingarea->window,
+            gc,
+            units,
+            game.units[i].type*game.tileSize,
+            0,
+            xpos*game.tileSize,
+            ypos*game.tileSize,
+            game.tileSize,
+            game.tileSize);
 }
 
 extern void UIDrawCursor(int xpos, int ypos)
@@ -306,7 +389,25 @@ extern void UIDrawCursor(int xpos, int ypos)
 
 extern void UIDrawPowerLoss(int xpos, int ypos)
 {
-    g_print("UIDrawPowerLoss\n");
+    GdkGC *gc;
+    
+    gc = gdk_gc_new(drawingarea->window);
+    gdk_gc_set_clip_mask(gc,zones_mask);
+    gdk_gc_set_clip_origin(gc,
+            xpos*game.tileSize-128,
+            ypos*game.tileSize);
+
+    gdk_draw_drawable(
+            drawingarea->window,
+            gc,
+            zones,
+            128,
+            0,
+            xpos*game.tileSize,
+            ypos*game.tileSize,
+            game.tileSize,
+            game.tileSize);
+    
 }
 
 extern unsigned char UIGetSelectedBuildItem(void)
