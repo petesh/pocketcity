@@ -615,7 +615,7 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 	LockWorld();
 	old = GetWorld(WORLDPOS(xpos, ypos));
 	toSpend = BUILD_COST_ROAD;
-	if (old == Z_POWERLINE || old == Z_PIPE) {
+	if (IsPowerLine(old) || IsPipe(old)) {
 		welem_t tobuil = 0;
 		switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos))) {
 		case Z_POWERLINE: /* straight power line - Horizontal */
@@ -638,7 +638,7 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 		} else {
 			UIDisplayError(enOutOfMoney);
 		}
-	} else if (old == Z_REALWATER) {
+	} else if (IsRealWater(old)) {
 		welem_t tobuil = 0;
 		UInt8 check_rd;
 		UInt8 check_br;
@@ -651,7 +651,6 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 		/*
 		 * build a bridge only if one of the squares around is
 		 * either a bridge or a road.
-		 * XXX: Fix Here it is broken.
 		 */
 		if ((check_rd & DIR_UP) || (check_rd & DIR_DOWN)) {
 			tobuil = Z_BRIDGE_VER;
@@ -661,9 +660,17 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			tobuil = Z_BRIDGE_HOR;
 			goto success_build;
 		}
-		if (CheckNextTo(WORLDPOS(xpos, ypos), IsRoadOrBridge, 
-			    DIR_LEFT | DIR_RIGHT))
-			tobuil = Z_BRIDGE_START;
+		if (((check_br & DIR_LEFT) &&
+		    (GetWorld(WORLDPOS(xpos - 1, ypos)) == Z_BRIDGE_HOR)) ||
+		    ((check_br & DIR_RIGHT) &&
+		    (GetWorld(WORLDPOS(xpos + 1, ypos)) == Z_BRIDGE_HOR))) {
+			tobuil = Z_BRIDGE_HOR;
+		} else if (((check_br & DIR_UP) &&
+		    (GetWorld(WORLDPOS(xpos, ypos - 1)) == Z_BRIDGE_VER)) ||
+		    ((check_br & DIR_DOWN) &&
+		    (GetWorld(WORLDPOS(xpos, ypos + 1)) == Z_BRIDGE_VER))) {
+			tobuil = Z_BRIDGE_VER;
+		}
 		if (tobuil == 0)
 			goto leaveme;
 success_build:

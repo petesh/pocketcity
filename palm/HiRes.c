@@ -3,8 +3,10 @@
 #include <ErrorBase.h>
 #include <ErrorMgr.h>
 #include <SystemMgr.h>
-#include <ui.h>
 #include <PenInputMgr.h>
+#include <NotifyMgr.h>
+#include <SysEvtMgr.h>
+#include <ui.h>
 
 #define	_HIRESSOURCE_
 #include <resCompat.h>
@@ -18,6 +20,9 @@ Int32 sWidth;
 Int32 sHeight;
 /*! \brief high density feature check value; holds density value */
 static UInt32 hdfs = ~0UL;
+
+#define SetBits(B,L) (((1U << ((L) - 1)) - 1U + (1U << ((L) - 1))) << (B))
+#define pinMaxConstraintSize SetBits(0, (sizeof (Coord) * 8) - 1)
 
 /*!
  * \brief set the screen resolution
@@ -270,7 +275,13 @@ hasVirtualSilk(void)
 void
 EndSilk(void)
 {
+	UInt16 cardNo;
+	LocalID dbID;
+
 	SonyEndSilk();
+	SysCurAppDatabase(&cardNo, &dbID);
+	SysNotifyUnregister(cardNo, dbID, sysNotifyDisplayChangeEvent,
+	    sysNotifyNormalPriority);
 }
 
 /*!
@@ -287,12 +298,68 @@ SetSilkResizable(FormPtr form, UInt8 resizeable)
 		else
 			state = pinInputTriggerDisabled;
 		if (resizeable) {
+			RectangleType bnds;
+			Coord x, y;
+
+			FrmGetFormBounds(form, &bnds);
+			x = bnds.extent.x;
+			y = bnds.extent.y;
+			WinSetConstraintsSize(WinGetWindowHandle(form), y,
+			    pinMaxConstraintSize, pinMaxConstraintSize, x, x,
+			    pinMaxConstraintSize);
 			FrmSetDIAPolicyAttr(form, frmDIAPolicyCustom);
+			PINSetInputTriggerState(pinInputTriggerEnabled);
+			PINSetInputAreaState(pinInputAreaUser);
+		} else {
+			PINSetInputTriggerState(state);
 		}
-		PINSetInputTriggerState(state);
 	} else if (SonySilk()) {
 		SonySetSilkResizable(resizeable);
 	}
+}
+
+Boolean
+CollapseMove(FormPtr form, Boolean modal, Int16 *roffsetX, Int16 *roffsetY)
+{
+	Coord dispHeight, dispWidth;
+	RectangleType	dwRect;
+	Int16 offX, offY;
+	WinHandle	frmH;
+
+	WinGetDisplayExtent(&dispWidth, &dispHeight);
+	WriteLog("extend = %d, %d\n", (int)dispWidth, (int)dispHeight);
+
+	frmH = WinGetWindowHandle(form);
+	WinGetBounds(frmH, &dwRect);
+	offX = dispWidth - dwRect.extent.x - dwRect.topLeft.x;
+	offY = dispHeight - dwRect.extent.y - dwRect.topLeft.y;
+
+	WriteLog("offX = %d, offY = %d\n", (int)offX, (int)offY);
+
+	if (modal) {
+		offX -= 2;
+		offY -= 2;
+	}
+	if (roffsetX != NULL) *roffsetX = offX;
+	if (roffsetY != NULL) *roffsetY = offY;
+
+	if (offX || offY) {
+		dwRect.extent.x += offX;
+		dwRect.extent.y += offY;
+		WinSetBounds(frmH, &dwRect);
+		return (true);
+	}
+	return (false);
+}
+
+void
+CollapsePreRedraw(FormPtr form
+#if !defined(SONY_CLIE)
+    __attribute__((unused))
+#endif
+)
+{
+	SonyCollapsePreRedraw(form);
 }
 
 #endif /* HRSUPPORT */

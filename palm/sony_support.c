@@ -18,6 +18,11 @@
  * routines.
  */
 static UInt16 hires = 0;
+static UInt8 didl = 0;
+
+static Int16 silk_ref = -1;
+static Int8 silk_ver = -1;
+
 
 static void (*holdCB)(UInt32 held);
 
@@ -112,6 +117,7 @@ loadHiRes(void)
 				error = SysLibLoad('libr', sonySysFileCHRLib,
 				    &refNum);
 				}
+				if (!error) didl = 1;
 			}
 			if (!error) {
 				hires = refNum;
@@ -133,7 +139,9 @@ unloadHiRes(void)
 	Err rv = 0;
 	if (hires != 0) {
 		rv = HRClose(hires);
-		SysLibRemove(hires);
+		if (didl)
+			SysLibRemove(hires);
+		didl = 0;
 		hires = 0;
 	}
 	return (rv);
@@ -310,8 +318,16 @@ IsSony(void)
 	return (tested == 1);
 }
 
-static Int16 silk_ref = -1;
-static Int8 silk_ver = -1;
+Err
+SonyNotifyHook(SysNotifyParamType *notifyParamsP __attribute__((unused)))
+{
+	EventType ev;
+
+	MemSet(&ev, sizeof(ev), 0);
+	ev.eType = winDisplayChangedEvent;
+	EvtAddUniqueEventToQueue(&ev, 0,  true);
+	return (0);
+}
 
 /*!
  * \brief Check if sony silk available. Loads library as well.
@@ -322,6 +338,8 @@ SonySilk(void)
 {
 	Err error = errNone;
 	UInt32 version;
+	UInt16		cardNo;
+	LocalID		dbID;
 
 	if (silk_ref != -1)
 		return (silk_ref != 0);
@@ -341,6 +359,13 @@ SonySilk(void)
 	else
 		silk_ver = 1;
 
+	SonySetSilkResizable(true);
+
+	SysCurAppDatabase(&cardNo, &dbID);
+	SysNotifyRegister(cardNo, dbID, sysNotifyDisplayChangeEvent,
+	    SonyNotifyHook, sysNotifyNormalPriority, NULL);
+
+
 	return (silk_ref != 0);
 }
 
@@ -351,10 +376,15 @@ void
 SonyEndSilk(void)
 {
 	if (silk_ref != -1 && silk_ref != 0) {
-		if (silk_ver == 0)
+		if (silk_ver == 0) {
+			SilkLibResizeDispWin(silk_ref, silkResizeNormal);
+			SilkLibDisableResize(silk_ref);
 			SilkLibClose(silk_ref);
-		else
+		} else {
+			VskSetState(silk_ref, vskStateResize,vskResizeMin);
+			VskSetState(silk_ref, vskStateEnable, 0);
 			VskClose(silk_ref);
+		}
 	}
 	silk_ref = 0;
 }
@@ -368,10 +398,12 @@ SonySetSilkResizable(UInt8 state)
 	if (silk_ver == -1)
 		return;
 	if (silk_ver == 0) {
-		if (state)
+		if (state) {
 			SilkLibEnableResize(silk_ref);
-		else
+		} else {
+			SilkLibResizeDispWin(silk_ref, silkResizeNormal);
 			SilkLibDisableResize(silk_ref);
+		}
 	} else {
 		if (!state)
 			VskSetState(silk_ref, vskStateEnable, state);
@@ -381,6 +413,13 @@ SonySetSilkResizable(UInt8 state)
 		else
 			VskSetState(silk_ref, vskStateEnable, 1);
 	}
+}
+
+void
+SonyCollapsePreRedraw(FormPtr form)
+{
+	if (silk_ver == 0)
+		FrmEraseForm(form);
 }
 
 #endif /* SONY_CLIE */

@@ -70,8 +70,12 @@ RedrawAllFields(void)
 		}
 	}
 
+	UIDrawDate();
 	UIDrawCredits();
 	UIDrawPop();
+	UIDrawLoc();
+	UIDrawBuildIcon();
+	UIDrawSpeed();
 
 	UIUnlockScreen();
 	UIFinishDrawing();

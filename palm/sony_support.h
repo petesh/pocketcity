@@ -18,6 +18,7 @@ Boolean IsSony(void);
 Boolean SonySilk(void);
 void SonyEndSilk(void);
 void SonySetSilkResizable(UInt8 resizeable);
+void SonyCollapsePreRedraw(FormPtr form);
 
 Err _WinScreenMode(WinScreenModeOperation op, UInt32 *width, UInt32 *height,
     UInt32 *depth, Boolean *enableColor);
@@ -48,6 +49,7 @@ void _FntSetFont(FontID font);
 #define SonySilk()	(0)
 #define	SonyEndSilk()
 #define SonySetSilkResizable(X)
+#define SonyCollapsePreRedraw(X)
 
 #define	_WinScreenMode WinScreenMode
 #define	_WinEraseRectangle WinEraseRectangle

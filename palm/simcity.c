@@ -1,5 +1,4 @@
 #include <PalmOS.h>
-#include <SysEvtMgr.h>
 #include <StringMgr.h>
 #include <KeyMgr.h>
 #include <StdIOPalm.h>
@@ -89,8 +88,6 @@ static void ResizeDisplay(Boolean draw);
 #define ResizeDisplay(X)
 #endif
 
-extern void UIDrawLoc(void);
-
 /* Collects what would otherwise be several variables */
 static UInt8 IsBuilding(void);
 static void SetBuilding(void);
@@ -125,12 +122,7 @@ ResGetString(UInt16 index, char *buffer, UInt16 length)
  * Handles the auto-saving of the application at the end.
  */
 UInt32
-PilotMain(UInt16 cmd,
-    MemPtr cmdPBP
-//#if !defined(HRSUPPORT)
-    __attribute__((unused))
-//#endif
-    , UInt16 launchFlags)
+PilotMain(UInt16 cmd, MemPtr cmdPBP __attribute__((unused)), UInt16 launchFlags)
 {
 	UInt16 error;
 	Int16 pir;
@@ -138,21 +130,6 @@ PilotMain(UInt16 cmd,
 	switch (cmd) {
 	case sysAppLaunchCmdNormalLaunch:
 		break;
-#if defined(HRSUPPORT)
-	case sysAppLaunchCmdNotify:
-		if (((SysNotifyParamType *)cmdPBP)->notifyType ==
-		    sysNotifyDisplayResizedEvent ||
-		    ((SysNotifyParamType *)cmdPBP)->notifyType ==
-		    sysNotifyDisplayChangeEvent) {
-			EventType rev;
-			WriteLog("notified\n");
-			MemSet(&rev, sizeof(EventType), 0);
-			rev.eType = winDisplayChangedEvent;
-			EvtAddUniqueEventToQueue(&rev, 0, true);
-		}
-		return (0);
-		break;
-#endif
 	default:
 		return (0);
 		break;
@@ -402,10 +379,6 @@ _PalmInit(void)
 	Int16		rv = 0;
 	Coord		width;
 	Coord		height;
-#if defined(HRSUPPORT)
-	UInt16		cardNo;
-	LocalID		dbID;
-#endif
 
 	timeStamp = TimGetSeconds();
 	timeStampDisaster = timeStamp;
@@ -448,11 +421,6 @@ _PalmInit(void)
 	rPlayGround.extent.y = sHeight - 2*16; /* Space on the bottom */
 
 	/* section (4) */
-#if defined(HRSUPPORT)
-	SysCurAppDatabase(&cardNo, &dbID);
-	SysNotifyRegister(cardNo, dbID, sysNotifyDisplayChangeEvent,
-	    NULL, sysNotifyNormalPriority, NULL);
-#endif
 
 	/* Section (5); */
 	/* create an offscreen window, and copy the zones to be used later */
@@ -517,10 +485,6 @@ static void
 _PalmFini(Int16 reached)
 {
 	UInt16 i;
-#if defined(HRSUPPORT)
-	UInt16 cardNo;
-	LocalID dbID;
-#endif
 
 	unhookHoldSwitch();
 	freeToolbarBitmap();
@@ -536,11 +500,6 @@ _PalmFini(Int16 reached)
 				WinDeleteWindow(*(handles[i].handle), 0);
 		}
 	case 4:
-#if defined(HRSUPPORT)
-		SysCurAppDatabase(&cardNo, &dbID);
-		SysNotifyUnregister(cardNo, dbID, sysNotifyDisplayChangeEvent,
-		    sysNotifyNormalPriority);
-#endif
 		restoreDepthRes();
 	case 3:
 		DmCloseDatabase(_refTiles);
@@ -700,13 +659,13 @@ hPocketCity(EventPtr event)
 	case frmOpenEvent:
 		form = FrmGetActiveForm();
 		SetSilkResizable(form, true);
+		CollapseMove(form, false, NULL, NULL);
 		ResizeDisplay(false);
 		SetGameInProgress();
 		ResumeGame();
 		FrmDrawForm(form);
 		SetDrawing();
 		DrawGame(1);
-		RedrawAllFields();
 		handled = true;
 		break;
 	case frmCloseEvent:
@@ -737,7 +696,7 @@ hPocketCity(EventPtr event)
 					nPreviousBuildItem = nSelectedBuildItem;
 					nSelectedBuildItem = Be_Bulldozer;
 				}
-				UIUpdateBuildIcon();
+				UIDrawBuildIcon();
 				break;
 			}
 #if defined(HRSUPPORT)
@@ -770,7 +729,6 @@ hPocketCity(EventPtr event)
 		WriteLog("Menu Item: %d\n", (int)event->data.menu.itemID);
 		handled = DoPCityMenuProcessing(event->data.menu.itemID);
 
-
 	case keyDownEvent:
 		handled = vkDoEvent(event->data.keyDown.chr);
 		break;
@@ -779,7 +737,8 @@ hPocketCity(EventPtr event)
 #if defined(SONY_CLIE)
 	case vchrSilkResize:
 #endif
-		ResizeDisplay(true);
+		ResizeDisplay(CollapseMove(FrmGetActiveForm(), false, NULL,
+		    NULL));
 		handled = true;
 		break;
 #endif
@@ -1033,7 +992,7 @@ UIDoQuickList(void)
 
 		if (nSelectedBuildItem >= OFFSET_EXTRA)
 			UIPopUpExtraBuildList();
-		UIUpdateBuildIcon();
+		UIDrawBuildIcon();
 		FrmDeleteForm(ftList);
 	} else {
 		/*
@@ -1597,10 +1556,10 @@ struct StatusPositions {
 };
 
 static RectangleType shapes[] = {
-	{ {0, 0}, {0, 11} },  /* DATELOC */
-	{ {0, 0}, {0, 11} }, /* CREDITSLOC */
-	{ {0, 0}, {0, 11} }, /* POPLOC */
-	{ {0, 0}, {0, 11} } /* POSITIONLOC */
+	{ {0, 0}, {0, 13} },  /* DATELOC */
+	{ {0, 0}, {0, 13} }, /* CREDITSLOC */
+	{ {0, 0}, {0, 13} }, /* POPLOC */
+	{ {0, 0}, {0, 13} } /* POSITIONLOC */
 };
 
 /*
@@ -1697,6 +1656,8 @@ UIDrawItem(Int16 location, char *text)
 		    normalizeCoord(rt->topLeft.y));
 		EndHiresFontDraw();
 	} else {
+		WriteLog("text=%s, sl=%d, @ %d,%d\n", text, (int)sl,
+		    (int)rt->topLeft.x, (int)rt->topLeft.y);
 		_WinDrawChars(text, sl, rt->topLeft.x, rt->topLeft.y);
 	}
 	if (isDoubleOrMoreResolution())
@@ -1754,7 +1715,7 @@ CheckTextClick(Coord x, Coord y)
 void
 UIDrawDate(void)
 {
-	char temp[23];
+	char temp[20];
 
 	if (IsDeferDrawing())
 		return;
@@ -1769,7 +1730,7 @@ UIDrawDate(void)
 void
 UIDrawCredits(void)
 {
-	char temp[23];
+	char temp[20];
 #ifdef HRSUPPORT
 	MemHandle bitmapHandle;
 	BitmapPtr bitmap;
@@ -1788,13 +1749,12 @@ UIDrawCredits(void)
 		bitmap = MemHandleLock(bitmapHandle);
 		StartHiresDraw();
 		_WinDrawBitmap(bitmap, shapes[CREDITSLOC].topLeft.x - 11,
-		    sHeight - 11);
+		    shapes[CREDITSLOC].topLeft.y);
 		EndHiresDraw();
 		MemPtrUnlock(bitmap);
 		DmReleaseResource(bitmapHandle);
 	}
 #endif
-	UIDrawDate();
 }
 
 /*
@@ -1803,7 +1763,7 @@ UIDrawCredits(void)
 void
 UIDrawLoc(void)
 {
-	char temp[25];
+	char temp[20];
 #ifdef HRSUPPORT
 	MemHandle bitmapHandle;
 	BitmapPtr bitmap;
@@ -1812,51 +1772,34 @@ UIDrawLoc(void)
 	if (IsDeferDrawing())
 		return;
 
+	StrPrintF(temp, "%02u,%02u", getMapXPos(), getMapYPos());
+
+	UIDrawItem(POSITIONLOC, temp);
 #ifdef HRSUPPORT
 	if (isHires()) {
-		StrPrintF(temp, "%02u,%02u", game.map_xpos, game.map_ypos);
 		bitmapHandle = DmGetResource(TBMP, bitmapID_loca);
 		if (bitmapHandle == NULL)
 			return;
 		bitmap = MemHandleLock(bitmapHandle);
 		StartHiresDraw();
 		_WinDrawBitmap(bitmap, shapes[POSITIONLOC].topLeft.x - 11,
-		    sHeight - 11);
+		    shapes[POSITIONLOC].topLeft.y);
 		EndHiresDraw();
 		MemPtrUnlock(bitmap);
 		DmReleaseResource(bitmapHandle);
-	} else
-#endif
-		StrPrintF(temp, "(%02u,%02u)", getMapXPos(), getMapYPos());
-
-#ifdef SONY_CLIE
-	if (IsSony()) {
-		bitmapHandle = DmGetResource(TBMP, bitmapID_updn + jog_lr);
-		/* place at rt - (12 + 8), 1 */
-		if (bitmapHandle) {
-			bitmap = MemHandleLock(bitmapHandle);
-			if (bitmap) {
-				StartHiresDraw();
-				_WinDrawBitmap(bitmap, sWidth - (12 + 8), 1);
-				EndHiresDraw();
-				MemPtrUnlock(bitmap);
-			}
-			DmReleaseResource(bitmapHandle);
-		}
 	}
-
 #endif
-	UIDrawItem(POSITIONLOC, temp);
 }
 
 /*
  * Update the build icon on screen
  */
 void
-UIUpdateBuildIcon(void)
+UIDrawBuildIcon(void)
 {
 	MemHandle bitmaphandle;
 	BitmapPtr bitmap;
+
 	if (IsDeferDrawing())
 		return;
 
@@ -1887,6 +1830,10 @@ void
 UIDrawSpeed(void)
 {
 	RectangleType rect;
+#if defined(SONY_CLIE)
+	MemHandle bitmapHandle;
+	BitmapPtr bitmap;
+#endif
 
 	rect.topLeft.x = speedOffset() * 10;
 	rect.topLeft.y = 0;
@@ -1896,25 +1843,39 @@ UIDrawSpeed(void)
 	_WinCopyRectangle(winSpeeds, WinGetActiveWindow(), &rect,
 	    sWidth - 12, 2, winPaint);
 	EndHiresDraw();
+
+#ifdef SONY_CLIE
+	if (IsSony()) {
+		bitmapHandle = DmGetResource(TBMP, bitmapID_updn + jog_lr);
+		/* place at rt - (12 + 8), 1 */
+		if (bitmapHandle) {
+			bitmap = MemHandleLock(bitmapHandle);
+			if (bitmap) {
+				StartHiresDraw();
+				_WinDrawBitmap(bitmap, sWidth - (12 + 8), 1);
+				EndHiresDraw();
+				MemPtrUnlock(bitmap);
+			}
+			DmReleaseResource(bitmapHandle);
+		}
+	}
+
+#endif
 }
 
 /*!
  * \brief Draw the population on screen.
- *
- * As a side effect also draws the population, Location and Speed to screen
  */
 void
 UIDrawPop(void)
 {
-	char temp[25];
+	char temp[20];
 
 	if (IsDeferDrawing())
 		return;
 
 	StrPrintF(temp, "Pop: %lu", getPopulation());
 	UIDrawItem(POPLOC, temp);
-	UIDrawLoc();
-	UIDrawSpeed();
 #ifdef HRSUPPORT
 	if (isHires()) {
 		MemHandle bitmapHandle;
@@ -1926,7 +1887,7 @@ UIDrawPop(void)
 		bitmap = MemHandleLock(bitmapHandle);
 		StartHiresDraw();
 		_WinDrawBitmap(bitmap, shapes[POPLOC].topLeft.x - 11,
-		    sHeight - 11);
+		    shapes[POPLOC].topLeft.y);
 		EndHiresDraw();
 		MemPtrUnlock(bitmap);
 		DmReleaseResource(bitmapHandle);
@@ -2354,29 +2315,40 @@ toolBarCheck(Coord xpos)
 	} else {
 		nSelectedBuildItem = id;
 	}
-	UIUpdateBuildIcon();
+	UIDrawBuildIcon();
 }
 
 static void
 ResizeDisplay(Boolean draw)
 {
-	RectangleType curRect, disRect;
+	RectangleType disRect;
 	FormPtr fp = FrmGetActiveForm();
-	WinGetBounds(FrmGetWindowHandle(fp), &curRect);
+	Coord nWidth;
+	Coord nHeight;
+	Int16 loc;
 
 	WinGetBounds(WinGetDisplayWindow(), &disRect);
 
-	WriteLog("old wh = (%d, %d)\n", (int)curRect.extent.x,
-	    (int)curRect.extent.y);
-	WinSetBounds(FrmGetWindowHandle(fp), &disRect);
-	SETWIDTH(scaleCoord(disRect.extent.x));
-	SETHEIGHT(scaleCoord(disRect.extent.y));
+	nWidth = scaleCoord(disRect.extent.x);
+	nHeight = scaleCoord(disRect.extent.y);
+
+	if (nWidth == sWidth && nHeight == sHeight)
+		return;
+
+	SETWIDTH(nWidth);
+	SETHEIGHT(nHeight);
 	ResetViewable();
+	for (loc = 0; loc < (Int16)MAXLOC; loc++)
+		shapes[loc].extent.x = 0;
+
 	WriteLog("new wh = (%d, %d)\n", (int)sWidth, (int)sHeight);
+	rPlayGround.extent.x = sWidth;
+	rPlayGround.extent.y = sHeight - 2 * 16;
 	if (draw) {
+		CollapsePreRedraw(fp);
 		FrmDrawForm(fp);
 		DrawGame(1);
-		RedrawAllFields();
+		
 	}
 }
 

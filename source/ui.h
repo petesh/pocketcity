@@ -46,9 +46,12 @@ void UIDrawBorder(void);
 /*! \brief set up the graphics XXX: FIXME */
 void UISetUpGraphic(void);
 void UIDrawCredits(void);
-void UIUpdateBuildIcon(void);
 void UIGotoForm(Int16);
 void UIDrawPop(void);
+void UIDrawDate(void);
+void UIDrawLoc(void);
+void UIDrawBuildIcon(void);
+void UIDrawSpeed(void);
 void UIPaintDesires(void);
 
 void UICheckMoney(void);

@@ -36,6 +36,9 @@ void EndHiresFontDraw(void);
 void SetSilkResizable(FormPtr form, UInt8 resizable) OTHER_SECTION;
 Int16 hasVirtualSilk(void) OTHER_SECTION;
 void EndSilk(void) OTHER_SECTION;
+Boolean CollapseMove(FormPtr form, Boolean modal, Int16 *roffsetX,
+    Int16 *roffsetY) OTHER_SECTION;
+void CollapsePreRedraw(FormPtr form) OTHER_SECTION;
 #define	StartScaleDraw	StartHiresFontDraw
 #define EndScaleDraw		EndHiresFontDraw
 
@@ -67,6 +70,8 @@ void EndSilk(void) OTHER_SECTION;
 #define SetSilkResizable(X,Y)
 #define	hasVirtualSilk()	(0)
 #define EndSilk()
+#define CollapseMove(F,M,X,Y)
+#define	CollapsePreRedraw(X)
 
 #endif /* SONY_CLIE || PALM_HIGH */
 

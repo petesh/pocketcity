@@ -53,6 +53,7 @@ Int16 IsRoadWater(welem_t x);
 Int16 IsBridge(welem_t x);
 Int16 IsRoadOrBridge(welem_t x);
 Int16 IsZone(welem_t x, zoneType nType);
+#define IsRealWater(X)	(X == Z_REALWATER)
 
 #define DIR_UP		(1<<0)
 #define	DIR_DOWN	(1<<1)

@@ -89,14 +89,12 @@ SetupNewGame(void)
  * \param full unused.
  */
 void
-DrawGame(Int8 full)
+DrawGame(Int8 full __attribute__((unused)))
 {
 	UIInitDrawing();
 
 	UIDrawBorder();
 	RedrawAllFields();
-	UIUpdateBuildIcon();
-	full = full;
 
 	UIFinishDrawing();
 }

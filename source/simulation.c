@@ -441,7 +441,7 @@ ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what)
 	if ((dirs & DIR_UP) && (pos > GetMapWidth()) &&
 	    (what == GetWorld(pos - GetMapWidth())))
 		rv |= DIR_UP;
-	if ((dirs & DIR_DOWN) && (pos < (MapMul() - GetMapWidth())) &&
+	if ((dirs & DIR_DOWN) && (pos < (UInt32)(MapMul() - GetMapWidth())) &&
 	    (what == GetWorld(pos + GetMapWidth())))
 		rv |= DIR_DOWN;
 	if ((dirs & DIR_LEFT) && (pos % GetMapWidth()) && 
