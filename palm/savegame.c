@@ -27,8 +27,8 @@ void UIDeleteGame(UInt16 index);
 int  UILoadGame(UInt16 index);
 void UINewGame(void);
 
-char * pArray[50];
-short int savegame_index = 0;
+char *pArray[50];
+static short int savegame_index = 0;
 #define LASTGAME        ((UInt16)~0)
 
 void
@@ -50,7 +50,7 @@ _UIUpdateSaveGameList(void)
         if (form == FrmGetActiveForm())
             LstDrawList(FrmGetObjectPtr(form,
                   FrmGetObjectIndex(form, listID_FilesList)));
-        return; // no database
+        return; /* no database */
     }
     nRec = DmNumRecords(db);
 
@@ -67,7 +67,7 @@ _UIUpdateSaveGameList(void)
     }
     DmCloseDatabase(db);
 
-    // update list
+    /* update list */
     form = FrmGetFormPtr(formID_files);
     LstSetListChoices(FrmGetObjectPtr(form,
           FrmGetObjectIndex(form, listID_FilesList)), pArray, nsIndex);
@@ -75,7 +75,6 @@ _UIUpdateSaveGameList(void)
         LstDrawList(FrmGetObjectPtr(form,
               FrmGetObjectIndex(form, listID_FilesList)));
 }
-
 
 void
 _UICleanSaveGameList(void)
@@ -109,23 +108,25 @@ _UICreateNewSaveGame(void)
     if (!db) {
         err = DmCreateDatabase(0, SGNAME, GetCreatorID(), SGTYP, false);
         if (err) {
-            return; // couldn't create
+            return; /* couldn't create */
         }
 
         db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(),
           dmModeReadWrite);
         if (!db) {
-            return; // couldn't open after creation
+            return; /* couldn't open after creation */
         }
     }
-    // no, this should NOT be an "else if"
+    /* no, this should NOT be an "else if" */
     if (db) {
         if (DmNumRecords(db) >= 50) {
-            // TODO: alert user - max is 50 savegames
+            /* TODO: alert user - max is 50 savegames */
         } else {
             if (DmNumRecords(db) == 0) {
-                // create an empty record in slot 0 if it's not there, this is
-                // used for autosaves
+                /*
+		 * create an empty record in slot 0 if it's not there.
+		 * This is used for autosaves
+		 */
                 rec = DmNewRecord(db, &index, GetMapMul() + sizeof (game));
                 if (rec) {
                     DmReleaseRecord(db, index, true);
@@ -135,7 +136,7 @@ _UICreateNewSaveGame(void)
             rec = DmNewRecord(db, &index, GetMapMul() + sizeof (game));
             if (rec) {
                 pRec = MemHandleLock(rec);
-                // write the header and some globals
+                /* write the header and some globals */
                 DmWrite(pRec, 0, "PC00", 4);
                 DmWrite(pRec, offsetof(GameStruct, cityname),
                   (char*)game.cityname, 20);
@@ -153,7 +154,7 @@ _UILoadFromList(void)
     FormPtr form = FrmGetFormPtr(formID_files);
     int index = LstGetSelection(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)));
     if (index >= 0) {
-        return UILoadGame(index+1); // +1 is because the savegame in slot 0 isn't in the list
+        return UILoadGame(index+1); /* +1 as slot (0) is autosave */
     } else {
         return 0;
     }
@@ -166,12 +167,12 @@ _UIDeleteFromList(void)
     int index = LstGetSelection(FrmGetObjectPtr(form,
           FrmGetObjectIndex(form,listID_FilesList)));
     if (index != noListSelection) {
-        return UIDeleteGame(index+1); // +1 is because the savegame in slot 0 isn't in the list
+        return UIDeleteGame(index+1); /* +1 because slot(0) is the autosave */
     }
 }
 
 
-extern void
+void
 UIClearAutoSaveSlot(void)
 {
     DmOpenRef db;
@@ -180,9 +181,9 @@ UIClearAutoSaveSlot(void)
 
     db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(), dmModeReadWrite);
     if (!db) {
-            return; // couldn't create
+            return; /* couldn't create */
     }
-    // no, this should NOT be an "else if"
+    /* no, this should NOT be an "else if" */
     rec = DmGetRecord(db,0);
     if (rec) {
         pRec = MemHandleLock(rec);
@@ -197,7 +198,8 @@ UIClearAutoSaveSlot(void)
 void
 UIResetViewable(void)
 {
-    /* The UI part is responsible for setting
+    /*
+     * The UI part is responsible for setting
      * the visible_x/y vars
      * and then call SetupNewGame()
      * tile is 16 * 16
@@ -217,25 +219,40 @@ UINewGame(void)
 }
 
 
-extern int
+int
 UILoadAutoGame(void)
 {
     return UILoadGame(0);
 }
 
+static DmOpenRef
+OpenMyDB(void)
+{
+    Err err = 0;
+    DmOpenRef db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(),
+      dmModeReadWrite);
+    if (!db) {
+        err = DmCreateDatabase(0, SGNAME, GetCreatorID(), SGTYP, false);
+        if (err)
+            return (NULL); /* couldn't create */
+        db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(),
+          dmModeReadWrite);
+    }
+    return (db);
+}
+
 void
 UIDeleteGame(UInt16 index)
 {
-    // saves the game in slot 0
     DmOpenRef db;
 
-    db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(), dmModeReadWrite);
+    db = OpenMyDB();
     if (!db) {
-        return; // couldn't open after creation
+        return; /* couldn't open after creation */
     }
 
     if (DmNumRecords(db) < index) {
-        return; // index doesn't exist
+        return; /* index doesn't exist */
     }
 
     DmRemoveRecord(db, index);
@@ -252,29 +269,29 @@ UILoadGame(UInt16 index)
 
     db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(), dmModeReadOnly);
     if (!db) {
-        return 0; // no database
+        return (0); /* no database */
     }
     if (index == LASTGAME) index = DmNumRecords(db) - 1;
     rec = DmQueryRecord(db, index);
     if (rec) {
         pTemp = (unsigned char*)MemHandleLock(rec);
-        // flagged to create new game
+        /* flagged to create new game */
         if (StrNCompare("PC00",(char*)pTemp,4) == 0) {
             UINewGame();
-            UISaveGame(index); // save the newly created map
+            UISaveGame(index); /* save the newly created map */
             loaded = 2;
         } else if (StrNCompare(SAVEGAMEVERSION, (char*)pTemp, 4) == 0) {
-            // version check
+            /* version check */
             LockWorld();
             MemMove((void*)&game, pTemp, sizeof(GameStruct));
             MemMove(worldPtr, pTemp+sizeof(GameStruct), GetMapMul());
             UnlockWorld();
-            // update the power and water grid:
+            /* update the power and water grid: */
             PostLoadGame();
             UIResetViewable();
             loaded = 1;
         } else if (StrNCompare("PCNO", (char*)pTemp,4) == 0) {
-            // flagged to be an empty save game
+            /* flagged to be an empty save game */
             loaded = 0;
         } else {
             FrmAlert(alertID_invalidSaveVersion);
@@ -293,63 +310,86 @@ UILoadGame(UInt16 index)
     return loaded;
 }
 
-extern void
-UISaveGameToIndex(void)
+void
+UISaveMyCity(void)
 {
+    DmOpenRef db = NULL;
+    MemHandle rec;
+    GameStruct *pRec;
+    unsigned short int nRec;
+    unsigned short int i;
+
+    if (savegame_index == 0) { /* I am the autosave slot... get real slot */
+        db = OpenMyDB();
+        if (!db) {
+            FrmCustomAlert(alertID_majorbad,
+              "Can't Open/Create the savegame database", NULL, NULL);
+            return;
+        }
+        nRec = DmNumRecords(db);
+        for (i = 1; i < nRec; i++) {
+            rec = DmQueryRecord(db, i);
+            if (rec) {
+                pRec = (GameStruct *)MemHandleLock(rec);
+                if (strcmp(pRec->cityname, game.cityname) == 0) {
+                    savegame_index = i;
+                    MemHandleUnlock(rec);
+                    break;
+                }
+                MemHandleUnlock(rec);
+            }
+        }
+    }
+    if (db) DmCloseDatabase(db);
+    if (savegame_index == 0) {
+        savegame_index = LASTGAME;
+    }
     UISaveGame(savegame_index);
 }
 
-extern void
+void
+UISaveAutoGame(void)
+{
+    UISaveGame(0);
+}
+
+void
 UISaveGame(UInt16 index)
 {
-    // saves the game in slot 0
-    Err err = 0;
-    DmOpenRef db;
+    DmOpenRef db = NULL;
     MemHandle rec;
     void * pRec;
 
-    db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(), dmModeReadWrite);
-    if (!db) {
-        err = DmCreateDatabase(0, SGNAME, GetCreatorID(), SGTYP, false);
-        if (err) {
-            return; // couldn't create
-        }
-
-        db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(),
-          dmModeReadWrite);
-        if (!db) {
-            return; // couldn't open after creation
-        }
+    db = OpenMyDB();
+    if (index <= DmNumRecords(db)) {
+        DmRemoveRecord(db, index);
+    } else {
+        index = DmNumRecords(db) + 1;
+        savegame_index = index;
     }
-    // no, this should NOT be an "else if"
-    if (db) {
-        if (DmNumRecords(db) > index) {
-            DmRemoveRecord(db, index);
-        }
-        rec = DmNewRecord(db,&index, GetMapMul() + sizeof (GameStruct));
-        if (rec) {
-            pRec = MemHandleLock(rec);
-            LockWorld();
-            // write the header and some globals
-            DmWrite(pRec,0,(void*)&game, sizeof (GameStruct));
-            DmWrite(pRec, sizeof (GameStruct), (void*)(unsigned char*)worldPtr,
-              GetMapMul());
-            UnlockWorld();
-            MemHandleUnlock(rec);
-            DmReleaseRecord(db,index,true);
-        }
-        { UInt16 attr = dmHdrAttrBackup;
+    rec = DmNewRecord(db,&index, GetMapMul() + sizeof (GameStruct));
+    if (rec) {
+        pRec = MemHandleLock(rec);
+        LockWorld();
+        /* write the header and some globals */
+        DmWrite(pRec,0,(void*)&game, sizeof (GameStruct));
+        DmWrite(pRec, sizeof (GameStruct), (void*)(unsigned char*)worldPtr,
+            GetMapMul());
+        UnlockWorld();
+        MemHandleUnlock(rec);
+        DmReleaseRecord(db,index,true);
+    }
+    { UInt16 attr = dmHdrAttrBackup;
         DmSetDatabaseInfo(0, DmFindDatabase(0, SGNAME), NULL, &attr, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-        }
-        DmCloseDatabase(db);
+            NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
     }
+    DmCloseDatabase(db);
 }
 
 
 
 
-extern Boolean
+Boolean
 hFilesNew(EventPtr event)
 {
     FormPtr form;
@@ -370,7 +410,7 @@ hFilesNew(EventPtr event)
         switch (event->data.ctlSelect.controlID) {
         case buttonID_FilesNewCreate:
             UIWriteLog("Create pushed\n");
-            // need to fetch the savegame name from the form
+            /* need to fetch the savegame name from the form */
             form = FrmGetActiveForm();
             pGameName = FldGetTextPtr(FrmGetObjectPtr(form,
                   FrmGetObjectIndex(form, fieldID_newGameName)));
@@ -395,7 +435,7 @@ hFilesNew(EventPtr event)
             break;
         case buttonID_FilesNewCancel:
             UIWriteLog("Cancel pushed\n");
-            // set (char*)cityname to '\0'
+            /* set (char*)cityname to '\0' */
             game.cityname[0] = '\0';
             FrmReturnToForm(0);
             handled = 1;
@@ -431,12 +471,12 @@ hFiles(EventPtr event)
         switch (event->data.ctlSelect.controlID)
         {
         case buttonID_FilesNew:
-            // create new game and add it to the list
+            /* create new game and add it to the list */
             FrmPopupForm(formID_filesNew);
             handled = 1;
             break;
         case buttonID_FilesLoad:
-            // create new game
+            /* create new game */
             if (_UILoadFromList()) {
                 FrmGotoForm(formID_pocketCity);
             }

@@ -1,10 +1,12 @@
-#include "zakdef.h"
+#if !defined(_UI_H_)
+#define _UI_H_
 
+#include "zakdef.h"
 
 #define MSG_QUESTION_REALLY_QUIT        1
 
 
-int UIDisplayError(int nError);
+int UIDisplayError(erdiType nError);
 void UIInitDrawing(void);
 void UIFinishDrawing(void);
 void UIUnlockScreen(void);
@@ -17,7 +19,7 @@ void UIGotoForm(int);
 void UIDrawPop(void);
 
 void UICheckMoney(void);
-void UIScrollMap(int direction);
+void UIScrollMap(dirType direction);
 void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth);
 
 
@@ -53,3 +55,5 @@ void UIWriteLog(char*);
 #else
 #define UIWriteLog(x)
 #endif
+
+#endif /* _UI_H_ */

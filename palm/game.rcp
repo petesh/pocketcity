@@ -4,7 +4,7 @@ FORM ID formID_pocketCity AT ( 0 0 160 160 )
 NOFRAME
 USABLE
 NOSAVEBEHIND
-MENUID menuID_pocketCity
+MENUID menu_pocketCity
 BEGIN
 END
 
@@ -16,9 +16,15 @@ FORM ID formID_budget AT ( 0 0 160 160 )
 NOFRAME
 USABLE
 NOSAVEBEHIND
-MENUID menuID_budget
+MENUID menu_budget
 BEGIN
     TITLE "Budget"
+    POPUPTRIGGER "Budget" ID listID_shifter_popup AT (100 1 auto auto) LEFTANCHOR
+    LIST 
+        "Budget" "Map"
+        ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 2
+
+    POPUPLIST ID listID_shifter_popup listID_shifter
     LABEL "Income" AUTOID AT (CENTER 16)
     LABEL "Residential" AUTOID AT (0 PrevBottom)
     LABEL "-" labelID_budget_res AT (115 PrevTop)
@@ -56,17 +62,9 @@ BEGIN
     LABEL "-" labelID_budget_tot AT (115 PrevTop)
     LABEL "Next month's balance" AUTOID AT (0 PrevBottom)
     LABEL "-" labelID_budget_bal AT (115 PrevTop)
-    LABEL "" AUTOID AT (0 PrevBottom)
-
-    POPUPTRIGGER "Budget" ID listID_shifter_popup AT (100 1 auto auto) LEFTANCHOR
-    LIST 
-        "Budget" "Map"
-        ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 3
-    POPUPLIST ID listID_shifter_popup listID_shifter
-    
 END
 
-MENU ID menuID_budget
+MENU ID menu_budget
 BEGIN
   PULLDOWN "Budget"
   BEGIN
@@ -80,15 +78,15 @@ NOSAVEBEHIND
 USABLE
 BEGIN
     TITLE "Options"
-    /* disasters - some people wants to adjust the frequency :/ */
-    LABEL "Disasters" AUTOID AT (0 18)
-    PUSHBUTTON "Off" ID buttonID_dis_off   AT (80 prevtop auto auto) GROUP 1
-    PUSHBUTTON "I"   ID buttonID_dis_one   AT (prevright prevtop auto auto) GROUP 1
-    PUSHBUTTON "II"  ID buttonID_dis_two   AT (prevright prevtop auto auto) GROUP 1
-    PUSHBUTTON "III" ID buttonID_dis_three AT (prevright prevtop auto auto) GROUP 1
+    /* disasters - some people wants to adjust the frequency */
+    LABEL "Disasters:" AUTOID AT (4 18)
+    PUSHBUTTON "Off" ID buttonID_dis_off   AT (PREVRIGHT+6 PREVTOP AUTO AUTO) GROUP 1
+    PUSHBUTTON "I"   ID buttonID_dis_one   AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
+    PUSHBUTTON "II"  ID buttonID_dis_two   AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
+    PUSHBUTTON "III" ID buttonID_dis_three AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
 
-    BUTTON "OK" ID buttonID_OK AT (2 146 auto auto)
-    BUTTON "Cancel" ID buttonID_Cancel AT (prevright+3 prevtop auto auto)
+    BUTTON "OK" ID buttonID_OK AT (2 146 AUTO AUTO)
+    BUTTON "Cancel" ID buttonID_Cancel AT (PREVRIGHT+3 PREVTOP AUTO AUTO)
 END
 
 
@@ -96,23 +94,24 @@ FORM ID formID_map AT ( 0 0 160 160 )
 NOFRAME
 USABLE
 NOSAVEBEHIND
-MENUID menuID_map
+MENUID menu_map
 BEGIN
-    /* The map doesn't have a control for the map itself
+    /* 
+     * The map doesn't have a control for the map itself
      * it is drawn directly onto the screen in map.c 
      */
     
     TITLE "Map"
-    
-    /* formchangers (shapeshifters?) */
+
+    /* formchangers */
     POPUPTRIGGER "Map" ID listID_shifter_popup AT (100 1 auto auto) LEFTANCHOR
     LIST
         "Budget" "Map"
-        ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 3
+        ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 2
     POPUPLIST ID listID_shifter_popup listID_shifter
 END
 
-MENU ID menuID_map
+MENU ID menu_map
 BEGIN
   PULLDOWN "Map"
   BEGIN
@@ -136,7 +135,7 @@ END
 
 FORM ID formID_filesNew AT ( 1 98 158 59 )
 USABLE
-NOSAVEBEHIND
+SAVEBEHIND
 MODAL
 DEFAULTBTNID buttonID_FilesNewCancel
 BEGIN
@@ -152,37 +151,40 @@ BITMAP ID bitmapID_iconPushed "graphic/icon_pushed.bmp" COMPRESS
 
 FORM ID formID_quickList AT ( 1 119 158 40 )
 USABLE
+SAVEBEHIND
 MODAL
 BEGIN
     TITLE "Quicklist"
-    BUTTON "" ID menuitemID_buildBulldoze AT (3 15 AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconBulldoze SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID menuitemID_buildResidential AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconResidential SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID menuitemID_buildCommercial AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconCommercial SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID menuitemID_buildIndustrial AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconIndustrial SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildBulldoze AT (3 15 AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconBulldoze SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildResidential AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconResidential SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildCommercial AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconCommercial SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildIndustrial AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconIndustrial SELECTEDBITMAPID bitmapID_iconPushed
 
-    BUTTON "" ID menuitemID_buildRoad AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconRoad SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildRoad AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconRoad SELECTEDBITMAPID bitmapID_iconPushed
 
-    BUTTON "" ID menuitemID_buildPowerPlant AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconPowerPlant SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID menuitemID_buildNuclearPlant AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconNuclear SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildPowerPlant AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconPowerPlant SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildNuclearPlant AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconNuclear SELECTEDBITMAPID bitmapID_iconPushed
 
-    BUTTON "" ID menuitemID_buildPowerLine AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconPowerline SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildPowerLine AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconPowerline SELECTEDBITMAPID bitmapID_iconPushed
 	
-    BUTTON "" ID menuitemID_buildWaterPlant AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconWaterPlant SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID menuitemID_buildWaterPipe AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconWaterPipe SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildWaterPlant AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconWaterPlant SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildWaterPipe AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconWaterPipe SELECTEDBITMAPID bitmapID_iconPushed
 
-    BUTTON "" ID menuitemID_buildTree AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconTree SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID menuitemID_buildWater AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconWater SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildTree AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconTree SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildWater AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconWater SELECTEDBITMAPID bitmapID_iconPushed
 
     /* next line  - defence and such */
-    BUTTON "" ID menuitemID_buildExtra AT (3 PREVBOTTOM AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconExtra SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildExtra AT (3 PREVBOTTOM AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconExtra SELECTEDBITMAPID bitmapID_iconPushed
 
-    BUTTON "" ID menuitemID_defenceFire     AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefFire SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID menuitemID_defencePolice   AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefPolice SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID menuitemID_defenceMilitary AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefMilitary SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_defenceFire     AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefFire SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_defencePolice   AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefPolice SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_defenceMilitary AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefMilitary SELECTEDBITMAPID bitmapID_iconPushed
     
 END
 
-// Entries need to match #define menuID...
+/* Entries need to match #define menuID...
+ * I need SAVEBEHIND because it is popped up as a dialog
+ */
 FORM ID formID_extraBuild AT ( 0 0 160 160 )
 USABLE
 SAVEBEHIND
@@ -194,7 +196,6 @@ BEGIN
  	 "Water Pipe" "Tree" "Water"
 	 "Fire Station" "Police Station" "Military Base"
 	 "Fire Unit" "Police Unit" "Military Unit"
-         /* insert extra stuff here */
          ID listID_extraBuildList AT (1 18 158 77) USABLE 
     FIELD ID labelID_extraBuildDescription AT (prevleft prevbottom+2 158 50)
     MULTIPLELINES NONEDITABLE
@@ -202,12 +203,22 @@ BEGIN
     BUTTON "Select"     ID buttonID_extraBuildSelect     AT (2 146 AUTO AUTO) BOLDFRAME
     BUTTON "Cancel"     ID buttonID_extraBuildCancel     AT (prevright+4 prevtop AUTO AUTO)
     BUTTON "F" ID buttonID_extraBuildFireMen     AT (prevright+4 prevtop 12 AUTO)
-    BUTTON "P" ID buttonID_extraBuildPolice      AT (prevright+1 prevtop 12 AUTO)
-    BUTTON "M" ID buttonID_extraBuildMilitary    AT (prevright+1 prevtop 12 AUTO)
+    BUTTON "P" ID buttonID_extraBuildPolice      AT (prevright+4 prevtop 12 AUTO)
+    BUTTON "M" ID buttonID_extraBuildMilitary    AT (prevright+4 prevtop 12 AUTO)
 END
 
+FORM ID formID_DistribDetails AT ( 0 0 160 160 )
+USABLE
+NOSAVEBEHIND
+BEGIN
+    TITLE "Power/Water"
+    PUSHBUTTON "Overview" ID pb_dd_overview AT ( 5 16 50 AUTO ) GROUP 1
+    PUSHBUTTON "Power" ID pb_dd_power AT ( prevright prevtop 50 AUTO ) GROUP 1
+    PUSHBUTTON "Water" ID pb_dd_water AT ( prevright prevtop 50 AUTO ) GROUP 1
+END
+
+/* max is 4 lines */
 STRINGTABLE ID strID_Descriptions
-    /* max is 4 lines */
     ""
     "Bulldozer\t\t\t\tPrice: $5\n\nClears land and removes defence units"
     "Residential\t\t\tPrice: $50\n\nZones for inhabitants"
@@ -227,7 +238,6 @@ STRINGTABLE ID strID_Descriptions
     "Fire Unit\t\t\t\tPrice: $100\n\nProvides a unit to defend in case of fires"
     "Police Unit\t\t\tPrice: $100\n\nProvides a unit for crime fighting"
     "Military Unit\t\t\tPrice: $100\n\nProvides a unit for Defence from monsters"
-
 
 STRING ID StrID_tips FILE "../GAMEHINTS"
 
@@ -297,39 +307,25 @@ BEGIN
   BUTTONS "OK"
 END
 
-ALERT ID alertID_fireOutBreak
+/* This list needs to be in the same order as the disaster enumeration */
+STRINGTABLE ID st_disasters
+	""
+	"An Australian fire has broken out somewhere!"
+	"A power plant just exploded!"
+  	"Godzilla just came to town!"
+  	"A fire dragon wants to use your city as it's lair!"
+  	"A gigantic meteor has hit your city!"
+
+ALERT ID alertID_generic_disaster
 BEGIN
   TITLE "Disaster"
-  MESSAGE "An Australian fire has broken out somewhere!"
+  MESSAGE "^1"
   BUTTONS "Uh-oh!"
 END
 
-
-ALERT ID alertID_plantExplosion
+ALERT ID alertID_majorbad
 BEGIN
-  TITLE "Disaster"
-  MESSAGE "A power plant just exploded!"
-  BUTTONS "Uh-oh!"
+    TITLE "Major Bad"
+    MESSAGE "I've been told to tell you that ^1 has happened. This is bad. I, as a program can't handle this. Quit ASAP!"
+    BUTTONS "Oh Well"
 END
-
-ALERT ID alertID_monster
-BEGIN
-  TITLE "Disaster"
-  MESSAGE "Godzilla just came to town!"
-  BUTTONS "Uh-oh!"
-END
-
-ALERT ID alertID_dragon
-BEGIN
-  TITLE "Disaster"
-  MESSAGE "A fire dragon wants to use your city as it's lair!"
-  BUTTONS "Uh-oh!"
-END
-
-ALERT ID alertID_meteor
-BEGIN
-  TITLE "Disaster"
-  MESSAGE "A gigantic meteor has hit your city!"
-  BUTTONS "Uh-oh!"
-END
-

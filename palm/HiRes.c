@@ -12,13 +12,13 @@ static UInt32 oHeight = 0;
 static UInt32 oDepth = 0;
 static Boolean oUseColor = 0;
 
-// The optimizer will remove any if (hires) { } clauses
+/* The optimizer will remove any if (hires) { } clauses */
 #ifndef SONY_CLIE
 
 #define hires   0
 
 #else /* SONY_CLIE */
-// Change Resolution
+/* Change Resolution */
 UInt32 sWidth;
 UInt32 sHeight;
 
@@ -85,19 +85,19 @@ loadHiRes(void)
     UInt16 refNum;
     if ((error = FtrGet(sonySysFtrCreator,
         sonySysFtrNumSysInfoP, (UInt32*)&sonySysFtrSysInfoP))) {
-        // Not CLIE: maybe not available
+        /* Not CLIE: maybe not available */
     } else {
         if (sonySysFtrSysInfoP->libr & sonySysFtrSysInfoLibrHR) {
-            // HR available
+            /* HR available */
             if ((error = SysLibFind(sonySysLibNameHR, &refNum))){
                 if (error == sysErrLibNotFound) {
-                // couldn't find lib
+                /* couldn't find lib */
                 error = SysLibLoad( 'libr', sonySysFileCHRLib, &refNum );
                 }
             }
             if (!error) {
                 hires = refNum;
-                // Now we can use HR lib
+                /* Now we can use HR lib */
                 HROpen(hires);
             }
             ErrFatalDisplayIf(error, "could not load hires lib");
@@ -251,15 +251,19 @@ void _WinDrawPixel(Coord x, Coord y)
 
 #endif /* SONY_CLIE */
 
+/* Return the depth in bits per pixel */
 UInt32
 getDepth(void)
 {
     static UInt32 avd = 0;
+    extern short int oldROM;
     if (avd != 0)
         return (avd);
-    (void) _WinScreenMode(winScreenModeGetSupportedDepths, NULL, NULL,
-                          &avd, NULL);
-    avd = 1 << (avd-1);
+    if (!oldROM) {
+	    (void) _WinScreenMode(winScreenModeGet, NULL, NULL,
+				  &avd, NULL);
+	    /* avd = 1 << (avd-1); */
+    } else avd = 1;
     return (avd);
 }
 
@@ -299,7 +303,7 @@ changeDepthRes(UInt32 ndepth)
 			  &enablecol);
     (void) _WinScreenMode(winScreenModeGetSupportedDepths, NULL, NULL,
                           &dep, NULL);
-    // in theory there's 16color _as well as_ 16grays
+    /* in theory there's 16color _as well as_ 16grays */
     cdep = 1 + hibit(dep);
     if ((cdep >= ndepth) && (ndepth > 1)) {
         do {
@@ -311,9 +315,7 @@ changeDepthRes(UInt32 ndepth)
             dep = dep & ~(1 << cdep);
         } while (dep);
 
-        // if we're trying for hires we _must_ use color (256 minimum)
-        // if (hires && (depth < 8)) depth = 8;
-        // Could not match...
+        /* Could not match... */
         if (!dep) {
             (void) unloadHiRes();
             depth = 1;

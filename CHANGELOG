@@ -10,6 +10,8 @@ Legend:
 
 Version 0.14dev
   * Savegames are backed up with application data
+  * Removed recursion from the distribution loop (speed up)
+  * savegame problems... autosave != citysave
 
 Version 0.13br2
 ==========================

@@ -9,7 +9,8 @@
 void BudgetInit(void);
 void BudgetFreeMem(void);
 
-extern Boolean hBudget(EventPtr event)
+Boolean
+hBudget(EventPtr event)
 {
     FormPtr form;
     int handled = 0;
@@ -58,7 +59,8 @@ extern Boolean hBudget(EventPtr event)
     return handled;
 }
 
-void BudgetInit(void)
+void
+BudgetInit(void)
 {
     FormPtr form;
     char * temp;
@@ -66,43 +68,52 @@ void BudgetInit(void)
     form = FrmGetActiveForm();
 
     temp = MemPtrNew(12);
-    StrPrintF(temp,"%lu", BudgetGetNumber(BUDGET_RESIDENTIAL));
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_res)), temp);
+    StrPrintF(temp,"%lu", BudgetGetNumber(bnResidential));
+    CtlSetLabel(FrmGetObjectPtr(form,
+          FrmGetObjectIndex(form, labelID_budget_res)), temp);
 
     temp = MemPtrNew(12);
-    StrPrintF(temp,"%lu", BudgetGetNumber(BUDGET_COMMERCIAL));
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_com)), temp);
+    StrPrintF(temp,"%lu", BudgetGetNumber(bnCommercial));
+    CtlSetLabel(FrmGetObjectPtr(form,
+          FrmGetObjectIndex(form, labelID_budget_com)), temp);
 
     temp = MemPtrNew(12);
-    StrPrintF(temp,"%lu", BudgetGetNumber(BUDGET_INDUSTRIAL));
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_ind)), temp);
+    StrPrintF(temp,"%lu", BudgetGetNumber(bnIndustrial));
+    CtlSetLabel(FrmGetObjectPtr(form,
+          FrmGetObjectIndex(form, labelID_budget_ind)), temp);
 
     temp = MemPtrNew(12);
-    StrPrintF(temp,"%lu", BudgetGetNumber(BUDGET_TRAFFIC));
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_tra)), temp);
+    StrPrintF(temp,"%lu", BudgetGetNumber(bnTraffic));
+    CtlSetLabel(FrmGetObjectPtr(form,
+          FrmGetObjectIndex(form, labelID_budget_tra)), temp);
 
     temp = MemPtrNew(12);
-    StrPrintF(temp,"%lu", BudgetGetNumber(BUDGET_POWER));
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_pow)), temp);
+    StrPrintF(temp,"%lu", BudgetGetNumber(bnPower));
+    CtlSetLabel(FrmGetObjectPtr(form,
+          FrmGetObjectIndex(form, labelID_budget_pow)), temp);
 
     temp = MemPtrNew(12);
-    StrPrintF(temp,"%lu", BudgetGetNumber(BUDGET_DEFENCE));
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_def)), temp);
+    StrPrintF(temp,"%lu", BudgetGetNumber(bnDefence));
+    CtlSetLabel(FrmGetObjectPtr(form,
+          FrmGetObjectIndex(form, labelID_budget_def)), temp);
 
     temp = MemPtrNew(12);
-    StrPrintF(temp,"%li", BudgetGetNumber(BUDGET_CURRENT_BALANCE));
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_now)), temp);
+    StrPrintF(temp,"%li", BudgetGetNumber(bnCurrentBalance));
+    CtlSetLabel(FrmGetObjectPtr(form,
+          FrmGetObjectIndex(form, labelID_budget_now)), temp);
 
     temp = MemPtrNew(12);
-    StrPrintF(temp,"%+li", BudgetGetNumber(BUDGET_CHANGE));
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_tot)), temp);
+    StrPrintF(temp,"%+li", BudgetGetNumber(bnChange));
+    CtlSetLabel(FrmGetObjectPtr(form,
+          FrmGetObjectIndex(form, labelID_budget_tot)), temp);
 
     temp = MemPtrNew(12);
-    StrPrintF(temp,"%li", BudgetGetNumber(BUDGET_NEXT_MONTH));
-    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_bal)), temp);
+    StrPrintF(temp,"%li", BudgetGetNumber(bnNextMonth));
+    CtlSetLabel(FrmGetObjectPtr(form,
+          FrmGetObjectIndex(form, labelID_budget_bal)), temp);
 
 
-    // set up editable upkeep fields
+    /* set up editable upkeep fields */
     {
         MemHandle texthandle;
         MemPtr text;
@@ -117,7 +128,8 @@ void BudgetInit(void)
     }
 }
 
-void BudgetFreeMem(void)
+void
+BudgetFreeMem(void)
 {
     FormPtr form;
 
@@ -132,7 +144,7 @@ void BudgetFreeMem(void)
     MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_bal))));
     MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_now))));
 
-    // don't forget to save the upkeep settings ;)
+    /* don't forget to save the upkeep settings ;) */
     {
         int i,j;
         for (i=0; i<3; i++) {

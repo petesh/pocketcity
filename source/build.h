@@ -1,4 +1,4 @@
-// the BUILD_* fits the defines in simcity.h (palm)
+/* the BUILD_* fits the defines in simcity.h (palm) */
 typedef enum {
     Be_Bulldozer = 0,
     Be_Zone_Residential,
@@ -15,7 +15,7 @@ typedef enum {
     Be_Fire_Station,
     Be_Police_Station,
     Be_Military_Base,
-    // Defense items are bigger.
+    /* Defense items are bigger. */
     Be_Defence_Fire,
     Be_Defence_Police,
     Be_Defence_Military,

@@ -1,6 +1,6 @@
-/* interface to the stack functions */
 #if !defined(_STACK_H_)
 #define _STACK_H_
+/* interface to the stack functions */
 
 void *StackNew(void);
 void StackDelete(void *);

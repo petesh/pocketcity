@@ -1,6 +1,6 @@
 #include "simcity_resconsts.h"
 
-MENU ID menuID_pocketCity
+MENU ID menu_pocketCity
 BEGIN
   PULLDOWN "Game"
   BEGIN
@@ -14,8 +14,14 @@ BEGIN
   END
   PULLDOWN "Build"
   BEGIN
-	MENUITEM "Remove defence"               menuitemID_removeDefence
-	MENUITEM "List..."                      menuitemID_buildExtra "i"
+	MENUITEM "Remove defence"               mi_removeDefence
+	MENUITEM "List..."                      gi_buildExtra "i"
+	MENUITEM SEPARATOR
+	MENUITEM "Fire"				mi_CauseFire
+	MENUITEM "Meltdown(NYI)"		mi_CauseMeltDown
+	MENUITEM "Mo'zilla"			mi_CauseMonster
+	MENUITEM "Dragon"			mi_CauseDragon
+	MENUITEM "Meteor"			mi_CauseMeteor
   END
   PULLDOWN "Speed"
   BEGIN

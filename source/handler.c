@@ -7,7 +7,7 @@
 #include "build.h"
 #include "simulation.h"
 
-// for the palm
+/* for the palm */
 #ifdef PALM
 #include <PalmOS.h>
 #include <unix_string.h>
@@ -17,10 +17,10 @@
 #include <stdlib.h>
 #endif
 
-extern void
+void
 PCityMain(void)
 {
-    // called on entry
+    /* called on entry */
     InitWorld();
     SetMapSize(100);
     ResizeWorld(GetMapMul());
@@ -28,7 +28,7 @@ PCityMain(void)
     game.gameLoopSeconds = SPEED_PAUSED;
 }
 
-extern void
+void
 SetupNewGame(void)
 {
     memset((void *)&vgame, 0, sizeof(vgame));
@@ -44,8 +44,8 @@ SetupNewGame(void)
     game.upkeep[1] = 100;
     game.upkeep[2] = 100;
     SetMapSize(100);
-    game.tax = 8; // TODO: changeable tax rate
-    game.disaster_level = 1; // TODO: = difficulty_level
+    game.tax = 8; /* TODO: changeable tax rate */
+    game.disaster_level = 1; /* TODO: = difficulty_level */
     ResizeWorld(GetMapMul());
     game.gameLoopSeconds = SPEED_PAUSED;
     CreateFullRiver();
@@ -63,7 +63,7 @@ DrawGame(int full)
     UIDrawBorder();
     RedrawAllFields();
     UIUpdateBuildIcon();
-    //DrawHeader();
+    /* DrawHeader(); */
     full = full;
 
     UIFinishDrawing();

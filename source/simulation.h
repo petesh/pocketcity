@@ -1,27 +1,34 @@
-extern void Sim_Distribute(void);
-extern void Sim_Distribute_Specific(int type);
-extern int Sim_DoPhase(int nPhase);
-extern signed long int BudgetGetNumber(int type);
-extern void UpdateVolatiles(void);
+#if !defined(_SIMULATION_H_)
+#define _SIMULATION_H_
 
-void NewScratch(void);
-void FreeScratch(void);
-int GetScratch(long i);
-void SetScratch(long i);
-void ClearScratch(void);
-
-enum BudgetNumbers {
-    BUDGET_RESIDENTIAL,
-    BUDGET_COMMERCIAL,
-    BUDGET_INDUSTRIAL,
-    BUDGET_TRAFFIC,
-    BUDGET_POWER,
-    BUDGET_DEFENCE,
-    BUDGET_CURRENT_BALANCE,
-    BUDGET_CHANGE,
-    BUDGET_NEXT_MONTH
-};
+typedef enum {
+    bnResidential = 0,
+    bnCommercial,
+    bnIndustrial,
+    bnTraffic,
+    bnPower,
+    bnDefence,
+    bnCurrentBalance,
+    bnChange,
+    bnNextMonth
+} BudgetNumber;
 
 #define POWEREDBIT      ((unsigned char)0x01)
 #define WATEREDBIT      ((unsigned char)0x02)
 #define SCRATCHBIT      ((unsigned char)0x80)
+
+void Sim_Distribute(void);
+void Sim_Distribute_Specific(int type);
+int Sim_DoPhase(int nPhase);
+long int BudgetGetNumber(BudgetNumber type);
+void UpdateVolatiles(void);
+
+#define GetScratch(i) (GetWorldFlags(i) & SCRATCHBIT)
+#define SetScratch(i) OrWorldFlags((i), SCRATCHBIT)
+#define UnsetScratch(i) AndWorldFlags((i), (unsigned char)~SCRATCHBIT)
+#define ClearScratch() { \
+	long i = 0; \
+	for (; i < GetMapMul(); i++ ) UnsetScratch(i); \
+}
+
+#endif /* _SIMULATION_H_ */

@@ -1,8 +1,8 @@
 VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 CC = gcc
-GFLAGS = `pkg-config --cflags gtk+-2.0`
+GFLAGS := $(shell pkg-config --cflags gtk+-2.0)
 CFLAGS = -O2 -Wall -DLINUX $(GFLAGS)
-GLFLAGS = `pkg-config --libs gtk+-2.0`
+GLFLAGS = $(shell pkg-config --libs gtk+-2.0)
 LFLAGS = $(GLFLAGS)
 OBJECTS = main.o savegame.o budget.o \
 	handler.o build.o disaster.o drawing.o globals.o simulation.o \

@@ -1,5 +1,5 @@
-#if !defined(_ZAKDEF_H)
-#define _ZAKDEF_H
+#if !defined(_ZAKDEF_H_)
+#define _ZAKDEF_H_
 
 /*
  * how often the disasters are
@@ -7,14 +7,19 @@
  */
 #define SIM_GAME_LOOP_DISASTER  2
 
-/* the possible errors/warnings */
-#define ERROR_OUT_OF_MEMORY     1
-#define ERROR_OUT_OF_MONEY      2
-#define ERROR_FIRE_OUTBREAK     3
-#define ERROR_PLANT_EXPLOSION   4
-#define ERROR_MONSTER           5
-#define ERROR_DRAGON            6
-#define ERROR_METEOR            7
+/*
+ * the possible errors/warnings
+ * Make Sure they don't intersect, there's one place where they meet
+ */
+typedef enum {
+	enOutOfMemory = 1,
+	enOutOfMoney,
+	diFireOutbreak = 80,
+	diPlantExplosion,
+	diMonster,
+	diDragon,
+	diMeteor
+} erdiType;
 
 /*
  * the settings for the speeds
@@ -37,7 +42,8 @@
 #define ZONE_INDUSTRIAL         3
 
 typedef enum {
-    ztCommercial = 1,
+    ztWhat = 0,
+    ztCommercial,
     ztResidential,
     ztIndustrial
 } zoneType;
@@ -69,13 +75,13 @@ typedef enum {
 #define TYPE_POLICE_STATION     24
 #define TYPE_MILITARY_BASE      25
 #define TYPE_WATER_PUMP         26
-// 30..39 commercial
+/* 30..39 commercial */
 #define TYPE_COMMERCIAL_MIN     30
 #define TYPE_COMMERCIAL_MAX     39
-// 40..49 residential
+/* 40..49 residential */
 #define TYPE_RESIDENTIAL_MIN    40
 #define TYPE_RESIDENTIAL_MAX    49
-// 50..59 industrial
+/* 50..59 industrial */
 #define TYPE_INDUSTRIAL_MIN     50
 #define TYPE_INDUSTRIAL_MAX     59
 
@@ -109,22 +115,22 @@ typedef enum {
 #define COUNT_WATERPIPES       14
 #define COUNT_WATER_PUMPS      15
 
-// Supply units per plant
+/* Supply units per plant */
 #define SUPPLY_POWER_PLANT      100
 #define SUPPLY_NUCLEAR_PLANT    300
 #define SUPPLY_WATER_PUMP       200
 
-// income per zone/level
+/* income per zone/level */
 #define INCOME_RESIDENTIAL      25
 #define INCOME_COMMERCIAL       35
 #define INCOME_INDUSTRIAL       30
 
-// for the upkeep[] array
+/* for the upkeep[] array */
 #define UPKEEPS_TRAFFIC         0
 #define UPKEEPS_POWER           1
 #define UPKEEPS_DEFENCE         2
 
-//upkeep cost per tile
+/* upkeep cost per tile */
 #define UPKEEP_ROAD             2
 #define UPKEEP_POWERLINE        1
 #define UPKEEP_NUCLEARPLANT     500
@@ -133,10 +139,10 @@ typedef enum {
 #define UPKEEP_POLICE_STATIONS  100
 #define UPKEEP_MILITARY_BASES   500
 
-// moveable objects
-// max 10, or savegames for palm fail...
+/* moveable objects */
+/* max 10, or savegames for palm fail... */
 #define NUM_OF_OBJECTS          10
-// must be at least 3
+/* must be at least 3 */
 #define OBJ_CHANCE_OF_TURNING   5
 typedef struct _moveable_object {
         unsigned short x;
@@ -146,17 +152,18 @@ typedef struct _moveable_object {
 } MoveableObject;
 
 enum Objects {
-    OBJ_MONSTER = 0, OBJ_DRAGON,
-    OBJ_CHOPPER, // not done
-    OBJ_SHIP,    // not done
-    OBJ_TRAIN    // not done
+    OBJ_MONSTER = 0,
+    OBJ_DRAGON,
+    OBJ_CHOPPER, /* not done */
+    OBJ_SHIP,    /* not done */
+    OBJ_TRAIN    /* not done */
 };
 
-// defence units
-// max 10, or savegames for palm fail...
+/* defence units */
+/* max 10, or savegames for palm fail... */
 #define NUM_OF_UNITS            10
 
-// what each field in the objects[] are used for
+/* what each field in the objects[] are used for */
 #define DEF_POLICE_START        0
 #define DEF_POLICE_END          2
 #define DEF_FIREMEN_START       3
@@ -164,7 +171,7 @@ enum Objects {
 #define DEF_MILITARY_START      8
 #define DEF_MILITARY_END        9
 
-// Update codes for grids
+/* Update codes for grids */
 #define GRID_POWER              1
 #define GRID_WATER              2
 #define GRID_ALL                (GRID_POWER|GRID_WATER)
@@ -188,26 +195,27 @@ enum DefenceUnitTypes {
 
 typedef struct _game_struct05 {
     char            version[4];
-    char            _mapsize;            // The size of each axis of the map
-    int             _visible_x;          // ??
-    int             _visible_y;          // ??
-    int             map_xpos;           // start visible x axis
-    int             map_ypos;           // start visible y axis
-    int             _cursor_xpos;        // ??
-    int             _cursor_ypos;        // ??
-    long signed     credits;            // Show me the money
-    long unsigned   _BuildCount[20];     // ??
-    long unsigned   TimeElapsed;        // Number of months past 00
-    unsigned char   tax;                // Tax rate
-    unsigned char   _tileSize;           // ??
-    unsigned short  gameLoopSeconds;    // Speed
-    char            cityname[20];       // Name of city
-    unsigned char   upkeep[3];          // upkeep %ages for bits
-    unsigned char   disaster_level;     // rate of disasters
-    DefenceUnit     units[10];          // Defence Units
-    MoveableObject  objects[10];        // 
+    char            mapsize;            /* The size of each axis of the map */
+    int             _visible_x;         /* deprecated */
+    int             _visible_y;         /* deprecated */
+    int             map_xpos;           /* start visible x axis */
+    int             map_ypos;           /* start visible y axis */
+    int             _cursor_xpos;       /* Deprecated */
+    int             _cursor_ypos;       /* Deprecated */
+    long signed     credits;            /* Show me the money */
+    long unsigned   _BuildCount[20];    /* Deprecated... calculated on reload */
+    long unsigned   TimeElapsed;        /* Number of months past 00 */
+    unsigned char   tax;                /* Tax rate */
+    unsigned char   _tileSize;          /* Deprecated */
+    unsigned short  gameLoopSeconds;    /* Speed */
+    char            cityname[20];       /* Name of city */
+    unsigned char   upkeep[3];          /* upkeep %ages for bits */
+    unsigned char   disaster_level;     /* rate of disasters */
+    DefenceUnit     units[10];          /* Defence Units */
+    MoveableObject  objects[10];        /* Special objects */
 } GameStruct05;
 
+/* Desired new version */
 typedef struct _game_struct06 {
     char                version[4];
     char                mapsize;
@@ -220,10 +228,10 @@ typedef struct _game_struct06 {
     unsigned char       gameLoopSeconds;
     char                cityname[20];
     unsigned char       disaster_level;
-    unsigned int        units;
-    unsigned int        objects;
-    //DevenceUnits        units[10];
-    //MoveableObject      objects[10];
+    unsigned int        defenceUnitCount;
+    DefenceUnit        *units;
+    unsigned int        moveableObjectCount;
+    MoveableObject     *objects;
 } GameStruct06;
 
 typedef GameStruct05 GameStruct;
@@ -235,39 +243,39 @@ typedef struct _psuCount {
 } psuCount;
 
 typedef struct _vgame_struct {
-    int                 _mapsize;
+    int                 mapmul;
     int                 gridsToUpdate;
-    long unsigned       BuildCount[20];     // count of elements...
-    unsigned char       tileSize;           // ??
-    unsigned short      gameLoopSeconds;    // Speed... for pause toggles
-    int                 visible_x;          // ??
-    int                 visible_y;          // ??
-    int                 cursor_xpos;        // ??
-    int                 cursor_ypos;        // ??
+    long unsigned       BuildCount[20];     /* count of elements */
+    unsigned char       tileSize;           /* for math */
+    unsigned short      oldLoopSeconds;     /* Speed... for pause toggles */
+    int                 visible_x;          /* visible tiles on the X */
+    int                 visible_y;          /* visible tiles on the y */
+    int                 cursor_xpos;        /* cursor ?? */
+    int                 cursor_ypos;        /* cursor ?? */
 
 } vGameStruct;
 
 #define SAVEGAMEVERSION     "PC05"
 
-#define GetMapSize() (game._mapsize)
-#define SetMapSize(x) { game._mapsize = (x); \
-    vgame._mapsize = game._mapsize * game._mapsize; \
+#define GetMapSize() (game.mapsize)
+#define SetMapSize(x) { game.mapsize = (x); \
+    vgame.mapmul = game.mapsize * game.mapsize; \
 }
-#define GetMapMul() (vgame._mapsize)
+#define GetMapMul() (vgame.mapmul)
 #define AddGridUpdate(T)        (vgame.gridsToUpdate |= T)
 #define NeedsUpdate(T)          (vgame.gridsToUpdate | T)
 #define ClearUpdate(T)          (vgame.gridsToUpdate &= ~T)
 
-// a very nice macro
+/* a very nice macro */
 #define WORLDPOS(x,y)		((x)+(y)*(GetMapSize()))
 
 #define SaveSpeed()             { \
-    vgame.gameLoopSeconds = game.gameLoopSeconds; \
+    vgame.oldLoopSeconds = game.gameLoopSeconds; \
     game.gameLoopSeconds = SPEED_PAUSED; \
 }
 
 #define RestoreSpeed()          { \
-    game.gameLoopSeconds = vgame.gameLoopSeconds; \
+    game.gameLoopSeconds = vgame.oldLoopSeconds; \
 }
 
 #endif /* _ZAKDEF_H */

@@ -24,10 +24,10 @@ static void RemoveDefence(int xpos, int ypos);
 
 static int SpendMoney(unsigned long howMuch);
 
-// this array is dependent on mirroring the BuildCodes enumeration
+/* this array is dependent on mirroring the BuildCodes enumeration */
 static const struct _bldStruct {
-    unsigned int bt; // build type
-    BuildF func;        // Function to call
+    unsigned int bt; /* build type */
+    BuildF func;        /* Function to call */
     unsigned int type;
     unsigned int gridsToUpdate;
 } buildStructure[] = {
@@ -97,25 +97,26 @@ Build_Defence(int xpos, int ypos, unsigned int type)
     nCounter = ((type == DuPolice) ? COUNT_POLICE_STATIONS :
       (type == DuFireman ? COUNT_FIRE_STATIONS :
        COUNT_MILITARY_BASES));
-    if (vgame.BuildCount[nCounter] == 0) { return; } // no special building....
+    if (vgame.BuildCount[nCounter] == 0) { return; } /* no special building */
     s = ((type == DuPolice) ? DEF_POLICE_START : (type == DuFireman ? DEF_FIREMEN_START : DEF_MILITARY_START));
     e = ((type == DuPolice) ? DEF_POLICE_END : (type == DuFireman ? DEF_FIREMEN_END : DEF_MILITARY_END));
+    /* make sure we can't make too many objects */
     m = ((e-s)+1 < vgame.BuildCount[nCounter]/3) ? e : 
-        vgame.BuildCount[nCounter]/3+s; // make sure we can't make too many objects
+        vgame.BuildCount[nCounter]/3+s;
 
 
-    // first remove all defence on this tile
+    /* first remove all defence on this tile */
     for (i=0; i<NUM_OF_UNITS; i++) {
         if (xpos == game.units[i].x &&
             ypos == game.units[i].y &&
             game.units[i].active != 0) {
-            if (game.units[i].type == type) { return; } // no need to build something already here
+            /* no need to build something already here */
+            if (game.units[i].type == type) { return; }
             game.units[i].active = 0;
         }
     }
 
-    // find an empty slot for the new
-    // defence unit
+    /* find an empty slot for the new defence unit */
     for (i=s; i<=m; i++) {
         if (game.units[i].active == 0) {
             sel = i;
@@ -123,7 +124,7 @@ Build_Defence(int xpos, int ypos, unsigned int type)
         }
     }
     if (sel == -1) {
-        // none found - start from the beginning
+        /* none found - start from the beginning */
         for (i=s; i<=m; i++) {
             if (game.units[i].active == 1) {
                 sel = i;
@@ -135,7 +136,7 @@ Build_Defence(int xpos, int ypos, unsigned int type)
         }
     }
     if (sel == -1) {
-        // if STILL none found - then it's number 0
+        /* if STILL none found - then it's number 0 */
         for (i=s; i<=m; i++) {
             if (game.units[i].active != 0) {
                 game.units[i].active = 1;
@@ -173,7 +174,7 @@ Build_Bulldoze(int xpos, int ypos, unsigned int _type)
         if (SpendMoney(BUILD_COST_BULLDOZER)) {
             Build_Destroy(xpos, ypos);
         } else {
-            UIDisplayError(ERROR_OUT_OF_MONEY);
+            UIDisplayError(enOutOfMoney);
         }
     }
     RemoveDefence(xpos, ypos); 
@@ -208,7 +209,7 @@ Build_Destroy(int xpos, int ypos)
     vgame.BuildCount[COUNT_WATER_PUMPS] -= (type == TYPE_WATER_PUMP) ? 1 : 0;
     AddGridUpdate(GRID_ALL);
     if (type == TYPE_BRIDGE || type == TYPE_REAL_WATER) {
-        // A bridge turns into real_water when detroyed
+        /* A bridge turns into real_water when detroyed */
         SetWorld(WORLDPOS(xpos,ypos),TYPE_REAL_WATER);
     } else {
         SetWorld(WORLDPOS(xpos,ypos),TYPE_DIRT);
@@ -255,14 +256,14 @@ Build_Generic(int xpos, int ypos, unsigned int type)
             SetWorld(WORLDPOS(xpos,ypos), (unsigned char)type);
             DrawCross(xpos, ypos);
 
-            //  update counter
+            /*  update counter */
             if (IsRoad(type)) {
                 vgame.BuildCount[COUNT_ROADS]++;
             } else {
                 if (cmi->count != -1) vgame.BuildCount[cmi->count]++;
             }
         } else {
-            UIDisplayError(ERROR_OUT_OF_MONEY);
+            UIDisplayError(enOutOfMoney);
         }
     }
     UnlockWorld();
@@ -277,53 +278,54 @@ Build_Road(int xpos, int ypos, unsigned int type)
     old = GetWorld(WORLDPOS(xpos, ypos));
     if (old == TYPE_POWER_LINE) {
         switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),1)) { 
-            case 70: // straight power line, we can build here
+            case 70: /* straight power line, we can build here */
                 if (SpendMoney(BUILD_COST_ROAD)) {
                     SetWorld(WORLDPOS(xpos, ypos),TYPE_POWERROAD_1);
                     DrawCross(xpos, ypos);
                     vgame.BuildCount[COUNT_ROADS]++;
                 } else {
-                    UIDisplayError(ERROR_OUT_OF_MONEY);
+                    UIDisplayError(enOutOfMoney);
                 }
                 break;
-            case 71: // ditto
+            case 71: /* ditto */
                 if (SpendMoney(BUILD_COST_ROAD)) {
                     SetWorld(WORLDPOS(xpos, ypos),TYPE_POWERROAD_2);
                     DrawCross(xpos, ypos);
                     vgame.BuildCount[COUNT_ROADS]++;
                 } else {
-                    UIDisplayError(ERROR_OUT_OF_MONEY);
+                    UIDisplayError(enOutOfMoney);
                 }
                 break;
         }
     } else if (old == TYPE_WATER_PIPE) {
         switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),3)) { 
-            case 92: // straight water pipe, we can build here
+            case 92: /* straight water pipe, we can build here */
                 if (SpendMoney(BUILD_COST_ROAD)) {
                     SetWorld(WORLDPOS(xpos, ypos),TYPE_WATERROAD_1);
                     DrawCross(xpos, ypos);
                     vgame.BuildCount[COUNT_ROADS]++;
                 } else {
-                    UIDisplayError(ERROR_OUT_OF_MONEY);
+                    UIDisplayError(enOutOfMoney);
                 }
                 break;
-            case 93: // ditto
+            case 93: /* ditto */
                 if (SpendMoney(BUILD_COST_ROAD)) {
                     SetWorld(WORLDPOS(xpos, ypos),TYPE_WATERROAD_2);
                     DrawCross(xpos, ypos);
                     vgame.BuildCount[COUNT_ROADS]++;
                 } else {
-                    UIDisplayError(ERROR_OUT_OF_MONEY);
+                    UIDisplayError(enOutOfMoney);
                 }
                 break;
         }
-    } else if (old == TYPE_REAL_WATER) { // build a bridge across the water (yup, that's a song)
+    } else if (old == TYPE_REAL_WATER) {
+        /* build a bridge across the water (yup, that's a song) */
         if (SpendMoney(BUILD_COST_BRIDGE)) {
             SetWorld(WORLDPOS(xpos, ypos), TYPE_BRIDGE);
             DrawCross(xpos, ypos);
             vgame.BuildCount[COUNT_ROADS]++;
         } else {
-            UIDisplayError(ERROR_OUT_OF_MONEY);
+            UIDisplayError(enOutOfMoney);
         }
     } else if (old == TYPE_DIRT) {
         if (SpendMoney(BUILD_COST_ROAD)) {
@@ -331,7 +333,7 @@ Build_Road(int xpos, int ypos, unsigned int type)
             DrawCross(xpos, ypos);
             vgame.BuildCount[COUNT_ROADS]++;
         } else {
-            UIDisplayError(ERROR_OUT_OF_MONEY);
+            UIDisplayError(enOutOfMoney);
         }
     }
     UnlockWorld();
@@ -347,22 +349,22 @@ Build_PowerLine(int xpos, int ypos, unsigned int type)
     if (old == TYPE_DIRT || old == TYPE_ROAD) {
         if (old == TYPE_ROAD) {
             switch(GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),0)) {
-                case 10: // straight road, we can build a power line
+                case 10: /* straight road, we can build a power line */
                     if (SpendMoney(BUILD_COST_POWER_LINE)) {
                         SetWorld(WORLDPOS(xpos, ypos),TYPE_POWERROAD_2);
                         DrawCross(xpos, ypos);
                         vgame.BuildCount[COUNT_POWERLINES]++;
                     } else {
-                        UIDisplayError(ERROR_OUT_OF_MONEY);
+                        UIDisplayError(enOutOfMoney);
                     }
                     break;
-                case 11: // ditto
+                case 11: /* ditto */
                     if (SpendMoney(BUILD_COST_POWER_LINE)) {
                         SetWorld(WORLDPOS(xpos, ypos),TYPE_POWERROAD_1);
                         DrawCross(xpos, ypos);
                         vgame.BuildCount[COUNT_POWERLINES]++;
                     } else {
-                        UIDisplayError(ERROR_OUT_OF_MONEY);
+                        UIDisplayError(enOutOfMoney);
                     }
                     break;
             }
@@ -372,7 +374,7 @@ Build_PowerLine(int xpos, int ypos, unsigned int type)
                 DrawCross(xpos, ypos);
                 vgame.BuildCount[COUNT_POWERLINES]++;
             } else {
-                UIDisplayError(ERROR_OUT_OF_MONEY);
+                UIDisplayError(enOutOfMoney);
             }
         }
     }
@@ -389,22 +391,22 @@ Build_WaterPipe(int xpos, int ypos, unsigned int type)
     if (old == TYPE_DIRT || old == TYPE_ROAD) {
         if (old == TYPE_ROAD) {
             switch(GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),0)) {
-                case 10: // straight road, we can build a power line
+                case 10: /* straight road, we can build a power line */
                     if (SpendMoney(BUILD_COST_WATER_PIPES)) {
                         SetWorld(WORLDPOS(xpos, ypos),TYPE_WATERROAD_2);
                         DrawCross(xpos, ypos);
                         vgame.BuildCount[COUNT_WATERPIPES]++;
                     } else {
-                        UIDisplayError(ERROR_OUT_OF_MONEY);
+                        UIDisplayError(enOutOfMoney);
                     }
                     break;
-                case 11: // ditto
+                case 11: /* ditto */
                     if (SpendMoney(BUILD_COST_WATER_PIPES)) {
                         SetWorld(WORLDPOS(xpos, ypos),TYPE_WATERROAD_1);
                         DrawCross(xpos, ypos);
                         vgame.BuildCount[COUNT_WATERPIPES]++;
                     } else {
-                        UIDisplayError(ERROR_OUT_OF_MONEY);
+                        UIDisplayError(enOutOfMoney);
                     }
                     break;
             }
@@ -414,7 +416,7 @@ Build_WaterPipe(int xpos, int ypos, unsigned int type)
                 DrawCross(xpos, ypos);
                 vgame.BuildCount[COUNT_WATERPIPES]++;
             } else {
-                UIDisplayError(ERROR_OUT_OF_MONEY);
+                UIDisplayError(enOutOfMoney);
             }
         }
     }
@@ -428,7 +430,7 @@ SpendMoney(unsigned long howMuch)
 
     game.credits -= howMuch;
 
-    // now redraw the credits
+    /* now redraw the credits */
     UIInitDrawing();
     UIDrawCredits();
     UIFinishDrawing();
@@ -473,7 +475,8 @@ CreateFullRiver(void)
     UnlockWorld();
 }
 
-/* creates some "spraypainted" (someone called them that ;)
+/*
+ * creates some "spraypainted" (someone called them that)
  * forests throughout the `wilderness`
  */
 extern void
@@ -490,7 +493,7 @@ CreateForests(void)
 
 }
 
-// create a single forest - look above
+/* create a single forest - look above */
 static void
 CreateForest(long unsigned int pos, int size)
 {

@@ -6,10 +6,11 @@
 #define formID_quickList                 1005
 #define formID_extraBuild                1006
 #define formID_options                   1007
+#define formID_DistribDetails            1008
 
-#define menuID_pocketCity                1000
-#define menuID_budget                    1001
-#define menuID_map                       1002
+#define menu_pocketCity               	1000
+#define menu_budget                    	1001
+#define menu_map                       	1002
 
 #define menuitemID_loadGame              1001
 #define menuitemID_saveGame              1002
@@ -28,33 +29,40 @@
 #define menuID_PauseSpeed                1056
 
 #define poplabel                         1055
+
+#define mi_removeDefence		1057
+
+#define gi_buildBulldoze         1100
+#define gi_buildResidential      1101
+#define gi_buildCommercial       1102
+#define gi_buildIndustrial       1103
+#define gi_buildRoad             1104
+
+#define gi_buildPowerPlant       1105
+#define gi_buildNuclearPlant     1106
+#define gi_buildPowerLine        1107
+
+#define gi_buildWaterPlant       1108
+#define gi_buildWaterPipe        1109
+
+#define gi_buildTree             1110
+#define gi_buildWater            1111
+#define gi_defenceFire           1112
+#define gi_defencePolice         1113
+#define gi_defenceMilitary       1114
+
+#define gi_buildExtra            1115 // pops up an extra list
+
+#define mi_CauseFire			1200
+#define mi_CauseMeltDown		1201
+#define	mi_CauseMonster			1202
+#define mi_CauseDragon			1203
+#define mi_CauseMeteor			1204
+
 #define listID_shifter_popup             5000
 #define listID_shifter                   5001
 
-#define menuitemID_removeDefence         1057
-
-#define menuitemID_buildBulldoze         1100
-#define menuitemID_buildResidential      1101
-#define menuitemID_buildCommercial       1102
-#define menuitemID_buildIndustrial       1103
-#define menuitemID_buildRoad             1104
-
-#define menuitemID_buildPowerPlant       1105
-#define menuitemID_buildNuclearPlant     1106
-#define menuitemID_buildPowerLine        1107
-
-#define menuitemID_buildWaterPlant       1108
-#define menuitemID_buildWaterPipe        1109
-
-#define menuitemID_buildTree             1110
-#define menuitemID_buildWater            1111
-#define menuitemID_defenceFire           1112
-#define menuitemID_defencePolice         1113
-#define menuitemID_defenceMilitary       1114
-#define menuitemID_buildExtra            1115 // pops up an extra list
-
 #define OFFSET_EXTRA                     15 // the extra for the offset
-
 
 // notice how the IDs here are the same as the menuIDs (uptil the "extra")
 #define bitmapID_iconBulldoze            1100
@@ -72,12 +80,13 @@
 #define bitmapID_iconTree                1110
 #define bitmapID_iconWater               1111
 
-// anything after this isn't on the toolbar
-#define bitmapID_iconExtra               1112
+#define bitmapID_iconDefFire             1112
+#define bitmapID_iconDefPolice           1113
+#define bitmapID_iconDefMilitary         1114
 
-#define bitmapID_iconDefFire             1113
-#define bitmapID_iconDefPolice           1114
-#define bitmapID_iconDefMilitary         1115
+// anything after this isn't on the toolbar
+#define bitmapID_iconExtra               1115
+
 
 #define bitmapID_iconPushed              1400
 
@@ -89,13 +98,10 @@
 #define alertID_loadGame                 1006
 #define alertID_saveGame                 1007
 #define alertID_invalidSaveVersion       1008
-//#define alertID_<reuse me>	         1009
-//#define alertID_<reuse me>	         1010
-#define alertID_fireOutBreak             1011
-#define alertID_plantExplosion           1012
-#define alertID_monster                  1013
-#define alertID_dragon                   1014
-#define alertID_meteor			 1015
+#define alertID_generic_disaster         1009
+#define alertID_majorbad                 1010
+
+#define st_disasters			2000
 
 // the jumps in these defines makes coding easier
 #define bitmapID_SpeedPaused            3000
@@ -139,6 +145,15 @@
 #define buttonID_dis_one                1011
 #define buttonID_dis_two                1012
 #define buttonID_dis_three              1013
+
+// Controls for the DistribDetails Form
+#define pb_dd_overview                  1000
+#define pb_dd_power                     1001
+#define pb_dd_water                     1002
+
+#define la_dd_sitespowered		1003
+#define la_dd_powersupplied		1004
+#define la_dd_bubbles			1005
 
 // ok and cancel
 #define buttonID_OK                     1100

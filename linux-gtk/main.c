@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     srand(time(0));
 
     SetUpMainWindow();
-    // start the timer
+    /* start the timer */
     timerID = gtk_timeout_add(1000, (mainloop_callback),0);
 
     gtk_main();
@@ -82,7 +82,7 @@ void UISetSpeed(GtkWidget *w, gpointer data)
 
 gint mainloop_callback(gpointer data)
 {
-    // this will be called every second
+    /* this will be called every second */
     unsigned int phase = 1;
     timekeeper++;
     timekeeperdisaster++;
@@ -105,7 +105,7 @@ gint mainloop_callback(gpointer data)
     }
 
     UIUpdateBudget();
-    return TRUE; // yes, call us again in a sec
+    return TRUE; /* yes, call us again in a sec */
 }
 
 gint toolbox_callback(GtkWidget *widget, gpointer data)
@@ -211,10 +211,10 @@ void SetUpMainWindow(void)
     poplabel = gtk_label_new("Population");
     timelabel = gtk_label_new("Game Time");
 
-    // the actual playfield is a GtkDrawingArea
+    /* the actual playfield is a GtkDrawingArea */
     drawingarea = gtk_drawing_area_new();
     gtk_drawing_area_size((GtkDrawingArea*)drawingarea,320,240);
-    // and some scrollbars for the drawingarea
+    /* and some scrollbars for the drawingarea */
     playscrollerh = gtk_adjustment_new(60,10,110,1,10,20);
     playscrollerv = gtk_adjustment_new(57,10,107,1,10,15);
     hscroll = gtk_hscrollbar_new(GTK_ADJUSTMENT(playscrollerh));
@@ -226,7 +226,7 @@ void SetUpMainWindow(void)
     gtk_table_attach_defaults(GTK_TABLE(playingbox), hscroll,0,1,1,2);
     gtk_table_attach_defaults(GTK_TABLE(playingbox), vscroll,1,2,0,1);
     
-    // arange in boxes 
+    /* arange in boxes  */
     gtk_box_pack_end(GTK_BOX(main_box), box, TRUE,TRUE, 0);
     gtk_box_pack_start(GTK_BOX(box), toolbox, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(box), fieldbox, TRUE, TRUE, 0);
@@ -242,7 +242,7 @@ void SetUpMainWindow(void)
     g_signal_connect_after(G_OBJECT(drawingarea),"realize",
             G_CALLBACK(drawing_realized_callback), NULL);
 
-    // set up some mouse events
+    /* set up some mouse events */
     gtk_signal_connect(GTK_OBJECT(drawingarea),"motion_notify_event",
             (GtkSignalFunc) motion_notify_event, NULL);
     gtk_signal_connect(GTK_OBJECT(drawingarea),"button_press_event",
@@ -255,14 +255,14 @@ void SetUpMainWindow(void)
              | GDK_POINTER_MOTION_HINT_MASK
              );
 
-    // setup the toolbox
+    /* setup the toolbox */
     {
         GtkWidget *button_image;
         GtkTooltips *tips;
         int i;
         char image_path[40];
-	// If you change the order here you need to change the xpm...
-	// TODO: make the file names related to the items
+	/* If you change the order here you need to change the xpm... */
+	/* TODO: make the file names related to the items */
 	struct gaa {
 		gint entry; const char *text;
 	} actions[] = {
@@ -310,7 +310,7 @@ void SetUpMainWindow(void)
     }
 
 
-    // create the menu
+    /* create the menu */
     {
         GtkItemFactory *item_factory;
         GtkAccelGroup *accel_group;
@@ -328,10 +328,10 @@ void SetUpMainWindow(void)
 
 
     
-    // show all the widgets
+    /* show all the widgets */
     gtk_widget_show_all(main_box);
     
-    // finally, show the main window    
+    /* finally, show the main window     */
     gtk_widget_show(window);
 }
 
@@ -352,27 +352,37 @@ void UISetUpGraphic(void)
 }
 
 
-int UIDisplayError(int nError) 
+int
+UIDisplayError(erdiType nError) 
 {
     GtkWidget * dialog;
     char temp[100];
 
-    switch (nError)
-    {
-        case ERROR_OUT_OF_MEMORY: strcpy(temp,"Out of memory"); break;
-        case ERROR_OUT_OF_MONEY: strcpy(temp,"Out of money"); break;
-        case ERROR_FIRE_OUTBREAK: strcpy(temp,"An Australian fire has broken out somewhere!"); break;
-        case ERROR_PLANT_EXPLOSION: strcpy(temp,"A power plant just exploded!"); break;
-        case ERROR_MONSTER: strcpy(temp,"Godzilla just came to town!"); break;
-        case ERROR_DRAGON: strcpy(temp,"A fire dragon wants to use your city as it's lair!"); break;
-        case ERROR_METEOR: strcpy(temp,"A gigantic meteor has hit your city!"); break;
+    switch (nError) {
+    case enOutOfMemory:
+       	strcpy(temp,"Out of memory"); break;
+    case enOutOfMoney:
+	strcpy(temp,"Out of money"); break;
+    case diFireOutbreak:
+	strcpy(temp,"An Australian fire has broken out somewhere!"); break;
+    case diPlantExplosion:
+        strcpy(temp,"A power plant just exploded!"); break;
+    case diMonster:
+        strcpy(temp,"Godzilla just came to town!"); break;
+    case diDragon:
+        strcpy(temp,"A fire dragon wants to use your city as it's lair!");
+        break;
+    case diMeteor:
+        strcpy(temp,"A gigantic meteor has hit your city!"); break;
+    default:
+        strcpy(temp,"An unknown error/disaster?"); break;
     }
     dialog = gtk_message_dialog_new(GTK_WINDOW(window),
-                                  GTK_DIALOG_DESTROY_WITH_PARENT,
-                                  GTK_MESSAGE_ERROR,
-                                  GTK_BUTTONS_OK,
-                                  "%s",
-                                  temp);
+        GTK_DIALOG_DESTROY_WITH_PARENT,
+        GTK_MESSAGE_ERROR,
+        GTK_BUTTONS_OK,
+        "%s",
+        temp);
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(GTK_WIDGET(dialog));
     return 0;
@@ -388,12 +398,12 @@ void UIFinishDrawing(void)
 
 void UIUnlockScreen(void)
 {
-    // not used for this platform
+    /* not used for this platform */
 }
 
 void UILockScreen(void)
 {
-    // not used for this platform
+    /* not used for this platform */
 }
 
 void UIDrawBorder(void)
@@ -425,10 +435,11 @@ void UICheckMoney(void)
     g_print("UICheckMoney\n");
 }
 
-void UIScrollMap(int direction)
+void
+UIScrollMap(dirType direction)
 {
-    // TODO: Optimize this as in the Palm port?
-    //       (if nessasary)
+    /* TODO: Optimize this as in the Palm port? */
+    /*       (if nessasary) */
     RedrawAllFields();
 }
 
@@ -501,7 +512,7 @@ void UIDrawSpecialUnit(int i, int xpos, int ypos)
 
 void UIDrawCursor(int xpos, int ypos)
 {
-    // not used on this platform
+    /* not used on this platform */
 }
 
 void UIDrawPowerLoss(int xpos, int ypos)
@@ -584,13 +595,13 @@ int ResizeWorld(unsigned long size)
 void
 LockWorld(void)
 {
-    // not used on this platform
+    /* not used on this platform */
 }
 
 void
 UnlockWorld(void)
 {
-    // not used on this platform
+    /* not used on this platform */
 }
 
 unsigned char
@@ -610,13 +621,13 @@ SetWorld(unsigned long pos, unsigned char value)
 void
 LockWorldFlags(void)
 {
-    // not used on this platform
+    /* not used on this platform */
 }
 
 void
 UnlockWorldFlags(void)
 {
-    // not used on this platform
+    /* not used on this platform */
 }
 
 unsigned char
@@ -650,8 +661,7 @@ OrWorldFlags(unsigned long pos, unsigned char value)
 unsigned long
 GetRandomNumber(unsigned long max)
 {
-    // se `man 3 rand` why I'm not using:
-    // return (rand() % max)
+    /* se `man 3 rand` why I'm not using: return (rand() % max) */
     return (unsigned long)((float)max*rand()/(RAND_MAX+1.0));
 }
 

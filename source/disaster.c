@@ -8,6 +8,13 @@
 #include "disaster.h"
 #include "simulation.h"
 
+#if defined(PALM)
+#include <StringMgr.h>
+#include <unix_stdio.h>
+#else
+#include <stdio.h>
+#endif
+
 void FireSpread(int x, int y);
 void CreateWaste(int x, int y);
 unsigned short int GetDefenceValue(int xpos, int ypos);
@@ -17,17 +24,17 @@ void CreateMeteor(int x, int y, int size);
         
 extern void DoNastyStuffTo(int type, unsigned int probability)
 {
-    // nasty stuff means: turn it into wasteland
+    /* nasty stuff means: turn it into wasteland */
     long unsigned int randomTile;
     int i,x,y;
 
-    if (GetRandomNumber(probability) != 0) { return; } // nothing happened :(
+    if (GetRandomNumber(probability) != 0) { return; } /* nothing happened :( */
 
     LockWorld();
     for (i=0; i<50; i++) {
         randomTile = GetRandomNumber(GetMapMul());
         if (GetWorld(randomTile) == type) {
-            // wee, let's destroy something
+            /* wee, let's destroy something */
             x = randomTile % GetMapSize();
             y = randomTile / GetMapSize();
             CreateWaste(x,y);
@@ -39,20 +46,20 @@ extern void DoNastyStuffTo(int type, unsigned int probability)
     return;
 }
 
-
-
-extern void DoRandomDisaster(void)
+void
+DoRandomDisaster(void)
 {
-    long unsigned int randomTile;
-    int i,x,y, type,random;
+    unsigned long randomTile;
+    int i,x,y, type, random;
 #ifdef DEBUG
     char temp[10];
 #endif
-    if (game.disaster_level == 0) { return; } // for those who can't handle the game (truth?) :P
+    /* for those who can't handle the game (truth?) */
+    if (game.disaster_level == 0) { return; }
 
     LockWorld();
 
-    for (i=0; i<100; i++) { // give em' a 100 tries to hit a useful tile
+    for (i=0; i<100; i++) { /* give em' a 100 tries to hit a useful tile */
         randomTile = GetRandomNumber(GetMapMul());
         type = GetWorld(randomTile);
         if (type != TYPE_DIRT &&
@@ -60,63 +67,88 @@ extern void DoRandomDisaster(void)
             type != TYPE_CRATER) {
             x = randomTile % GetMapSize();
             y = randomTile / GetMapSize();
-            random = GetRandomNumber((4-game.disaster_level) * 1000); // TODO: should depend on difficulty
+	    /* TODO: should depend on difficulty */
+            random = GetRandomNumber((4-game.disaster_level) * 1000);
 #ifdef DEBUG
-            LongToString(random, temp);
+            sprintf(temp, "%d", random);
             UIWriteLog("Random disaster: ");
             UIWriteLog(temp);
             UIWriteLog("\n");
 #endif
             if (random < 10 && vgame.BuildCount[COUNT_FIRE] == 0) {
-                if (BurnField(x,y,0)) {
-                    UIDisplayError(ERROR_FIRE_OUTBREAK);
-                    Goto(x,y);
-                    MapHasJumped();
-                }
+                DoSpecificDisaster(diFireOutbreak);
             } else if (random < 15 && game.objects[OBJ_MONSTER].active == 0) {
-                if (CreateMonster(x,y)) {
-                    UIDisplayError(ERROR_MONSTER);
-                    Goto(x,y);
-                    MapHasJumped();
-                }
+                DoSpecificDisaster(diMonster);
             } else if (random < 17 && game.objects[OBJ_DRAGON].active == 0) {
-                if (CreateDragon(x,y)) {
-                    UIDisplayError(ERROR_DRAGON);
-                    Goto(x,y);
-                    MapHasJumped();
-                }
+                DoSpecificDisaster(diDragon);
             } else if (random < 19) {
-                if (MeteorDisaster(x,y)) {
-                    UIDisplayError(ERROR_METEOR);
-                    Goto(x,y);
-                    MapHasJumped();
-                }
+                DoSpecificDisaster(diMeteor);
             }
             UnlockWorld();
-            return; // only one chance for disaster per turn
+            return; /* only one chance for disaster per turn */
         }
     }
     UnlockWorld();
 }
 
-
-extern int UpdateDisasters(void)
+void
+DoSpecificDisaster(erdiType disaster)
 {
-    // return false if no disasters are found
+    unsigned long randomTile;
+    unsigned int x, y;
+    int ce = 0;
+    int i = 0;
+
+    while (i++ < 400 && ce == 0) {
+        randomTile = GetRandomNumber(GetMapMul());
+        x = randomTile % GetMapSize();
+        y = randomTile / GetMapSize();
+        
+        switch (disaster) {
+        case diFireOutbreak:
+            ce = BurnField(x, y, 0);
+            break;
+        case diPlantExplosion:
+            ce = 0;
+            break;
+        case diMonster:
+            ce = CreateMonster(x, y);
+            break;
+        case diDragon:
+            ce = CreateDragon(x, y);
+            break;
+        case diMeteor:
+            ce = MeteorDisaster(x, y);
+            break;
+        default: break;
+        }
+    }
+    if (ce) {
+        UIDisplayError(disaster);
+        Goto(x,y);
+        MapHasJumped();
+    }
+}
+
+int
+UpdateDisasters(void)
+{
+    /* return false if no disasters are found */
     int i,j,type, retval=0;
 
     LockWorld();
     LockWorldFlags();
-    NewScratch();
     ClearScratch();
     for (i=0; i<GetMapSize(); i++) {
         for (j=0; j<GetMapSize(); j++) {
             type = GetWorld(WORLDPOS(i,j));
-            if (GetScratch(WORLDPOS(i,j)) == 0) { // already looked at this one?
+	    /* already looked at this one? */
+            if (GetScratch(WORLDPOS(i,j)) == 0) {
                 if (type == TYPE_FIRE2) {
                     retval = 1;
                     if (GetRandomNumber(5) != 0) {
-                        if (GetDefenceValue(i,j) < 3) { // hmm, are there any defence here? :)
+			/* hmm, are there any defences here? */
+                        if (GetDefenceValue(i,j) < 3) {
                             FireSpread(i,j);
                         }
                         SetWorld(WORLDPOS(i,j),TYPE_FIRE3);
@@ -135,7 +167,6 @@ extern int UpdateDisasters(void)
     }
     UnlockWorldFlags();
     UnlockWorld();
-    FreeScratch();
     return retval;
 }
 
@@ -154,7 +185,7 @@ void CreateWaste(int x, int y)
     DrawCross(x,y);
     UnlockWorld();
     if (type == TYPE_POWER_PLANT || type == TYPE_NUCLEAR_PLANT)  {
-        UIDisplayError(ERROR_PLANT_EXPLOSION);
+        UIDisplayError(diPlantExplosion);
         FireSpread(x,y);
     }
 }
@@ -168,7 +199,8 @@ void FireSpread(int x, int y)
 }
 
 
-extern int BurnField(int x, int y, int forceit)
+int
+BurnField(int x, int y, int forceit)
 {
     int type;
     
@@ -205,9 +237,10 @@ extern int BurnField(int x, int y, int forceit)
 }
 
 
-extern int CreateMonster(int x, int y)
+int
+CreateMonster(int x, int y)
 {
-    // return true on success, false on error
+    /* return true on success, false on error */
     int type;
     LockWorld();
     type = GetWorld(WORLDPOS(x,y));
@@ -223,9 +256,10 @@ extern int CreateMonster(int x, int y)
     return 0;
 }
 
-extern int CreateDragon(int x, int y)
+int
+CreateDragon(int x, int y)
 {
-    // return true on success, false on error
+    /* return true on success, false on error */
     int type;
     LockWorld();
     type = GetWorld(WORLDPOS(x,y));
@@ -242,19 +276,21 @@ extern int CreateDragon(int x, int y)
 }
 
 
-void MonsterCheckSurrounded(int i) 
+void
+MonsterCheckSurrounded(int i) 
 {
-    if (GetDefenceValue(game.objects[i].x,game.objects[i].y) >= 11 || GetRandomNumber(50) < 2) {
-        game.objects[i].active = 0; // kill the sucker
+    if (GetDefenceValue(game.objects[i].x,game.objects[i].y) >= 11 ||
+	GetRandomNumber(50) < 2) {
+        game.objects[i].active = 0; /* kill the sucker */
         UIWriteLog("killing a monster\n");
     }
 }
 
 unsigned short int GetDefenceValue(int xpos, int ypos)
 {
-    // police = 2
-    // firemen = 3
-    // military = 6
+    /* police = 2 */
+    /* firemen = 3 */
+    /* military = 6 */
     short int def = 
     ContainsDefence(xpos+1, ypos)+
     ContainsDefence(xpos+1, ypos+1)+
@@ -291,47 +327,46 @@ extern void MoveAllObjects(void)
     for (i=0; i<NUM_OF_OBJECTS; i++) {
         if (game.objects[i].active != 0) {
 
-            // hmm, is this thing destructive?
+            /* hmm, is this thing destructive? */
             if (i == OBJ_DRAGON) {
-                // sure it is :D
+                /* sure it is :D */
                 if (!BurnField(game.objects[i].x, game.objects[i].y,1)) {
                     CreateWaste(game.objects[i].x, game.objects[i].y);
                 }
                 MonsterCheckSurrounded(i);
             } else if (i == OBJ_MONSTER) {
-                // whoo-hoo, bingo again
+                /* whoo-hoo, bingo again */
                 CreateWaste(game.objects[i].x, game.objects[i].y);
                 MonsterCheckSurrounded(i);
             }
 
-            x = game.objects[i].x; // save old position
+            x = game.objects[i].x; /* save old position */
             y = game.objects[i].y;
 
             switch(GetRandomNumber(OBJ_CHANCE_OF_TURNING))
-            { // should we let it turn?
-                case 1: // yes, clockwise
+            { /* should we let it turn? */
+                case 1: /* yes, clockwise */
                     game.objects[i].dir = (game.objects[i].dir+1)%8;
                     break;
-                case 2: // yes, counter-clockwise
+                case 2: /* yes, counter-clockwise */
                     game.objects[i].dir = (game.objects[i].dir+7)%8;
                     break;
-                default: // nope
-                    break; 
+                default: break; 
             }
-            // now move it a nod
-            switch(game.objects[i].dir) { // first up/down
-                case 0: // up
-                case 1: // up-right
-                case 7: // up-left
+            /* now move it a nod */
+            switch(game.objects[i].dir) { /* first up/down */
+                case 0: /* up */
+                case 1: /* up-right */
+                case 7: /* up-left */
                     if (game.objects[i].y > 0) {
                         game.objects[i].y--;
                     } else {
                         game.objects[i].dir = 4;
                     }
                     break;
-                case 3: // down-right
-                case 4: // down
-                case 5: // down-left
+                case 3: /* down-right */
+                case 4: /* down */
+                case 5: /* down-left */
                     if (game.objects[i].y < GetMapSize()-1) { 
                         game.objects[i].y++; 
                     } else {
@@ -342,19 +377,19 @@ extern void MoveAllObjects(void)
                     break;
             }
 
-            switch(game.objects[i].dir) { // then left/right
-                case 1: // up-right
-                case 2: // right
-                case 3: // down-right
+            switch(game.objects[i].dir) { /* then left/right */
+                case 1: /* up-right */
+                case 2: /* right */
+                case 3: /* down-right */
                     if (game.objects[i].x < GetMapSize()-1) { 
                         game.objects[i].x++; 
                     } else {
                         game.objects[i].dir = 6;
                     }
                     break;
-                case 5: // down-left
-                case 6: // left
-                case 7: // up-left
+                case 5: /* down-left */
+                case 6: /* left */
+                case 7: /* up-left */
                     if (game.objects[i].x > 0) { 
                         game.objects[i].x--; 
                     } else {
@@ -364,8 +399,8 @@ extern void MoveAllObjects(void)
                 default:
                     break;
             }
-            DrawCross(x, y); // draw where it came from (erase it)
-            DrawField(game.objects[i].x, game.objects[i].y); // draw object
+            DrawCross(x, y); /* draw where it came from (erase it) */
+            DrawField(game.objects[i].x, game.objects[i].y); /* draw object */
         }
     }
 }

@@ -1,10 +1,11 @@
-// event handlers for forms
-extern Boolean hFiles(EventPtr event);
-extern Boolean hFilesNew(EventPtr event);
+/* event handlers for forms */
+Boolean hFiles(EventPtr event);
+Boolean hFilesNew(EventPtr event);
 
-
-// save/load framework
-extern void UISaveGameToIndex(void);
-extern int UILoadAutoGame(void);
-extern void UISaveGame(UInt16 index);
-extern void UIClearAutoSaveSlot(void);
+/* save/load framework */
+void UISaveMyCity(void);
+int UILoadAutoGame(void);
+void UISaveAutoGame(void);
+void UISaveMyCity(void);
+void UISaveGame(UInt16 index);
+void UIClearAutoSaveSlot(void);

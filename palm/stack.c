@@ -12,11 +12,11 @@
 #include "resCompat.h"
 
 typedef struct _stacky {
-    MemHandle   sh; // Start of stack... handle
-    long       *ss; // Start of stack
-    long       *sp; // Stack pointer
-    long       *se; // Stack pointer
-    long        sl; // Stack Len
+    MemHandle   sh; /* Start of stack... handle */
+    long       *ss; /* Start of stack */
+    long       *sp; /* Stack pointer */
+    long       *se; /* Stack pointer */
+    long        sl; /* Stack Len */
 } Stacky;
 
 void *

@@ -1,50 +1,17 @@
 #include "zakdef.h"
+#if defined(PALM)
+#include <StringMgr.h>
+#include <unix_stdio.h>
+#else
+#include <stdio.h>
+#endif
 
-// this is the central game struct
+/* this is the central game struct */
 GameStruct game;
-// This is the volatile game structure (memoizing to reduce op/s)
+/* This is the volatile game structure (memoizing to reduce op/s) */
 vGameStruct vgame;
 
 int GetCiffer(int number, signed long value);
-
-/* gah - maybe I should find a function that does this for me
- * but I'm too lazy, and this is crossplatform ;)
- */
-extern void LongToString(signed long value, char* out)
-{
-    int move=0;
-    int reachednumber;
-    int i=0;
-    char temp;
-    reachednumber=0;
-
-    if (value==0) {
-        out[0] = '0';
-        out[1] = '\0';
-        return;
-    }
-
-    if (value<0) {
-        out[0] = '-';
-        move=1;
-    }
-
-    for (i=0; i<10; i++) {
-        if (reachednumber==0) {
-            temp = (char)GetCiffer(10-i, value)+0x30;
-            if (temp != (char)'0') {
-                reachednumber=1;
-                out[move] = temp;
-                move++;
-            }
-        } else {
-            temp = (char)GetCiffer(10-i, value)+0x30;
-            out[move] = temp;
-            move++;
-        }
-    }
-    out[move] = '\0';
-}
 
 int
 GetCiffer(int number, signed long value)
@@ -68,9 +35,10 @@ GetCiffer(int number, signed long value)
 
 }
 
-extern char* GetDate(char * temp)
+char*
+GetDate(char * temp)
 {
-    char year[5];
+    char year[10];
     char months[]="JanFebMarAprMayJunJulAugSepOctNovDec";
 
     temp[0] = months[(game.TimeElapsed%12)*3];
@@ -78,7 +46,7 @@ extern char* GetDate(char * temp)
     temp[2] = months[(game.TimeElapsed%12)*3+2];
     temp[3] = ' ';
 
-    LongToString((game.TimeElapsed/12)+2000,(char*)year);
+    sprintf(year, "%ld", (long)(game.TimeElapsed/12)+2000);
     temp[4] = year[0];
     temp[5] = year[1];
     temp[6] = year[2];
@@ -88,7 +56,7 @@ extern char* GetDate(char * temp)
     return (char*)temp;
 }
 
-extern void *
+void *
 arIndex(char *ary, int addit, int key)
 {
     while (*(int *)ary) {

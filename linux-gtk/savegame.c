@@ -35,37 +35,37 @@ void open_filename(GtkFileSelection *sel, gpointer data)
     
     fd = open(savegamename, O_RDONLY);
     if (fd == -1) {
-        perror("open"); // TODO: make this nicer
+        perror("open"); /* TODO: make this nicer */
         return;
     }
-    // first of all, check the savegame version
+    /* first of all, check the savegame version */
     ret = read(fd, (void*)tempversion, 4);
     if (ret == -1) {
-        perror("read version"); // TODO: make this nicer
+        perror("read version"); /* TODO: make this nicer */
         return;
     }
     if (strncmp(tempversion, SAVEGAMEVERSION, 4) != 0) {
         g_print("Wrong save game format - aborting\n");
         return;
     }
-    // version was ok, rewind the file
+    /* version was ok, rewind the file */
     lseek(fd, 0, SEEK_SET);
     
-    // God, I love to read all my vars at one time
-    // using a struct :D ... unfortunately horribly unportable
+    /* God, I love to read all my vars at one time */
+    /* using a struct :D ... unfortunately horribly unportable */
     ret = read(fd, (void *)&game, sizeof(GameStruct));
     if (ret == -1) {
-        perror("read game"); // TODO: make this nicer
+        perror("read game"); /* TODO: make this nicer */
         return;
     } else if (ret != sizeof(GameStruct)) {
         g_print("Whoops, couldn't read full length of game\n");
         return;
     }
 
-    // and now the great worldPtr :D
+    /* and now the great worldPtr :D */
     ret = read(fd, (void *)worldPtr, GetMapMul());
     if (ret == -1) {
-        perror("read world"); // TODO: make this nicer
+        perror("read world"); /* TODO: make this nicer */
         return;
     } else if (ret != GetMapMul()) {
         g_print("Whoops, couldn't read full lenght of world\n");
@@ -73,11 +73,11 @@ void open_filename(GtkFileSelection *sel, gpointer data)
     }
     
     if (close(fd) == -1) {
-        perror("close"); // TODO: make this nicer
+        perror("close"); /* TODO: make this nicer */
         return;
     }
 
-    // update the screen with the new game
+    /* update the screen with the new game */
     UIResetViewable();
     PostLoadGame();
     DrawGame(1);
@@ -143,24 +143,24 @@ extern void UISaveGame(GtkWidget *w, gpointer data)
 
     fd = open(savegamename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     if (fd == -1) {
-        perror("open"); // TODO: make this nicer
+        perror("open"); /* TODO: make this nicer */
         return;
     }
-    // God, I love to write all my vars at one time
-    // using a struct :D
+    /* God, I love to write all my vars at one time */
+    /* using a struct :D */
     ret = write(fd, (void*)&game, sizeof(GameStruct));
     if (ret == -1) {
-        perror("write game"); // TODO: make this nicer
+        perror("write game"); /* TODO: make this nicer */
         return;
     } else if (ret != sizeof(GameStruct)) {
         g_print("Whoops, couldn't write full length of game\n");
         return;
     }
 
-    // and now the great worldPtr :D
+    /* and now the great worldPtr :D */
     ret = write(fd, (void*)worldPtr, GetMapMul());
     if (ret == -1) {
-        perror("write world"); // TODO: make this nicer
+        perror("write world"); /* TODO: make this nicer */
         return;
     } else if (ret != GetMapMul()) {
         g_print("Whoops, couldn't write full length of world\n");
@@ -168,7 +168,7 @@ extern void UISaveGame(GtkWidget *w, gpointer data)
     }
     
     if (close(fd) == -1) {
-        perror("close"); // TODO: make this nicer
+        perror("close"); /* TODO: make this nicer */
         return;
     }
 }

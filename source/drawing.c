@@ -6,12 +6,14 @@
 
 unsigned char GetGraphicNumber(long unsigned int pos);
 
-void SetUpGraphic(void)
+void
+SetUpGraphic(void)
 {
     UISetUpGraphic();
 }
 
-extern void Goto(int x, int y)
+void
+Goto(int x, int y)
 {
     game.map_xpos = x-(vgame.visible_x/2);
     game.map_ypos = y-(vgame.visible_y/2);
@@ -24,7 +26,8 @@ extern void Goto(int x, int y)
     RedrawAllFields();
 }
 
-extern void RedrawAllFields(void)
+void
+RedrawAllFields(void)
 {
     int i,j;
 
@@ -49,10 +52,11 @@ extern void RedrawAllFields(void)
     UnlockWorld();
 }
 
-extern void ScrollMap(int direction)
+void
+ScrollMap(dirType direction)
 {
     switch (direction) {
-        case 0: // up
+        case dtUp:
             if (game.map_ypos > 0) {
                 game.map_ypos -= 1;
             } else {
@@ -60,7 +64,7 @@ extern void ScrollMap(int direction)
                 return;
             }
             break;
-        case 1: // right
+        case dtRight:
             if (game.map_xpos <= (GetMapSize() - 1 - vgame.visible_x)) {
                 game.map_xpos += 1;
             } else {
@@ -68,7 +72,7 @@ extern void ScrollMap(int direction)
                 return;
             }
             break;
-        case 2: // down
+        case dtDown:
             if (game.map_ypos <= (GetMapSize() - 1 - vgame.visible_y)) {
                 game.map_ypos += 1;
             } else {
@@ -76,7 +80,7 @@ extern void ScrollMap(int direction)
                 return;
             }
             break;
-        case 3: // left
+        case dtLeft:
             if (game.map_xpos > 0) {
                 game.map_xpos-=1; 
             } else {
@@ -92,26 +96,27 @@ extern void ScrollMap(int direction)
 }
 
 
-extern void MoveCursor(int direction)
+void
+MoveCursor(dirType direction)
 {
     int old_x = vgame.cursor_xpos, old_y = vgame.cursor_ypos;
     LockWorld();
 
     switch (direction) {
-    case 0: // up
+    case dtUp:
         if (vgame.cursor_ypos > 0) { vgame.cursor_ypos--; }
         if ((vgame.cursor_ypos < game.map_ypos)) { ScrollMap(0); }
         break;
-    case 1: // right
+    case dtRight:
         if (vgame.cursor_xpos < (GetMapSize() - 1)) { vgame.cursor_xpos++; }
         if ((vgame.cursor_xpos > game.map_xpos+vgame.visible_x-1) &&
           vgame.cursor_xpos < GetMapSize()) { ScrollMap(1); }
         break;
-    case 2: // down
+    case dtDown:
         if (vgame.cursor_ypos < (GetMapSize() - 1)) { vgame.cursor_ypos++; }
         if ((vgame.cursor_ypos > game.map_ypos+vgame.visible_y-1) && vgame.cursor_ypos < GetMapSize()) { ScrollMap(2); }
         break;
-    case 3: // left
+    case dtLeft:
         if (vgame.cursor_xpos > 0) { vgame.cursor_xpos--; }
         if ((vgame.cursor_xpos < game.map_xpos)) { ScrollMap(3); }
         break;
@@ -140,7 +145,8 @@ DrawField(int xpos, int ypos)
 
 
 
-extern void DrawCross(int xpos, int ypos)
+void
+DrawCross(int xpos, int ypos)
 {
     UIInitDrawing();
     LockWorld();
@@ -156,28 +162,29 @@ extern void DrawCross(int xpos, int ypos)
 }
 
 
-// ONLY call this function if you make sure to call
-// UIInitDrawing and UIFinishDrawing in the caller
-// Also remember to call (Un)lockWorld(flags) (4 functions)
-extern void DrawFieldWithoutInit(int xpos, int ypos)
+/*
+ * ONLY call this function if you make sure to call
+ * UIInitDrawing and UIFinishDrawing in the caller
+ * Also remember to call (Un)lockWorld(flags) (4 functions)
+ */
+void DrawFieldWithoutInit(int xpos, int ypos)
 {
     int i;
     if (xpos < game.map_xpos ||
             xpos >= game.map_xpos + vgame.visible_x ||
             ypos < game.map_ypos ||
-            ypos >= game.map_ypos + vgame.visible_y)
-    {
+            ypos >= game.map_ypos + vgame.visible_y) {
         return;
     }
 
     UIDrawField(xpos-game.map_xpos, ypos-game.map_ypos, GetGraphicNumber(WORLDPOS(xpos,ypos)));
 
-    if ((GetWorldFlags(WORLDPOS(xpos,ypos)) & WATEREDBIT) == 0 &&
+    if ((GetWorldFlags(WORLDPOS(xpos,ypos)) & POWEREDBIT) == 0 &&
 	CarryPower(GetWorld(WORLDPOS(xpos, ypos)))) {
         UIDrawPowerLoss(xpos-game.map_xpos, ypos-game.map_ypos);
     }
     
-    if ((GetWorldFlags(WORLDPOS(xpos,ypos)) & POWEREDBIT) == 0 &&
+    if ((GetWorldFlags(WORLDPOS(xpos,ypos)) & WATEREDBIT) == 0 &&
 	CarryWater(GetWorld(WORLDPOS(xpos, ypos)))) {
         UIDrawWaterLoss(xpos-game.map_xpos, ypos-game.map_ypos);
     }
@@ -187,7 +194,7 @@ extern void DrawFieldWithoutInit(int xpos, int ypos)
           vgame.cursor_ypos - game.map_ypos);
     }
 
-    // draw monster
+    /* draw monster */
     for (i=0; i<NUM_OF_OBJECTS; i++) {
         if (xpos == game.objects[i].x &&
             ypos == game.objects[i].y &&
@@ -195,7 +202,7 @@ extern void DrawFieldWithoutInit(int xpos, int ypos)
             UIDrawSpecialObject(i, xpos - game.map_xpos, ypos - game.map_ypos);
         }
     }
-    // draw extra units
+    /* draw extra units */
     for (i=0; i<NUM_OF_UNITS; i++) {
         if (xpos == game.units[i].x &&
             ypos == game.units[i].y &&
@@ -205,22 +212,23 @@ extern void DrawFieldWithoutInit(int xpos, int ypos)
     }
 }
 
-unsigned char GetGraphicNumber(long unsigned int pos)
+unsigned char
+GetGraphicNumber(unsigned long pos)
 {
     unsigned char retval = 0;
     LockWorld();
     retval = GetWorld(pos);
     switch (retval) {
-        case TYPE_ROAD:    // special case: roads
+        case TYPE_ROAD:    /* special case: roads */
             retval = GetSpecialGraphicNumber(pos, 0);
             break;
-        case TYPE_POWER_LINE:     // special case: power line
+        case TYPE_POWER_LINE:     /* special case: power line */
             retval = GetSpecialGraphicNumber(pos,1);
             break;
         case TYPE_WATER_PIPE:
             retval = GetSpecialGraphicNumber(pos,3);
             break;            
-        case TYPE_BRIDGE:     // special case: bridge
+        case TYPE_BRIDGE:     /* special case: bridge */
             retval = GetSpecialGraphicNumber(pos,2);
             break;
         default:
@@ -230,7 +238,8 @@ unsigned char GetGraphicNumber(long unsigned int pos)
     return retval;
 }
 
-extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
+unsigned char
+GetSpecialGraphicNumber(unsigned long pos, int nType)
 {
     /* type: 0 = road
      *       1 = power line
@@ -243,18 +252,18 @@ extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
     LockWorld();
 
     switch (nType) {
-        case 0: // roads
-        case 2: // bridge
+        case 0: /* roads */
+        case 2: /* bridge */
             if (pos >= GetMapSize()) a = IsRoad(GetWorld(pos - GetMapSize()));
             if (pos < (GetMapMul()) - GetMapSize())
                 c = IsRoad(GetWorld(pos + GetMapSize()));
             if (pos % GetMapSize() < (GetMapSize() - 1))
                 b = IsRoad(GetWorld(pos+1));
             if (pos % GetMapSize() > 0) d = IsRoad(GetWorld(pos-1));
-            // 81 for bridge, 0 for normal road
+            /* 81 for bridge, 0 for normal road */
             nAddMe = nType== 2 ? TYPE_BRIDGE : 10;
             break;
-        case 1:    // power lines
+        case 1:    /* power lines */
             if (pos >= GetMapSize())
                 a = CarryPower(GetWorld(pos - GetMapSize()));
             if (pos < GetMapMul() - GetMapSize())
@@ -264,7 +273,7 @@ extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
             if (pos % GetMapSize() > 0) d = CarryPower(GetWorld(pos-1));
             nAddMe = 70;
             break;
-        case 3: // water pipe
+        case 3: /* water pipe */
             if (pos >= GetMapSize())
                 a = CarryWater(GetWorld(pos - GetMapSize()));
             if (pos < GetMapMul() - GetMapSize())
@@ -323,7 +332,7 @@ IsRoad(unsigned char x)
           (x == 81)) ? 1 : 0);
 }
 
-// zone type
+/* zone type */
 int
 IsZone(unsigned char x, zoneType nType)
 {
@@ -333,4 +342,3 @@ IsZone(unsigned char x, zoneType nType)
     else if (x >= (nType*10+20) && x <= (nType*10+29)) { return (x%10)+1; }
     return 0;
 }
-

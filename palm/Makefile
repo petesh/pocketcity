@@ -15,6 +15,9 @@ DMENU = pcitymain_opt.stm
 ##################
 ### make all #####
 ##################
+nearlylive: VERSION = $(shell date +%Y.%m.%d)
+nearlylive: dist
+
 all debug: $(addsuffix .prc,$(PRCTARGETS))
 hires dhires: $(addsuffix .prc,$(addprefix sy-,$(PRCTARGETS)))
 
@@ -155,14 +158,16 @@ mg/:
 # dist
 DDIR=pcity-palm_$(VERSION)
 
+DISTFILES=../CHANGELOG ../COPYING ../GAMEHINTS ../README
+
 dist: all hires
 	@mkdir -p $(DDIR)
-	@cp ../Changelog ../Copying ../Gamehints ../Readme pc*.prc mg*.prc $(DDIR)
-	@tar cvzf normal-$(DDIR).tar.gz $(DDIR)
+	@cp $(DISTFILES) pc*.prc mg*.prc $(DDIR)
+	@tar cvf - $(DDIR) | gzip -9c >normal-$(DDIR).tar.gz
 	@zip -9R normal-$(DDIR).zip $(DDIR)/*
 	@rm -f $(DDIR)/*
-	@cp ../Changelog ../Copying ../Gamehints ../Readme sy*.prc $(DDIR)
-	@tar cvzf sony-$(DDIR).tar.gz $(DDIR)
+	@cp $(DISTFILES) sy*.prc $(DDIR)
+	@tar cvf - $(DDIR) | gzip -9c >sony-$(DDIR).tar.gz
 	@zip -9R sony-$(DDIR).zip $(DDIR)/*
 	@rm -rf $(DDIR)
 
@@ -174,3 +179,4 @@ clean:
 	rm -f *.bin *.o *.grc *.stm simcity *.prc \
 		tempbw/*.bin tempcolor/*.bin temp/*.bin tempgrey/*.bin sy/* \
 		mg/* *.zip *.gz
+	rm -rf mg/ sy/

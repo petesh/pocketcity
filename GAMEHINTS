@@ -47,11 +47,12 @@ Disasters:
   stations and military bases you have. If you've no bases then you can't
   have units
 
-
 Misc:
 =====
 * When you've changed something on the budget page, you need to reload it
   to see the changes (will auto-refresh in later versions)
 * In some versions there's a 'Test' menuoption under the 'File' menu - this
   is for testing and debugging. It should not be used.
+* Savegames!!!!!! Unless you explicitly save a game it is in the AUTOSAVE slot
+  which is destroyed when you create a new city.
 

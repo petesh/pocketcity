@@ -22,9 +22,9 @@ typedef struct _stacky {
 static void
 StackResize(Stacky *sp)
 {
-    ptrdiff_t sd = sp->sp - sp->bp;
+    long sd = sp->sp - sp->bp;
     if (sp->sl == 0) sp->sl = 64;
-    sp->sl <<= 1; // Double the size every time
+    sp->sl <<= 1; /* Double the size every time */
     sp->bp = realloc(sp->bp, sp->sl * sizeof (long));
     sp->se = sp->bp + (sp->sl - 1);
     sp->sp = sp->bp + sd;

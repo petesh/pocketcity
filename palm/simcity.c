@@ -27,9 +27,11 @@ MemHandle worldFlagsHandle;
 MemPtr worldPtr;
 MemPtr worldFlagsPtr;
 RectangleType rPlayGround;
+
 WinHandle winZones;
 WinHandle winMonsters;
 WinHandle winUnits;
+
 BuildCodes nSelectedBuildItem = Be_Bulldozer;
 BuildCodes nPreviousBuildItem = Be_Bulldozer;
 short int game_in_progress = 0;
@@ -98,7 +100,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
     EventLoop();
 
     if (game_in_progress) {
-	UISaveGame(0);
+	UISaveAutoGame();
     }
 
     _PalmFini();
@@ -177,7 +179,7 @@ EventLoop(void)
              event.data.winEnter.enterWindow == (WinHandle) FrmGetFirstForm()) {
                UIWriteLog("Setting drawing to 1\n");
                DoDrawing = 1;
-               RedrawAllFields(); //update screen after menu etc.
+               RedrawAllFields(); /* update screen after menu etc. */
            } else {
                UIWriteLog("Setting drawing to 0\n");
                DoDrawing = 0;
@@ -186,7 +188,7 @@ EventLoop(void)
        
        if (FrmDispatchEvent(&event)) continue;
        
-       // the almighty homemade >>"multithreader"<<
+       /* the almighty homemade >>"multithreader"<< */
        if (game_in_progress == 1 && building == 0 &&
          game.gameLoopSeconds != SPEED_PAUSED) {
            if (simState == 0) {
@@ -203,21 +205,25 @@ EventLoop(void)
            }
        }
        
-       // Do a disaster update every 2 secound nomatter what.
-       // We don't want the (l)user to get help by pausing the game
-       // (not realistic enough) - TODO: Pause should be enabled on
-       // 'easy' difficulty.
+       /*
+	* Do a disaster update every 2 secound nomatter what.
+	* We don't want the (l)user to get help by pausing the game
+        * (not realistic enough)
+	* TODO: Pause should be enabled on 'easy' difficulty.
+	*/
        if (game_in_progress == 1 && building == 0) {
            timeTemp = TimGetSeconds();
 
            if (timeTemp >= timeStampDisaster+SIM_GAME_LOOP_DISASTER) {
                MoveAllObjects();
 #ifdef DEBUG
-               { // block so we can initialize more vars
-                   // this will print the BuildCount array
-                   // don't forget to keep an eye on it
-                   // in the log - should be up-to-date
-                   // AT ALL TIMES!
+               {
+                   /*
+		    * This will print the BuildCount array
+                    * don't forget to keep an eye on it
+                    * in the log - should be up-to-date
+                    * AT ALL TIMES!
+		    */
                    char temp[10];
                    int q;
                    for (q=0; q<20; q++) {
@@ -227,96 +233,93 @@ EventLoop(void)
                    }
                    UIWriteLog("\n");
                    
-               } // end debug block
+               } /* end debug block */
 #endif
                if (UpdateDisasters()) {
                    RedrawAllFields();
                }
                timeStampDisaster = timeTemp;
-               // TODO: This would be the place to create animation...
-               // perhaps with a second offscreen window for the
-               // second animation frame of each zone
-               // Then swap the winZones between the two,
-               // and do the RedrawAllFields() from above here
+               /* TODO: This would be the place to create animation...
+		* perhaps with a second offscreen window for the
+                * second animation frame of each zone
+                * Then swap the winZones between the two,
+                * and do the RedrawAllFields() from above here
+		*/
            }
        }
     } while (event.eType != appStopEvent);
 
 }
 
-void _PalmInit(void)
+static const struct _bmphandles {
+    WinHandle *handle;
+    Coord width, height;
+    DmResID resourceID;
+} handles[] = {
+	/* space for 64*2=128 zones */
+    { &winZones, 1024, 32, bitmapID_zones },
+    { &winMonsters, 128, 64, bitmapID_monsters },
+    { &winUnits, 48, 32, bitmapID_units }
+};
+
+void
+_PalmInit(void)
 {
     UInt32 depth;
     UInt16 err;
+    int	i;
     MemHandle  bitmaphandle;
     BitmapPtr  bitmap;
-    WinHandle  winHandle;
+    WinHandle  winHandle = NULL;
+    WinHandle	privhandle;
 
     timeStamp = TimGetSeconds();
     timeStampDisaster = timeStamp;
 
-    // set screen mode to colors if supported
-    if (oldROM != 1) {  // must be v3.5+ for some functions in here
+    /* set screen mode to colors if supported */
+    if (oldROM != 1) {  /* must be v3.5+ for some functions in here */
         WinScreenMode(winScreenModeGetSupportedDepths, 0, 0, &depth, 0);
         if ((depth & (1 << (8-1))) != 0 ) {
-            // 8bpp (color) is supported
+            /* 8bpp (color) is supported */
             changeDepthRes(8);
         } else if ((depth & (1 << (4-1))) != 0) {
-            // 4bpp (greyscale) is supported
+            /* 4bpp (greyscale) is supported */
             changeDepthRes(4);
         }
-        // falls through if you've no color
+        /* falls through if you've no color */
     }
-    // The 'playground'... built by the size of the screen
+    /* The 'playground'... built by the size of the screen */
     rPlayGround.topLeft.x = 0;
-    rPlayGround.topLeft.y = 15; // Padding for the menubar
+    rPlayGround.topLeft.y = 15; /* Padding for the menubar */
     rPlayGround.extent.x = sWidth;
-    rPlayGround.extent.y = sHeight - 2*16; // Space on the bottom
+    rPlayGround.extent.y = sHeight - 2*16; /* Space on the bottom */
 
-    // create an offscreen window, and copy the zones.bmp
-    // to be used later
-    bitmaphandle = DmGet1Resource('Tbmp', bitmapID_zones);
-    bitmap = MemHandleLock(bitmaphandle);
-    //space for 64*2=128 zones
-    winZones = _WinCreateOffscreenWindow(1024, 32, genericFormat, &err);
-    if (err != errNone) {
-        // TODO: alert user, and quit program
-        UIWriteLog("Offscreen window for zones failed\n");
+    /* create an offscreen window, and copy the zones to be used later */
+    for (i = 0; i < (sizeof (handles) / sizeof (handles[0])); i++) {
+    	bitmaphandle = DmGet1Resource('Tbmp', handles[i].resourceID);
+	if (bitmaphandle == NULL) {
+	    char c[20];
+	    StrPrintF(c, "%ld]\n", (long)handles[i].resourceID);
+	    UIWriteLog("could not get bitmap handle[");
+	    UIWriteLog(c);
+	}
+    	bitmap = MemHandleLock(bitmaphandle);
+	privhandle = _WinCreateOffscreenWindow(handles[i].width,
+	    handles[i].height, genericFormat, &err);
+    	if (err != errNone) {
+	    /* TODO: alert user, and quit program */
+    	    UIWriteLog("Offscreen window for zones failed\n");
+	}
+	if (winHandle == NULL) winHandle = WinSetDrawWindow(privhandle);
+	else WinSetDrawWindow(privhandle);
+    	_WinDrawBitmap(bitmap, 0, 0);
+	MemHandleUnlock(bitmaphandle);
+	*(handles[i].handle) = privhandle;
     }
-    winHandle = WinSetDrawWindow(winZones);
-    // draw the bitmap into the offscreen window
-    _WinDrawBitmap(bitmap, 0, 0);
-    MemHandleUnlock(bitmaphandle);
-
-
-    // now, ditto for the monsters
-    bitmaphandle = DmGet1Resource('Tbmp', bitmapID_monsters);
-    bitmap = MemHandleLock(bitmaphandle);
-    winMonsters = _WinCreateOffscreenWindow(128, 64, genericFormat, &err);
-    if (err != errNone) {
-        // TODO: alert user, and quit program
-        UIWriteLog("Offscreen window for monsters failed\n");
-    }
-    WinSetDrawWindow(winMonsters); // note we don't save the old winhandle here
-    _WinDrawBitmap(bitmap, 0, 0);
-    MemHandleUnlock(bitmaphandle);
-
-    // and, at last, the units
-    bitmaphandle = DmGet1Resource('Tbmp', bitmapID_units);
-    bitmap = MemHandleLock(bitmaphandle);
-    winUnits = _WinCreateOffscreenWindow(48, 32, genericFormat,&err);
-    if (err != errNone) {
-        // TODO: alert user, and quit program
-        UIWriteLog("Offscreen window for units failed\n");
-    }
-
     initTextPositions();
-    WinSetDrawWindow(winUnits); // note we don't save the old winhandle here
-    _WinDrawBitmap(bitmap, 0, 0);
-    MemHandleUnlock(bitmaphandle);
 
-    // clean up
-    WinSetDrawWindow(winHandle);
+    /* clean up */
+    if (winHandle) WinSetDrawWindow(winHandle);
 
     hookHoldSwitch(HoldHook);
 }
@@ -326,14 +329,14 @@ _PalmFini(void)
 {
     unhookHoldSwitch();
 
-    // clean up
+    /* clean up */
     WinDeleteWindow(winZones,0);
     WinDeleteWindow(winMonsters,0);
     WinDeleteWindow(winUnits,0);
     MemPtrFree(worldPtr);
     MemPtrFree(worldFlagsPtr);
     restoreDepthRes();
-    // Close the forms
+    /* Close the forms */
     FrmCloseAllForms();
 }
 
@@ -355,7 +358,7 @@ static Boolean hPocketCity(EventPtr event)
     case penDownEvent:
         scaleEvent(event);
         if (RctPtInRectangle(event->screenX, event->screenY, &rPlayGround)) {
-            // click was on the playground
+            /* click was on the playground */
             _UIGetFieldToBuildOn(event->screenX, event->screenY);
             handled = 1;
             break;
@@ -363,13 +366,13 @@ static Boolean hPocketCity(EventPtr event)
         if (event->screenY < 12) {
             handled = 1;
             if (event->screenX >= (sWidth - 12)) {
-                // click was on change speed
+                /* click was on change speed */
                 cycleSpeed();
                 UIDrawPop();
                 break;
             }
             if (event->screenX < 12) {
-                // click was on toggle production
+                /* click was on toggle production */
                 if (nSelectedBuildItem == Be_Bulldozer) {
                     nSelectedBuildItem = nPreviousBuildItem;
                 } else {
@@ -383,7 +386,7 @@ static Boolean hPocketCity(EventPtr event)
             if (isHires())
                 toolBarCheck(event->screenX);
 #endif
-            // check for other 'penclicks' here
+            /* check for other 'penclicks' here */
         }
         break;
     case penMoveEvent:
@@ -397,112 +400,122 @@ static Boolean hPocketCity(EventPtr event)
     case penUpEvent:
         building = 0;
         timeStamp = TimGetSeconds()-game.gameLoopSeconds+2;
-        // so the simulation routine won't kick in right away
-        timeStampDisaster = timeStamp-game.gameLoopSeconds+1; // ditto
+        /* so the simulation routine won't kick in right away */
+        timeStampDisaster = timeStamp-game.gameLoopSeconds+1;
         handled = 1;
         break;
     case menuEvent:
-        if (event->data.menu.itemID >= menuitemID_buildBulldoze) {
-            if (event->data.menu.itemID == menuitemID_buildExtra) {
-                UIPopUpExtraBuildList();
-            } else {
-                nSelectedBuildItem = event->data.menu.itemID -
-                    menuitemID_buildBulldoze;
-                UIUpdateBuildIcon();
-            }
-            handled = 1;
-        } else {
-            switch (event->data.menu.itemID) {
-            case menuitemID_Funny:
-                // change this to whatever testing you're doing ;)
-                // just handy with a 'trigger' button for testing
-                // ie. disaters... this item is erased if you've
-                // not compiled with CHEAT or DEBUG
+#if defined(DEBUG)
+	{ char c[20]; StrPrintF(c, "mi: %d", event->data.menu.itemID);
+		UIWriteLog(c);}
+#endif
+    	switch (event->data.menu.itemID) {
+	case menuitemID_loadGame:
+	    switch(FrmAlert(alertID_loadGame)) {
+	    case 0: /* save game */
+		UISaveMyCity();
+		UIClearAutoSaveSlot();
+		FrmGotoForm(formID_files);
+		break;
+	    case 1: /* don't save */
+		UIClearAutoSaveSlot();
+		FrmGotoForm(formID_files);
+		break;
+	    default: /* cancel */
+		break;
+	    }
+	    handled = 1;
+	    break;
+	case menuitemID_saveGame:
+	    if (FrmAlert(alertID_saveGame) == 0) {
+		UISaveMyCity();
+	    }
+	    handled = 1;
+	    break;
+	case menuitemID_about:
+	    DoAbout();
+	    handled = 1;
+	    break;
+	case menuitemID_tips:
+	    FrmHelp(StrID_tips);
+	    handled = 1;
+	    break;
+	case menuitemID_Budget:
+	    SaveSpeed();
+	    FrmGotoForm(formID_budget);
+	    handled = 1;
+	    break;
+	case menuitemID_Map:
+	    SaveSpeed();
+	    FrmGotoForm(formID_map);
+	    handled = 1;
+	    break;
+#if defined(CHEAT) || defined(DEBUG)
+        case menuitemID_Funny:
+	    /*
+	     * change this to whatever testing you're doing.
+	     * just handy with a 'trigger' button for testing
+	     * ie. disaters... this item is erased if you've
+	     * not compiled with CHEAT or DEBUG
+	     */
 #ifdef CHEAT
-                game.credits += 100000;
+	    game.credits += 100000;
 #endif
 #ifdef DEBUG
-                MeteorDisaster(20,20);
+	    MeteorDisaster(20,20);
 #endif
-                handled = 1;
-                break;
-            case menuitemID_removeDefence:
-                RemoveAllDefence();
-                handled = 1;
-                break;
-            case menuitemID_Map:
-                SaveSpeed();
-                FrmGotoForm(formID_map);
-                handled = 1;
-                break;
-            case menuitemID_Budget:
-                SaveSpeed();
-                FrmGotoForm(formID_budget);
-                handled = 1;
-                break;
-            case menuitemID_about:
-                DoAbout();
-                handled = 1;
-                break;
-            case menuitemID_tips:
-                FrmHelp(StrID_tips);
-                handled = 1;
-                break;
-            case menuitemID_Configuration:
-                SaveSpeed();
-                FrmGotoForm(formID_options);
-                handled = 1;
-                break;
-            case menuitemID_loadGame:
-                switch(FrmAlert(alertID_loadGame)) {
-                case 0: // save game
-                    UISaveGameToIndex();
-                    UIClearAutoSaveSlot();
-                    FrmGotoForm(formID_files);
-                    break;
-                case 1: // don't save
-                    UIClearAutoSaveSlot();
-                    FrmGotoForm(formID_files);
-                    break;
-                case 2: // cancel
-                    break;
-                }
-                handled = 1;
-                break;
-            case menuitemID_saveGame:
-                if (FrmAlert(alertID_saveGame) == 0) {
-                    UISaveGameToIndex();
-                }
-                handled = 1;
-                break;
-            case menuID_SlowSpeed:
-                game.gameLoopSeconds = SPEED_SLOW;
-                UIDrawPop();
-                handled = 1;
-                break;
-            case menuID_MediumSpeed:
-                game.gameLoopSeconds = SPEED_MEDIUM;
-                UIDrawPop();
-                handled = 1;
-                break;
-            case menuID_FastSpeed:
-                game.gameLoopSeconds = SPEED_FAST;
-                UIDrawPop();
-                handled = 1;
-                break;
-            case menuID_TurboSpeed:
-                game.gameLoopSeconds = SPEED_TURBO;
-                UIDrawPop();
-                handled = 1;
-                break;
-            case menuID_PauseSpeed:
-                game.gameLoopSeconds = SPEED_PAUSED;
-                UIDrawPop();
-                handled = 1;
-                break;
-            }
-        }
-        break;
+	    handled = 1;
+	    break;
+#endif
+	case menuitemID_Configuration:
+	    SaveSpeed();
+	    FrmGotoForm(formID_options);
+	    handled = 1;
+	    break;
+	case menuID_SlowSpeed:
+	    game.gameLoopSeconds = SPEED_SLOW;
+	    UIDrawPop();
+	    handled = 1;
+	    break;
+	case menuID_MediumSpeed:
+	    game.gameLoopSeconds = SPEED_MEDIUM;
+	    UIDrawPop();
+	    handled = 1;
+	    break;
+	case menuID_FastSpeed:
+	    game.gameLoopSeconds = SPEED_FAST;
+	    UIDrawPop();
+	    handled = 1;
+	    break;
+	case menuID_TurboSpeed:
+	    game.gameLoopSeconds = SPEED_TURBO;
+	    UIDrawPop();
+	    handled = 1;
+	    break;
+	case menuID_PauseSpeed:
+	    game.gameLoopSeconds = SPEED_PAUSED;
+	    UIDrawPop();
+	    handled = 1;
+	    break;
+	case mi_removeDefence:
+	    RemoveAllDefence();
+	    handled = 1;
+	    break;
+	case gi_buildExtra:
+	    UIPopUpExtraBuildList();
+	    handled = 1;
+	    break;
+	case mi_CauseFire:
+	case mi_CauseMeltDown:
+	case mi_CauseMonster:
+	case mi_CauseDragon:
+	case mi_CauseMeteor:
+	    DoSpecificDisaster(event->data.menu.itemID - mi_CauseFire +
+			    diFireOutbreak);
+	    handled = 1;
+	    break;
+
+	}
     case keyDownEvent:
         switch (event->data.keyDown.chr) {
         case vchrCalc:
@@ -518,34 +531,47 @@ static Boolean hPocketCity(EventPtr event)
             break;
         case pageUpChr:
             /* scroll map up */
-            ScrollMap(0);
+            ScrollMap(dtUp);
             handled = 1;
             break;
         case pageDownChr:
             /* scroll map down */
-            ScrollMap(2);
+            ScrollMap(dtDown);
             handled = 1;
             break;
         case vchrHard2:
             /* scroll map left */
-            ScrollMap(3);
+            ScrollMap(dtLeft);
             handled = 1;
             break;
         case vchrHard3:
             /* scroll map right */
-            ScrollMap(1);
+            ScrollMap(dtRight);
             handled = 1;
             break;
 #ifdef SONY_CLIE
         case vchrJogUp:
             UIWriteLog("up\n");
-            if (jog_lr) ScrollMap(3); else ScrollMap(0); handled = 1; break;
+            if (jog_lr)
+                ScrollMap(dtLeft);
+            else
+                ScrollMap(dtUp);
+            handled = 1;
+            break;
         case vchrJogDown:
             UIWriteLog("down\n");
-            if (jog_lr) ScrollMap(1); else ScrollMap(2); handled = 1; break;
+            if (jog_lr)
+                ScrollMap(dtRight);
+            else
+                ScrollMap(dtDown);
+            handled = 1;
+            break;
         case vchrJogRelease:
             UIWriteLog("leggo my eggo\n");
-            jog_lr = 1 - jog_lr; UIDrawLoc(); handled = 1; break;
+            jog_lr = 1 - jog_lr;
+            UIDrawLoc();
+            handled = 1;
+            break;
 #endif
         }
     default:
@@ -574,12 +600,13 @@ DoAbout(void)
 extern void
 UIGotoForm(int n)
 {
+    UInt16 formid = FrmGetActiveFormID();
     switch (n) {
     case 0:
-        FrmGotoForm(formID_budget);
+        if (formid != formID_budget) FrmGotoForm(formID_budget);
         break;
     case 1:
-        FrmGotoForm(formID_map);
+        if (formid != formID_map) FrmGotoForm(formID_map);
         break;
     default:
         break;
@@ -598,7 +625,7 @@ UIPopUpExtraBuildList(void)
     sfe = FrmDoDialog(ftList);
     switch (sfe) {
     case buttonID_extraBuildSelect:
-        // List entries must match entries in BuildCodes 0 ..
+        /* List entries must match entries in BuildCodes 0 .. */
         nSelectedBuildItem = LstGetSelection(FrmGetObjectPtr(ftList,
               FrmGetObjectIndex(ftList, listID_extraBuildList)));
         break;
@@ -665,7 +692,7 @@ hExtraList(EventPtr event)
         break;
     case lstSelectEvent:
         if ((event->data.lstSelect.listID) == listID_extraBuildList) {
-            // clear old mem
+            /* clear old mem */
             FormPtr form = FrmGetActiveForm();
             void * ptr = (void*)FldGetTextPtr(FrmGetObjectPtr(form,
                   FrmGetObjectIndex(form, labelID_extraBuildDescription)));
@@ -708,18 +735,20 @@ UIDoQuickList(void)
 {
     FormType * ftList;
 
-    if (oldROM != 1) {
+    if (!oldROM) {
         ftList = FrmInitForm(formID_quickList);
         FrmSetEventHandler(ftList, hQuickList);
-        nSelectedBuildItem = FrmDoDialog(ftList) - menuitemID_buildBulldoze;
+        nSelectedBuildItem = FrmDoDialog(ftList) - gi_buildBulldoze;
 
         if (nSelectedBuildItem >= OFFSET_EXTRA)
             UIPopUpExtraBuildList();
         UIUpdateBuildIcon();
         FrmDeleteForm(ftList);
     } else {
-        // darn, I hate that 3.1 - can't do bitmapped buttons
-        // so I'll just throw the ExtraBuildList up
+        /*
+	 * darn, I hate that 3.1 - can't do bitmapped buttons.
+	 * I'll just throw the ExtraBuildList up
+	 */
         UIPopUpExtraBuildList();
     }
 }
@@ -745,8 +774,7 @@ hQuickList(EventPtr event)
         case vchrCalc:
             /* close the quicksheet - simulate we pushed the bulldozer */
             CtlHitControl(FrmGetObjectPtr(FrmGetActiveForm(),
-                  FrmGetObjectIndex(FrmGetActiveForm(),
-                  menuitemID_buildBulldoze)));
+                  FrmGetObjectIndex(FrmGetActiveForm(), gi_buildBulldoze)));
             handled = 1;
             break;
         }
@@ -816,16 +844,18 @@ static Boolean hOptions(EventPtr event)
         break;
     }
 
-    return handled;
+    return (handled);
 }
 
 
-extern unsigned char UIGetSelectedBuildItem(void)
+unsigned char
+UIGetSelectedBuildItem(void)
 {
-    return nSelectedBuildItem;
+    return (nSelectedBuildItem);
 }
 
-void _UIGetFieldToBuildOn(int x, int y)
+void
+_UIGetFieldToBuildOn(int x, int y)
 {
     RectangleType rect;
     int i,j;
@@ -844,40 +874,47 @@ void _UIGetFieldToBuildOn(int x, int y)
     }
 }
 
-
-
-
-
-extern int UIDisplayError(int nError)
+int
+UIDisplayError(erdiType nError)
 {
-    // TODO: use FrmCustomAlert here for this stuff
-    switch (nError) {
-        case ERROR_OUT_OF_MEMORY: FrmAlert(alertID_errorOutOfMemory); break;
-        case ERROR_OUT_OF_MONEY: FrmAlert(alertID_outMoney); break;
-        case ERROR_FIRE_OUTBREAK: FrmAlert(alertID_fireOutBreak); break;
-        case ERROR_PLANT_EXPLOSION: FrmAlert(alertID_plantExplosion); break;
-        case ERROR_MONSTER: FrmAlert(alertID_monster); break;
-        case ERROR_DRAGON: FrmAlert(alertID_dragon); break;
-        case ERROR_METEOR: FrmAlert(alertID_meteor); break;
+    if (nError < diFireOutbreak)
+	switch (nError) {
+        case enOutOfMemory: FrmAlert(alertID_errorOutOfMemory); break;
+	case enOutOfMoney: FrmAlert(alertID_outMoney); break;
+    	default: ErrFatalDisplay("UIDisplayError called with unknown error");
+	}
+    else if (nError <= diMeteor) {
+        char string[512];
+        SysStringByIndex(st_disasters, nError - diFireOutbreak, string,
+            511);
+        if (*string == '\0') StrPrintF(string, "generic disaster??");
+        
+        FrmCustomAlert(alertID_generic_disaster, string, 0, 0);
+        return (0);
     }
-    return 0;
+    ErrFatalDisplay("UIDisplayError called with unknown error");
+    return (0);
 }
 
 
-extern void UIInitDrawing(void) {};
-extern void UIFinishDrawing(void) {};
+void UIInitDrawing(void) {};
+void UIFinishDrawing(void) {};
 
 UInt8 *didLock = NULL;
-// The WinScreenLock is 'optional' depending on how much memory you have
-// the call may or may not succeed.
-// by using these two APIs we can get faster, flickerless allscreen updating
-extern void UILockScreen(void)
+/*
+ * The WinScreenLock is 'optional' depending on how much memory you have.
+ * the call may or may not succeed.
+ * by using these two APIs we can get faster, flickerless allscreen updating
+ */
+void
+UILockScreen(void)
 {
     if ((oldROM != 1) && !didLock)
         didLock = WinScreenLock(winLockCopy);
 }
 
-extern void UIUnlockScreen(void)
+void
+UIUnlockScreen(void)
 {
     if ((oldROM != 1) && didLock) {
         WinScreenUnlock();
@@ -885,15 +922,16 @@ extern void UIUnlockScreen(void)
     }
 }
 
-extern void _UIDrawRect(int nTop, int nLeft, int nHeight, int nWidth)
+void
+_UIDrawRect(int nTop, int nLeft, int nHeight, int nWidth)
 {
-    // draws a rect on screen: note, the rect within the border will
-    // be exactly nHeight*nWidth pxls
-    // the frame's left border will be at nTop-1 and so on
+    /*
+     * draws a rect on screen: note, the rect within the border will
+     * be exactly nHeight*nWidth pxls
+     * the frame's left border will be at nTop-1 and so on
+     */
 
     RectangleType rect;
-
-//    if (DoDrawing == 0) { return; }
 
     rect.topLeft.x = nLeft;
     rect.topLeft.y = nTop;
@@ -903,25 +941,22 @@ extern void _UIDrawRect(int nTop, int nLeft, int nHeight, int nWidth)
     _WinDrawRectangleFrame(1, &rect);
 }
 
-extern void UIDrawBorder()
+void
+UIDrawBorder()
 {
     if (DoDrawing == 0) return;
 
-    // border
+    /* border */
     _UIDrawRect(YOFFSET, XOFFSET, vgame.visible_y * vgame.tileSize,
       vgame.visible_x * vgame.tileSize);
 }
 
 
-extern void UISetUpGraphic(void)
-{
-}
+void UISetUpGraphic(void) {}
 
-extern void UIDrawCursor(int xpos, int ypos)
-{
-}
+void UIDrawCursor(int xpos, int ypos) { }
 
-extern void UIDrawWaterLoss(int xpos, int ypos)
+void UIDrawWaterLoss(int xpos, int ypos)
 {
     RectangleType rect;
 
@@ -932,8 +967,8 @@ extern void UIDrawWaterLoss(int xpos, int ypos)
     rect.extent.x = vgame.tileSize;
     rect.extent.y = vgame.tileSize;
 
-    // copy/paste the graphic from the offscreen image
-    // first draw the overlay
+    /* copy/paste the graphic from the offscreen image */
+    /* first draw the overlay */
     _WinCopyRectangle(
             winZones,
             WinGetActiveWindow(),
@@ -941,7 +976,7 @@ extern void UIDrawWaterLoss(int xpos, int ypos)
             xpos*vgame.tileSize+XOFFSET,
             ypos*vgame.tileSize+YOFFSET,
             winErase);
-    // now draw the powerloss icon
+    /* now draw the powerloss icon */
     rect.topLeft.x = 64;
     _WinCopyRectangle(
             winZones,
@@ -952,7 +987,7 @@ extern void UIDrawWaterLoss(int xpos, int ypos)
             winOverlay);
 }
 
-extern void UIDrawPowerLoss(int xpos, int ypos)
+void UIDrawPowerLoss(int xpos, int ypos)
 {
     RectangleType rect;
 
@@ -963,8 +998,8 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
     rect.extent.x = vgame.tileSize;
     rect.extent.y = vgame.tileSize;
 
-    // copy/paste the graphic from the offscreen image
-    // first draw the overlay
+    /* copy/paste the graphic from the offscreen image */
+    /* first draw the overlay */
     _WinCopyRectangle(
             winZones,
             WinGetActiveWindow(),
@@ -972,7 +1007,7 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
             xpos*vgame.tileSize+XOFFSET,
             ypos*vgame.tileSize+YOFFSET,
             winErase);
-    // now draw the powerloss icon
+    /* now draw the powerloss icon */
     rect.topLeft.x = 128;
     _WinCopyRectangle(
             winZones,
@@ -983,7 +1018,8 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
             winOverlay);
 }
 
-extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
+void
+UIDrawSpecialUnit(int i, int xpos, int ypos)
 {
     RectangleType rect;
     if (DoDrawing == 0) { return; }
@@ -1011,7 +1047,8 @@ extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
 
 }
 
-extern void UIDrawSpecialObject(int i, int xpos, int ypos)
+void
+UIDrawSpecialObject(int i, int xpos, int ypos)
 {
     RectangleType rect;
     if (DoDrawing == 0) { return; }
@@ -1038,7 +1075,8 @@ extern void UIDrawSpecialObject(int i, int xpos, int ypos)
             winOverlay);
 }
 
-extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
+void
+UIDrawField(int xpos, int ypos, unsigned char nGraphic)
 {
     RectangleType rect;
 
@@ -1049,7 +1087,7 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
     rect.extent.x = vgame.tileSize;
     rect.extent.y = vgame.tileSize;
 
-    // copy/paste the graphic from the offscreen image
+    /* copy/paste the graphic from the offscreen image */
     _WinCopyRectangle(
             winZones,
             WinGetActiveWindow(),
@@ -1059,8 +1097,11 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
             winPaint);
 }
 
-
-extern void UIScrollMap(int direction)
+/*
+ * Scroll the map in the direction specified
+ */
+void
+UIScrollMap(dirType direction)
 {
     WinHandle screen;
     RectangleType rect;
@@ -1083,7 +1124,7 @@ extern void UIScrollMap(int direction)
     screen = WinGetActiveWindow();
     _WinCopyRectangle(screen, screen, &rect,to_x, to_y, winPaint);
 
-    // and lastly, fill the gap
+    /* and lastly, fill the gap */
     LockWorld();
     LockWorldFlags();
     UIInitDrawing();
@@ -1152,21 +1193,21 @@ struct StatusPositions {
     UInt32 extents;
 };
 
-// extent.x is filled in automatically
+/* extent.x is filled in automatically */
 
 static struct StatusPositions lrpositions[] = {
-    { { {0, 0}, {0, 11} }, { 0, 1 }, MIDX },  // DATELOC
-    { { {0, 0}, {0, 11} }, {0, 1}, ENDY }, // CREDITSLOC
-    { { {0, 0}, {0, 11} }, {0, 1}, MIDX | ENDY }, // POPLOC
-    { { {0, 0}, {0, 11} }, {0, 1}, ENDX | ENDY }, // POSITIONLOC
+    { { {0, 0}, {0, 11} }, { 0, 1 }, MIDX },  /* DATELOC */
+    { { {0, 0}, {0, 11} }, {0, 1}, ENDY }, /* CREDITSLOC */
+    { { {0, 0}, {0, 11} }, {0, 1}, MIDX | ENDY }, /* POPLOC */
+    { { {0, 0}, {0, 11} }, {0, 1}, ENDX | ENDY }, /* POSITIONLOC */
 };
 #ifdef SONY_CLIE
 
 static struct StatusPositions hrpositions[] = {
-    { { {2, 0}, {0, 11} }, { 0, 1 }, ENDY },  // DATELOC
-    { { {80, 0}, {0, 11} }, {0, 1}, ENDY }, // CREDITSLOC
-    { { {160, 0}, {0, 11} }, {0, 1}, ENDY }, // POPLOC
-    { { {280, 0}, {0, 11} }, {0, 1}, ENDY }, // POSITIONLOC
+    { { {2, 0}, {0, 11} }, { 0, 1 }, ENDY },  /* DATELOC */
+    { { {80, 0}, {0, 11} }, {0, 1}, ENDY }, /* CREDITSLOC */
+    { { {160, 0}, {0, 11} }, {0, 1}, ENDY }, /* POPLOC */
+    { { {280, 0}, {0, 11} }, {0, 1}, ENDY }, /* POSITIONLOC */
 };
 
 static struct StatusPositions *
@@ -1186,7 +1227,7 @@ posAt(int pos)
 #endif
 #define MAXLOC          (sizeof (lrpositions) / sizeof (lrpositions[0]))
 
-// only the topLeft.y location is a 'constant'
+/* only the topLeft.y location is a 'constant' */
 void
 initTextPositions(void)
 {
@@ -1289,7 +1330,7 @@ extern void UIDrawLoc(void)
         StrPrintF(temp, "(%02u,%02u)", game.map_xpos, game.map_ypos);
 #ifdef SONY_CLIE
     bitmapHandle = DmGet1Resource('Tbmp', bitmapID_updn + jog_lr);
-    // place at rt - (12 + 8), 1
+    /* place at rt - (12 + 8), 1 */
     if (bitmapHandle) {
         bitmap = MemHandleLock(bitmapHandle);
         if (bitmap) {
@@ -1314,7 +1355,7 @@ UIUpdateBuildIcon(void)
             (((nSelectedBuildItem <= Be_Extra)) ?
              nSelectedBuildItem : OFFSET_EXTRA));
 
-    if (bitmaphandle == NULL) { return; } // TODO: onscreen error? +save?
+    if (bitmaphandle == NULL) { return; } /* TODO: onscreen error? +save? */
     bitmap = MemHandleLock(bitmaphandle);
     _WinDrawBitmap(bitmap, 2, 2);
     MemPtrUnlock(bitmap);
@@ -1332,7 +1373,7 @@ extern void UIDrawSpeed(void)
 
     bitmaphandle = DmGet1Resource('Tbmp',
       bitmapID_SpeedPaused + game.gameLoopSeconds);
-    if (bitmaphandle == NULL) { return; } // TODO: onscreen error? +save?
+    if (bitmaphandle == NULL) { return; } /* TODO: onscreen error? +save? */
     bitmap = MemHandleLock(bitmaphandle);
     _WinDrawBitmap(bitmap, sWidth - 12, 2);
     MemPtrUnlock(bitmap);
@@ -1385,14 +1426,15 @@ extern void UICheckMoney(void)
 }
 
 /*** memory handlers ***/
-extern int InitWorld(void)
+int
+InitWorld(void)
 {
     worldHandle = MemHandleNew(10);
     worldFlagsHandle = MemHandleNew(10);
     UIWriteLog("Allocation initial 20 bytes\n");
 
     if (worldHandle == 0 || worldFlagsHandle == 0) {
-        UIDisplayError(0);
+        UIDisplayError(enOutOfMemory);
         UIWriteLog("FAILED!\n");
         return 0;
     }
@@ -1400,7 +1442,8 @@ extern int InitWorld(void)
 }
 
 
-extern int ResizeWorld(long unsigned size)
+int
+ResizeWorld(long unsigned size)
 {
 #ifdef DEBUG
     char temp[20];
@@ -1411,8 +1454,8 @@ extern int ResizeWorld(long unsigned size)
 
     if (MemHandleResize(worldHandle, size) != 0 ||
       MemHandleResize(worldFlagsHandle, size) != 0) {
-        UIDisplayError(0);
-        //QuitGameError();
+        UIDisplayError(enOutOfMemory);
+        /* QuitGameError(); */
         UIWriteLog("FAILED!\n");
         return 0;
     }
@@ -1435,7 +1478,8 @@ MapHasJumped(void)
 }
 
 
-void LockWorld()
+void
+LockWorld()
 {
     worldPtr = MemHandleLock(worldHandle);
 }
@@ -1460,7 +1504,7 @@ UnlockWorldFlags()
 unsigned char
 GetWorldFlags(long unsigned int pos)
 {
-    // NOTE: LockWorld() MUST have been called before this is used!!!
+    /* NOTE: LockWorld() MUST have been called before this is used!!! */
     if (pos > GetMapMul()) { return 0; }
     return ((unsigned char*)worldFlagsPtr)[pos];
 }
@@ -1472,29 +1516,29 @@ SetWorldFlags(long unsigned int pos, unsigned char value)
     ((unsigned char*)worldFlagsPtr)[pos] = value;
 }
 
-extern void
+void
 OrWorldFlags(unsigned long pos, unsigned char value)
 {
     if (pos > GetMapMul()) { return; }
     ((unsigned char*)worldFlagsPtr)[pos] |= value;
 }
 
-extern void
+void
 AndWorldFlags(unsigned long pos, unsigned char value)
 {
     if (pos > GetMapMul()) { return; }
     ((unsigned char*)worldFlagsPtr)[pos] &= value;
 }
 
-extern unsigned char
+unsigned char
 GetWorld(unsigned long pos)
 {
-    // NOTE: LockWorld() MUST have been called before this is used!!!
+    /* NOTE: LockWorld() MUST have been called before this is used!!! */
     if (pos > GetMapMul()) { return 0; }
     return ((unsigned char*)worldPtr)[pos];
 }
 
-extern void
+void
 SetWorld(unsigned long pos, unsigned char value)
 {
     if (pos > GetMapMul()) { return; }
@@ -1509,7 +1553,7 @@ RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
     char temp[20];
 #endif
 
-    // See if we're on in minimum required version of the ROM or later.
+    /* See if we're on in minimum required version of the ROM or later. */
     FtrGet(sysFtrCreator, sysFtrNumROMVersion, &romVersion);
 #ifdef DEBUG
     StrPrintF(temp, "0x%lx", romVersion);
@@ -1527,8 +1571,10 @@ RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
                 return (0);
             }
 
-            // Pilot 1.0 will continuously relaunch this app unless we switch to
-            // another safe one.
+            /*
+	     * Pilot 1.0 will continuously relaunch this app unless we
+	     * switch to another safe one.
+	     */
             if (romVersion < sysMakeROMVersion(2, 0, 0, 0, 0)) {
                 AppLaunchWithCommand(sysFileCDefaultApp,
                   sysAppLaunchCmdNormalLaunch, NULL);
@@ -1590,7 +1636,7 @@ UIDrawToolBar(void)
 static void
 toolBarCheck(Coord xpos)
 {
-    // We've already confirmed the y-axis.
+    /* We've already confirmed the y-axis. */
     int id = (xpos - 16) / 14;
     if (id == (bitmapID_iconExtra - bitmapID_iconBulldoze)) {
         UIPopUpExtraBuildList();
@@ -1600,7 +1646,7 @@ toolBarCheck(Coord xpos)
     UIUpdateBuildIcon();
 }
 
-// Pauses the game if you flick the 'hold' switch
+/* Pauses the game if you flick the 'hold' switch */
 static void
 HoldHook(UInt32 held)
 {

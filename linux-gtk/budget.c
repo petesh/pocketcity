@@ -14,25 +14,25 @@ extern void UIUpdateBudget(void)
     char temp[20];
     if (!dlg) { return; }
 
-    sprintf(temp,"%li", BudgetGetNumber(BUDGET_RESIDENTIAL));
+    sprintf(temp,"%li", BudgetGetNumber(bnResidential));
     gtk_label_set_text((GtkLabel*)lres,temp);
-    sprintf(temp,"%li", BudgetGetNumber(BUDGET_COMMERCIAL));
+    sprintf(temp,"%li", BudgetGetNumber(bnCommercial));
     gtk_label_set_text((GtkLabel*)lcom,temp);
-    sprintf(temp,"%li", BudgetGetNumber(BUDGET_INDUSTRIAL));
+    sprintf(temp,"%li", BudgetGetNumber(bnIndustrial));
     gtk_label_set_text((GtkLabel*)lind,temp);
     
-    sprintf(temp,"%li", BudgetGetNumber(BUDGET_POWER));
+    sprintf(temp,"%li", BudgetGetNumber(bnPower));
     gtk_label_set_text((GtkLabel*)lpow,temp);
-    sprintf(temp,"%li", BudgetGetNumber(BUDGET_TRAFFIC));
+    sprintf(temp,"%li", BudgetGetNumber(bnTraffic));
     gtk_label_set_text((GtkLabel*)ltra,temp);
-    sprintf(temp,"%li", BudgetGetNumber(BUDGET_DEFENCE));
+    sprintf(temp,"%li", BudgetGetNumber(bnDefence));
     gtk_label_set_text((GtkLabel*)ldef,temp);
     
-    sprintf(temp,"%li", BudgetGetNumber(BUDGET_CURRENT_BALANCE));
+    sprintf(temp,"%li", BudgetGetNumber(bnCurrentBalance));
     gtk_label_set_text((GtkLabel*)lbal,temp);
-    sprintf(temp,"%li", BudgetGetNumber(BUDGET_CHANGE));
+    sprintf(temp,"%li", BudgetGetNumber(bnChange));
     gtk_label_set_text((GtkLabel*)lcha,temp);
-    sprintf(temp,"%li", BudgetGetNumber(BUDGET_NEXT_MONTH));
+    sprintf(temp,"%li", BudgetGetNumber(bnNextMonth));
     gtk_label_set_text((GtkLabel*)lnex,temp);
 
 }
@@ -40,24 +40,27 @@ extern void UIUpdateBudget(void)
 void budget_traffic(GtkAdjustment *adj)
 {
     char temp[20];
-    game.upkeep[UPKEEPS_TRAFFIC] = gtk_adjustment_get_value(GTK_ADJUSTMENT(adjust_tra));
-    sprintf(temp,"%li", BudgetGetNumber(BUDGET_TRAFFIC));
+    game.upkeep[UPKEEPS_TRAFFIC] = gtk_adjustment_get_value(
+	GTK_ADJUSTMENT(adjust_tra));
+    sprintf(temp,"%li", BudgetGetNumber(bnTraffic));
     gtk_label_set_text((GtkLabel*)ltra,temp);
 }
 
 void budget_power(GtkAdjustment *adj)
 {
     char temp[20];
-    game.upkeep[UPKEEPS_POWER] = gtk_adjustment_get_value(GTK_ADJUSTMENT(adjust_pow));
-    sprintf(temp,"%li", BudgetGetNumber(BUDGET_POWER));
+    game.upkeep[UPKEEPS_POWER] = gtk_adjustment_get_value(
+	GTK_ADJUSTMENT(adjust_pow));
+    sprintf(temp,"%li", BudgetGetNumber(bnPower));
     gtk_label_set_text((GtkLabel*)lpow,temp);
 }
 
 void budget_defence(GtkAdjustment *adj)
 {
     char temp[20];
-    game.upkeep[UPKEEPS_DEFENCE] = gtk_adjustment_get_value(GTK_ADJUSTMENT(adjust_def));
-    sprintf(temp,"%li", BudgetGetNumber(BUDGET_DEFENCE));
+    game.upkeep[UPKEEPS_DEFENCE] = gtk_adjustment_get_value(
+	GTK_ADJUSTMENT(adjust_def));
+    sprintf(temp,"%li", BudgetGetNumber(bnDefence));
     gtk_label_set_text((GtkLabel*)ldef,temp);
 }
 
@@ -98,7 +101,7 @@ extern void UIViewBudget(GtkWidget *w, gpointer data)
 
     gtk_container_add(GTK_CONTAINER(dlg), mainbox);
     gtk_box_pack_start(GTK_BOX(mainbox), table,TRUE,TRUE,0);
-    // layout the labels
+    /* layout the labels */
     gtk_table_attach_defaults(GTK_TABLE(table),gtk_label_new("Income"),0,3,0,1);
     gtk_table_attach_defaults(GTK_TABLE(table),create_left_label("Residential"),0,1,1,2);
     gtk_table_attach_defaults(GTK_TABLE(table),create_left_label("Commercial"),0,1,2,3);
@@ -114,7 +117,7 @@ extern void UIViewBudget(GtkWidget *w, gpointer data)
     gtk_table_attach_defaults(GTK_TABLE(table),create_left_label("Change"),0,2,12,13);
     gtk_table_attach_defaults(GTK_TABLE(table),create_left_label("Next month's balance"),0,2,13,14);
 
-    // now the moneyflow
+    /* now the moneyflow */
     lres = create_right_label();
     lcom = create_right_label();
     lind = create_right_label();
@@ -134,7 +137,7 @@ extern void UIViewBudget(GtkWidget *w, gpointer data)
     gtk_table_attach_defaults(GTK_TABLE(table),lcha,2,3,12,13);
     gtk_table_attach_defaults(GTK_TABLE(table),lnex,2,3,13,14);
     
-    // and the adjustments
+    /* and the adjustments */
     {
         GtkWidget *spinner;
         adjust_tra = gtk_adjustment_new(game.upkeep[UPKEEPS_TRAFFIC],0,100,1,10,0);
