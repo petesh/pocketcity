@@ -38,3 +38,4 @@ extern void SetWorldFlags(long unsigned int pos, unsigned char value);
 
 extern unsigned long GetRandomNumber(unsigned long max);
 extern void UISetTileSize(int size);
+extern void UIWriteLog(char*);

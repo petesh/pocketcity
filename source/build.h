@@ -18,6 +18,7 @@
 #define BUILD_COST_POWER_LINE       5
 #define BUILD_COST_TREE             10
 #define BUILD_COST_WATER            200
+#define BUILD_COST_BRIDGE           100
 
 
 extern void BuildSomething(int xpos, int ypos);

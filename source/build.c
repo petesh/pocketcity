@@ -99,7 +99,12 @@ extern void Build_Destroy(int xpos, int ypos)
     BuildCount[COUNT_POWERLINES] -= ((type == 7) || (type == 6) || (type == 5));
     BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE1);
     updatePowerGrid = 1; // to make sure the powergrid is uptodate
-    SetWorld(WORLDPOS(xpos,ypos),0);
+    if (type == 81) {
+        // A bridge turns into real_water when detroyed
+        SetWorld(WORLDPOS(xpos,ypos),TYPE_REAL_WATER);
+    } else {
+        SetWorld(WORLDPOS(xpos,ypos),0);
+    }
     UnlockWorld();
 
     DrawCross(xpos, ypos);
@@ -134,48 +139,48 @@ void Build_Road(int xpos, int ypos)
     int old;
     LockWorld();
     old = GetWorld(WORLDPOS(xpos, ypos));
-    if (old == 0 || old == 5)
-    {
-        if (old == 5)
+    if (old == 5) {
+        switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),1))
         {
-            switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),1))
-            {
-                case 70:
-                    if (SpendMoney(BUILD_COST_ROAD))
-                    {
-                        SetWorld(WORLDPOS(xpos, ypos),6);
-                        DrawCross(xpos, ypos);
-                        BuildCount[COUNT_ROADS]++;
-                    } else {
-                        UIDisplayError(ERROR_OUT_OF_MONEY);
-                    }
-                    break;
-                case 71:
-                    if (SpendMoney(BUILD_COST_ROAD))
-                    {
-                        SetWorld(WORLDPOS(xpos, ypos),7);
-                        DrawCross(xpos, ypos);
-                        BuildCount[COUNT_ROADS]++;
-                    } else {
-                        UIDisplayError(ERROR_OUT_OF_MONEY);
-                    }
+            case 70:
+                if (SpendMoney(BUILD_COST_ROAD))
+                {
+                    SetWorld(WORLDPOS(xpos, ypos),6);
+                    DrawCross(xpos, ypos);
+                    BuildCount[COUNT_ROADS]++;
+                } else {
+                    UIDisplayError(ERROR_OUT_OF_MONEY);
+                }
+                break;
+            case 71:
+                if (SpendMoney(BUILD_COST_ROAD))
+                {
+                    SetWorld(WORLDPOS(xpos, ypos),7);
+                    DrawCross(xpos, ypos);
+                    BuildCount[COUNT_ROADS]++;
+                } else {
+                    UIDisplayError(ERROR_OUT_OF_MONEY);
+                }
 
-                    break;
-                default:
-                    break;
-            }
+                break;
+            default:
+                break;
         }
-        else
-        {
-            if (SpendMoney(BUILD_COST_ROAD))
-            {
-                SetWorld(WORLDPOS(xpos, ypos), 4);
-                DrawCross(xpos, ypos);
-                BuildCount[COUNT_ROADS]++;
-            } else {
-                UIDisplayError(ERROR_OUT_OF_MONEY);
-            }
-
+    } else if (old == TYPE_REAL_WATER) { // build a bridge across the water
+        if (SpendMoney(BUILD_COST_BRIDGE)) {
+            SetWorld(WORLDPOS(xpos, ypos), 81);
+            DrawCross(xpos, ypos);
+            BuildCount[COUNT_ROADS]++;
+        } else {
+            UIDisplayError(ERROR_OUT_OF_MONEY);
+        }
+    } else if (old == 0) {
+        if (SpendMoney(BUILD_COST_ROAD)) {
+            SetWorld(WORLDPOS(xpos, ypos),4);
+            DrawCross(xpos, ypos);
+            BuildCount[COUNT_ROADS]++;
+        } else {
+            UIDisplayError(ERROR_OUT_OF_MONEY);
         }
     }
     UnlockWorld();

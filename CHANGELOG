@@ -13,6 +13,8 @@ Version 0.11
 Kean Pedersen:
   + Naming of savegames
   + Quick list on calculator button
+  + Bridges (not over homemade water on purpose)
+  * Fire now spreads at it own rate - pause won't help
   * Cleaned compiler warnings
   * Uses less stackspace in recursive function (should fix the FE)
   * Moved all graphic for the zones onto an offscreen windows

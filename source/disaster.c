@@ -5,10 +5,10 @@
 #include "globals.h"
 #include "handler.h"
 #include "build.h"
+#include "disaster.h"
 
 
 void FireSpread(int x, int y);
-int  BurnField(int x, int y);
 void CreateWaste(int x, int y);
 
 
@@ -69,15 +69,17 @@ extern void DoRandomDisaster(void)
 }
 
 
-extern void UpdateDisasters(void)
+extern int UpdateDisasters(void)
 {
-    int i,j,type;
+    // return false if no disasters are found
+    int i,j,type, retval=0;
 
     LockWorld();
     for (i=0; i<mapsize; i++) {
         for (j=0; j<mapsize; j++) {
             type = GetWorld(WORLDPOS(i,j));
             if (type == TYPE_FIRE2) {
+                retval = 1;
                 if (GetRandomNumber(5) != 0) {
                     FireSpread(i,j);
                     SetWorld(WORLDPOS(i,j),TYPE_FIRE3);
@@ -85,13 +87,16 @@ extern void UpdateDisasters(void)
                     CreateWaste(i,j);
                 }
             } else if (type == TYPE_FIRE1) {
+                retval = 1;
                 SetWorld(WORLDPOS(i,j),TYPE_FIRE2);
             } else if (type == TYPE_FIRE3) {
+                retval = 1;
                 CreateWaste(i,j);
             }
         }
     }
     UnlockWorld();
+    return retval;
 }
 
 void CreateWaste(int x, int y)
@@ -119,7 +124,7 @@ void FireSpread(int x, int y)
 }
 
 
-int BurnField(int x, int y)
+extern int BurnField(int x, int y)
 {
     int type;
     

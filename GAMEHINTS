@@ -13,3 +13,5 @@ C = commercial zones
 * Tapping on the build icon will toggle bulldozer
 * Tapping on the map will jump to that position
 * Tapping on the "calculator" button will bring up a quick list
+* In some versions there's a 'Test' menuoption under the 'File' menu - this
+  is for testing and debugging. It should not be used.

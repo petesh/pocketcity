@@ -33,6 +33,7 @@ short int oldROM = 0;
 short int building = 0;
 
 UInt32 timeStamp = 0;
+UInt32 timeStampDisaster = 0;
 short simState = 0;
 short DoDrawing = 0;
 unsigned short XOFFSET =0;
@@ -146,6 +147,22 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
                 }
             }
 
+            // do a disaster update every 2 secound nomatter what
+            // we don't want the (l)user to get help by pausing the game
+            // (not realistic enough) - TODO: Pause should be enabled on
+            // 'easy' difficulty.
+            if (game_in_progress == 1 && building == 0) {
+                timeTemp = TimGetSeconds();
+                if (timeTemp >= timeStampDisaster+SIM_GAME_LOOP_DISASTER) {
+                    UIWriteLog("Disaster update\n");
+                    if (UpdateDisasters()) {
+                        RedrawAllFields();
+                    }
+                    timeStampDisaster = timeTemp;
+                }
+            }
+            
+
 
         } while (event.eType != appStopEvent);
 
@@ -169,6 +186,7 @@ void _PalmInit(void)
     WinHandle  winHandle;
     
     timeStamp = TimGetSeconds();
+    timeStampDisaster = timeStamp;
 
     rPlayGround.topLeft.x = 0;
     rPlayGround.topLeft.y = 15;
@@ -429,6 +447,8 @@ static Boolean hPocketCity(EventPtr event)
             break;
         case penUpEvent:
             building = 0;
+            timeStamp = TimGetSeconds(); // so the simulation routine won't kick in right away
+            timeStampDisaster = timeStamp; // ditto
             handled = 1;
             break;
         case menuEvent:
@@ -441,6 +461,7 @@ static Boolean hPocketCity(EventPtr event)
                 switch (event->data.menu.itemID)
                 {
                     case menuitemID_Funny:
+                        BurnField(5,5);
                         handled = 1;
                         break;
                     case menuitemID_Map:
@@ -714,6 +735,9 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
 extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
 {
     RectangleType rect;
+//    char temp[100];
+//    StrPrintF(temp,"Drawing %i at (%i,%i)\n",nGraphic, xpos,ypos);
+//    UIWriteLog(temp);
     
     if (DoDrawing == 0) { return; }
 
@@ -1001,7 +1025,7 @@ Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags)
     return (0);
 }
 
-void UIWriteLog(char * s) 
+extern void UIWriteLog(char * s) 
 {
 #ifdef DEBUG
     HostFILE * hf = NULL;

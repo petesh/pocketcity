@@ -1,5 +1,6 @@
 #define TBMP 1415736688
 
+#define SIM_GAME_LOOP_DISASTER  2
 
 #define ERROR_OUT_OF_MEMORY     1
 #define ERROR_OUT_OF_MONEY      2

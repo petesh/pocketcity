@@ -518,29 +518,36 @@ extern int Sim_DoPhase(int nPhase)
     {
         case 1:
             if (updatePowerGrid != 0) {
+                UIWriteLog("Simulation phase 1 - power grid\n");
                 Sim_DistributePower();
                 updatePowerGrid = 0;
             }
             nPhase =2;
             break;
         case 2:
+            UIWriteLog("Simulation phase 2 - Find zones for upgrading\n");
             FindZonesForUpgrading();
             nPhase=3;
+            UIWriteLog("Simulation phase 3 - Find score for zones\n"); // this couldn't be below
             break;
         case 3:
-            if (FindScoreForZones() == 0)
-                  nPhase=4;
+            if (FindScoreForZones() == 0) {
+                nPhase=4;
+            }
             break;
         case 4:
+            UIWriteLog("Simulation phase 4 - Upgrade Zones\n");
             UpgradeZones();
             nPhase=5;
             break;
         case 5:
-            UpdateDisasters();
+            UIWriteLog("Simulation phase 5 - Update disasters\n");
+//            UpdateDisasters();
             DoRandomDisaster();
             nPhase = 6;
             break;
         case 6:
+            UIWriteLog("Simulation phase 6 - Economics\n");
             DoTaxes();
             TimeElapsed++;
             nPhase=0;

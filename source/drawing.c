@@ -164,8 +164,11 @@ unsigned char GetGraphicNumber(long unsigned int pos)
         case 4:    // special case: roads
             retval = GetSpecialGraphicNumber(pos, 0);
             break;
-        case 5:
+        case 5:     // special case: power line
             retval = GetSpecialGraphicNumber(pos,1);
+            break;
+        case 81:     // special case: bridge
+            retval = GetSpecialGraphicNumber(pos,2);
             break;
         default:
             break;
@@ -187,18 +190,19 @@ extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
     switch (nType)
     {
         case 0: // roads
+        case 2: // bridge
             if (pos >= mapsize)                        { a = IsRoad(GetWorld(pos-mapsize));    }
             if (pos < (mapsize*mapsize)-mapsize)    { c = IsRoad(GetWorld(pos+mapsize));    }
             if (pos % mapsize < mapsize-1)            { b = IsRoad(GetWorld(pos+1));            }
             if (pos % mapsize > 0)                    { d = IsRoad(GetWorld(pos-1));            }
-            nAddMe = 0;
+            nAddMe = nType==2?81:10; // 81 for bridge, 0 for normal road
             break;
         case 1:    // power lines
             if (pos >= mapsize)                        { a = CarryPower(GetWorld(pos-mapsize));    }
             if (pos < (mapsize*mapsize)-mapsize)    { c = CarryPower(GetWorld(pos+mapsize));    }
             if (pos % mapsize < mapsize-1)            { b = CarryPower(GetWorld(pos+1));            }
             if (pos % mapsize > 0)                    { d = CarryPower(GetWorld(pos-1));            }
-            nAddMe = 60;
+            nAddMe = 70;
             break;
         default:
             return 0;
@@ -206,18 +210,18 @@ extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
 
     UnlockWorld(); 
 
-    if ((a && b && c && d) == 1)    { return 20+nAddMe; }
-    if ((a && b && d) == 1)            { return 19+nAddMe; }
-    if ((b && c && d) == 1)            { return 18+nAddMe; }
-    if ((a && b && c) == 1)            { return 17+nAddMe; }
-    if ((a && c && d) == 1)            { return 16+nAddMe; }
-    if ((a && b) == 1)                { return 15+nAddMe; }
-    if ((a && d) == 1)                { return 14+nAddMe; }
-    if ((c && d) == 1)                { return 13+nAddMe; }
-    if ((c && b) == 1)                { return 12+nAddMe; }
-    if ((a || c) == 1)                { return 11+nAddMe; }
+    if ((a && b && c && d) == 1)    { return 10+nAddMe; }
+    if ((a && b && d) == 1)            { return 9+nAddMe; }
+    if ((b && c && d) == 1)            { return 8+nAddMe; }
+    if ((a && b && c) == 1)            { return 7+nAddMe; }
+    if ((a && c && d) == 1)            { return 6+nAddMe; }
+    if ((a && b) == 1)                { return 5+nAddMe; }
+    if ((a && d) == 1)                { return 4+nAddMe; }
+    if ((c && d) == 1)                { return 3+nAddMe; }
+    if ((c && b) == 1)                { return 2+nAddMe; }
+    if ((a || c) == 1)                { return 1+nAddMe; }
 
-    return 10+nAddMe;
+    return nAddMe;
 
 }
 
@@ -225,7 +229,8 @@ extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
 extern int CarryPower(unsigned char x)            { return ((x)>=1&&(x)<=7&&(x)!=4) || ((x)>=30&&(x)<=61)  ?1:0; }
 extern int IsPowerLine(unsigned char x)        { return ((x)>=5 && (x)<=7)  ?1:0; }
 
-extern int IsRoad(unsigned char x)        { return ((x)==4 || (x)==6 || (x)==7)  ?1:0; }
+extern int IsRoad(unsigned char x)        { return ((x)==4 || (x)==6 || (x)==7 || (x)==81)  ?1:0; }
+
 extern int IsZone(unsigned char x, int nType)
 {
     if (x == nType) { return 1; }
