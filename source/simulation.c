@@ -492,14 +492,15 @@ void DoTaxes()
     short unsigned int popTax;
     short unsigned int comTax;
     short unsigned int indTax;
+    float taxRate;
+    
+    taxRate = 10/12;
 
-    popTax = (BuildCount[COUNT_RESIDENTIAL]*50)/100;
-    comTax = (BuildCount[COUNT_COMMERCIAL]*50)/100;
-    indTax = (BuildCount[COUNT_INDUSTRIAL]*50)/100;
+    popTax = (BuildCount[COUNT_RESIDENTIAL]*25)/100*taxRate;
+    comTax = (BuildCount[COUNT_COMMERCIAL]*25)/100*taxRate;
+    indTax = (BuildCount[COUNT_INDUSTRIAL]*25)/100*taxRate;
 
     thisMonthsTaxes = popTax+comTax+indTax;
-    credits += thisMonthsTaxes;
-    credits += thisMonthsTaxes;
     credits += thisMonthsTaxes;
 }
 
