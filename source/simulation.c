@@ -10,6 +10,7 @@ int powerleft=0;
 
 void PowerMoveOnFromThisPoint(unsigned long pos);
 void DoTaxes(void);
+void DoUpkeep(void);
 unsigned long PowerMoveOn(unsigned long pos, int direction);
 int PowerNumberOfSquaresAround(unsigned long pos);
 int PowerFieldCanCarry(unsigned long pos);
@@ -477,16 +478,28 @@ void DoTaxes()
     short unsigned int comTax;
     short unsigned int indTax;
 
-    popTax = (BuildCount[COUNT_RESIDENTIAL]*775)/100;
-    comTax = (BuildCount[COUNT_COMMERCIAL]*775)/100;
-    indTax = (BuildCount[COUNT_INDUSTRIAL]*775)/100;
+    popTax = (BuildCount[COUNT_RESIDENTIAL]*188)/100;
+    comTax = (BuildCount[COUNT_COMMERCIAL]*188)/100;
+    indTax = (BuildCount[COUNT_INDUSTRIAL]*188)/100;
 
     thisMonthsTaxes = popTax+comTax+indTax;
-    credits += (thisMonthsTaxes/12);
+    credits += thisMonthsTaxes;
+    credits += thisMonthsTaxes;
+    credits += thisMonthsTaxes;
 }
 
-
-
+void DoUpkeep()
+{
+	long unsigned int roadCount;
+	long unsigned int roadUpkeep;
+	long unsigned int totalUpkeep;
+	
+	roadCount = BuildCount[COUNT_ROADS];
+	roadUpkeep = 2;
+	totalUpkeep = roadCount*roadUpkeep;
+	
+	credits = credits-totalUpkeep;
+}
 
 extern int Sim_DoPhase(int nPhase)
 {
@@ -520,6 +533,7 @@ extern int Sim_DoPhase(int nPhase)
 		UIDrawCredits();
 		UIDrawPop();
 		UICheckMoney();
+		DoUpkeep();
 		UIFinishDrawing();
 		break;
 	}
