@@ -23,13 +23,13 @@ void _UICreateNewSaveGame(void);
 void _UICleanSaveGameList(void);
 void _UIDeleteFromList(void);
 int  _UILoadFromList(void);
-int  _UILoadNewestFromList(void);
 void UIDeleteGame(UInt16 index);
 int  UILoadGame(UInt16 index);
 void UINewGame(void);
 
 char * pArray[50];
 short int savegame_index = 0;
+#define LASTGAME        ((UInt16)~0)
 
 void _UIUpdateSaveGameList(void)
 {
@@ -43,11 +43,12 @@ void _UIUpdateSaveGameList(void)
 
     db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(), dmModeReadOnly);
     if (!db) {
-        form = FrmGetActiveForm();
+        form = FrmGetFormPtr(formID_files);
         LstSetListChoices(FrmGetObjectPtr(form,
               FrmGetObjectIndex(form, listID_FilesList)), NULL, 0);
-        LstDrawList(FrmGetObjectPtr(form,
-              FrmGetObjectIndex(form, listID_FilesList)));
+        if (form == FrmGetActiveForm())
+            LstDrawList(FrmGetObjectPtr(form,
+                  FrmGetObjectIndex(form, listID_FilesList)));
         return; // no database
     }
     nRec = DmNumRecords(db);
@@ -66,18 +67,20 @@ void _UIUpdateSaveGameList(void)
     DmCloseDatabase(db);
 
     // update list
-    form = FrmGetActiveForm();
+    form = FrmGetFormPtr(formID_files);
     LstSetListChoices(FrmGetObjectPtr(form,
           FrmGetObjectIndex(form, listID_FilesList)), pArray, nsIndex);
-    LstDrawList(FrmGetObjectPtr(form,
-          FrmGetObjectIndex(form, listID_FilesList)));
+    if (form == FrmGetActiveForm())
+        LstDrawList(FrmGetObjectPtr(form,
+              FrmGetObjectIndex(form, listID_FilesList)));
 }
 
 
-void _UICleanSaveGameList(void)
+void
+_UICleanSaveGameList(void)
 {
     int i,n;
-    FormPtr form = FrmGetActiveForm();
+    FormPtr form = FrmGetFormPtr(formID_files);
     n = LstGetNumberOfItems(FrmGetObjectPtr(form,
           FrmGetObjectIndex(form, listID_FilesList)));
     for (i = 0; i < n; i++) {
@@ -117,13 +120,13 @@ void _UICreateNewSaveGame(void)
             if (DmNumRecords(db) == 0) {
                 // create an empty record in slot 0 if it's not there, this is
                 // used for autosaves
-                rec = DmNewRecord(db, &index, game.mapsize*game.mapsize+200);
+                rec = DmNewRecord(db, &index, GetMapMul() + sizeof (game));
                 if (rec) {
                     DmReleaseRecord(db, index, true);
                 }
             }
             index = dmMaxRecordIndex;
-            rec = DmNewRecord(db, &index, game.mapsize*game.mapsize+200);
+            rec = DmNewRecord(db, &index, GetMapMul() + sizeof (game));
             if (rec) {
                 pRec = MemHandleLock(rec);
                 // write the header and some globals
@@ -138,21 +141,9 @@ void _UICreateNewSaveGame(void)
     }
 }
 
-int _UILoadNewestFromList(void)
-{
-    int n;
-    FormPtr form = FrmGetActiveForm();
-    n = LstGetNumberOfItems(FrmGetObjectPtr(form,
-          FrmGetObjectIndex(form, listID_FilesList)));
-    LstSetSelection(FrmGetObjectPtr(form,
-          FrmGetObjectIndex(form, listID_FilesList)),n - 1);
-
-    return _UILoadFromList(); 
-}
-
 int _UILoadFromList(void)
 {
-    FormPtr form = FrmGetActiveForm();
+    FormPtr form = FrmGetFormPtr(formID_files);
     int index = LstGetSelection(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)));
     if (index >= 0) {
         return UILoadGame(index+1); // +1 is because the savegame in slot 0 isn't in the list
@@ -163,7 +154,7 @@ int _UILoadFromList(void)
 
 void _UIDeleteFromList(void)
 {
-    FormPtr form = FrmGetActiveForm();
+    FormPtr form = FrmGetFormPtr(formID_files);
     int index = LstGetSelection(FrmGetObjectPtr(form,
           FrmGetObjectIndex(form,listID_FilesList)));
     if (index != noListSelection) {
@@ -251,6 +242,7 @@ int UILoadGame(UInt16 index)
     if (!db) {
         return 0; // no database
     }
+    if (index == LASTGAME) index = DmNumRecords(db) - 1;
     rec = DmQueryRecord(db, index);
     if (rec) {
         pTemp = (unsigned char*)MemHandleLock(rec);
@@ -263,8 +255,7 @@ int UILoadGame(UInt16 index)
             // version check
             LockWorld();
             MemMove((void*)&game, pTemp, sizeof(GameStruct));
-            MemMove(worldPtr, pTemp+sizeof(GameStruct),
-              game.mapsize * game.mapsize);
+            MemMove(worldPtr, pTemp+sizeof(GameStruct), GetMapMul());
             UIResetViewable();
             UnlockWorld();
             // update the power and water grid:
@@ -322,13 +313,14 @@ extern void UISaveGame(UInt16 index)
         if (DmNumRecords(db) > index) {
             DmRemoveRecord(db, index);
         }
-        rec = DmNewRecord(db,&index, game.mapsize*game.mapsize+sizeof(GameStruct));
+        rec = DmNewRecord(db,&index, GetMapMul() + sizeof (GameStruct));
         if (rec) {
             pRec = MemHandleLock(rec);
             LockWorld();
             // write the header and some globals
-            DmWrite(pRec,0,(void*)&game,sizeof(GameStruct));
-            DmWrite(pRec,sizeof(GameStruct),(void*)(unsigned char*)worldPtr,game.mapsize*game.mapsize);
+            DmWrite(pRec,0,(void*)&game, sizeof (GameStruct));
+            DmWrite(pRec, sizeof (GameStruct), (void*)(unsigned char*)worldPtr,
+              GetMapMul());
             UnlockWorld();
             MemHandleUnlock(rec);
             DmReleaseRecord(db,index,true);
@@ -346,37 +338,56 @@ hFilesNew(EventPtr event)
 {
     FormPtr form;
     int handled = 0;
+    char * pGameName;
 
-    switch (event->eType)
-    {
-        case frmOpenEvent:
-            game_in_progress = 0;
+    switch (event->eType) {
+    case frmOpenEvent:
+        game_in_progress = 0;
+        form = FrmGetActiveForm();
+        FrmDrawForm(form);
+        FrmSetFocus(form, FrmGetObjectIndex(form, fieldID_newGameName));
+        handled = 1;
+        break;
+    case frmCloseEvent:
+        break;
+    case ctlSelectEvent:
+        switch (event->data.ctlSelect.controlID) {
+        case buttonID_FilesNewCreate:
+            UIWriteLog("Create pushed\n");
+            // need to fetch the savegame name from the form
             form = FrmGetActiveForm();
-            FrmDrawForm(form);
+            pGameName = FldGetTextPtr(FrmGetObjectPtr(form,
+                  FrmGetObjectIndex(form, fieldID_newGameName)));
+            if (pGameName != NULL) {
+                strcpy((char*)game.cityname,pGameName);
+                _UICreateNewSaveGame();
+                _UICleanSaveGameList();
+                if (UILoadGame(LASTGAME)) {
+                    FrmEraseForm(form);
+                    form = FrmGetFormPtr(formID_files);
+                    if (form)
+                        FrmEraseForm(form);
+                    FrmGotoForm(formID_pocketCity);
+                } else {
+                    _UIUpdateSaveGameList();
+                }
+            } else {
+                strcpy((char*)game.cityname,"");
+                UIWriteLog("No name specified\n");
+            }
             handled = 1;
             break;
-        case frmCloseEvent:
+        case buttonID_FilesNewCancel:
+            UIWriteLog("Cancel pushed\n");
+            // set (char*)cityname to '\0'
+            game.cityname[0] = '\0';
+            FrmReturnToForm(0);
+            handled = 1;
             break;
-        case ctlSelectEvent:
-            switch (event->data.ctlSelect.controlID)
-            {
-                case buttonID_FilesNewCreate:
-                    UIWriteLog("Create pushed\n");
-                    // copy the name to (char*)cityname
-                    FrmReturnToForm(0);
-                    handled = 1;
-                    break;
-                case buttonID_FilesNewCancel:
-                    UIWriteLog("Cancel pushed\n");
-                    // set (char*)cityname to '\0'
-                    game.cityname[0] = '\0';
-                    FrmReturnToForm(0);
-                    handled = 1;
-                    break;
-            }
-            break;
-        default:
-            break;
+        }
+        break;
+    default:
+        break;
     }
 
     return handled;
@@ -388,8 +399,6 @@ hFiles(EventPtr event)
 {
     FormPtr form;
     int handled = 0;
-    FormType * ftNewGame;
-    char * pGameName;
 
     switch (event->eType) {
     case frmOpenEvent:
@@ -407,26 +416,7 @@ hFiles(EventPtr event)
         {
         case buttonID_FilesNew:
             // create new game and add it to the list
-            ftNewGame = FrmInitForm(formID_filesNew);
-            if (FrmDoDialog(ftNewGame) == buttonID_FilesNewCreate) {
-                UIWriteLog("Creating new game\n");
-                // need to fetch the savegame name from the form
-                pGameName = FldGetTextPtr(FrmGetObjectPtr(ftNewGame, FrmGetObjectIndex(ftNewGame, fieldID_newGameName)));
-                if (pGameName != NULL) {
-                    strcpy((char*)game.cityname,pGameName);
-                    _UICreateNewSaveGame();
-                    _UICleanSaveGameList();
-                    _UIUpdateSaveGameList();
-                    // and load the game right after creating it
-                    if (_UILoadNewestFromList()) {
-                        FrmGotoForm(formID_pocketCity);
-                    }
-                } else {
-                    strcpy((char*)game.cityname,"");
-                    UIWriteLog("No name specified\n");
-                }
-            }
-            FrmDeleteForm(ftNewGame);
+            FrmPopupForm(formID_filesNew);
             handled = 1;
             break;
         case buttonID_FilesLoad:

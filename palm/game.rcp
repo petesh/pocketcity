@@ -172,11 +172,12 @@ FORM ID formID_filesNew AT ( 1 98 158 59 )
 USABLE
 NOSAVEBEHIND
 MODAL
+DEFAULTBTNID buttonID_FilesNewCancel
 BEGIN
     TITLE "New city"
     LABEL "Name: " AUTOID AT (3 20)
     FIELD ID fieldID_newGameName AT (prevright+2 prevtop 120 20 ) UNDERLINED
-    MAXCHARS 18
+    MAXCHARS 18 AUTOSHIFT
     BUTTON "Create"     ID buttonID_FilesNewCreate     AT (2 prevbottom+5 AUTO AUTO)
     BUTTON "Cancel"    ID buttonID_FilesNewCancel    AT (prevright+4 prevtop AUTO AUTO)
 END
