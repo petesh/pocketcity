@@ -129,7 +129,7 @@ Build_Defence(Int16 xpos, Int16 ypos, UInt16 type)
 	UInt16 end;
 	int max;
 	int nCounter;
-	struct buildCounters *cnt;
+	const struct buildCounters *cnt;
 
 	if (type < DuFireman || type > DuMilitary)
 		return;

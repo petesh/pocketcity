@@ -56,11 +56,13 @@ cheat: debug
 ### make debug ###
 ##################
 
-debug dhires: CFLAGS += -g -DDEBUG
+debug dhires: AXCFLAGS = -g -DDEBUG
 debug dhires: DEBUG=1
 
-hires dhires: CFLAGS += -DSONY_CLIE
+hires dhires: BXCFLAGS = -DSONY_CLIE
 hires dhires: HIRES=1
+
+CFLAGS += $(AXCFLAGS) $(BXCFLAGS)
 
 # the different language versions
 $(OBJDIR)/$(BINARY)-%.prc: $(OBJDIR) $(OBJDIR)/pcity $(OBJDIR)/%-lang/game.stm

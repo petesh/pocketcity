@@ -1109,7 +1109,7 @@ _UIGetFieldToBuildOn(Int16 x, Int16 y)
 		UInt32 xpos = (x - XOFFSET) / vgame.tileSize + game.map_xpos;
 		UInt32 ypos = (y - YOFFSET) / vgame.tileSize + game.map_ypos;
 		LockWorld();
-		SetItemClicked(WORLDPOS(xpos, ypos));
+		SetItemClicked(GetWorld(WORLDPOS(xpos, ypos)));
 		UnlockWorld();
 		if (UIGetSelectedBuildItem() != Be_Query)
 			BuildSomething(xpos, ypos);
@@ -2135,7 +2135,7 @@ buildSilkList()
 	while (silky[atsilk].vChar != 1) atsilk++;
 	while (atbtn < btncount) {
 #if defined(DEBUG)
-		WriteLog(log, "btn: %ld char: %lx\n", (long)atbtn,
+		WriteLog("btn: %ld char: %lx\n", (long)atbtn,
 		    (long)silkinfo[atbtn].asciiCode);
 #endif
 		if (silkinfo[atbtn].asciiCode == vchrFind) {
