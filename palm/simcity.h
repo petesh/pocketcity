@@ -202,6 +202,7 @@
 #define bitmapID_IndTen2                1259
 #define bitmapID_PowerPlant2            1260
 #define bitmapID_NulearPlant2           1261
+#define bitmapID_Waste2                 1262
 
 #define bitmapID_PowerLeftRight2        1270
 #define bitmapID_PowerUpDown2           1271

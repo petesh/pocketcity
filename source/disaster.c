@@ -20,6 +20,7 @@ extern void DoNastyStuffTo(int type, unsigned int probability)
             x = randomTile % mapsize;
             y = randomTile / mapsize;
             Build_Destroy(x,y);
+            SetWorld(randomTile, TYPE_WASTE);
             UnlockWorld();
             return;
         }

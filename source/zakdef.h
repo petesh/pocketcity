@@ -17,6 +17,7 @@
 
 #define TYPE_POWER_PLANT        60
 #define TYPE_NUCLEAR_PLANT      61
+#define TYPE_WASTE              62
 #define TYPE_WATER              22
 #define TYPE_TREE               21
 #define TYPE_POWER_LINE         5
