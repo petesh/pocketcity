@@ -81,12 +81,16 @@ _UICleanSaveGameList(void)
 {
     int i,n;
     FormPtr form = FrmGetFormPtr(formID_files);
-    n = LstGetNumberOfItems(FrmGetObjectPtr(form,
-          FrmGetObjectIndex(form, listID_FilesList)));
+    void *fp;
+
+    if (form == NULL) return;
+    fp = FrmGetObjectPtr(form, FrmGetObjectIndex(form, listID_FilesList));
+    if (fp == NULL) return;
+    n = LstGetNumberOfItems(fp);
     for (i = 0; i < n; i++) {
-        MemPtrFree((void*)LstGetSelectionText(FrmGetObjectPtr(form,
-                  FrmGetObjectIndex(form, listID_FilesList)), i));
+        MemPtrFree((void*)LstGetSelectionText(fp, i));
     }
+    LstSetListChoices(fp, NULL, 0);
 }
 
 
@@ -326,7 +330,10 @@ extern void UISaveGame(UInt16 index)
             MemHandleUnlock(rec);
             DmReleaseRecord(db,index,true);
         }
-        
+        { UInt16 attr = dmHdrAttrBackup;
+        DmSetDatabaseInfo(0, DmFindDatabase(0, SGNAME), NULL, &attr, NULL,
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+        }
         DmCloseDatabase(db);
     }
 }

@@ -114,6 +114,7 @@ EventLoop(void)
     int formID;
     UInt32 timeTemp;
     short err;
+    static int oldFormID = -1;
 
     do {
         EvtGetEvent(&event, 1);
@@ -128,8 +129,12 @@ EventLoop(void)
        if (MenuHandleEvent((void*)0, &event, &err)) continue;
 
        if (event.eType == frmLoadEvent) {
-           UIWriteLog("Main::frmLoadEvent\n");
+           char c[20];
+           UIWriteLog("Main::frmLoadEvent:");
            formID = event.data.frmLoad.formID;
+           StrPrintF(c, "%d -> %d\n", oldFormID, formID);
+           UIWriteLog(c);
+           oldFormID = formID;
            form = FrmInitForm(formID);
            FrmSetActiveForm(form);
            
@@ -329,6 +334,7 @@ _PalmFini(void)
     MemPtrFree(worldPtr);
     MemPtrFree(worldFlagsPtr);
     restoreDepthRes();
+    // Close the forms
     FrmCloseAllForms();
 }
 
@@ -426,12 +432,12 @@ static Boolean hPocketCity(EventPtr event)
                 handled = 1;
                 break;
             case menuitemID_Map:
-                game.gameLoopSeconds = SPEED_PAUSED;
+                SaveSpeed();
                 FrmGotoForm(formID_map);
                 handled = 1;
                 break;
             case menuitemID_Budget:
-                game.gameLoopSeconds = SPEED_PAUSED;
+                SaveSpeed();
                 FrmGotoForm(formID_budget);
                 handled = 1;
                 break;
@@ -444,6 +450,7 @@ static Boolean hPocketCity(EventPtr event)
                 handled = 1;
                 break;
             case menuitemID_Configuration:
+                SaveSpeed();
                 FrmGotoForm(formID_options);
                 handled = 1;
                 break;
@@ -507,7 +514,7 @@ static Boolean hPocketCity(EventPtr event)
             break;
         case vchrFind:
             /* goto map */
-            game.gameLoopSeconds = SPEED_PAUSED;
+            SaveSpeed();
             FrmGotoForm(formID_map);
             handled = 1;
             break;
@@ -781,6 +788,7 @@ static Boolean hOptions(EventPtr event)
                 game.disaster_level = 3;
             }
         }
+        RestoreSpeed()
         break;
     case keyDownEvent:
         UIWriteLog("Key down\n");

@@ -8,6 +8,9 @@ Legend:
  '*' = fix/modification
  '-' = removed feature
 
+Version 0.14dev
+  * Savegames are backed up with application data
+
 Version 0.13br2
 ==========================
   * The displayed item from the toolbar is what is placed.

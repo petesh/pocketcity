@@ -25,6 +25,7 @@ extern Boolean hBudget(EventPtr event)
         case frmCloseEvent:
             UIWriteLog("closing budget\n");
             BudgetFreeMem();
+            RestoreSpeed();
             break;
         case keyDownEvent:
             switch (event->data.keyDown.chr)

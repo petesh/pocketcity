@@ -36,30 +36,30 @@ dhires: HCFLAGS = -g -DSONY_CLIE -DDEBUG
 debug: DMENU = pcitymain.stm
 
 #### the different versions
-pcity-%.prc: simcity-%.stm zones-%.stm game.stm grcs.stm $(DMENU)
+pcity-%.prc: simcity-%.stm zones-%.stm game.stm grcs.stm version.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def *.grc \
 		temp$*/*.bin temp/*.bin
 
-mg-pcity.prc: game.stm grcs.stm mg.stm $(DMENU)
+mg-pcity.prc: game.stm grcs.stm mg.stm version.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def *.grc \
 		mg/*.bin temp/*.bin
 
-pcity.prc: simcity.stm zones.stm game.stm grcs.stm $(DMENU)
+pcity.prc: simcity.stm zones.stm game.stm grcs.stm version.stm $(DMENU)
 	build-prc -o pcity.prc -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		*.grc tempbw/*.bin temp/*.bin
 
 sy-pcity.prc: sy/ game.stm sy/syicons.stm simcity.stm zones.stm \
-	sy/sy.stm $(DMENU)
+	sy/sy.stm version.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc tempbw/*.bin temp/*.bin
 
 sy-mg-pcity.prc: sy/ game.stm sy/syicons.stm simcity.stm zones.stm \
-	sy/sy.stm mg.stm $(DMENU)
+	sy/sy.stm mg.stm version.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc mg/*.bin temp/*.bin sy/*.bin
 
 sy-pcity-%.prc: sy/ game.stm sy/syicons.stm simcity-%.stm zones-%.stm \
-	sy/sy.stm $(DMENU)
+	sy/sy.stm version.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc temp$*/*.bin temp/*.bin sy/*.bin
 

@@ -205,6 +205,7 @@ typedef struct _vgame_struct {
     int                 gridsToUpdate;
     long unsigned       BuildCount[20];     // count of elements...
     unsigned char       tileSize;           // ??
+    unsigned short      gameLoopSeconds;    // Speed... for pause toggles
     int                 visible_x;          // ??
     int                 visible_y;          // ??
     int                 cursor_xpos;        // ??
@@ -224,5 +225,14 @@ typedef struct _vgame_struct {
 
 // a very nice macro
 #define WORLDPOS(x,y)		((x)+(y)*(GetMapSize()))
+
+#define SaveSpeed()             { \
+    vgame.gameLoopSeconds = game.gameLoopSeconds; \
+    game.gameLoopSeconds = SPEED_PAUSED; \
+}
+
+#define RestoreSpeed()          { \
+    game.gameLoopSeconds = vgame.gameLoopSeconds; \
+}
 
 #endif

@@ -35,6 +35,7 @@ extern Boolean hMap(EventPtr event)
             handled = 1;
             break;
         case frmCloseEvent:
+            RestoreSpeed();
             break;
         case keyDownEvent:
             switch (event->data.keyDown.chr)
