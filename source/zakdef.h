@@ -36,9 +36,9 @@
 #define COUNT_WASTE             9
 
 //income pr. zone/level
-#define INCOME_RESIDENTIAL      50
-#define INCOME_COMMERCIAL       50
-#define INCOME_INDUSTRIAL       50
+#define INCOME_RESIDENTIAL      25
+#define INCOME_COMMERCIAL       35
+#define INCOME_INDUSTRIAL       30
 
 //upkeep cost pr. tile
 #define UPKEEP_ROAD             2
