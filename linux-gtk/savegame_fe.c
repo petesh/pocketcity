@@ -71,7 +71,6 @@ ImportOneFromGame(GtkWidget *widget, gint response, gpointer data)
 		select = gtk_tree_view_get_selection(GTK_TREE_VIEW(sel->list));
 		if (gtk_tree_selection_get_selected(select, &model, &iter)) {
 			gtk_tree_model_get(model, &iter, 0, &city, -1);
-			printf("selected row is: %d\n", city);
 		}
 
 		if (-1 != savegame_getcity(sel->sg, city, &game,
