@@ -30,9 +30,4 @@
 #define COUNT_POWERPLANTS       7
 #define COUNT_NUCLEARPLANTS     8
 
-// the () around x and y are because of
-// a use like this:
-// WORLDPOS(3,4+6) would be:
-// ( 3 + 4+6 * mapsize) which would be calculated WRONG
-// ((3)+(4+6)* mapsize) are the intended use
-#define WORLDPOS(x,y)		((x)+(y)*mapsize)
+#define WORLDPOS(x,y)		(x+y*mapsize)

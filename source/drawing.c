@@ -35,7 +35,7 @@ extern void RedrawAllFields(void)
 
     UIDrawCursor(cursor_xpos-map_xpos, cursor_ypos-map_ypos);
     UIDrawCredits();
-    UIDrawToolbar();
+    UIDrawPop();
 
     UIUnlockScreen();
     UIFinishDrawing();

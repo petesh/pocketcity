@@ -496,35 +496,20 @@ void DoUpkeep()
     long unsigned int powerLineUpkeep;
     long unsigned int powerPlantCount;
     long unsigned int powerPlantUpkeep;
-    long unsigned int nuclearPowerPlantCount;
-    long unsigned int nuclearPowerPlantUpkeep;
     long unsigned int totalUpkeep;
 
     LockWorld();
 
-    // Find the number of roads and define the upkeep cost of each road piece
     roadCount = BuildCount[COUNT_ROADS];
-    roadUpkeep = 2;
-    
-    // Find the number of lines and define the upkeep cost of each line.
     powerLineCount = BuildCount[COUNT_POWERLINES];
+    powerPlantCount = BuildCount[COUNT_POWERPLANTS] + BuildCount[COUNT_POWERPLANTS]*2;
+    roadUpkeep = 2;
     powerLineUpkeep = 1;
-    
-    // Find the number of powerplant and define the upkeep cost of each plant
-    powerPlantCount = BuildCount[COUNT_POWERPLANTS];
     powerPlantUpkeep = 35;
-    
-    // Find the number of nuke plants and define the upkeep cost of each plant
-    nuclearPowerPlantCount = BuildCount[COUNT_NUCLEARPLANTS];
-    nuclearPowerPlantUpkeep = 70;
-    
-    // Calculate the total upkeep cost based on the number of tiles multiplied
-    // by the upkeep cost for each tile of that type
-    totalUpkeep = (roadCount*roadUpkeep)+(powerLineCount*powerLineUpkeep)+(powerPlantCount*powerPlantUpkeep)+(nuclearPowerPlantCount*nuclearPowerPlantUpkeep);
+    totalUpkeep = (roadCount*roadUpkeep)+(powerLineCount*powerLineUpkeep)+(powerPlantCount*powerPlantUpkeep);
 
     UnlockWorld();
 
-    // Subtract the upkeep from current funds
     credits -= totalUpkeep;
 }
 
@@ -557,7 +542,7 @@ extern int Sim_DoPhase(int nPhase)
             nPhase=0;
             UIInitDrawing();
             UIDrawCredits();
-            UIDrawToolbar();
+            UIDrawPop();
             UICheckMoney();
             DoUpkeep();
             UIFinishDrawing();

@@ -16,6 +16,6 @@ extern short unsigned int SIM_GAME_LOOP_SECONDS;
 
 extern void LongToString(signed long value, char* out);
 extern char* GetDate(char * temp);
-extern void UIDrawToolbar(void);
+extern void UIDrawPop(void);
 extern void UIDoTaxes(void);
 
