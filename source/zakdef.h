@@ -518,6 +518,11 @@ typedef struct _vgame_struct {
 #define mapTileSize()	(vgame.MapTileSize)
 #define gameTileSize()	(vgame.TileSize)
 
+#define getVisibleX()	(vgame.visible_x)
+#define getVisibleY()	(vgame.visible_y)
+#define setVisibleX(X)	vgame.visible_x = (X)
+#define setVisibleY(Y)	vgame.visible_y = (Y)
+
 /*!
  * \brief appliation configuration.
  *
