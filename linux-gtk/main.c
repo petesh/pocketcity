@@ -226,6 +226,7 @@ void SetUpMainWindow(void)
     // setup the toolbox
     {
         GtkWidget *button_image;
+        GtkTooltips *tips;
         int i;
         char image_path[40];
         gint actions[] = { BUILD_BULLDOZER,BUILD_ROAD,BUILD_POWER_LINE,
@@ -238,6 +239,8 @@ void SetUpMainWindow(void)
                             -1,-1,-1,
                             -1,-1,-1,
                             -1,-1,-1 };
+
+        tips = gtk_tooltips_new();
                             
         for (i=0; i<30; i++) {
             if (actions[i] == -1) { continue; }
@@ -246,11 +249,11 @@ void SetUpMainWindow(void)
             sprintf(image_path,"graphic/icons/interface_%02i.xpm",i);
             button_image = gtk_image_new_from_file(image_path);
             gtk_container_add(GTK_CONTAINER(button), button_image);
+            gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), button, "test","test2");
             
             g_signal_connect(G_OBJECT(button),"clicked",
                 G_CALLBACK(toolbox_callback), GINT_TO_POINTER(actions[i]));
             gtk_table_attach_defaults(GTK_TABLE(toolbox), button, (i%3), (i%3)+1, (i/3), (i/3)+1);
-            gtk_widget_show(button);
         }
     }
 
@@ -380,6 +383,7 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
             ypos*game.tileSize,
             game.tileSize,
             game.tileSize);
+    gdk_gc_destroy(gc);
 }
 
 extern void UIDrawSpecialObject(int i, int xpos, int ypos)
@@ -401,6 +405,7 @@ extern void UIDrawSpecialObject(int i, int xpos, int ypos)
             ypos*game.tileSize,
             game.tileSize,
             game.tileSize);
+    gdk_gc_destroy(gc);
 }
 
 extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
@@ -422,6 +427,7 @@ extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
             ypos*game.tileSize,
             game.tileSize,
             game.tileSize);
+    gdk_gc_destroy(gc);
 }
 
 extern void UIDrawCursor(int xpos, int ypos)
@@ -448,6 +454,7 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
             ypos*game.tileSize,
             game.tileSize,
             game.tileSize);
+    gdk_gc_destroy(gc);
 }
 
 extern void UIDrawWaterLoss(int xpos, int ypos)
@@ -469,6 +476,7 @@ extern void UIDrawWaterLoss(int xpos, int ypos)
             ypos*game.tileSize,
             game.tileSize,
             game.tileSize);
+    gdk_gc_destroy(gc);
 }
 
 extern unsigned char UIGetSelectedBuildItem(void)
@@ -557,8 +565,8 @@ extern unsigned long GetRandomNumber(unsigned long max)
 
 extern void MapHasJumped(void)
 {
-    gtk_adjustment_set_value(GTK_ADJUSTMENT(playscrollerh), game.map_xpos+10);
-    gtk_adjustment_set_value(GTK_ADJUSTMENT(playscrollerv), game.map_ypos+7);
+//    gtk_adjustment_set_value(GTK_ADJUSTMENT(playscrollerh), game.map_xpos+10);
+//    gtk_adjustment_set_value(GTK_ADJUSTMENT(playscrollerv), game.map_ypos+7);
 
 }
 
@@ -576,6 +584,7 @@ extern void UIDrawPop(void)
             game.BuildCount[COUNT_RESIDENTIAL]*150);
 
     gtk_label_set_text((GtkLabel*)poplabel, temp);
+
 }
 
 
