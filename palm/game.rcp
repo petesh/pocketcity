@@ -25,6 +25,7 @@ BEGIN
 	MENUITEM "Map"                              menuitemID_Map
 	MENUITEM SEPARATOR
 	MENUITEM "About"                        menuitemID_about
+	MENUITEM "Test"                              menuitemID_Funny
   END
   PULLDOWN "Build"
   BEGIN
@@ -199,3 +200,18 @@ BEGIN
   BUTTONS "OK"
 END
 
+
+ALERT ID alertID_fireOutBreak
+BEGIN
+  TITLE "Disaster"
+  MESSAGE "An Australian fire has broken out somewhere!"
+  BUTTONS "Sh*t"
+END
+
+
+ALERT ID alertID_plantExplosion
+BEGIN
+  TITLE "Disaster"
+  MESSAGE "A power plant just exploded!"
+  BUTTONS "Sh*t"
+END

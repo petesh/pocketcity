@@ -5,7 +5,6 @@
 #include "ui.h"
 #include "drawing.h"
 
-void Build_Destroy(int xpos, int ypos);
 void Build_Road(int xpos, int ypos);
 void Build_PowerLine(int xpos, int ypos);
 void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nType);
@@ -74,7 +73,7 @@ extern void Build_Bulldoze(int xpos, int ypos)
 }
 
 
-void Build_Destroy(int xpos, int ypos)
+extern void Build_Destroy(int xpos, int ypos)
 {
     unsigned char type;
 
@@ -91,6 +90,7 @@ void Build_Destroy(int xpos, int ypos)
     BuildCount[COUNT_POWERPLANTS] -= (type == 60);
     BuildCount[COUNT_NUCLEARPLANTS] -= (type == 61);
     BuildCount[COUNT_POWERLINES] -= ((type == 7) || (type == 6) || (type == 5));
+    BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE1);
     updatePowerGrid = 1; // to make sure the powergrid is uptodate
     SetWorld(WORLDPOS(xpos,ypos),0);
     UnlockWorld();

@@ -3,6 +3,8 @@
 
 #define ERROR_OUT_OF_MEMORY     1
 #define ERROR_OUT_OF_MONEY      2
+#define ERROR_FIRE_OUTBREAK     3
+#define ERROR_PLANT_EXPLOSION   4
 
 #define SPEED_SLOW              15
 #define SPEED_MEDIUM            10
@@ -16,6 +18,9 @@
 #define ZONE_INDUSTRIAL         3
 
 #define TYPE_DIRT               0
+#define TYPE_FIRE1              63
+#define TYPE_FIRE2              64
+#define TYPE_FIRE3              65
 #define TYPE_POWER_PLANT        60
 #define TYPE_NUCLEAR_PLANT      61
 #define TYPE_WASTE              62
@@ -34,6 +39,7 @@
 #define COUNT_POWERPLANTS       7
 #define COUNT_NUCLEARPLANTS     8
 #define COUNT_WASTE             9
+#define COUNT_FIRE             10
 
 //income pr. zone/level
 #define INCOME_RESIDENTIAL      25

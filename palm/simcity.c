@@ -372,6 +372,9 @@ static Boolean hPocketCity(EventPtr event)
             } else {
                 switch (event->data.menu.itemID)
                 {
+                    case menuitemID_Funny:
+                        handled = 1;
+                        break;
                     case menuitemID_Map:
                         SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
                         FrmGotoForm(formID_map);
@@ -502,6 +505,8 @@ extern int UIDisplayError(int nError)
     {
         case ERROR_OUT_OF_MEMORY: FrmAlert(alertID_errorOutOfMemory); break;
         case ERROR_OUT_OF_MONEY: FrmAlert(alertID_outMoney); break;
+        case ERROR_FIRE_OUTBREAK: FrmAlert(alertID_fireOutBreak); break;
+        case ERROR_PLANT_EXPLOSION: FrmAlert(alertID_plantExplosion); break;
     }
     return 0;
 }
@@ -913,14 +918,14 @@ void UISaveGame()
             pRec = MemHandleLock(rec);
             LockWorld();
             // write the header and some globals
-            DmWrite(pRec,0,"PC01",4);
+            DmWrite(pRec,0,"PC02",4);
             DmWrite(pRec,4,&credits,4);
             DmWrite(pRec,8,&map_xpos,1);
             DmWrite(pRec,9,&map_ypos,1);
             DmWrite(pRec,10,&mapsize,1);
             DmWrite(pRec,11,&TimeElapsed,4);
             
-            DmWrite(pRec,60,&BuildCount[0],40);
+            DmWrite(pRec,20,&BuildCount[0],80);
             DmWrite(pRec,100,(void*)(unsigned char*)worldPtr,mapsize*mapsize);
             UnlockWorld();
             MemHandleUnlock(rec);
@@ -946,7 +951,7 @@ void UILoadGame(void)
     rec = DmQueryRecord(db, index);
     if (rec) {
         pTemp = (unsigned char*)MemHandleLock(rec);
-        if (strncmp("PC01",(char*)pTemp,4) == 0) { // version check
+        if (strncmp("PC02",(char*)pTemp,4) == 0) { // version check
             LockWorld();
             memcpy((void*)&credits,(void*)pTemp+4,4);
             memcpy((void*)&map_xpos,(void*)pTemp+8,1);
@@ -954,7 +959,7 @@ void UILoadGame(void)
             memcpy((void*)&mapsize,(void*)pTemp+10,1);
             memcpy((void*)&TimeElapsed,(void*)pTemp+11,4);
 
-            memcpy((void*)&BuildCount[0],(void*)pTemp+60,40);
+            memcpy((void*)&BuildCount[0],(void*)pTemp+20,80);
             memcpy((void*)worldPtr,(void*)pTemp+100,mapsize*mapsize);
             UnlockWorld();
             // update the power grid:

@@ -13,6 +13,7 @@
 #define menuitemID_about                 1003
 #define menuitemID_Budget                1004
 #define menuitemID_Map                   1005
+#define menuitemID_Funny                 1006
 #define menuID_SlowSpeed                 1052
 #define menuID_MediumSpeed               1053
 #define menuID_FastSpeed                 1054
@@ -55,6 +56,8 @@
 #define alertID_invalidSaveVersion	 1008
 #define alertID_gameSaved		 1009
 #define alertID_gameLoaded		 1010
+#define alertID_fireOutBreak         1011
+#define alertID_plantExplosion         1012
 
 // the jumps in these defines makes coding easier
 #define bitmapID_SpeedPaused            3000
@@ -220,6 +223,9 @@
 #define bitmapID_PowerPlant2            1260
 #define bitmapID_NulearPlant2           1261
 #define bitmapID_Waste2                 1262
+#define bitmapID_Fire1_2                1263
+#define bitmapID_Fire2_2                1264
+#define bitmapID_Fire3_2                1265
 
 #define bitmapID_PowerLeftRight2        1270
 #define bitmapID_PowerUpDown2           1271

@@ -536,6 +536,11 @@ extern int Sim_DoPhase(int nPhase)
             nPhase=5;
             break;
         case 5:
+            UpdateDisasters();
+            DoRandomDisaster();
+            nPhase = 6;
+            break;
+        case 6:
             DoTaxes();
             TimeElapsed++;
             nPhase=0;
