@@ -1178,6 +1178,7 @@ hQuickList(EventPtr event)
 		break;
 	case keyDownEvent:
 		WriteLog("Key down\n");
+		// XXX: Deal with any of the pop-up keys */
 		switch (event->data.keyDown.chr) {
 		case vchrCalc:
 			/*

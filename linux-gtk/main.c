@@ -30,7 +30,7 @@
 #include <zonemon.h>
 
 /*! \brief path to search for graphics */
-Char *pathsearch = (Char *)".:./graphic:./graphic/icons:../graphic";
+Char *pathsearch = (Char *)"$:$/graphic:$/graphic/icons:$/../graphic";
 
 #define	MILLISECS	1000
 #define	TICKPERSEC	10
@@ -118,7 +118,7 @@ int
 main(int argc, char **argv)
 {
 	gint timerID;
-	char *px;
+	char *px, *ax, *py;
 
 	exec_dir = strdup(argv[0]);
 	px = strrchr(exec_dir, '/');
@@ -130,6 +130,17 @@ main(int argc, char **argv)
 		free(exec_dir);
 		exec_dir = cwd;
 	}
+	
+	/* fill in all the $'s in the pathsearch variable */
+	py = calloc(1, 1024);
+	px = pathsearch;
+	while (NULL != (ax = strchr(px, '$'))) {
+		strncat(py, px, ax - px);
+		strncat(py, exec_dir, strlen(exec_dir));
+		px = ax + 1;
+	}
+	strncat(py, px, strlen(px));
+	pathsearch = py;
 
 	gtk_init(&argc, &argv);
 	srand(time(NULL));
@@ -151,6 +162,7 @@ main(int argc, char **argv)
 	g_source_remove(timerID);
 	PurgeWorld();
 	free(exec_dir);
+	free(pathsearch);
 	PCityShutdown();
 	cleanupMap();
 	cleanupPixmaps();
@@ -432,14 +444,14 @@ motion_notify_event(GtkWidget *widget __attribute__((unused)),
 	}
 
 	if (state & GDK_BUTTON1_MASK &&
-	    x > 0 && x < getVisibleX() * gameTileSize() &&
-	    y > 0 && y < getVisibleY() * gameTileSize()) {
+	    (x > 0) && x < getVisibleX() * gameTileSize() &&
+	    (y > 0) && y < getVisibleY() * gameTileSize()) {
 		BuildSomething(
 		    (int)(x / gameTileSize()) + getMapXPos(),
 		    (int)(y / gameTileSize()) + getMapYPos());
 	} else if (state & GDK_BUTTON3_MASK &&
-	    x > 0 && x < getVisibleX() * gameTileSize() &&
-	    y > 0 && y < getVisibleY() * gameTileSize()) {
+	    (x > 0) && x < getVisibleX() * gameTileSize() &&
+	    (y > 0) && y < getVisibleY() * gameTileSize()) {
 		Build_Bulldoze(
 		    (int)(x / gameTileSize()) + getMapXPos(),
 		    (int)(y / gameTileSize()) + getMapYPos(), 1);

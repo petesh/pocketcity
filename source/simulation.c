@@ -3,7 +3,7 @@
  *
  * This consists of the outines that do all the simulation work, for example
  * deciding that certain zones are to be improved or deteriorated, where
- * monsters go to; etc,
+ * monsters go, etc.
  */
 
 #include <handler.h>
@@ -17,6 +17,7 @@
 #include <disaster.h>
 #include <simulation.h>
 #include <stack.h>
+#include <stdint.h>
 #include <compilerpragmas.h>
 #include <mem_compat.h>
 
@@ -84,10 +85,10 @@ static UInt8 ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what);
  *  |`--------
  *  `--------- 1 = Scratch / Visited
  *
- *  don't use any of the free flags without asking (thanks)
- *  please note that the flags are saved, adding an extra 10k to the savegame
- *  structure. It could be collapsed during save to the number of bits
- *  that are occupied, but that seems like too much effort.
+ * If you intend to use any of the free flags for any form of permanent state
+ * then you need to alter the savegame code to add the bits that are being
+ * used to the savegame structure. Currently saving this costs an extra 2.5k
+ * in savegame structures (10000 / 4).
  *
  *  How to recreate:
  *	  call the distribution routine... it knows how to do each type
@@ -147,7 +148,7 @@ IsItAPowerPlant(welem_t point, UInt32 coord __attribute__((unused)),
  *
  */
 static Int16
-IsItAWaterPump(welem_t point, UInt32 coord, selem_t flags)
+IsItAUsableWaterPump(welem_t point, UInt32 coord, selem_t flags)
 {
 	if ((point == Z_PUMP) && (flags & POWEREDBIT) &&
 	    ExistsNextto(coord, DIR_ALL, Z_REALWATER))
@@ -228,7 +229,7 @@ DoDistribute(Int16 grid)
 		distrib->flagToSet = POWEREDBIT;
 		distrib->error_flag = peFineOnPower;
 	} else {
-		distrib->isplant = &IsItAWaterPump;
+		distrib->isplant = &IsItAUsableWaterPump;
 		distrib->doescarry = &CarryWater;
 		distrib->flagToSet = WATEREDBIT;
 		distrib->error_flag = peFineOnWater;
@@ -277,6 +278,7 @@ DoDistribute(Int16 grid)
 	} else if (distrib->ShortOrOut & SHORT_BIT) {
 		UIProblemNotify(distrib->error_flag + 1);
 	} else {
+		/* This isn't really a problem. */
 		UIProblemNotify(distrib->error_flag);
 	}
 	gFree(distrib);
@@ -774,6 +776,7 @@ GetZoneScore(UInt32 pos)
 	/* XXX: Desires need updating in this loop */
 
 	if ((type == ztIndustrial) || (type == ztCommercial))  {
+		Int16 oldes;
 		/*
 		 * see if there's actually enough residential population
 		 * to support a new zone of ind or com
@@ -785,9 +788,22 @@ GetZoneScore(UInt32 pos)
 		    + vgame.BuildCount[bc_value_industrial]));
 		/* pop is too low */
 		if (availPop <= 0) {
-			/* XXX: Increase desire of industrial || commercial */
+			/* This means that we need more residential */
+			oldes = GG.desires[de_residential];
+			if (oldes < INT16_MAX)
+				GG.desires[de_residential] = oldes++;
 			WriteLog("Pop too low to promote ind || comm\n");
 			goto unlock_ret;
+		} else {
+			/* Increase the desire for Commercial || Industrial */
+			desire_elts elt = de_end;
+			if (type == ztCommercial)
+				elt = de_commercial;
+			else
+				elt = de_industrial;
+			oldes = GG.desires[elt];
+			if (oldes > -INT16_MAX)
+				GG.desires[elt] = oldes--;
 		}
 	} else if (type == ztResidential) {
 		/*
@@ -796,13 +812,15 @@ GetZoneScore(UInt32 pos)
 		 * A factor might be the number of (road/train/airplane)
 		 * connections to the surrounding world - this would
 		 * bring more potential residents into our little city
+		 *
+		 * XXX: This algy is buggered - pete.
 		 */
 		Int32 availPop = (Int32)(((getMonthsElapsed() *
 		    getMonthsElapsed()) / 35) + 30 -
 		    vgame.BuildCount[bc_value_residential]);
 		/* hmm - need more children */
 		if (availPop <= 0) {
-			/* XXX: increase desire of residential */
+			/* we don't increase desire of residential */
 			WriteLog("No People\n");
 			goto unlock_ret;
 		}
@@ -820,6 +838,9 @@ GetZoneScore(UInt32 pos)
 		/* darn, nothing to sell here */
 		if (availGoods <= 0) {
 			/* Increase desire of industrial */
+			Int16 oldes = GG.desires[de_industrial];
+			if (oldes < INT16_MAX)
+				GG.desires[de_industrial] = oldes++;
 			WriteLog("Low Industrial\n");
 			goto unlock_ret;
 		}
@@ -1295,8 +1316,8 @@ RecordStatistics(void)
 		tmpval = (UInt32)stat->last_ten[0] * 3 + stat_value;
 		tmpval >>= 2;
 		/* overflow */
-		if (tmpval > (UInt16)MAX_UINT16) {
-			stat->last_ten[0] = MAX_UINT16;
+		if (tmpval > (UInt16)UINT16_MAX) {
+			stat->last_ten[0] = UINT16_MAX;
 		} else {
 			stat->last_ten[0] = (UInt16)tmpval;
 		}

@@ -4,6 +4,7 @@
  * This is the gtk implementation of the budget form
  */
 
+#include <glib.h>
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <simulation.h>
