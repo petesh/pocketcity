@@ -45,7 +45,7 @@ static void DistributeUnvisited(distrib_t *distrib);
 
 static long GetZoneScore(UInt32 pos);
 static Int16 GetScoreFor(zoneType iamthis, welem_t what);
-static UInt32 GetRandomZone(void);
+static Int32 GetRandomZone(void);
 static void FindZonesForUpgrading(void);
 static Int16 FindScoreForZones(void);
 static void AddNeighbors(distrib_t *distrib, UInt32 pos);
@@ -74,10 +74,10 @@ static UInt8 ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what);
  *  |`--------
  *  `--------- 1 = Scratch / Visited
  *
- *  don't use any of the free flags without asking zakarun (thanks)
- *  please note that the flags are _not_ saved, they _must_ be able to be
- *  recreated from the plain world[] array - else the savegames would be
- *  10k larger (that's A LOT ;)
+ *  don't use any of the free flags without asking (thanks)
+ *  please note that the flags are saved, adding an extra 10k to the savegame
+ *  structure. It could be collapsed during save to the number of bits
+ *  that are occupied, but that seems like too much effort.
  *
  *  How to recreate:
  *	  call the distribution routine... it knows how to do each type
@@ -168,7 +168,7 @@ static void
 SetSupplied(distrib_t *distrib, UInt32 point)
 {
 	distrib->NodesSupplied++;
-	OrWorldFlags(point, distrib->flagToSet);
+	orWorldFlags(point, distrib->flagToSet);
 }
 
 /*!
@@ -184,10 +184,10 @@ SupplyIfPlant(distrib_t *distrib, UInt32 pos, welem_t point, selem_t status)
 	Int16 pt;
 	if (!(pt = distrib->isplant(point, pos, status)))
 		return (0);
-	if (GetScratch(pos))
+	if (getScratch(pos))
 		return (0);
 	SetSupplied(distrib, pos);
-	SetScratch(pos);
+	setScratch(pos);
 	distrib->NodesTotal++;
 	distrib->SourceLeft += pt;
 	distrib->SourceTotal += pt;
@@ -232,14 +232,14 @@ DoDistribute(Int16 grid)
 		distrib->flagToSet = WATEREDBIT;
 	}
 
-	LockWorld(); /* this lock locks for ALL power subs */
+	LockZone(lz_world); /* this lock locks for ALL power subs */
 	for (j = 0; j < MapMul(); j++)
-		AndWorldFlags(j, ~(distrib->flagToSet | SCRATCHBIT));
+		andWorldFlags(j, ~(distrib->flagToSet | SCRATCHBIT));
 
 	for (i = 0; i < MapMul(); i++) {
-		gw = GetWorld(i);
-		if (!GetScratch(i)) {
-			if (SupplyIfPlant(distrib, i, gw, GetWorldFlags(i))) {
+		gw = getWorld(i);
+		if (!getScratch(i)) {
+			if (SupplyIfPlant(distrib, i, gw, getWorldFlags(i))) {
 				AddNeighbors(distrib, i);
 				DistributeUnvisited(distrib);
 				/* unpowered points are removed */
@@ -257,7 +257,7 @@ DoDistribute(Int16 grid)
 			}
 		}
 	}
-	UnlockWorld();
+	UnlockZone(lz_world);
 	StackDelete(distrib->needSourceList);
 	StackDelete(distrib->unvisitedNodes);
 	gFree(distrib);
@@ -274,8 +274,8 @@ DistributeUnvisited(distrib_t *distrib)
 
 	while (!StackIsEmpty(distrib->unvisitedNodes)) {
 		pos = StackPop(distrib->unvisitedNodes);
-		flag = GetWorldFlags(pos);
-		if (SupplyIfPlant(distrib, pos, GetWorld(pos), flag)) {
+		flag = getWorldFlags(pos);
+		if (SupplyIfPlant(distrib, pos, getWorld(pos), flag)) {
 			goto nextneighbor;
 		}
 
@@ -294,7 +294,7 @@ DistributeUnvisited(distrib_t *distrib)
 			SetSupplied(distrib, pos);
 
 		/* now, set the flags to indicate we've been here */
-		SetScratch(pos);
+		setScratch(pos);
 
 nextneighbor:
 		/* find the possible ways we can move on from here */
@@ -318,13 +318,13 @@ AddNeighbors(distrib_t *distrib, UInt32 pos)
 	distrib->NodesTotal += cross & 0x0f;
 
 	if ((cross & 0x10) == 0x10) {
-		StackPush(distrib->unvisitedNodes, pos-GetMapWidth());
+		StackPush(distrib->unvisitedNodes, pos-getMapWidth());
 	}
 	if ((cross & 0x20) == 0x20) {
 		StackPush(distrib->unvisitedNodes, pos+1);
 	}
 	if ((cross & 0x40) == 0x40) {
-		StackPush(distrib->unvisitedNodes, pos+GetMapWidth());
+		StackPush(distrib->unvisitedNodes, pos+getMapWidth());
 	}
 	if ((cross & 0x80) == 0x80) {
 		StackPush(distrib->unvisitedNodes, pos-1);
@@ -342,9 +342,9 @@ AddNeighbors(distrib_t *distrib, UInt32 pos)
 static Int16
 Carries(Int16 (*doescarry)(welem_t), UInt32 pos)
 {
-	if (GetScratch(pos))
+	if (getScratch(pos))
 		return (0);
-	return (doescarry(GetWorld(pos)));
+	return (doescarry(getWorld(pos)));
 }
 
 /*!
@@ -404,22 +404,22 @@ DistributeMoveOn(UInt32 pos, dirType direction)
 {
 	switch (direction) {
 	case dtUp:
-		if (pos < GetMapWidth())
+		if (pos < getMapWidth())
 			return (pos);
-		pos -= GetMapWidth();
+		pos -= getMapWidth();
 		break;
 	case dtRight:
-		if (((pos%GetMapWidth()) + 1) >= GetMapWidth())
+		if (((pos%getMapWidth()) + 1) >= getMapWidth())
 			return (pos);
 		pos++;
 		break;
 	case dtDown:
-		if ((pos+GetMapWidth()) >= MapMul())
+		if ((pos+getMapWidth()) >= MapMul())
 			return (pos);
-		pos += GetMapWidth();
+		pos += getMapWidth();
 		break;
 	case dtLeft:
-		if (pos % GetMapWidth() == 0)
+		if (pos % getMapWidth() == 0)
 			return (pos);
 		pos--;
 		break;
@@ -438,17 +438,17 @@ ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what)
 {
 	UInt8 rv = 0;
 
-	if ((dirs & DIR_UP) && (pos > GetMapWidth()) &&
-	    (what == GetWorld(pos - GetMapWidth())))
+	if ((dirs & DIR_UP) && (pos > getMapWidth()) &&
+	    (what == getWorld(pos - getMapWidth())))
 		rv |= DIR_UP;
-	if ((dirs & DIR_DOWN) && (pos < (UInt32)(MapMul() - GetMapWidth())) &&
-	    (what == GetWorld(pos + GetMapWidth())))
+	if ((dirs & DIR_DOWN) && (pos < (UInt32)(MapMul() - getMapWidth())) &&
+	    (what == getWorld(pos + getMapWidth())))
 		rv |= DIR_DOWN;
-	if ((dirs & DIR_LEFT) && (pos % GetMapWidth()) && 
-	    (what == GetWorld(pos - 1)))
+	if ((dirs & DIR_LEFT) && (pos % getMapWidth()) && 
+	    (what == getWorld(pos - 1)))
 		rv |= DIR_LEFT;
-	if ((dirs & DIR_RIGHT) && (((pos % GetMapWidth()) + 1) < GetMapWidth())
-		&& (what == GetWorld(pos + 1)))
+	if ((dirs & DIR_RIGHT) && (((pos % getMapWidth()) + 1) < getMapWidth())
+		&& (what == getWorld(pos + 1)))
 		rv |= DIR_RIGHT;
 	return (rv);
 }
@@ -458,13 +458,13 @@ ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what)
 
 /*! \brief Zone scores */
 typedef struct {
-	UInt32 pos; /*!< position of the node */
+	Int32 pos; /*!< position of the node */
 	Int32 score; /*!< score of the node */
-	Int16 used; /*!< ?? */
 } ZoneScore;
 
 /*! \brief zones to be upgraded/downgraded */
 static ZoneScore zones[256];
+static int used;
 
 /*! \brief Find a bunch of zones and decide to upgrade/downgrade them */
 void
@@ -473,18 +473,20 @@ FindZonesForUpgrading(void)
 	Int16 i;
 	Int32 randomZone;
 
-	Int16 max = GetMapWidth()*3;
+	Int16 max = getMapWidth() * 3;
+	used = 0;
+
 	if (max > 256) {
 		max = 256;
 	}
 
 	/* find some random zones */
 	for (i = 0; i < max; i++) {
-		zones[i].used = 0;
+		zones[used].pos = -1;
 		randomZone = GetRandomZone();
 		if (randomZone != -1) { /* -1 means we didn't find a zone */
-			zones[i].pos = randomZone;
-			zones[i].used = 1;
+			zones[used].pos = randomZone;
+			used++;
 		}
 	}
 }
@@ -508,80 +510,81 @@ FindScoreForZones(void)
 	Int32 score;
 	counter += 20;
 
-	for (i = counter-20; i < (signed)counter; i++) {
-		if (i >= 256) {
-		counter = 0;
-		return (0);
-	}
+	for (i = counter - 20; i < (signed)counter; i++) {
+		if (i >= 256 || i > used) {
+			counter = 0;
+			used = 0;
+			return (0);
+		}
+		if (!IsOccupied(getWorld(zones[i].pos)))
+			continue;
 
-		if (zones[i].used == 1) {
-			score = GetZoneScore(zones[i].pos);
-			if (score != -1) {
-				zones[i].score = score;
-			} else {
-				zones[i].used = 0;
-				zones[i].score = -1;
-				DowngradeZone(zones[i].pos);
-			}
+		score = GetZoneScore(zones[i].pos);
+		if (score != -1) {
+			zones[i].score = score;
+		} else {
+			zones[i].score = -1;
+			WriteLog("Instadowngrade (%ld)\n", zones[i].pos);
+			DowngradeZone(zones[i].pos);
+			zones[i].pos = -1;
 		}
 	}
 	return (1); /* there's still more zones that need a score. */
 }
 
 /*!
+ * \brief compare two zones for the quicksort
+ * \param a pointer to first element
+ * \param b pointer to second element
+ * \param other other value
+ */
+static Int16
+zoneCmpFn(void *a, void *b, Int32 other __attribute__((unused)))
+{
+	ZoneScore *zs1 = (ZoneScore *)a;
+	ZoneScore *zs2 = (ZoneScore *)b;
+
+	if (zs1->score > zs2->score)
+		return (1);
+	if (zs1->score < zs2->score)
+		return (-1);
+	return (0);
+}
+
+/*!
  * \brief Upgrade the best zones
- * \todo this is an O(n^2) algorithm. It should be O(2n) at most
+ * 
+ * sort the zones by score. Upgrade the 12 highest scoring zones,
+ * downgrade the 10 lowest scoring zones.
  */
 void
 UpgradeZones(void)
 {
-	Int16 i, j, topscorer;
-	Int32 topscore;
-	Int16 downCount = 11 * 10 + 30;
-	Int16 upCount = (0 - 8) * 10 + 250;
+	Int16 i;
+	Int16 downCount = 10;
+	Int16 upCount = 12;
 
-	/* upgrade the bests */
-	for (i = 0; i < 256 && i < upCount; i++) {
-		topscore = 0;
-		topscorer = -1;
-
-		/* find the one with max points */
-		for (j = 0; j < 256; j++) {
-			if (zones[j].score > topscore && zones[j].used == 1) {
-				topscore = zones[j].score;
-				topscorer = j;
-			}
-		}
+	QSort(zones, used, sizeof (ZoneScore), zoneCmpFn);
+	WriteLog("Used: %ld\n", used);
+	/* upgrade the upCount best */
+	for (i = used - 1; i >= 0 && i < (used - upCount); i--) {
+		if (zones[i].pos == -1) continue;
 
 		/* upgrade him/her/it/whatever */
-		if (topscorer != -1) {
-			if (zones[topscorer].used == 1) {
-				zones[topscorer].used = 0;
-				UpgradeZone(zones[topscorer].pos);
-			}
-		}
+		UpgradeZone(zones[i].pos);
+		WriteLog("Upgrade %ld(%ld)\n", zones[i].pos,
+		    zones[i].score);
+		zones[i].pos = -1;
 	}
 
-	/* downgrade the worst */
-	for (i = 0; i < 256 && i < downCount; i++) {
-		topscore = -1;
-		topscorer = -1;
-
-		/* find the one with min points */
-		for (j = 0; j < 256; j++) {
-			if (zones[j].score < topscore && zones[j].used == 1) {
-				topscore = zones[j].score;
-				topscorer = j;
-			}
-		}
-
+	/* downgrade the downCount worst */
+	for (i = 0; i < downCount && i < (used - upCount); i++) {
 		/* downgrade him/her/it/whatever */
-		if (topscorer != -1) {
-			if (zones[topscorer].used == 1) {
-				zones[topscorer].used = 0;
-				DowngradeZone(zones[topscorer].pos);
-			}
-		}
+		if (zones[i].pos == -1) continue;
+		DowngradeZone(zones[i].pos);
+		WriteLog("Downgrade %ld(%ld)\n", zones[i].pos,
+		    zones[i].score);
+		zones[i].pos = -1;
 	}
 }
 
@@ -593,24 +596,34 @@ static void
 DowngradeZone(UInt32 pos)
 {
 	welem_t type;
+	welem_t ntype;
 
-	LockWorld();
-	type = GetWorld(pos);
+	LockZone(lz_world);
+	type = getWorld(pos);
 	if (type >= Z_COMMERCIAL_MIN && type <= Z_COMMERCIAL_MAX) {
-		SetWorld(pos, (type == Z_COMMERCIAL_MIN) ?
-		    Z_COMMERCIAL_SLUM : type - 1);
+		ntype = (type == Z_COMMERCIAL_MIN) ?
+		    Z_COMMERCIAL_SLUM : type - 1;
+		setWorld(pos, ntype);
 		vgame.BuildCount[bc_value_commercial]--;
+		if (ntype == Z_COMMERCIAL_SLUM)
+			vgame.BuildCount[bc_count_commercial]--;
 	} else if (type >= Z_RESIDENTIAL_MIN &&
 	    type <= Z_RESIDENTIAL_MAX) {
-		SetWorld(pos, (type == Z_RESIDENTIAL_MIN) ?
-		    Z_RESIDENTIAL_SLUM : type - 1);
+		ntype = (type == Z_RESIDENTIAL_MIN) ?
+		    Z_RESIDENTIAL_SLUM : type - 1;
+		setWorld(pos, ntype);
 		vgame.BuildCount[bc_value_residential]--;
+		if (ntype == Z_RESIDENTIAL_SLUM)
+			vgame.BuildCount[bc_count_residential]--;
 	} else if (type >= Z_INDUSTRIAL_MIN && type <= Z_INDUSTRIAL_MAX) {
-		SetWorld(pos, (type == Z_INDUSTRIAL_MIN) ?
-		    Z_INDUSTRIAL_SLUM : type - 1);
+		ntype = (type == Z_INDUSTRIAL_MIN) ?
+		    Z_INDUSTRIAL_SLUM : type - 1;
+		setWorld(pos, ntype);
 		vgame.BuildCount[bc_value_industrial]--;
+		if (ntype == Z_INDUSTRIAL_SLUM)
+			vgame.BuildCount[bc_count_industrial]--;
 	}
-	UnlockWorld();
+	UnlockZone(lz_world);
 }
 
 /*
@@ -622,25 +635,31 @@ UpgradeZone(UInt32 pos)
 {
 	welem_t type;
 
-	LockWorld();
-	type = GetWorld(pos);
+	LockZone(lz_world);
+	type = getWorld(pos);
 	if (type == Z_COMMERCIAL_SLUM || (type >= Z_COMMERCIAL_MIN &&
 	    type <= (Z_COMMERCIAL_MAX - 1))) {
-		SetWorld(pos, (type == Z_COMMERCIAL_SLUM) ?
+		setWorld(pos, (type == Z_COMMERCIAL_SLUM) ?
 		    Z_COMMERCIAL_MIN : type + 1);
 		vgame.BuildCount[bc_value_commercial]++;
+		if (type == Z_COMMERCIAL_SLUM)
+			vgame.BuildCount[bc_count_commercial]++;
 	} else if (type == Z_RESIDENTIAL_SLUM || (type >= Z_RESIDENTIAL_MIN &&
 	    type <= (Z_RESIDENTIAL_MAX - 1))) {
-		SetWorld(pos, (type == Z_RESIDENTIAL_SLUM) ?
+		setWorld(pos, (type == Z_RESIDENTIAL_SLUM) ?
 		    Z_RESIDENTIAL_MIN : type + 1);
 		vgame.BuildCount[bc_value_residential]++;
+		if (type == Z_RESIDENTIAL_SLUM)
+			vgame.BuildCount[bc_count_residential]++;
 	} else if (type == Z_INDUSTRIAL_SLUM || (type >= Z_INDUSTRIAL_MIN &&
 	    type <= (Z_INDUSTRIAL_MAX - 1))) {
-		SetWorld(pos, (type == Z_INDUSTRIAL_SLUM) ?
+		setWorld(pos, (type == Z_INDUSTRIAL_SLUM) ?
 		    Z_INDUSTRIAL_MIN : type + 1);
 		vgame.BuildCount[bc_value_industrial]++;
+		if (type == Z_RESIDENTIAL_SLUM)
+			vgame.BuildCount[bc_count_industrial]++;
 	}
-	UnlockWorld();
+	UnlockZone(lz_world);
 }
 
 /*!
@@ -663,26 +682,33 @@ DoTheRoadTrip(UInt32 startPos __attribute__((unused)))
 long
 GetZoneScore(UInt32 pos)
 {
-	long score = -1; /* I'm evil to begin with */
-	int x = pos % GetMapWidth();
-	int y = pos / GetMapWidth();
-	int i, j;
+	long score = -1; /* Neutral to begin with */
+	int x = pos % getMapWidth();
+	int y = pos / getMapWidth();
+	int ax, ay;
+	int maxx, maxy;
 	int bRoad = 0;
 	zoneType type = ztWhat;
 	UInt8 zone;
 
-	LockWorld();
-	zone = GetWorld(pos);
+	LockZone(lz_world);
+	zone = getWorld(pos);
 	type = (IsZone(zone, ztCommercial) ? ztCommercial :
 	    (IsZone(zone, ztResidential) ? ztResidential : ztIndustrial));
 
-	if (((GetWorldFlags(pos) & POWEREDBIT) == 0) ||
-	    ((GetWorldFlags(pos) & WATEREDBIT) == 0)) {
-		/* whoops, no power | water */
+	if (((getWorldFlags(pos) & POWEREDBIT) == 0) ||
+	    ((getWorldFlags(pos) & WATEREDBIT) == 0)) {
+		/* whoops, no power or no water */
+		WriteLog("No Power || Water\n");
 		goto unlock_ret;
 	}
 
-	if (type != ztResidential)  {
+	if (IsSlum(zone)) {
+		score = 20;
+		goto unlock_ret;
+	}
+
+	if (type == ztIndustrial || type == ztCommercial)  {
 		/*
 		 * see if there's actually enough residential population
 		 * to support a new zone of ind or com
@@ -692,8 +718,10 @@ GetZoneScore(UInt32 pos)
 		    - (vgame.BuildCount[bc_value_commercial]*25
 		    + vgame.BuildCount[bc_value_industrial]*25);
 		/* pop is too low */
-		if (availPop <= 0)
+		if (availPop <= 0) {
+			WriteLog("Pop too low to promote ind || comm\n");
 			goto unlock_ret;
+		}
 	} else if (type == ztResidential) {
 		/*
 		 * the population can't skyrocket all at once, we need a cap
@@ -703,10 +731,12 @@ GetZoneScore(UInt32 pos)
 		 * bring more potential residents into our little city
 		 */
 		long availPop = ((getMonthsElapsed() * getMonthsElapsed()) /
-		    35 + 30) - (vgame.BuildCount[bc_value_residential]);
+		    35) + 30 - vgame.BuildCount[bc_value_residential];
 		/* hmm - need more children */
-		if (availPop <= 0)
+		if (availPop <= 0) {
+			WriteLog("No People\n");
 			goto unlock_ret;
+		}
 	}
 
 	if (type == ztCommercial) {
@@ -718,36 +748,38 @@ GetZoneScore(UInt32 pos)
 		long int availGoods = (vgame.BuildCount[bc_value_industrial] /
 		    3 * 2) - (vgame.BuildCount[bc_value_commercial]);
 		/* darn, nothing to sell here */
-		if (availGoods <= 0)
+		if (availGoods <= 0) {
+			WriteLog("No Goods\n");
 			goto unlock_ret;
-	}
-
-
-	/* take a look around at the enviroment */
-	for (i = x - 3; i < 4 + x; i++) {
-		for (j = y - 3; j < 4 + y; j++) {
-			if (!(i < 0 || i >= GetMapWidth() || j < 0 ||
-			    j >= GetMapHeight())) {
-				score += GetScoreFor(type,
-				    GetWorld(WORLDPOS(i, j)));
-				if (IsRoad(GetWorld(WORLDPOS(i, j))) &&
-				    bRoad == 0) {
-					/*
-					 * can we reach all kinds of
-					 * zones from here?
-					 */
-					bRoad = DoTheRoadTrip(WORLDPOS(i, j));
-					if (!bRoad) {
-						score = -1;
-						goto unlock_ret;
-					}
-				}
-			}
 		}
 	}
 
+	/* take a look around at the enviroment */
+	maxx = (4 + x < getMapWidth()) ? 4 + x : getMapWidth() - 1;
+	maxy = (4 + y < getMapHeight()) ? 4 + y : getMapHeight() - 1;
+	ax = (x - 3 > 0) ? x - 3 : 0;
+	while (ax < maxx) {
+		ay = (y - 3 > 0) ? y - 3 : 0;
+		while (ay < maxy) {
+			score += GetScoreFor(type, getWorld(WORLDPOS(ax, ay)));
+			if (IsRoad(getWorld(WORLDPOS(ax, ay))) && bRoad == 0) {
+				/*
+				 * can we reach all kinds of
+				 * zones from here?
+				 */
+				bRoad = DoTheRoadTrip(WORLDPOS(ax, ay));
+				if (!bRoad) {
+					score = -1;
+					goto unlock_ret;
+				}
+			}
+			ay++;
+		}
+		ax++;
+	}
+
 unlock_ret:
-	UnlockWorld();
+	UnlockZone(lz_world);
 	return (score);
 }
 
@@ -807,28 +839,27 @@ GetScoreFor(zoneType iamthis, welem_t what)
  * \brief Get a zone on the world.
  *
  * Must be one of the Residential / Industrial /commercial zones
- * \return the zone picked
- * \todo remove the magic numbers
+ * \return the zone picked, or -1 for no zone found
  */
-UInt32
-GetRandomZone()
+static Int32
+GetRandomZone(void)
 {
 	UInt32 pos = 0;
 	UInt16 i;
 	UInt8 type;
 
-	LockWorld();
+	LockZone(lz_world);
 	for (i = 0; i < 5; i++) { /* try five times to hit a valid zone */
 		pos = GetRandomNumber(MapMul());
-		type = GetWorld(pos);
-		if ((type >= 1 && type <= 3) || (type >= 30 && type <= 59)) {
-			UnlockWorld();
+		type = getWorld(pos);
+		if (IsGrowable(type)) {
+			UnlockZone(lz_world);
 			return (pos);
 		}
 	}
 
-	UnlockWorld();
-	return (~(UInt32)0);
+	UnlockZone(lz_world);
+	return (-1);
 }
 
 /*! \brief mapping of item counts and their associated costs */
@@ -1042,10 +1073,10 @@ UpdateVolatiles(void)
 {
 	UInt32 p;
 
-	LockWorld();
+	LockZone(lz_world);
 
 	for (p = 0; p < MapMul(); p++) {
-		UInt8 elt = GetWorld(p);
+		UInt8 elt = getWorld(p);
 		/* Gahd this is terrible. I need to fix it. */
 		if (elt >= Z_COMMERCIAL_MIN && elt <= Z_COMMERCIAL_MAX) {
 			vgame.BuildCount[bc_count_commercial]++;
@@ -1053,7 +1084,8 @@ UpdateVolatiles(void)
 		}
 		if (elt >= Z_RESIDENTIAL_MIN && elt <= Z_RESIDENTIAL_MAX) {
 			vgame.BuildCount[bc_count_residential]++;
-			vgame.BuildCount[bc_value_commercial] += ZoneValue(elt);
+			vgame.BuildCount[bc_value_residential] +=
+			    ZoneValue(elt);
 		}
 		if (elt >= Z_INDUSTRIAL_MIN && elt <= Z_INDUSTRIAL_MAX) {
 			vgame.BuildCount[bc_count_industrial]++;
@@ -1100,10 +1132,10 @@ UpdateVolatiles(void)
 			vgame.BuildCount[bc_waterpipes]++;
 			vgame.BuildCount[bc_powerlines]++;
 		}
-		if (elt == Z_PUMP)
+		if (IsPump(elt))
 			vgame.BuildCount[bc_waterpumps]++;
 	}
-	UnlockWorld();
+	UnlockZone(lz_world);
 }
 
 /*!
@@ -1314,8 +1346,10 @@ ZoneValue(welem_t x)
 {
 	if ((x >= Z_COMMERCIAL_SLUM) && (x <= Z_INDUSTRIAL_SLUM))
 		return (0);
-	if ((x >= Z_COMMERCIAL_MIN) && (x <= Z_INDUSTRIAL_MAX))
+	if ((x >= Z_COMMERCIAL_MIN) && (x <= Z_INDUSTRIAL_MAX)) {
+		WriteLog("Value: %d\n", (1 + ((x - Z_COMMERCIAL_MIN) % 10)));
 		return (1 + ((x - Z_COMMERCIAL_MIN) % 10));
+	}
 	if (IsRoad(x))
 		return ((x - Z_ROAD_START) + 1);
 	if (IsRail(x))
@@ -1466,6 +1500,16 @@ IsRailOvRoad(welem_t x)
 }
 
 /*!
+ * \brief is this zone occupied
+ * \param x the zone to test
+ */
+Int16
+IsOccupied(welem_t x)
+{
+	return (!((x <= Z_REALWATER) || (x > Z_ENDMARKER)));
+}
+
+/*!
  * \brief Is one of the zones in the direction passed of the type passed
  * \param pos position to start from
  * \param checkfn function to assert or deny the test
@@ -1477,17 +1521,17 @@ CheckNextTo(Int32 pos, UInt8 dirs, Int16 (*checkfn)(welem_t))
 {
 	UInt8 rv = 0;
 
-	if ((dirs & DIR_UP) && (pos > GetMapWidth()) &&
-	    checkfn(GetWorld(pos - GetMapWidth())))
+	if ((dirs & DIR_UP) && (pos > getMapWidth()) &&
+	    checkfn(getWorld(pos - getMapWidth())))
 		rv |= DIR_UP;
-	if ((dirs & DIR_DOWN) && (pos < (MapMul() - GetMapWidth())) &&
-	    checkfn(GetWorld(pos + GetMapWidth())))
+	if ((dirs & DIR_DOWN) && (pos < (MapMul() - getMapWidth())) &&
+	    checkfn(getWorld(pos + getMapWidth())))
 		rv |= DIR_DOWN;
-	if ((dirs & DIR_LEFT) && (pos % GetMapWidth()) && 
-	    checkfn(GetWorld(pos - 1)))
+	if ((dirs & DIR_LEFT) && (pos % getMapWidth()) && 
+	    checkfn(getWorld(pos - 1)))
 		rv |= DIR_LEFT;
-	if ((dirs & DIR_RIGHT) && (((pos % GetMapWidth()) + 1) < GetMapWidth())
-		&& checkfn(GetWorld(pos + 1)))
+	if ((dirs & DIR_RIGHT) && (((pos % getMapWidth()) + 1) < getMapWidth())
+		&& checkfn(getWorld(pos + 1)))
 		rv |= DIR_RIGHT;
 	return (rv);
 }
@@ -1505,17 +1549,17 @@ CheckNextTo1(Int32 pos, UInt8 dirs, carryfnarg_t checkfn, void *cfarg)
 {
 	UInt8 rv = 0;
 
-	if ((dirs & DIR_UP) && (pos > GetMapWidth()) &&
-	    checkfn(GetWorld(pos - GetMapWidth()), cfarg))
+	if ((dirs & DIR_UP) && (pos > getMapWidth()) &&
+	    checkfn(getWorld(pos - getMapWidth()), cfarg))
 		rv |= DIR_UP;
-	if ((dirs & DIR_DOWN) && (pos < (MapMul() - GetMapWidth())) &&
-	    checkfn(GetWorld(pos + GetMapWidth()), cfarg))
+	if ((dirs & DIR_DOWN) && (pos < (MapMul() - getMapWidth())) &&
+	    checkfn(getWorld(pos + getMapWidth()), cfarg))
 		rv |= DIR_DOWN;
-	if ((dirs & DIR_LEFT) && (pos % GetMapWidth()) && 
-	    checkfn(GetWorld(pos - 1), cfarg))
+	if ((dirs & DIR_LEFT) && (pos % getMapWidth()) && 
+	    checkfn(getWorld(pos - 1), cfarg))
 		rv |= DIR_LEFT;
-	if ((dirs & DIR_RIGHT) && (((pos % GetMapWidth()) + 1) < GetMapWidth())
-		&& checkfn(GetWorld(pos + 1), cfarg))
+	if ((dirs & DIR_RIGHT) && (((pos % getMapWidth()) + 1) < getMapWidth())
+		&& checkfn(getWorld(pos + 1), cfarg))
 		rv |= DIR_RIGHT;
 	return (rv);
 }

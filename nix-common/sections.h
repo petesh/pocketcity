@@ -6,6 +6,7 @@
 #define BUDGET_SECTION
 #define SAVE_SECTION
 #define BUILD_SECTION
+#define DISASTER_SECTION
 
 #endif /* _SECTIONS_H_ */
 

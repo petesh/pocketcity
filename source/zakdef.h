@@ -172,17 +172,17 @@
 
 #define GG	game
 /*! \brief get the map size */
-#define	GetMapWidth() (GG.mapx)
+#define	getMapWidth() (GG.mapx)
 
 /*! \brief get the map height */
-#define GetMapHeight() (GG.mapy)
+#define getMapHeight() (GG.mapy)
 /*!
  * \brief set the map size
  *
  * Does not allocate any extra memory.
  * \param x the new map size
  */
-#define	SetMapSize(X,Y) { \
+#define	setMapSize(X,Y) { \
 	GG.mapx = (X); \
 	GG.mapy = (Y); \
 	vgame.mapmul = GG.mapx * GG.mapy; \
@@ -218,7 +218,7 @@
  * \param y the y position
  * \return the position in the array
  */
-#define	WORLDPOS(x, y)	((x) + (y) * (GetMapWidth()))
+#define	WORLDPOS(x, y)	((x) + (y) * (getMapWidth()))
 
 /*! \brief save the current speed, and change the speed to paused */
 #define	SaveSpeed()			 { \
@@ -504,7 +504,8 @@ typedef struct _vgame_struct {
 	UInt16		mapmul;	/*!< x*y */
 	UInt32		prior_credit; /*!< last month's credit value */
 	long unsigned	BuildCount[bc_tail]; /*!< count of elements */
-	unsigned char	tileSize;	/*!< size of a tile */
+	unsigned char	TileSize;	/*!< size of a tile */
+	unsigned char	MapTileSize;	/*!< size of a tile on the map */
 	unsigned short	oldLoopSeconds;	/*!< last selected speed - for pause */
 	int		visible_x;	/*!< visible tiles on the X */
 	int		visible_y;	/*!< visible tiles on the y */
@@ -512,6 +513,10 @@ typedef struct _vgame_struct {
 	int		cursor_ypos;	/*!< cursor ?? */
 	long unsigned	world_size;	/*!< size of world pointer */
 } vGameStruct;
+
+
+#define mapTileSize()	(vgame.MapTileSize)
+#define gameTileSize()	(vgame.TileSize)
 
 /*!
  * \brief appliation configuration.

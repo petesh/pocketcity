@@ -11,25 +11,28 @@
 
 #include <resCompat.h>
 
-typedef struct _stacky {
+typedef struct tag_dsobj {
 	MemHandle   sh; /* Start of stack... handle */
 	Int32	  *ss; /* Start of stack */
 	Int32	  *sp; /* Stack pointer */
 	Int32	  *se; /* Stack pointer */
 	Int32	   sl; /* Stack Len */
-} Stacky;
+} dsObj;
+
+#define STACK_IMPL
+#include <stack.h>
 
 /*
  * preallocates 128 elements to the stack
  */
-void *
+dsObj *
 StackNew(void)
 {
-	Stacky *s = (Stacky *)MemPtrNew(sizeof (Stacky));
+	dsObj *s = (dsObj *)MemPtrNew(sizeof (dsObj));
 	if (s == NULL)
 		return (NULL);
 	s->sl = 128;
-	if ((NULL == (s->sh = MemHandleNew(s->sl * sizeof (long)))) ||
+	if ((NULL == (s->sh = MemHandleNew(s->sl * sizeof (Int32)))) ||
 	    (NULL == (s->ss = (Int32 *)MemHandleLock(s->sh)))) {
 		if (s->sh) MemHandleFree(s->sh);
 		MemPtrFree(s);
@@ -44,7 +47,7 @@ StackNew(void)
  * delete the contents of the stack
  */
 void
-StackDelete(Stacky *sp)
+StackDelete(dsObj *sp)
 {
 	if (sp->sh) {
 		MemHandleUnlock(sp->sh);
@@ -57,7 +60,7 @@ StackDelete(Stacky *sp)
  * remove the top most item from the stack
  */
 Int32
-StackPop(Stacky *sp)
+StackPop(dsObj *sp)
 {
 	if (sp->sp >= sp->ss) {
 		return (*sp->sp--);
@@ -70,13 +73,13 @@ StackPop(Stacky *sp)
  * add an element to the stack
  */
 void
-StackPush(Stacky *sp, Int32 elt)
+StackPush(dsObj *sp, Int32 elt)
 {
 	if (sp->sp >= sp->se) {
-		long sd = sp->sp - sp->ss;
-		long sn;
+		Int32 sd = sp->sp - sp->ss;
+		Int32 sn;
 		sp->sl <<= 1;
-		sn = sp->sl * sizeof (long);
+		sn = sp->sl * sizeof (Int32);
 		MemHandleUnlock(sp->sh);
 		if (errNone != MemHandleResize(sp->sh, sn)) {
 			ErrFatalDisplayIf(1, "Resize of myStack Chunk Failed");
@@ -91,8 +94,8 @@ StackPush(Stacky *sp, Int32 elt)
 /*
  * check if the stack is empty
  */
-Int16
-StackIsEmpty(Stacky *sp)
+Int8
+StackIsEmpty(dsObj *sp)
 {
 	return (sp->sp < sp->ss);
 }
@@ -101,7 +104,7 @@ StackIsEmpty(Stacky *sp)
  * 'empty' the stack.
  */
 void
-StackDoEmpty(Stacky *sp)
+StackDoEmpty(dsObj *sp)
 {
 	sp->sp = sp->ss - 1;
 }
@@ -109,8 +112,35 @@ StackDoEmpty(Stacky *sp)
 /*
  * get the count of the number of elements on the stack
  */
-Int16
-StackNElements(Stacky *sp)
+Int32
+StackNElements(dsObj *sp)
 {
 	return ((sp->sp+1) - sp->ss);
+}
+
+/*!
+ * \brief get an item from the list
+ * \param sp The pointer to the data object
+ * \param index the index of the object
+ * \return the item at the location, or -1 on error
+ */
+Int32
+ListGet(dsObj *sp, Int32 index)
+{
+	if (index >= (sp->sp - sp->ss))
+		return (-1);
+	return (sp->ss[index + 1]);
+}
+
+/*!
+ * \brief set an item in the list
+ * \param sp the pointer to the data object
+ * \param index the index of the item
+ * \param element the value for the new item
+ */
+void
+ListSet(dsObj *sp, Int32 index, Int32 element)
+{
+	if (index < (sp->sp - sp->ss))
+		sp->ss[index + 1] = element;
 }

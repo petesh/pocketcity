@@ -11,12 +11,13 @@
 #include <simcity_resconsts.h>
 #include <zakdef.h>
 #include <simulation.h>
+#include <globals.h>
 
-static FormPtr querySetup(void) OTHER_SECTION;
-static void queryCleanup(void) OTHER_SECTION;
-static void zonetoPtr(Char *zonemsg, welem_t tile, UInt16 maxlen) OTHER_SECTION;
-static void frmShowID(FormPtr fp, UInt16 id) OTHER_SECTION;
-static void frmHideID(FormPtr fp, UInt16 id) OTHER_SECTION;
+static FormPtr querySetup(void) QUERY_SECTION;
+static void queryCleanup(void) QUERY_SECTION;
+static void zonetoPtr(Char *zonemsg, welem_t tile, UInt16 maxlen) QUERY_SECTION;
+static void frmShowID(FormPtr fp, UInt16 id) QUERY_SECTION;
+static void frmHideID(FormPtr fp, UInt16 id) QUERY_SECTION;
 
 /*
  * Handler for the query form
@@ -147,10 +148,9 @@ querySetup(void)
 	selem_t status;
 	UInt8 valdens;
 
-	LockWorld();
-	element = GetWorld(GetPositionClicked());
-	status = GetWorldFlags(GetPositionClicked());
-	UnlockWorld();
+	LockZone(lz_world);
+	getWorldAndFlag(GetPositionClicked(), &element, &status);
+	UnlockZone(lz_world);
 
 	form = FrmGetActiveForm();
 	temp = (Char *)MemPtrNew(255);

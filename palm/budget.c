@@ -12,8 +12,6 @@
 #include <rescompat.h>
 #include <repeathandler.h>
 
-#define	MILLION 1000000
-
 static FormPtr budgetSetup(FormPtr form) BUDGET_SECTION;
 static void dealRepeats(EventPtr event) BUDGET_SECTION;
 static void dealFieldContentChange(UInt16 fieldID) BUDGET_SECTION;
@@ -165,20 +163,13 @@ static const struct updateentity {
 static void
 updateBudgetValue(FormPtr form, UInt16 label, const Char *format, long value)
 {
-	static Char cp[10];
 	Char temp[12];
-	Char	*ap;
+	Char scale;
 
 	*temp='$';
-	if (*cp == '\0')
-		ResGetString(si_cash_scale, cp, 10);
+	value = scaleNumber(value, &scale);
 
-	ap = (Char *)cp;
-	while(value > MILLION) {
-		ap++;
-		value /= 1000;
-	}
-	StrPrintF(temp+1, format, value, *ap);
+	StrPrintF(temp+1, format, value, scale);
 	FrmCopyLabel(form, label, temp);
 }
 

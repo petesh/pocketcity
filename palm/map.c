@@ -82,9 +82,9 @@ hMap(EventPtr event)
 	switch (event->eType) {
 	case penDownEvent:
 		if (event->screenX >= StartX &&
-		    event->screenX <= (GetMapWidth() + StartX) &&
+		    event->screenX <= (getMapWidth() + StartX) &&
 		    event->screenY >= StartY &&
-		    event->screenY <= (GetMapHeight() + StartY)) {
+		    event->screenY <= (getMapHeight() + StartY)) {
 			Int16 x = event->screenX - StartX;
 			Int16 y = event->screenY - StartY;
 			Goto(x, y);
@@ -156,10 +156,10 @@ static void
 DrawMap(void)
 {
 	const RectangleType rect = {
-		{ StartX, StartY }, { GetMapWidth(), GetMapHeight() }
+		{ StartX, StartY }, { getMapWidth(), getMapHeight() }
 	};
 	const RectangleType grect = {
-		{ 0, 0 }, { GetMapWidth(), GetMapHeight() }
+		{ 0, 0 }, { getMapWidth(), getMapHeight() }
 	};
 
 	map_entry entry = currmap;
@@ -208,13 +208,13 @@ RenderMaps(void)
 	StrPrintF(perc, "%d%%", 0);
 	WinPaintChars(perc, StrLen(perc), 20, 40);
 
-	wh = WinCreateOffscreenWindow(GetMapWidth(), GetMapHeight(),
+	wh = WinCreateOffscreenWindow(getMapWidth(), getMapHeight(),
 	    screenFormat, &e);
 	if (e != errNone) {
 		return;
 	}
 
-	LockWorld();
+	LockZone(lz_world);
 
 	swh = WinSetDrawWindow(wh);
 	WinSetDrawWindow(swh);
@@ -253,15 +253,15 @@ RenderMaps(void)
 		}
 	}
 
-	for (posits.y = 0; posits.y < GetMapHeight(); posits.y++) {
+	for (posits.y = 0; posits.y < getMapHeight(); posits.y++) {
 		if (IsNewROM() && (posits.y & 0xF) == 0xF) {
 			int prc = (int)(( (long)posits.y * 100 ) /
-			    GetMapHeight());
+			    getMapHeight());
 			StrPrintF(perc, "%d%%", prc);
 			WinPaintChars(perc, StrLen(perc), 20, 40);
 		}
-		for (posits.x = 0; posits.x < GetMapWidth(); posits.x++) {
-			int wt = GetWorld(WORLDPOS(posits.x, posits.y));
+		for (posits.x = 0; posits.x < getMapWidth(); posits.x++) {
+			int wt = getWorld(WORLDPOS(posits.x, posits.y));
 			if (inited >= 1) {
 				switch (wt) {
 				case Z_DIRT:
@@ -329,5 +329,11 @@ RenderMaps(void)
 		}
 	}
 	AddMap(wh, mt_fullpaint, me_basemap);
-	UnlockWorld();
+	UnlockZone(lz_world);
+}
+
+void
+UIUpdateMap(UInt16 xpos __attribute__((unused)),
+    UInt16 ypos __attribute__((unused)))
+{
 }

@@ -11,6 +11,7 @@
 #include <zakdef.h>
 #include <appconfig.h>
 #include <sections.h>
+#include <compilerpragmas.h>
 
 /*!
  * \brief The codes that are mapped for building items.
@@ -84,12 +85,13 @@ typedef enum {
 extern "C" {
 #endif
 
-void Build_Bulldoze(Int16 xpos, Int16 ypos, welem_t _unused) BUILD_SECTION;
-void BuildSomething(Int16 xpos, Int16 ypos) BUILD_SECTION;
-void Build_Destroy(Int16 xpos, Int16 ypos) BUILD_SECTION;
-void CreateFullRiver(void) BUILD_SECTION;
-void CreateForests(void) BUILD_SECTION;
-void RemoveAllDefence(void) BUILD_SECTION;
+EXPORT int Build_Bulldoze(Int16 xpos, Int16 ypos, welem_t _unused) \
+    BUILD_SECTION;
+EXPORT int BuildSomething(Int16 xpos, Int16 ypos) BUILD_SECTION;
+EXPORT void Build_Destroy(Int16 xpos, Int16 ypos) BUILD_SECTION;
+EXPORT void CreateFullRiver(void) BUILD_SECTION;
+EXPORT void CreateForests(void) BUILD_SECTION;
+EXPORT void RemoveAllDefence(void) BUILD_SECTION;
 
 #ifdef __cplusplus
 }

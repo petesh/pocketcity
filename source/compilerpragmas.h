@@ -22,15 +22,36 @@ extern "C" {
 #define __attribute__(X)
 #endif
 
+#if (defined(_WIN32) || defined(__CYGWIN__))
+/*
+#if defined(PCITY_DLL)
+#define EXPORT  __declspec(dllexport)
+#else
+#define EXPORT  __declspec(dllimport)
+#endif
+*/
+#define EXPORT
+#else
+#define EXPORT
+#endif
+
 #else
 #if defined(__SUNPRO_C)
 
 /*! \brief clear the parameter because it's invalid for sun cc */
 #define	__attribute__(X)
+#define EXPORT
+
+#else
+#if defined(_MSVC)
+
+#define __attribute__(X)
+#define EXPORT __declspec(dllexport)
 
 #else
 
 #error "Unsupported compiler ... please add support into compilerpragmas"
+#endif
 #endif
 #endif
 

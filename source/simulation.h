@@ -30,38 +30,46 @@ extern "C" {
 #endif
 
 #include <zakdef.h>
+#include <compilerpragmas.h>
 
-void Sim_Distribute(void);
-void Sim_Distribute_Specific(Int16 type);
-Int16 Sim_DoPhase(Int16 nPhase);
-Int32 BudgetGetNumber(BudgetNumber type);
-void UpdateVolatiles(void);
-UInt32 getPopulation(void);
+EXPORT void Sim_Distribute(void);
+EXPORT void Sim_Distribute_Specific(Int16 type);
+EXPORT Int16 Sim_DoPhase(Int16 nPhase);
+EXPORT Int32 BudgetGetNumber(BudgetNumber type);
+EXPORT void UpdateVolatiles(void);
+EXPORT UInt32 getPopulation(void);
 
-Int16 IsRoad(welem_t x);
-Int16 IsRoadPower(welem_t x);
-Int16 IsRoadPipe(welem_t x);
-Int16 IsRoadBridge(welem_t x);
-Int16 IsRoadOrBridge(welem_t x);
+EXPORT Int16 IsRoad(welem_t x);
+EXPORT Int16 IsRoadPower(welem_t x);
+EXPORT Int16 IsRoadPipe(welem_t x);
+EXPORT Int16 IsRoadBridge(welem_t x);
+EXPORT Int16 IsRoadOrBridge(welem_t x);
 
-Int16 IsRail(welem_t x);
-Int16 IsRailPower(welem_t x);
-Int16 IsRailPipe(welem_t x);
-Int16 IsRailTunnel(welem_t x);
-Int16 IsRailOrTunnel(welem_t x);
+EXPORT Int16 IsRail(welem_t x);
+EXPORT Int16 IsRailPower(welem_t x);
+EXPORT Int16 IsRailPipe(welem_t x);
+EXPORT Int16 IsRailTunnel(welem_t x);
+EXPORT Int16 IsRailOrTunnel(welem_t x);
 
-Int16 IsRailOvRoad(welem_t x);
+EXPORT Int16 IsRailOvRoad(welem_t x);
 
-Int16 IsPowerWater(welem_t x);
+EXPORT Int16 IsPowerWater(welem_t x);
 
-Int16 ZoneValue(welem_t x);
-Int16 IsPipe(welem_t x);
-Int16 IsPowerLine(welem_t x);
-Int16 IsWaterPipe(welem_t x);
-Int16 IsZone(welem_t x, zoneType nType);
+EXPORT Int16 ZoneValue(welem_t x);
+EXPORT Int16 IsPipe(welem_t x);
+EXPORT Int16 IsPowerLine(welem_t x);
+EXPORT Int16 IsWaterPipe(welem_t x);
+EXPORT Int16 IsZone(welem_t x, zoneType nType);
+
+EXPORT Int16 IsOccupied(welem_t x);
 
 #define IsRealWater(X)	((X) == Z_REALWATER)
 #define IsPump(X) ((X) == Z_PUMP)
+
+#define IsSlum(X) (((X) >= Z_COMMERCIAL_SLUM) && ((X) <= Z_INDUSTRIAL_SLUM))
+
+#define	IsGrowable(X) (IsSlum(X) || \
+    (((X) >= Z_COMMERCIAL_MIN) && ((X) <= Z_INDUSTRIAL_MAX)))
 
 #define DIR_UP		(1<<0)
 #define	DIR_DOWN	(1<<1)
@@ -74,22 +82,23 @@ Int16 IsZone(welem_t x, zoneType nType);
 typedef Int16 (*carryfn_t)(welem_t);
 typedef Int16 (*carryfnarg_t)(welem_t, void *);
 
-UInt8 CheckNextTo(Int32 pos, UInt8 dirs, carryfn_t checkfn);
-UInt8 CheckNextTo1(Int32 pos, UInt8 dirs, carryfnarg_t checkfn, void *cfarg);
+EXPORT UInt8 CheckNextTo(Int32 pos, UInt8 dirs, carryfn_t checkfn);
+EXPORT UInt8 CheckNextTo1(Int32 pos, UInt8 dirs, carryfnarg_t checkfn,
+    void *cfarg);
 
-Int16 CarryPower(welem_t x);
-Int16 CarryWater(welem_t x);
+EXPORT Int16 CarryPower(welem_t x);
+EXPORT Int16 CarryWater(welem_t x);
 
 #ifdef __cplusplus
 }
 #endif
 
-#define	GetScratch(i) (GetWorldFlags(i) & SCRATCHBIT)
-#define	SetScratch(i) OrWorldFlags((i), SCRATCHBIT)
-#define	UnsetScratch(i) AndWorldFlags((i), (unsigned char)~SCRATCHBIT)
-#define	ClearScratch() { \
+#define	getScratch(i) (getWorldFlags(i) & SCRATCHBIT)
+#define	setScratch(i) orWorldFlags((i), SCRATCHBIT)
+#define	unsetScratch(i) andWorldFlags((i), (selem_t)~SCRATCHBIT)
+#define	clearScratch() { \
 	long i = 0; \
-	for (; i < MapMul(); i++) UnsetScratch(i); \
+	for (; i < MapMul(); i++) unsetScratch(i); \
 }
 
 #endif /* _SIMULATION_H_ */

@@ -25,9 +25,6 @@
 #include <HostControl.h>
 #endif
 
-/*! \brief the worldHandle for moving the world around the place */
-static MemHandle worldHandle;
-
 static RectangleType rPlayGround;
 
 /*! \brief the on screen zones */
@@ -241,6 +238,35 @@ AppEvent(EventPtr event)
 	return (false);
 }
 
+#if defined(DEBUG)
+static char *cstrings[] = {
+	"bc_count_residential", /*!< count of residential areas */
+	"bc_value_residential", /*!< values of residential units */
+	"bc_count_commercial", /*!< count of the commercial units */
+	"bc_value_commercial", /*!< value of commercial units */
+	"bc_count_industrial", /*!< count of industrial units */
+	"bc_value_industrial", /*!< value of industrial units */
+	"bc_count_roads", /*!< count of roads */
+	"bc_value_roads", /*!< value of roads */
+	"bc_count_trees", /*!< count of trees/forests/parks */
+	"bc_value_trees", /*!< value of trees/forests/parks (unnatural) */
+	"bc_water", /*!< count of water (unnatural) */
+	"bc_coalplants", /*!< count of coal power plants */
+	"bc_nuclearplants", /*!< count of nuclear power plants */
+	"bc_powerlines", /*!< count of power lines */
+	"bc_waterpumps", /*!< count of water pumps */
+	"bc_waterpipes", /*!< count of water pipes */
+	"bc_waste", /*!< count of wasteland zones */
+	"bc_radioactive", /*< count of radioactive areas */
+	"bc_fire", /*!< count of fire elements */
+	"bc_fire_stations", /*!< count of fire stations */
+	"bc_police_departments", /*!< count of police stations */
+	"bc_military_bases", /*!< count of military bases */
+	"bc_cashflow", /*!< cashflow value */
+	"bc_pollution", /*!< pollution valuation */
+	"bc_crime" /*!< Criminal level */
+};
+#endif /* bcstrings */
 /*
  * Main event loop routine.
  * The standard one ... loop until the game terminates.
@@ -302,7 +328,7 @@ EventLoop(void)
 		 * game is paused.
 		 */
 
-		if (GetDifficultyLevel() == 0 &&
+		if (getDifficultyLevel() == 0 &&
 		    getLoopSeconds() == SPEED_PAUSED) {
 			continue;
 		}
@@ -311,7 +337,7 @@ EventLoop(void)
 
 		if (timeTemp >= (timeStampDisaster + SIM_GAME_LOOP_DISASTER)) {
 #ifdef DEBUG
-			Int16 q;
+			Int16 q, pc = 0;
 #endif
 			MoveAllObjects();
 #ifdef DEBUG
@@ -321,9 +347,17 @@ EventLoop(void)
 			 * in the log - should be up-to-date
 			 * AT ALL TIMES!
 			 */
-			for (q = 0; q < 20; q++)
-				WriteLog("%li ", (long)vgame.BuildCount[q]);
-			WriteLog("\n");
+			for (q = 0; q < bc_tail; q++)
+				if ((long)vgame.BuildCount[q] != 0) {
+					WriteLogX("%s=%li ", cstrings[q], 
+					    (long)vgame.BuildCount[q]);
+					pc++;
+					if (pc == 3) {
+						pc = 0;
+						WriteLogX("\n");
+					}
+				}
+			WriteLogX("\n");
 #endif
 			if (UpdateDisasters()) {
 				RedrawAllFields();
@@ -1137,17 +1171,17 @@ void
 _UIGetFieldToBuildOn(Int16 x, Int16 y)
 {
 	RectangleType rect;
-	rect.extent.x = vgame.visible_x * vgame.tileSize;
-	rect.extent.y = vgame.visible_y * vgame.tileSize;
+	rect.extent.x = vgame.visible_x * gameTileSize();
+	rect.extent.y = vgame.visible_y * gameTileSize();
 	rect.topLeft.x = XOFFSET;
 	rect.topLeft.y = YOFFSET;
 
 	if (RctPtInRectangle(x, y, &rect)) {
-		UInt32 xpos = (x - XOFFSET) / vgame.tileSize + getMapXPos();
-		UInt32 ypos = (y - YOFFSET) / vgame.tileSize + getMapYPos();
-		LockWorld();
+		UInt32 xpos = (x - XOFFSET) / gameTileSize() + getMapXPos();
+		UInt32 ypos = (y - YOFFSET) / gameTileSize() + getMapYPos();
+		LockZone(lz_world);
 		SetPositionClicked(WORLDPOS(xpos, ypos));
-		UnlockWorld();
+		UnlockZone(lz_world);
 		if (UIGetSelectedBuildItem() != Be_Query)
 			BuildSomething(xpos, ypos);
 		else
@@ -1290,8 +1324,8 @@ UIDrawBorder()
 	if (IsDeferDrawing())
 		return;
 
-	_UIDrawRect(YOFFSET, XOFFSET, vgame.visible_y * vgame.tileSize,
-	    vgame.visible_x * vgame.tileSize);
+	_UIDrawRect(YOFFSET, XOFFSET, vgame.visible_y * gameTileSize(),
+	    vgame.visible_x * gameTileSize());
 }
 
 /*
@@ -1329,21 +1363,21 @@ UIDrawLossIcon(Int16 xpos, Int16 ypos, welem_t elem)
 	if (IsDeferDrawing())
 		return;
 
-	rect.topLeft.x = (Coord)(elem % HORIZONTAL_TILESIZE) * vgame.tileSize;
-	rect.topLeft.y = (Coord)(elem / HORIZONTAL_TILESIZE) * vgame.tileSize;
-	rect.extent.x = vgame.tileSize;
-	rect.extent.y = vgame.tileSize;
+	rect.topLeft.x = (Coord)(elem % HORIZONTAL_TILESIZE) * gameTileSize();
+	rect.topLeft.y = (Coord)(elem / HORIZONTAL_TILESIZE) * gameTileSize();
+	rect.extent.x = gameTileSize();
+	rect.extent.y = gameTileSize();
 
 	/* copy/paste the graphic from the offscreen image */
 	StartHiresDraw();
 	/* first draw the overlay */
 	_WinCopyRectangle(winZones, WinGetActiveWindow(), &rect,
-	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
+	    xpos * gameTileSize() + XOFFSET, ypos * gameTileSize() + YOFFSET,
 	    winErase);
 	/* now draw the powerloss icon */
-	rect.topLeft.x -= vgame.tileSize;
+	rect.topLeft.x -= gameTileSize();
 	_WinCopyRectangle(winZones, WinGetActiveWindow(), &rect,
-	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
+	    xpos * gameTileSize() + XOFFSET, ypos * gameTileSize() + YOFFSET,
 	    winOverlay);
 	EndHiresDraw();
 }
@@ -1377,24 +1411,24 @@ UIDrawPowerLoss(Int16 xpos, Int16 ypos)
  * \param ypos the y position of the unit in tiles
  */
 void
-UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos)
+UIDrawSpecialUnit(Int16 xpos, Int16 ypos, Int8 i)
 {
 	RectangleType rect;
 	if (IsDeferDrawing())
 		return;
 
-	rect.topLeft.x = game.units[i].type * vgame.tileSize;
-	rect.topLeft.y = vgame.tileSize;
-	rect.extent.x = vgame.tileSize;
-	rect.extent.y = vgame.tileSize;
+	rect.topLeft.x = game.units[i].type * gameTileSize();
+	rect.topLeft.y = gameTileSize();
+	rect.extent.x = gameTileSize();
+	rect.extent.y = gameTileSize();
 
 	StartHiresDraw();
 	_WinCopyRectangle(winUnits, WinGetActiveWindow(), &rect,
-	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
+	    xpos * gameTileSize() + XOFFSET, ypos * gameTileSize() + YOFFSET,
 	    winErase);
 	rect.topLeft.y = 0;
 	_WinCopyRectangle(winUnits, WinGetActiveWindow(), &rect,
-	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
+	    xpos * gameTileSize() + XOFFSET, ypos * gameTileSize() + YOFFSET,
 	    winOverlay);
 	EndHiresDraw();
 }
@@ -1404,24 +1438,24 @@ UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos)
  * Mostly monsters, but it coud be a train, palin, chopper
  */
 void
-UIDrawSpecialObject(Int16 i, Int16 xpos, Int16 ypos)
+UIDrawSpecialObject(Int16 xpos, Int16 ypos, Int8 i)
 {
 	RectangleType rect;
 	if (IsDeferDrawing())
 		return;
 
-	rect.topLeft.x = (game.objects[i].dir) * vgame.tileSize;
-	rect.topLeft.y = ((i * 2) + 1) * vgame.tileSize;
-	rect.extent.x = vgame.tileSize;
-	rect.extent.y = vgame.tileSize;
+	rect.topLeft.x = (game.objects[i].dir) * gameTileSize();
+	rect.topLeft.y = ((i * 2) + 1) * gameTileSize();
+	rect.extent.x = gameTileSize();
+	rect.extent.y = gameTileSize();
 
 	StartHiresDraw();
 	_WinCopyRectangle(winMonsters, WinGetActiveWindow(), &rect,
-	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
+	    xpos * gameTileSize() + XOFFSET, ypos * gameTileSize() + YOFFSET,
 	    winErase);
 	rect.topLeft.y -= 16;
 	_WinCopyRectangle(winMonsters, WinGetActiveWindow(), &rect,
-	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
+	    xpos * gameTileSize() + XOFFSET, ypos * gameTileSize() + YOFFSET,
 	    winOverlay);
 	EndHiresDraw();
 }
@@ -1437,15 +1471,15 @@ UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
 	if (IsDeferDrawing())
 		return;
 
-	rect.topLeft.x = (nGraphic % HORIZONTAL_TILESIZE) * vgame.tileSize;
-	rect.topLeft.y = (nGraphic / HORIZONTAL_TILESIZE) * vgame.tileSize;
-	rect.extent.x = vgame.tileSize;
-	rect.extent.y = vgame.tileSize;
+	rect.topLeft.x = (nGraphic % HORIZONTAL_TILESIZE) * gameTileSize();
+	rect.topLeft.y = (nGraphic / HORIZONTAL_TILESIZE) * gameTileSize();
+	rect.extent.x = gameTileSize();
+	rect.extent.y = gameTileSize();
 
 	/* copy/paste the graphic from the offscreen image */
 	StartHiresDraw();
 	_WinCopyRectangle(winZones, WinGetActiveWindow(), &rect,
-	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
+	    xpos * gameTileSize() + XOFFSET, ypos * gameTileSize() + YOFFSET,
 	    winPaint);
 	EndHiresDraw();
 }
@@ -1454,7 +1488,7 @@ UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
  * Scroll the map in the direction specified
  */
 void
-UIScrollMap(dirType direction)
+UIScrollDisplay(dirType direction)
 {
 	WinHandle screen;
 	RectangleType rect;
@@ -1464,16 +1498,14 @@ UIScrollMap(dirType direction)
 	if (IsDeferDrawing())
 		return;
 
-	rect.topLeft.x = XOFFSET + vgame.tileSize * (direction == 1);
-	rect.topLeft.y = YOFFSET + vgame.tileSize * (direction == 2);
-	rect.extent.x =
-	    (vgame.visible_x - 1 * (direction == 1 || direction == 3)) *
-	    vgame.tileSize;
-	rect.extent.y =
-	    (vgame.visible_y - 1 * (direction == 0 || direction == 2)) *
-	    vgame.tileSize;
-	to_x = XOFFSET + vgame.tileSize * (direction == 3);
-	to_y = YOFFSET + vgame.tileSize * (direction == 0);
+	rect.topLeft.x = XOFFSET + gameTileSize() * (direction == dtRight);
+	rect.topLeft.y = YOFFSET + gameTileSize() * (direction == dtDown);
+	rect.extent.x = (vgame.visible_x -
+	    1 * (direction == dtRight || direction == dtLeft)) * gameTileSize();
+	rect.extent.y = (vgame.visible_y -
+	    1 * (direction == dtUp || direction == dtDown)) * gameTileSize();
+	to_x = XOFFSET + gameTileSize() * (direction == dtLeft);
+	to_y = YOFFSET + gameTileSize() * (direction == dtUp);
 
 
 	screen = WinGetActiveWindow();
@@ -1482,20 +1514,20 @@ UIScrollMap(dirType direction)
 	EndHiresDraw();
 
 	/* and lastly, fill the gap */
-	LockWorld();
+	LockZone(lz_world);
 	UIInitDrawing();
 
 	mapy = getMapYPos();
 	mapx = getMapXPos();
-	if (direction == 1 || direction == 3) {
+	if (direction == dtRight || direction == dtLeft) {
 		for (i = mapy; i < vgame.visible_y + mapy; i++) {
 			DrawFieldWithoutInit(mapx +
-			    (vgame.visible_x - 1) * (direction == 1), i);
+			    (vgame.visible_x - 1) * (direction == dtRight), i);
 		}
 	} else {
 		for (i = mapx; i < vgame.visible_x + mapx; i++) {
 			DrawFieldWithoutInit(i, mapy +
-			    (vgame.visible_y - 1) * (direction == 2));
+			    (vgame.visible_y - 1) * (direction == dtDown));
 		}
 	}
 
@@ -1503,7 +1535,7 @@ UIScrollMap(dirType direction)
 	UIDrawLoc();
 
 	UIFinishDrawing();
-	UnlockWorld();
+	UnlockZone(lz_world);
 }
 
 /*
@@ -1650,8 +1682,6 @@ UIDrawItem(Int16 location, char *text)
 		    normalizeCoord(rt->topLeft.y));
 		EndHiresFontDraw();
 	} else {
-		WriteLog("text=%s, sl=%d, @ %d,%d\n", text, (int)sl,
-		    (int)rt->topLeft.x, (int)rt->topLeft.y);
 		_WinDrawChars(text, sl, rt->topLeft.x, rt->topLeft.y);
 	}
 	if (isDoubleOrMoreResolution())
@@ -1714,7 +1744,7 @@ UIDrawDate(void)
 	if (IsDeferDrawing())
 		return;
 
-	GetDate((char *)temp);
+	getDate((char *)temp);
 	UIDrawItem(DATELOC, temp);
 }
 
@@ -1725,6 +1755,8 @@ void
 UIDrawCredits(void)
 {
 	char temp[20];
+	char scale;
+	UInt32 credits;
 #ifdef HRSUPPORT
 	MemHandle bitmapHandle;
 	BitmapPtr bitmap;
@@ -1733,7 +1765,8 @@ UIDrawCredits(void)
 	if (IsDeferDrawing())
 		return;
 
-	StrPrintF(temp, "$: %ld", getCredits());
+	credits = scaleNumber(getCredits(), &scale);
+	StrPrintF(temp, "$: %ld%c", credits, scale);
 	UIDrawItem(CREDITSLOC, temp);
 #ifdef HRSUPPORT
 	if (isHires()) {
@@ -1864,11 +1897,16 @@ void
 UIDrawPop(void)
 {
 	char temp[20];
+	Char scale;
+	UInt32 popul;
 
 	if (IsDeferDrawing())
 		return;
 
-	StrPrintF(temp, "Pop: %lu", getPopulation());
+	popul = getPopulation();
+	popul = scaleNumber(popul, &scale);
+
+	StrPrintF(temp, "Pop: %lu%c", popul, scale);
 	UIDrawItem(POPLOC, temp);
 #ifdef HRSUPPORT
 	if (isHires()) {
@@ -1918,38 +1956,6 @@ UICheckMoney(void)
 void
 MapHasJumped(void)
 {
-}
-
-UInt8
-LockedWorld()
-{
-	return (worldPtr != NULL);
-}
-
-int lockWorldCount = 0;
-
-void
-LockWorld()
-{
-	if (++lockWorldCount == 1) {
-		if (worldHandle != NULL) {
-			worldPtr = MemHandleLock(worldHandle);
-		}
-	}
-}
-
-void
-UnlockWorld()
-{
-	if (worldHandle == 0) {
-		worldHandle = MemPtrRecoverHandle(worldPtr);
-	}
-	if (--lockWorldCount == 0) {
-		MemPtrUnlock(worldPtr);
-		worldPtr = NULL;
-	}
-	ErrFatalDisplayIf(lockWorldCount < 0,
-	    "Too many unlock world calls");
 }
 
 static Err
@@ -2037,16 +2043,16 @@ doButtonEvent(ButtonEvent event)
 	case BeIgnore:
 		break;
 	case BeUp:
-		ScrollMap(dtUp);
+		ScrollDisplay(dtUp);
 		break;
 	case BeDown:
-		ScrollMap(dtDown);
+		ScrollDisplay(dtDown);
 		break;
 	case BeLeft:
-		ScrollMap(dtLeft);
+		ScrollDisplay(dtLeft);
 		break;
 	case BeRight:
-		ScrollMap(dtRight);
+		ScrollDisplay(dtRight);
 		break;
 	case BePopup:
 		UIDoQuickList();
@@ -2072,17 +2078,17 @@ doButtonEvent(ButtonEvent event)
 		if (!IsDrawWindowMostOfScreen())
 			return (0);
 		if (jog_lr)
-			ScrollMap(dtLeft);
+			ScrollDisplay(dtLeft);
 		else
-			ScrollMap(dtUp);
+			ScrollDisplay(dtUp);
 		break;
 	case BeJogDown:
 		if (!IsDrawWindowMostOfScreen())
 			return (0);
 		if (jog_lr)
-			ScrollMap(dtRight);
+			ScrollDisplay(dtRight);
 		else
-			ScrollMap(dtDown);
+			ScrollDisplay(dtDown);
 		break;
 	case BeJogRelease:
 		if (!IsDrawWindowMostOfScreen())
@@ -2186,7 +2192,7 @@ vkDoEvent(UInt16 key)
 
 #ifdef HRSUPPORT
 static BitmapType *pToolbarBitmap = NULL;
-BitmapType *pOldBitmap;
+static BitmapType *pOldBitmap;
 
 static void
 freeToolbarBitmap(void)
@@ -2246,7 +2252,7 @@ GetBitmapDimensions(UInt16 resID, Coord *width, Coord *height)
 }
 
 static Coord tbWidth;
-Coord bWidth;
+static Coord bWidth;
 
 static void
 UIDrawToolBar(void)
@@ -2393,4 +2399,23 @@ WriteLog(char *s, ...)
 		va_end(args);
 	}
 }
+
+void
+WriteLogX(char *s, ...)
+{
+	va_list args;
+	HostFILE * hf = NULL;
+	Char text[0x100];
+
+	hf = HostFOpen("\\pcity-buildcount.log", "a");
+	if (hf) {
+		va_start(args, s);
+		StrVPrintF(text, s, args);
+
+		HostFPrintF(hf, text);
+		HostFClose(hf);
+		va_end(args);
+	}
+}
+
 #endif

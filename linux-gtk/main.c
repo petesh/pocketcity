@@ -23,6 +23,7 @@
 #include <disaster.h>
 #include <compilerpragmas.h>
 #include <nix_utils.h>
+#include <simulation-ui.h>
 
 #define PATHSEARCH	".:./graphic:./graphic/icons:../graphic"
 
@@ -42,12 +43,14 @@ static GtkWidget *timelabel;
 static GtkObject *playscrollerh;
 /*! \brief handle to the vertical scroll bar for moving the map around */
 static GtkObject *playscrollerv;
+
 /*! \brief handle to the bitmaps for rendering the zones */
 static GdkPixmap *pzones;
 /*! \brief handle to the bitmaps for rendering the monsters */
 static GdkPixmap *pmonsters;
 /*! \brief handle to the bitmaps for rendering the units */
 static GdkPixmap *punits;
+
 /*! \brief handle to the bitmap masks for rendering the units */
 static GdkPixmap *zones_mask;
 /*! \brief handle to the bitmap masks for rendering the monsters */
@@ -55,32 +58,41 @@ static GdkPixmap *monsters_mask;
 /*! \brief handle to the bitmap masks for rendering the units */
 static GdkPixmap *units_mask;
 
+/*! \brief handle to the pixmap of the map zones */
+static GdkPixmap *p_mapzones;
+/*! \brief handle to the bitmaps for rendering the monsters/specialitems */
+static GdkPixmap *p_mapspecials;
+/*! \brief handle to the bitmaps for the units */
+static GdkPixmap *p_mapunits;
+
 static char *exec_dir;
 
 static void SetUpMainWindow(void);
 static gint mainloop_callback(gpointer data);
 static void QuitGame(GtkWidget *w, gpointer data);
-static void SetSpeed(GtkWidget *w, gpointer data);
+static void SetSpeed(gpointer data, guint action, GtkWidget *w);
 
 /*! \brief the menu items for the main application */
 GtkItemFactoryEntry menu_items[] = {
 	{ "/_File", NULL, NULL, 0, "<Branch>", 0 },
 	{ "/File/_New", "<control>N", newgame_handler, 0, NULL, 0 },
-	{ "/File/_Open", "<control>O", opengame_handler, 0, NULL, 0 },
-	{ "/File/_Open Palm Game", NULL, opengame_handler, 1, NULL, 0 },
+	{ "/File/_Open", "<control>O", opengame_handler, 1, NULL, NULL },
+	{ "/File/O_pen Palm Game", NULL, opengame_handler, 2, NULL, NULL },
 	{ "/File/_Save", "<control>S", savegame_handler, 0, NULL, 0 },
 	{ "/File/Save _As", NULL, savegameas_handler, 0, NULL, 0 },
 	{ "/File/sep1",	NULL, NULL, 0, "<Separator>", 0 },
-	{ "/File/_Quit", NULL, QuitGame, 0, NULL, 0 },
+	{ "/File/E_xit", NULL, QuitGame, 0, NULL, 0 },
 	{ "/_View", NULL, NULL,	0, "<Branch>", 0 },
 	{ "/View/_Budget", NULL, ViewBudget, 0, NULL, 0 },
 	{ "/_Speed", NULL, NULL, 0, "<Branch>", 0 },
-	{ "/Speed/_Pause", NULL, SetSpeed, SPEED_PAUSED, NULL, 0 },
+	{ "/Speed/_Pause", NULL, SetSpeed, 1 + SPEED_PAUSED, NULL, NULL },
 	{ "/Speed/sep1", NULL, NULL, 0, "<Separator>", 0 },
-	{ "/Speed/_Slow", NULL, SetSpeed, SPEED_SLOW, NULL, 0 },
-	{ "/Speed/_Medium", NULL, SetSpeed, SPEED_MEDIUM, NULL, 0 },
-	{ "/Speed/_Fast", NULL, SetSpeed, SPEED_FAST, NULL, 0 },
-	{ "/Speed/_Turbo", NULL, SetSpeed, SPEED_TURBO, NULL, 0 },
+	{ "/Speed/_Slow", NULL, SetSpeed, 1 + SPEED_SLOW, NULL, NULL },
+	{ "/Speed/_Medium", NULL, SetSpeed, 1 + SPEED_MEDIUM, NULL, NULL },
+	{ "/Speed/_Fast", NULL, SetSpeed, 1 + SPEED_FAST, NULL, NULL },
+	{ "/Speed/_Turbo", NULL, SetSpeed, 1 + SPEED_TURBO, NULL, NULL },
+	{ "/_Map", NULL, NULL, 0, "<Branch>", 0 },
+	{ "/Map/_Display", NULL, showMap, 0, NULL, 0 },
 };
 
 /*!
@@ -132,12 +144,12 @@ unsigned int timekeeperdisaster = 0;
  * \param data the speed number.
  */
 static void
-SetSpeed(GtkWidget *w __attribute__((unused)), gpointer data)
+SetSpeed(gpointer data __attribute__((unused)), guint action,
+    GtkWidget *w __attribute__((unused)))
 {
-	int result = GPOINTER_TO_INT(data);
-
-	WriteLog("Setting speed to %i\n", result);
-	setLoopSeconds(result);
+	action -= 1;
+	WriteLog("Setting speed to %i\n", action);
+	setLoopSeconds(action);
 }
 
 /*!
@@ -217,9 +229,10 @@ scrollbar(GtkAdjustment *adj __attribute__((unused)))
 void
 ResizeCheck(int width, int height)
 {
-	vgame.tileSize = 16;
-	vgame.visible_x = width / vgame.tileSize;
-	vgame.visible_y = height / vgame.tileSize;
+	vgame.TileSize = 16;
+	vgame.MapTileSize = 4;
+	vgame.visible_x = width / gameTileSize();
+	vgame.visible_y = height / gameTileSize();
 }
 
 /*!
@@ -316,12 +329,12 @@ button_press_event(GtkWidget *widget __attribute__((unused)),
 {
 	if (event->button == 1) {
 		BuildSomething(
-		    (int)(event->x / vgame.tileSize) + getMapXPos(),
-		    (int)(event->y / vgame.tileSize) + getMapYPos());
+		    (int)(event->x / gameTileSize()) + getMapXPos(),
+		    (int)(event->y / gameTileSize()) + getMapYPos());
 	} else if (event->button == 3) {
 		Build_Bulldoze(
-		    (int)(event->x / vgame.tileSize) + getMapXPos(),
-		    (int)(event->y / vgame.tileSize) + getMapYPos(), 0);
+		    (int)(event->x / gameTileSize()) + getMapXPos(),
+		    (int)(event->y / gameTileSize()) + getMapYPos(), 0);
 	}
 
 	return (TRUE);
@@ -348,17 +361,17 @@ motion_notify_event(GtkWidget *widget __attribute__((unused)),
 	}
 
 	if (state & GDK_BUTTON1_MASK &&
-	    x > 0 && x < vgame.visible_x*vgame.tileSize &&
-	    y > 0 && y < vgame.visible_y*vgame.tileSize) {
+	    x > 0 && x < vgame.visible_x*gameTileSize() &&
+	    y > 0 && y < vgame.visible_y*gameTileSize()) {
 		BuildSomething(
-		    (int)(x / vgame.tileSize) + getMapXPos(),
-		    (int)(y / vgame.tileSize) + getMapYPos());
+		    (int)(x / gameTileSize()) + getMapXPos(),
+		    (int)(y / gameTileSize()) + getMapYPos());
 	} else if (state & GDK_BUTTON3_MASK &&
-	    x > 0 && x < vgame.visible_x*vgame.tileSize &&
-	    y > 0 && y < vgame.visible_y*vgame.tileSize) {
+	    x > 0 && x < vgame.visible_x*gameTileSize() &&
+	    y > 0 && y < vgame.visible_y*gameTileSize()) {
 		Build_Bulldoze(
-		    (int)(x / vgame.tileSize) + getMapXPos(),
-		    (int)(y / vgame.tileSize) + getMapYPos(), 1);
+		    (int)(x / gameTileSize()) + getMapXPos(),
+		    (int)(y / gameTileSize()) + getMapYPos(), 1);
 	}
 
 	return (TRUE);
@@ -541,9 +554,9 @@ SetUpMainWindow(void)
 
 	/* set up some mouse events */
 	gtk_signal_connect(GTK_OBJECT(drawingarea), "motion_notify_event",
-	    (GtkSignalFunc) motion_notify_event, NULL);
+	    G_CALLBACK(motion_notify_event), NULL);
 	gtk_signal_connect(GTK_OBJECT(drawingarea), "button_press_event",
-	    (GtkSignalFunc) button_press_event, NULL);
+	    G_CALLBACK(button_press_event), NULL);
 
 	gtk_widget_set_events(drawingarea, GDK_EXPOSURE_MASK |
 	    GDK_LEAVE_NOTIFY_MASK | GDK_BUTTON_PRESS_MASK |
@@ -559,6 +572,20 @@ SetUpMainWindow(void)
 	gtk_widget_show(window);
 }
 
+static struct image_pms {
+	char *filename; /*!< Filename of the image file */
+	GdkPixmap **pm; /*!< Pixmap to place the image into */
+	GdkPixmap **mask; /*!< Mask for transparency of the image */
+} image_pixmaps[] = {
+	{ "tile-16x16-color.png", &pzones, &zones_mask },
+	{ "monsters_16x16-color.png", &pmonsters, &monsters_mask },
+	{ "units_16x16-color.png", &punits, &units_mask },
+	{ "tile-4x4-color.png", &p_mapzones, NULL },
+	{ "monsters_16x16-color.png", &p_mapspecials, NULL },
+	{ "units_16x16-color.png", &p_mapunits, NULL },
+	{ NULL, NULL, NULL }
+};
+
 /*!
  * \brief load and configure the pixmaps
  */
@@ -566,30 +593,30 @@ void
 UISetUpGraphic(void)
 {
 	char image_path[MAXPATHLEN];
+	int i;
+	struct image_pms *ipm;
 
-	strlcpy(image_path, "tile-16x16-color.png", MAXPATHLEN);
-	if (searchForFile(image_path, MAXPATHLEN, PATHSEARCH)) {
-		pzones = gdk_pixmap_create_from_xpm(drawingarea->window,
-		    &zones_mask, NULL, image_path);
-	} else {
-		perror(image_path);
-		exit(1);
+	for (i = 0; image_pixmaps[i].filename != NULL; i++) {
+		ipm = image_pixmaps + i;
+		strlcpy(image_path, ipm->filename, MAXPATHLEN);
+		if (searchForFile(image_path, MAXPATHLEN, PATHSEARCH)) {
+			*ipm->pm = gdk_pixmap_create_from_xpm(
+			    drawingarea->window, ipm->mask, NULL, image_path);
+			if (*ipm->pm == NULL) {
+				WriteLog("Could not create pixmap from file %s",
+				    ipm->filename);
+				exit(1);
+			}
+		} else {
+			perror(image_path);
+			exit(1);
+		}
 	}
-	strlcpy(image_path, "monsters_16x16-color.png", MAXPATHLEN);
+	/* load the icon */
+	strlcpy(image_path, "pcityicon.png", MAXPATHLEN);
 	if (searchForFile(image_path, MAXPATHLEN, PATHSEARCH)) {
-		pmonsters = gdk_pixmap_create_from_xpm(drawingarea->window,
-		    &monsters_mask, NULL, image_path);
-	} else {
-		perror(image_path);
-		exit(1);
-	}
-	strlcpy(image_path, "units_16x16-color.png", MAXPATHLEN);
-	if (searchForFile(image_path, MAXPATHLEN, PATHSEARCH)) {
-		punits = gdk_pixmap_create_from_xpm(drawingarea->window,
-		    &units_mask, NULL, image_path);
-	} else {
-		perror(image_path);
-		exit(1);
+		gtk_window_set_icon_from_file(GTK_WINDOW(window),
+		    image_path, NULL);
 	}
 }
 
@@ -703,7 +730,7 @@ UIDrawDate(void)
 {
 	char temp[24];
 
-	GetDate((char *)temp);
+	getDate((char *)temp);
 	gtk_label_set_text((GtkLabel *)timelabel, temp);
 }
 
@@ -715,7 +742,6 @@ UIDrawLoc(void)
 {
 	char temp[50];
 
-	WriteLog("Draw Location\n");
 	sprintf(temp, "(%02u, %02u)", (int)getMapXPos(), (int)getMapYPos());
 
 	gtk_label_set_text((GtkLabel*)locationlabel, temp);
@@ -776,15 +802,13 @@ UICheckMoney(void)
 }
 
 /*!
- * \brief scroll the map in the approprite direction
+ * \brief scroll the map in the appropriate direction
  *
  * \todo double buffer to improve the rendering of the screen!
  */
 void
-UIScrollMap(dirType direction __attribute__((unused)))
+UIScrollDisplay(dirType direction __attribute__((unused)))
 {
-	/* TODO: Optimize this as in the Palm port? */
-	/*	   (if nessasary) */
 	RedrawAllFields();
 }
 
@@ -808,19 +832,18 @@ _UIDrawRect(Int16 nTop __attribute__((unused)),
 void
 UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
 {
-	GdkGC *gc;
+	GdkGC *gc = gdk_gc_new(drawingarea->window);
 
-	gc = gdk_gc_new(drawingarea->window);
 	gdk_draw_drawable(
 	    drawingarea->window,
 	    gc,
 	    pzones,
-	    (nGraphic % HORIZONTAL_TILESIZE) * vgame.tileSize,
-	    (nGraphic / HORIZONTAL_TILESIZE) * vgame.tileSize,
-	    xpos * vgame.tileSize,
-	    ypos * vgame.tileSize,
-	    vgame.tileSize,
-	    vgame.tileSize);
+	    (nGraphic % HORIZONTAL_TILESIZE) * gameTileSize(),
+	    (nGraphic / HORIZONTAL_TILESIZE) * gameTileSize(),
+	    xpos * gameTileSize(),
+	    ypos * gameTileSize(),
+	    gameTileSize(),
+	    gameTileSize());
 	g_object_unref(gc);
 }
 
@@ -831,26 +854,26 @@ UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
  * \param ypos the vertical position
  */
 void
-UIDrawSpecialObject(Int16 i, Int16 xpos, Int16 ypos)
+UIDrawSpecialObject(Int16 xpos, Int16 ypos, Int8 i)
 {
 	GdkGC *gc;
 
 	gc = gdk_gc_new(drawingarea->window);
 	gdk_gc_set_clip_mask(gc, monsters_mask);
 	gdk_gc_set_clip_origin(gc,
-	    xpos * vgame.tileSize - (GG.objects[i].dir * vgame.tileSize),
-	    ypos * vgame.tileSize - (i * vgame.tileSize));
+	    xpos * gameTileSize() - (GG.objects[i].dir * gameTileSize()),
+	    ypos * gameTileSize() - (i * gameTileSize()));
 
 	gdk_draw_drawable(
 	    drawingarea->window,
 	    gc,
 	    pmonsters,
-	    GG.objects[i].dir * vgame.tileSize,
-	    i * vgame.tileSize,
-	    xpos * vgame.tileSize,
-	    ypos * vgame.tileSize,
-	    vgame.tileSize,
-	    vgame.tileSize);
+	    GG.objects[i].dir * gameTileSize(),
+	    i * gameTileSize(),
+	    xpos * gameTileSize(),
+	    ypos * gameTileSize(),
+	    gameTileSize(),
+	    gameTileSize());
 	g_object_unref(gc);
 }
 
@@ -861,26 +884,97 @@ UIDrawSpecialObject(Int16 i, Int16 xpos, Int16 ypos)
  * \param ypos the vertical location on screen
  */
 void
-UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos)
+UIDrawSpecialUnit(Int16 xpos, Int16 ypos, Int8 i)
 {
 	GdkGC *gc;
 
 	gc = gdk_gc_new(drawingarea->window);
 	gdk_gc_set_clip_mask(gc, units_mask);
 	gdk_gc_set_clip_origin(gc,
-	    xpos * vgame.tileSize - (GG.units[i].type * vgame.tileSize),
-	    ypos * vgame.tileSize);
+	    xpos * gameTileSize() - (GG.units[i].type * gameTileSize()),
+	    ypos * gameTileSize());
 
 	gdk_draw_drawable(
 	    drawingarea->window,
 	    gc,
 	    punits,
-	    GG.units[i].type * vgame.tileSize,
+	    GG.units[i].type * gameTileSize(),
 	    0,
-	    xpos * vgame.tileSize,
-	    ypos * vgame.tileSize,
-	    vgame.tileSize,
-	    vgame.tileSize);
+	    xpos * gameTileSize(),
+	    ypos * gameTileSize(),
+	    gameTileSize(),
+	    gameTileSize());
+	g_object_unref(gc);
+}
+
+/*!
+ * \brief draw a field for the map
+ * \param xpos the horizontal position
+ * \param ypos the vertical position
+ * \param nGraphic the item to paint
+ */
+void
+UIDrawMapField(Int16 xpos, Int16 ypos, welem_t nGraphic, GdkDrawable *drawable)
+{
+	GdkGC *gc = gdk_gc_new(drawable);
+	gdk_draw_drawable(
+	    drawable,
+	    gc,
+	    p_mapzones,
+	    (nGraphic % HORIZONTAL_TILESIZE) * mapTileSize(),
+	    (nGraphic / HORIZONTAL_TILESIZE) * mapTileSize(),
+	    xpos * mapTileSize(),
+	    ypos * mapTileSize(),
+	    mapTileSize(),
+	    mapTileSize());
+	g_object_unref(gc);
+}
+
+/*!
+ * \param draw a special object
+ * \param i the item to draw
+ * \param xpos the horizontal position
+ * \param ypos the vertical position
+ */
+void
+UIDrawMapSpecialObject(Int16 xpos, Int16 ypos, Int16 i, GdkDrawable *drawable)
+{
+	GdkGC *gc = gdk_gc_new(drawable);
+
+	gdk_draw_drawable(
+	    drawable,
+	    gc,
+	    p_mapspecials,
+	    i * mapTileSize(),
+	    0,
+	    xpos * mapTileSize(),
+	    ypos * mapTileSize(),
+	    mapTileSize(),
+	    mapTileSize());
+	g_object_unref(gc);
+}
+
+/*!
+ * \brief draw a special unit on the screen
+ * \param i the unit do draw
+ * \param xpos the horizontal location on screen
+ * \param ypos the vertical location on screen
+ */
+void
+UIDrawMapSpecialUnit(Int16 xpos, Int16 ypos, Int16 i, GdkDrawable *drawable)
+{
+	GdkGC *gc = gdk_gc_new(drawable);
+
+	gdk_draw_drawable(
+	    drawingarea->window,
+	    gc,
+	    punits,
+	    i * mapTileSize(),
+	    0,
+	    xpos * mapTileSize(),
+	    ypos * mapTileSize(),
+	    mapTileSize(),
+	    mapTileSize());
 	g_object_unref(gc);
 }
 
@@ -906,19 +1000,19 @@ UIDrawOverlay(Int16 xpos, Int16 ypos, welem_t offset)
 	gc = gdk_gc_new(drawingarea->window);
 	gdk_gc_set_clip_mask(gc, zones_mask);
 	gdk_gc_set_clip_origin(gc,
-	    (xpos - (offset % HORIZONTAL_TILESIZE)) * vgame.tileSize,
-	    (ypos - (offset / HORIZONTAL_TILESIZE)) * vgame.tileSize);
+	    (xpos - (offset % HORIZONTAL_TILESIZE)) * gameTileSize(),
+	    (ypos - (offset / HORIZONTAL_TILESIZE)) * gameTileSize());
 
 	gdk_draw_drawable(
 	    drawingarea->window,
 	    gc,
 	    pzones,
-	    (offset % HORIZONTAL_TILESIZE) * vgame.tileSize,
-	    (offset / HORIZONTAL_TILESIZE) * vgame.tileSize,
-	    xpos * vgame.tileSize,
-	    ypos * vgame.tileSize,
-	    vgame.tileSize,
-	    vgame.tileSize);
+	    (offset % HORIZONTAL_TILESIZE) * gameTileSize(),
+	    (offset / HORIZONTAL_TILESIZE) * gameTileSize(),
+	    xpos * gameTileSize(),
+	    ypos * gameTileSize(),
+	    gameTileSize(),
+	    gameTileSize());
 	g_object_unref(gc);
 }
 
@@ -952,14 +1046,14 @@ UIGetSelectedBuildItem(void)
 
 /*! unused */
 void
-LockWorld(void)
+LockZone(lockZone zone __attribute__((unused)))
 {
 	/* not used on this platform */
 }
 
 /*! unused */
 void
-UnlockWorld(void)
+UnlockZone(lockZone zone __attribute__((unused)))
 {
 	/* not used on this platform */
 }
@@ -988,15 +1082,6 @@ MapHasJumped(void)
 	((GtkAdjustment *)playscrollerv)->value = getMapYPos()+7;
 	gtk_adjustment_value_changed(GTK_ADJUSTMENT(playscrollerh));
 	gtk_adjustment_value_changed(GTK_ADJUSTMENT(playscrollerv));
-}
-
-/*!
- * \brief unused
- */
-void
-UISetTileSize(Int16 size __attribute__((unused)))
-{
-	WriteLog("UISetTileSize\n");
 }
 
 /*!

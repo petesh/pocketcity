@@ -12,6 +12,7 @@
 #include <handler.h>
 #include <build.h>
 #include <simulation.h>
+#include <compilerpragmas.h>
 
 /* for the palm */
 #ifdef PALM
@@ -30,7 +31,7 @@ void
 PCityMain(void)
 {
 	InitWorld();
-	SetMapSize(100,100);
+	setMapSize(100,100);
 	ResizeWorld(WorldSize());
 	SetUpGraphic();
 	setLoopSeconds(SPEED_PAUSED);
@@ -52,12 +53,12 @@ InitGameStruct(void)
 	setTimeElapsed(0);
 	setMapXPos(50);
 	setMapYPos(50);
-	SetDifficultyLevel(0);
-	SetDisasterLevel(1);
+	setDifficultyLevel(0);
+	setDisasterLevel(1);
 	setUpkeep(0, 100);
 	setUpkeep(1, 100);
 	setUpkeep(2, 100);
-	SetMapSize(100, 100);
+	setMapSize(100, 100);
 	setTax(8);
 	setLoopSeconds(SPEED_PAUSED);
 	setAutoBulldoze(1);
@@ -72,7 +73,7 @@ InitGameStruct(void)
 void
 ConfigureNewGame(void)
 {
-	switch (GetDifficultyLevel()) {
+	switch (getDifficultyLevel()) {
 	case 0:
 		setCredits(50000);
 		break;
@@ -86,9 +87,9 @@ ConfigureNewGame(void)
 		setCredits(10000);
 		break;
 	}
-	LockWorld();
+	LockZone(lz_world);
 	ResizeWorld(WorldSize());
-	UnlockWorld();
+	UnlockZone(lz_world);
 	CreateFullRiver();
 	CreateForests();
 	DrawGame(1);
@@ -116,6 +117,6 @@ void
 PostLoadGame(void)
 {
 	memset((void *)&vgame.BuildCount, 0, sizeof (vgame.BuildCount));
-	SetMapSize(GetMapWidth(), GetMapHeight());
+	setMapSize(getMapWidth(), getMapHeight());
 	UpdateVolatiles();
 }

@@ -17,12 +17,15 @@ extern "C" {
 #endif
 
 #ifdef DEBUG
-void WriteLog(char *, ...);
+void WriteLog(char *s, ...);
+void WriteLogX(char *s, ...);
 #else
-#if defined(__cplusplus)
-inline void WriteLog(char *, ...) {}
+#if defined(__cplusplus) || defined(_MSVC)
+static void WriteLog(char *s, ...) {}
+static void WriteLogX(char *s, ...) {}
 #else
 #define	WriteLog(...)
+#define WriteLogX(...)
 #endif
 #endif
 
@@ -37,7 +40,7 @@ void UIFinishDrawing(void);
 /*! \brief unlock the screen, allow any paused repainting to happen */
 void UIUnlockScreen(void);
 
-/*! \brief lock the screen, cause any waiting paing operations to happen */
+/*! \brief lock the screen, pause any painting operations to happen */
 void UILockScreen(void);
 
 /*! \brief Draw the border around the playing area */
@@ -55,36 +58,31 @@ void UIDrawSpeed(void);
 void UIPaintDesires(void);
 
 void UICheckMoney(void);
-void UIScrollMap(dirType direction);
+void UIScrollDisplay(dirType direction);
 void _UIDrawRect(Int16 nTop, Int16 nLeft, Int16 nHeight, Int16 nWidth);
 
-
 void UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic);
-void UIDrawSpecialObject(Int16 i, Int16 xpos, Int16 ypos);
-void UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos);
+void UIDrawSpecialObject(Int16 xpos, Int16 ypos, Int8 i);
+void UIDrawSpecialUnit(Int16 xpos, Int16 ypos, Int8 i);
 void UIDrawCursor(Int16 xpos, Int16 ypos);
 void UIDrawPowerLoss(Int16 xpos, Int16 ypos);
 void UIDrawWaterLoss(Int16 xpos, Int16 ypos);
 BuildCode UIGetSelectedBuildItem(void);
 
-Int16 InitWorld(void);
-Int16 ResizeWorld(UInt32 size);
-UInt8 LockedWorld(void);
-void LockWorld(void);
-void UnlockWorld(void);
-welem_t GetWorld(UInt32 pos);
-void SetWorld(UInt32 pos, welem_t value);
-
-void PurgeWorld(void);
-
-selem_t GetWorldFlags(UInt32 pos);
-void SetWorldFlags(UInt32 pos, selem_t value);
-void OrWorldFlags(UInt32 pos, selem_t value);
-void AndWorldFlags(UInt32 pos, selem_t value);
 void MapHasJumped(void);
 
 UInt32 GetRandomNumber(UInt32 max);
-void UISetTileSize(Int16 size);
+
+void UIUpdateMap(UInt16 xpos, UInt16 ypos);
+
+typedef enum {
+	lz_world = 0, /*!< lock the world zone */
+	lz_growable, /*!< lock the growable memory zone */
+	lz_end /*!< the end/guard entry for the memory zones */
+} lockZone;
+
+void LockZone(lockZone zone);
+void UnlockZone(lockZone zone);
 
 #if defined(__cplusplus)
 }

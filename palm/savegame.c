@@ -233,7 +233,7 @@ cnCreateButtonPressed(void)
 		level = 1;
 	if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Hard)))
 		level = 2;
-	SetDifficultyLevel(level);
+	setDifficultyLevel(level);
 
 	if (FrmGetControlValue(form, FrmGetObjectIndex(form,
 	    buttonID_dis_off)))
@@ -247,7 +247,7 @@ cnCreateButtonPressed(void)
 	if (FrmGetControlValue(form, FrmGetObjectIndex(form,
 	    buttonID_dis_three)))
 		level = 3;
-	SetDisasterLevel(level);
+	setDisasterLevel(level);
 
 	fp = (FieldPtr)GetObjectPtr(form, fieldID_width);
 	mh = FldGetTextHandle(fp);
@@ -259,7 +259,7 @@ cnCreateButtonPressed(void)
 	mp = MemHandleLock(mh);
 	height = (UInt8)StrAToI(mp);
 	MemHandleUnlock(mh);
-	SetMapSize(width, height);
+	setMapSize(width, height);
 	ConfigureNewGame();
 
 	pGameName = FldGetTextPtr((FieldPtr)GetObjectPtr(form,

@@ -10,8 +10,6 @@
 #include <drawing.h>
 #include <simulation.h>
 
-static welem_t GetGraphicNumber(UInt32 pos);
-
 /*!
  * \brief Set up the graphics.
  */
@@ -36,12 +34,12 @@ Goto(Int16 x, Int16 y)
 	Int16 ny = y - (vgame.visible_y / 2);
 	if (nx < 0)
 		nx = 0;
-	if (nx > (GetMapWidth() - vgame.visible_x))
-		nx = GetMapWidth() - vgame.visible_x;
+	if (nx > (getMapWidth() - vgame.visible_x))
+		nx = getMapWidth() - vgame.visible_x;
 	if (ny < 0)
 		ny = 0;
-	if (ny > (GetMapHeight() - vgame.visible_y))
-		ny = GetMapHeight() - vgame.visible_y;
+	if (ny > (getMapHeight() - vgame.visible_y))
+		ny = getMapHeight() - vgame.visible_y;
 	setMapXPos(nx);
 	setMapYPos(ny);
 	RedrawAllFields();
@@ -59,7 +57,7 @@ RedrawAllFields(void)
 {
 	Int16 i, j;
 
-	LockWorld();
+	LockZone(lz_world);
 	UIInitDrawing();
 	UILockScreen();
 	for (i = getMapXPos(); i < vgame.visible_x + getMapXPos(); i++) {
@@ -79,54 +77,48 @@ RedrawAllFields(void)
 
 	UIUnlockScreen();
 	UIFinishDrawing();
-	UnlockWorld();
+	UnlockZone(lz_world);
 }
 
 /*!
  * \brief Scroll the map in the direction specified
  * \param direction the direction to scroll map in
- * \todo off by one error?
  */
 void
-ScrollMap(dirType direction)
+ScrollDisplay(dirType direction)
 {
+	int moved = 1;
+
 	switch (direction) {
 	case dtUp:
-		if (getMapYPos() > 0) {
+		if (getMapYPos() > 0)
 			setMapYPos(getMapYPos() - 1);
-		} else {
-			setMapYPos(0);
-			return;
-		}
+		else
+			moved = 0;
 		break;
 	case dtRight:
-		if (getMapXPos() <= (GetMapWidth() - 1 - vgame.visible_x)) {
+		if (getMapXPos() <= (getMapWidth() - 1 - vgame.visible_x))
 			setMapXPos(getMapXPos() + 1);
-		} else {
-			setMapXPos(GetMapWidth() - vgame.visible_x);
-			return;
-		}
+		else
+			moved = 0;
 		break;
 	case dtDown:
-		if (getMapYPos() <= (GetMapHeight() - 1 - vgame.visible_y)) {
+		if (getMapYPos() <= (getMapHeight() - 1 - vgame.visible_y))
 			setMapYPos(getMapYPos() + 1);
-		} else {
-			setMapYPos(GetMapHeight() - vgame.visible_y);
-			return;
-		}
+		else
+			moved = 0;
 		break;
 	case dtLeft:
-		if (getMapXPos() > 0) {
+		if (getMapXPos() > 0)
 			setMapXPos(getMapXPos() - 1);
-		} else {
-			setMapXPos(0);
-			return;
-		}
+		else
+			moved = 0;
 		break;
 	default:
 		return;
 	}
-	UIScrollMap(direction);
+	if (moved)
+		UIScrollDisplay(direction);
 }
 
 /*!
@@ -139,41 +131,41 @@ MoveCursor(dirType direction)
 	int old_x = vgame.cursor_xpos;
 	int old_y = vgame.cursor_ypos;
 
-	LockWorld();
+	LockZone(lz_world);
 
 	switch (direction) {
 	case dtUp:
 		if (vgame.cursor_ypos > 0)
 			vgame.cursor_ypos--;
 		if (vgame.cursor_ypos < getMapYPos())
-			ScrollMap(direction);
+			ScrollDisplay(direction);
 		break;
 	case dtRight:
-		if (vgame.cursor_xpos < (GetMapWidth() - 1))
+		if (vgame.cursor_xpos < (getMapWidth() - 1))
 			vgame.cursor_xpos++;
 		if ((vgame.cursor_xpos > getMapXPos() + vgame.visible_x-1) &&
-			vgame.cursor_xpos < GetMapWidth())
-			ScrollMap(direction);
+			vgame.cursor_xpos < getMapWidth())
+			ScrollDisplay(direction);
 		break;
 	case dtDown:
-		if (vgame.cursor_ypos < (GetMapHeight() - 1))
+		if (vgame.cursor_ypos < (getMapHeight() - 1))
 			vgame.cursor_ypos++;
 		if ((vgame.cursor_ypos > getMapYPos() + vgame.visible_y-1) &&
-			vgame.cursor_ypos < GetMapHeight())
-			ScrollMap(direction);
+			vgame.cursor_ypos < getMapHeight())
+			ScrollDisplay(direction);
 		break;
 	case dtLeft:
 		if (vgame.cursor_xpos > 0)
 			vgame.cursor_xpos--;
 		if ((vgame.cursor_xpos < getMapXPos()))
-			ScrollMap(direction);
+			ScrollDisplay(direction);
 		break;
 	}
 
 	DrawField(old_x, old_y);
 	DrawField(vgame.cursor_xpos, vgame.cursor_ypos);
 
-	UnlockWorld();
+	UnlockZone(lz_world);
 }
 
 /*!
@@ -214,7 +206,7 @@ DrawCross(Int16 xpos, Int16 ypos, Int16 xsize, Int16 ysize)
 			    ((ypos == ty + ysize) && (xpos == tx + xsize)))
 				goto next;
 			if ((xpos >= 0) && (ypos >= 0) && \
-			    (xpos < GetMapWidth()) && (ypos < GetMapHeight())) {
+			    (xpos < getMapWidth()) && (ypos < getMapHeight())) {
 				DrawFieldWithoutInit(xpos, ypos);
 			}
 next:
@@ -231,7 +223,7 @@ next:
  *
  * ONLY call this function if you make sure to call
  * UIInitDrawing and UIFinishDrawing in the caller
- * Also remember to call (Un)lockWorld(flags) (4 functions)
+ * Also remember to call (Un)lockWorld (2 functions)
  * \param xpos horizontal position
  * \param ypos vertical position
  */
@@ -253,8 +245,7 @@ DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 	}
 
 	worldpos = WORLDPOS(xpos, ypos);
-	flag = GetWorldFlags(worldpos);
-	content = GetWorld(worldpos);
+	getWorldAndFlag(worldpos, &content, &flag);
 	special = GetGraphicNumber(worldpos);
 
 	UIDrawField(xpos - mapx, ypos - mapy, special);
@@ -277,7 +268,7 @@ DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 		if ((UInt16)xpos == game.objects[i].x &&
 			(UInt16)ypos == game.objects[i].y &&
 			game.objects[i].active != 0) {
-			UIDrawSpecialObject(i, xpos - mapx, ypos - mapy);
+			UIDrawSpecialObject(xpos - mapx, ypos - mapy, i);
 		}
 	}
 	/* draw extra units */
@@ -285,7 +276,7 @@ DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 		if (xpos == game.units[i].x &&
 			ypos == game.units[i].y &&
 			game.units[i].active != 0) {
-			UIDrawSpecialUnit(i, xpos - mapx, ypos - mapy);
+			UIDrawSpecialUnit(xpos - mapx, ypos - mapy, i);
 		}
 	}
 }
@@ -295,12 +286,12 @@ DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
  * \param pos index into map array
  * \return the graphic to paint at this location
  */
-static welem_t
+welem_t
 GetGraphicNumber(UInt32 pos)
 {
 	welem_t retval = 0;
 
-	retval = GetWorld(pos);
+	retval = getWorld(pos);
 	if (IsRoad(retval)) {
 		retval = GetSpecialGraphicNumber(pos);
 	} else if (IsPowerLine(retval)) {
@@ -328,66 +319,66 @@ GetSpecialGraphicNumber(UInt32 pos)
 	int d = 0; /* to the right of me */
 	int nAddMe = 0;
 	welem_t elt = 0;
-	welem_t wpe = GetWorld(pos);
+	welem_t wpe = getWorld(pos);
 
 	if (IsRoad(wpe)) {
-		if (pos >= GetMapWidth()) {
-			elt = GetWorld(pos - GetMapWidth());
+		if (pos >= getMapWidth()) {
+			elt = getWorld(pos - getMapWidth());
 			a = IsRoad(elt) || IsRoadBridge(elt) ||
 			    IsRoadPower(elt) || IsRoadPipe(elt);
 		}
-		if (pos < (unsigned long)(MapMul() - GetMapWidth()))
-			elt = GetWorld(pos + GetMapWidth());
+		if (pos < (unsigned long)(MapMul() - getMapWidth()))
+			elt = getWorld(pos + getMapWidth());
 			c = IsRoad(elt) || IsRoadBridge(elt) ||
 			    IsRoadPower(elt) || IsRoadPipe(elt);
-		if ((unsigned long)(pos % GetMapWidth()) <
-		    (unsigned long)(GetMapWidth() - 1)) {
-		    	elt = GetWorld(pos + 1);
+		if ((unsigned long)(pos % getMapWidth()) <
+		    (unsigned long)(getMapWidth() - 1)) {
+		    	elt = getWorld(pos + 1);
 			b = IsRoad(elt) || IsRoadBridge(elt) ||
 			    IsRoadPower(elt) || IsRoadPipe(elt);
 		}
-		if (pos % GetMapWidth() > 0) {
-			elt = GetWorld(pos - 1);
+		if (pos % getMapWidth() > 0) {
+			elt = getWorld(pos - 1);
 			d = IsRoad(elt) || IsRoadBridge(elt) ||
 			    IsRoadPower(elt) || IsRoadPipe(elt);
 		}
 		nAddMe = Z_ROAD_START;
 	} else if (IsPipe(wpe)) {
-		if (pos >= GetMapWidth())
-			a = CarryWater(GetWorld(pos - GetMapWidth()));
-		if (pos < (unsigned long)(MapMul() - GetMapWidth()))
-			c = CarryWater(GetWorld(pos + GetMapWidth()));
-		if (pos % GetMapWidth() < (unsigned long)(GetMapWidth() - 1))
-			b = CarryWater(GetWorld(pos + 1));
-		if (pos % GetMapWidth() > 0) d = CarryWater(GetWorld(pos - 1));
+		if (pos >= getMapWidth())
+			a = CarryWater(getWorld(pos - getMapWidth()));
+		if (pos < (unsigned long)(MapMul() - getMapWidth()))
+			c = CarryWater(getWorld(pos + getMapWidth()));
+		if (pos % getMapWidth() < (unsigned long)(getMapWidth() - 1))
+			b = CarryWater(getWorld(pos + 1));
+		if (pos % getMapWidth() > 0) d = CarryWater(getWorld(pos - 1));
 		nAddMe = Z_PIPE_START;
 	} else if (IsPowerLine(wpe)) {
-		if (pos >= GetMapWidth())
-			a = CarryPower(GetWorld(pos - GetMapWidth()));
-		if (pos < (unsigned long)(MapMul() - GetMapWidth()))
-			c = CarryPower(GetWorld(pos + GetMapWidth()));
-		if (pos % GetMapWidth() < (unsigned long)(GetMapWidth() - 1))
-			b = CarryPower(GetWorld(pos+1));
-		if (pos % GetMapWidth() > 0) d = CarryPower(GetWorld(pos - 1));
+		if (pos >= getMapWidth())
+			a = CarryPower(getWorld(pos - getMapWidth()));
+		if (pos < (unsigned long)(MapMul() - getMapWidth()))
+			c = CarryPower(getWorld(pos + getMapWidth()));
+		if (pos % getMapWidth() < (unsigned long)(getMapWidth() - 1))
+			b = CarryPower(getWorld(pos+1));
+		if (pos % getMapWidth() > 0) d = CarryPower(getWorld(pos - 1));
 		nAddMe = Z_POWERLINE;
 	} else if (IsRail(wpe)) {
-		if (pos >= GetMapWidth()) {
-			elt = GetWorld(pos - GetMapWidth());
+		if (pos >= getMapWidth()) {
+			elt = getWorld(pos - getMapWidth());
 			a = IsRail(elt) || IsRailTunnel(elt) ||
 			    IsRailPower(elt) || IsRailPipe(elt);
 		}
-		if (pos < (unsigned long)(MapMul() - GetMapWidth()))
-			elt = GetWorld(pos + GetMapWidth());
+		if (pos < (unsigned long)(MapMul() - getMapWidth()))
+			elt = getWorld(pos + getMapWidth());
 			c = IsRail(elt) || IsRailTunnel(elt) ||
 			    IsRailPower(elt) || IsRailPipe(elt);
-		if ((unsigned long)(pos % GetMapWidth()) <
-		    (unsigned long)(GetMapWidth() - 1)) {
-		    	elt = GetWorld(pos + 1);
+		if ((unsigned long)(pos % getMapWidth()) <
+		    (unsigned long)(getMapWidth() - 1)) {
+		    	elt = getWorld(pos + 1);
 			b = IsRail(elt) || IsRailTunnel(elt) ||
 			    IsRailPower(elt) || IsRailPipe(elt);
 		}
-		if (pos % GetMapWidth() > 0) {
-			elt = GetWorld(pos - 1);
+		if (pos % getMapWidth() > 0) {
+			elt = getWorld(pos - 1);
 			d = IsRail(elt) || IsRailTunnel(elt) ||
 			    IsRailPower(elt) || IsRailPipe(elt);
 		}

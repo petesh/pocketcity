@@ -18,5 +18,7 @@
 #define gCalloc calloc
 /*! \brief swap arguments for character and length */
 #define gMemSet(P,L,C) memset((P),(C),(L))
+#define	QSort(a,b,c,d)	qsort(a, b, c, \
+    (int (*)(const void *, const void *))d)
 
 #endif /* _MEM_COMPAT_H */

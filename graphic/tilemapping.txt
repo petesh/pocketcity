@@ -14,7 +14,7 @@ pump:Z_PUMP:::Water pump zone (needs power)
 wastefire:::Z_WASTE,Z_FIRE1,Z_FIRE2,Z_FIRE3:wasteland and fire zones
 crater:Z_CRATER:::Crater, caused by meteor
 pipes:Z_PIPE_START,Z_PIPE:Z_PIPE_END::water pipe zone and tiles
-powerlines:Z_POWERLINE_START,Z_POWERLINE:Z_POWERLINE_END:power line zone and tiles
+powerlines:Z_POWERLINE_START,Z_POWERLINE:Z_POWERLINE_END::power line zone and tiles
 powerwateroverlap:Z_POWERWATER_START,Z_POWER_WATER_PHOR:Z_POWERWATER_END,Z_POWER_WATER_PVER::Power and water overlap
 slums:::Z_COMMERCIAL_SLUM,Z_RESIDENTIAL_SLUM,Z_INDUSTRIAL_SLUM:Slum zones - only zoned
 coalplant:Z_COALPLANT,Z_COALPLANT_START:Z_COALPLANT_END::Coal power plant
@@ -33,6 +33,6 @@ rail:Z_RAIL_START,Z_RAIL:Z_RAIL_END::Rail zone and tiles
 railpipe:Z_RAILPIPE_START,Z_RAILPIPE_RHOR:Z_RAILPIPE_END,Z_RAILPIPE_RVER::Rail overlapping water pipe
 railpower:Z_RAILPOWER_START,Z_RAILPOWER_RHOR:Z_RAILPOWER_END,Z_RAILPOWER_RVER::Rail overlapping power line
 railovroad:Z_RAILOVROAD_START,Z_RAILOVROAD_RHOR:Z_RAILOVROAD_END,Z_RAILOVROAD_RVER::Rail overlapping road
-railtunnel:Z_RAILTUNNEL_START,Z_RAILTUNNEL_RHOR:Z_RAILTUNNEL_END,Z_RAILTUNNEL_RVER::Rail tunnel
+railtunnel:Z_RAILTUNNEL_START,Z_RAILTUNNEL_RHOR:Z_RAILTUNNEL_END,Z_RAILTUNNEL_RVER,Z_ENDMARKER::Rail tunnel
 # add below here
 statusimages:::Z_POWER_OUT,Z_POWER_OUT_MASK,Z_WATER_OUT,Z_WATER_OUT_MASK:Status flags for rendered zones

@@ -33,17 +33,17 @@ Coord scaleCoord(Coord x);
 Coord normalizeCoord(Coord x);
 Boolean canHires(void);
 Boolean isHires(void);
-void setScreenRes(void) OTHER_SECTION;
+void setScreenRes(void) HIRES_SECTION;
 void StartHiresDraw(void);
 void EndHiresDraw(void);
 void StartHiresFontDraw(void);
 void EndHiresFontDraw(void);
-void SetSilkResizable(FormPtr form, UInt8 resizable) OTHER_SECTION;
-Int16 hasVirtualSilk(void) OTHER_SECTION;
-void EndSilk(void) OTHER_SECTION;
+void SetSilkResizable(FormPtr form, UInt8 resizable) HIRES_SECTION;
+Int16 hasVirtualSilk(void) HIRES_SECTION;
+void EndSilk(void) HIRES_SECTION;
 Boolean collapseMove(FormPtr form, UInt8 stretchy, Int16 *roffsetX,
-    Int16 *roffsetY) OTHER_SECTION;
-void collapsePreRedraw(FormPtr form) OTHER_SECTION;
+    Int16 *roffsetY) HIRES_SECTION;
+void collapsePreRedraw(FormPtr form) HIRES_SECTION;
 #define	StartScaleDraw	StartHiresFontDraw
 #define EndScaleDraw		EndHiresFontDraw
 

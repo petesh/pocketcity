@@ -5,16 +5,17 @@
 #define	_HANDLER_H_
 
 #include <zakdef.h>
+#include <compilerpragmas.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void PCityMain(void);
-void ConfigureNewGame(void);
-void InitGameStruct(void);
-void DrawGame(Int8 full);
-void PostLoadGame(void);
+EXPORT void PCityMain(void);
+EXPORT void ConfigureNewGame(void);
+EXPORT void InitGameStruct(void);
+EXPORT void DrawGame(Int8 full);
+EXPORT void PostLoadGame(void);
 
 #ifdef __cplusplus
 }

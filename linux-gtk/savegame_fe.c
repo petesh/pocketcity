@@ -32,7 +32,8 @@
 void
 UIResetViewable(void)
 {
-	vgame.tileSize = 16;
+	vgame.TileSize = 16;
+	vgame.MapTileSize = 4;
 	/* XXX: set based on size of window */
 }
 
@@ -99,12 +100,13 @@ free_object(GtkObject *obj __attribute__((unused)), gpointer data)
  * \todo save any game in progress
  */
 void
-opengame_handler(GtkWidget *w __attribute__((unused)), gpointer data)
+opengame_handler(gpointer data __attribute__((unused)),
+    guint action, GtkWidget *w __attribute__((unused)))
 {
 	fsh_data *handler = g_malloc(sizeof (fsh_data));
 
 	handler->file_sel = gtk_file_selection_new("Select saved game to open");
-	handler->data = data;
+	handler->data = GINT_TO_POINTER(action - 1);
 
 	g_signal_connect(GTK_OBJECT(
 		    GTK_FILE_SELECTION(handler->file_sel)->ok_button),
@@ -137,8 +139,7 @@ close_newgame(GtkWidget *widget __attribute__((unused)),
  * \todo save the game before starting a new one
  */
 void
-newgame_handler(GtkWidget *w __attribute__((unused)),
-    gpointer data __attribute__((unused)))
+newgame_handler(void)
 {
 	GtkWidget *table, *mainbox;
 
@@ -167,9 +168,9 @@ newgame_handler(GtkWidget *w __attribute__((unused)),
  * \param data unused
  */
 void
-store_filename(GtkFileSelection *sel, gpointer data __attribute((unused)))
+store_filename(GtkWidget *sel __attribute__((unused)), gpointer data)
 {
-	gchar *name = (gchar*)gtk_file_selection_get_filename(sel);
+	gchar *name = (gchar*)gtk_file_selection_get_filename(data);
 
 	if (name != NULL)
 		setCityFileName(name);
@@ -180,8 +181,7 @@ store_filename(GtkFileSelection *sel, gpointer data __attribute((unused)))
 }
 
 void
-savegameas_handler(GtkWidget *w __attribute__((unused)),
-    gpointer data __attribute__((unused)))
+savegameas_handler(void)
 {
 	GtkWidget *fileSel;
 
@@ -200,11 +200,10 @@ savegameas_handler(GtkWidget *w __attribute__((unused)),
 }
 
 void
-savegame_handler(GtkWidget *w __attribute__((unused)),
-    gpointer data __attribute__((unused)))
+savegame_handler(void)
 {
 	if (getCityFileName() == NULL) {
-		savegameas_handler(NULL, 0);
+		savegameas_handler();
 		return;
 	}
 

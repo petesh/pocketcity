@@ -9,6 +9,7 @@
 #define _MEM_COMPAT_H
  
 #include <MemoryMgr.h>
+#include <SysUtils.h>
 
 MemPtr palm_realloc(MemPtr old, UInt32 new_size);
 MemPtr palm_calloc(UInt32 size, UInt32 count);
@@ -20,5 +21,7 @@ MemPtr palm_malloc(UInt32 size);
 #define gRealloc palm_realloc
 #define gCalloc palm_calloc
 #define gMemSet(P,L,C) MemSet(P,L,C)
+
+#define QSort(a,b,c,d)	SysQSort(a, b, c, d, 1)
 
 #endif /* _MEM_COMPAT_H */

@@ -12,7 +12,7 @@
 #include <main.h>
 #include <compilerpragmas.h>
 
-/*! \brief handle for the budgt dialog */
+/*! \brief handle for the budget dialog */
 static GtkWidget *dlg = 0;
 
 /*! \brief label containing the residential income */

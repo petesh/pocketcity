@@ -6,27 +6,39 @@
 #define	_GLOBALS_H_
 
 #include <zakdef.h>
+#include <compilerpragmas.h>
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
-extern GameStruct game;
-extern vGameStruct vgame;
-extern AppConfig_t gameConfig;
-extern void *worldFlags;
+EXPORT GameStruct game;
+EXPORT vGameStruct vgame;
+EXPORT AppConfig_t gameConfig;
+EXPORT void *worldPtr;
+EXPORT void *growablePtr;
 
-void LongToString(Int32 value, char *out);
-char *GetDate(char *temp);
-void UIDrawPop(void);
-void UIDoTaxes(void);
-void *getIndexOf(char *ary, Int16 addit, Int16 key);
-UInt8 GetDisasterLevel(void);
-void SetDisasterLevel(UInt8 value);
-UInt8 GetDifficultyLevel(void);
-void SetDifficultyLevel(UInt8 value);
+EXPORT char *getDate(char *temp);
+EXPORT Int32 scaleNumber(UInt32 old_value, Char *scale);
+EXPORT void *getIndexOf(char *ary, Int16 addit, Int16 key);
+EXPORT UInt8 getDisasterLevel(void);
+EXPORT void setDisasterLevel(UInt8 value);
+EXPORT UInt8 getDifficultyLevel(void);
+EXPORT void setDifficultyLevel(UInt8 value);
 
-#ifdef __cplusplus
+EXPORT Int16 InitWorld(void);
+EXPORT Int16 ResizeWorld(UInt32 size);
+EXPORT void PurgeWorld(void);
+
+EXPORT welem_t getWorld(UInt32 pos);
+EXPORT void setWorld(UInt32 pos, welem_t value);
+EXPORT selem_t getWorldFlags(UInt32 pos);
+EXPORT void setWorldFlags(UInt32 pos, selem_t value);
+EXPORT void orWorldFlags(UInt32 pos, selem_t value);
+EXPORT void andWorldFlags(UInt32 pos, selem_t value);
+EXPORT void getWorldAndFlag(UInt32 pos, welem_t *world, selem_t *flag);
+
+#if defined(__cplusplus)
 }
 #endif
 

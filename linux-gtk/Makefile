@@ -7,12 +7,12 @@ INCLUDEDIRS = -I . -I ../source -I ../nix-common -I ../graphic
 OPTFLAGS = -O2
 CFLAGS = $(GCCFLAGS) $(OPTFLAGS) -DLINUX $(GFLAGS) $(INCLUDEDIRS)
 GLFLAGS = $(shell pkg-config --libs gtk+-2.0) 
-LIBS =
+LIBS = 
 LDLIBS = $(LIBS) $(GLFLAGS)
 
 OBJECTS = main.o savegame_fe.o budget.o \
-	handler.o build.o disaster.o drawing.o globals.o simulation.o \
-	stack.o savegame_be.o pglobals.o nix_utils.o
+	stack.o savegame_be.o pglobals.o nix_utils.o simulation-ui.o \
+	handler.o build.o disaster.o drawing.o globals.o simulation.o
 
 .PHONY: all debug clean
 

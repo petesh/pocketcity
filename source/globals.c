@@ -14,6 +14,8 @@
 #include <mem_compat.h>
 #include <ui.h>
 
+#define	MILLION 1000000
+
 /*!
  * \brief contains the mapping of a field in the statistics to a counter code
  * 
@@ -39,6 +41,20 @@ vGameStruct vgame;
 
 /*! \brief the world pointer */
 void *worldPtr;
+/*!
+ * \brief the 'growable' pointer
+ *
+ * This pointer contains an entry for *every* growable position on the map
+ * and is sorted once per load.
+ */
+void *growablePtr;
+
+/*!
+ * \brief the size of the growable pointer
+ *
+ * This value is the size in bytes of the growable pointer element
+ */
+UInt32 growableSize;
 
 /*! \brief This is the game configuration */
 AppConfig_t gameConfig = {
@@ -53,7 +69,7 @@ AppConfig_t gameConfig = {
  * \return the temp buffer (silli!)
  */
 char *
-GetDate(char *temp)
+getDate(char *temp)
 {
 	char month[10];
 
@@ -88,7 +104,7 @@ getIndexOf(char *ary, Int16 addit, Int16 key)
  * \return disaster level
  */
 UInt8
-GetDisasterLevel(void)
+getDisasterLevel(void)
 {
 	return (GG.diff_disaster & 0xF);
 }
@@ -98,7 +114,7 @@ GetDisasterLevel(void)
  * \param value the new value of disaster level
  */
 void
-SetDisasterLevel(UInt8 value)
+setDisasterLevel(UInt8 value)
 {
 	GG.diff_disaster &= 0xf0;
 	GG.diff_disaster |= (value & 0x0f);
@@ -109,7 +125,7 @@ SetDisasterLevel(UInt8 value)
  * \return the difficulty level
  */
 UInt8
-GetDifficultyLevel(void)
+getDifficultyLevel(void)
 {
 	return ((GG.diff_disaster >> 4) & 0x0f);
 }
@@ -119,7 +135,7 @@ GetDifficultyLevel(void)
  * \param value the new difficulty level
  */
 void
-SetDifficultyLevel(UInt8 value)
+setDifficultyLevel(UInt8 value)
 {
 	GG.diff_disaster &= 0x0f;
 	GG.diff_disaster |= ((value & 0x0f) << 4);
@@ -136,7 +152,7 @@ SetDifficultyLevel(UInt8 value)
 Int16
 ResizeWorld(UInt32 size)
 {
-	LockWorld();
+	LockZone(lz_world);
 	worldPtr = gRealloc(worldPtr, size);
 
 	if (worldPtr == NULL) {
@@ -147,7 +163,11 @@ ResizeWorld(UInt32 size)
 	WriteLog("Resize World = %ld\n", (long)size);
 
 	gMemSet(worldPtr, size, 0);
-	UnlockWorld();
+	UnlockZone(lz_world);
+	LockZone(lz_growable);
+	growablePtr = gRealloc(growablePtr, 4);
+	growableSize = 4;
+	UnlockZone(lz_growable);
 
 	return (1);
 }
@@ -168,7 +188,7 @@ InitWorld(void)
  * \return the item at that position.
  */
 welem_t
-GetWorld(UInt32 pos)
+getWorld(UInt32 pos)
 {
 	UInt16 val;
 	
@@ -186,7 +206,7 @@ GetWorld(UInt32 pos)
  * \param value the value of the item
  */
 void
-SetWorld(UInt32 pos, welem_t value)
+setWorld(UInt32 pos, welem_t value)
 {
 	UInt16 *ptr;
 	
@@ -204,8 +224,8 @@ SetWorld(UInt32 pos, welem_t value)
  * \param pos the position of the location
  * \return the value at that position
  */
-UInt8
-GetWorldFlags(UInt32 pos)
+selem_t
+getWorldFlags(UInt32 pos)
 {
 	UInt16 val;
 	
@@ -222,7 +242,7 @@ GetWorldFlags(UInt32 pos)
  * \param value the value at that position
  */
 void
-SetWorldFlags(UInt32 pos, UInt8 value)
+setWorldFlags(UInt32 pos, selem_t value)
 {
 	UInt16 *ptr;
 	
@@ -239,7 +259,7 @@ SetWorldFlags(UInt32 pos, UInt8 value)
  * \param value the value to and the current value with.
  */
 void
-AndWorldFlags(UInt32 pos, UInt8 value)
+andWorldFlags(UInt32 pos, selem_t value)
 {
 	UInt16 *ptr;
 	
@@ -256,7 +276,7 @@ AndWorldFlags(UInt32 pos, UInt8 value)
  * \param value the value to or the current value with.
  */
 void
-OrWorldFlags(UInt32 pos, UInt8 value)
+orWorldFlags(UInt32 pos, selem_t value)
 {
 	UInt16 *ptr;
 	
@@ -268,12 +288,48 @@ OrWorldFlags(UInt32 pos, UInt8 value)
 	*ptr |= (WORLD_ANDMASK & (value << FLAGS_SHIFTVALUE));
 }
 
+void
+getWorldAndFlag(UInt32 pos, welem_t *world, selem_t *flag)
+{
+	UInt16 val;
+
+	if (pos > MapMul())
+		return;
+
+	val = ((UInt16 *)worldPtr)[pos];
+	*world = val & FLAGS_ANDMASK;
+	*flag = ((val & WORLD_ANDMASK) >> FLAGS_SHIFTVALUE);
+}
+
 /*!
  * \brief free all the game related structures
  */
 void
 PurgeWorld()
 {
-	LockWorld();
-	if (worldPtr != NULL) gFree(worldPtr);
+	LockZone(lz_world);
+	if (worldPtr != NULL)
+		gFree(worldPtr);
 }
+
+/*!
+ * \brief scale a number down using the K,M,B scale
+ *
+ * Don't use the value returned for any math! it's for display only.
+ * \param old_value the value that needs to be scaled
+ * \param scale (out) the scale i.e. none, K, M, B ...
+ * \return the scaled value (could be the original value)
+ */
+Int32
+scaleNumber(UInt32 old_value, Char *scale)
+{
+	const char si_scale[] = " KMBTQ";
+	const char *at_scale = si_scale;
+	while (old_value > MILLION) {
+		at_scale++;
+		old_value /= 1000;
+	}
+	*scale = *at_scale;
+	return (old_value);
+}
+

@@ -15,7 +15,7 @@ typedef void (*bmPostHandler)(UInt16 button, buttonmapping_t *mapping,
     UInt32 newValue);
 
 buttonmapping_t *getSpinnerFieldIndex(buttonmapping_t *map,
-    UInt16 buttonControl, Boolean isButton) OTHER_SECTION;
+    UInt16 buttonControl, Boolean isButton) REPEATH_SECTION;
 
 buttonmapping_t *processRepeater(buttonmapping_t *map, UInt16 control,
-    Boolean isButton, bmPostHandler post_handle) OTHER_SECTION;
+    Boolean isButton, bmPostHandler post_handle) REPEATH_SECTION;

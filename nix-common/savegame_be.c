@@ -325,9 +325,9 @@ void
 NewGame(void)
 {
 	InitGameStruct();
-	SetDifficultyLevel(0);
-	SetDisasterLevel(GetDifficultyLevel() + 1);
-	SetMapSize(100, 100);
+	setDifficultyLevel(0);
+	setDisasterLevel(getDifficultyLevel() + 1);
+	setMapSize(100, 100);
 	ConfigureNewGame();
 }
 

@@ -12,13 +12,29 @@
 extern "C" {
 #endif
 
-void *StackNew(void);
-void StackDelete(void *);
-Int32 StackPop(void *);
-void StackPush(void *, Int32);
-Int16 StackIsEmpty(void *);
-void StackDoEmpty(void *);
-Int16 StackNElements(void *);
+#include <appconfig.h>
+
+#if !defined(STACK_IMPL)
+typedef void *dsObj;
+#endif
+
+dsObj *StackNew(void);
+void StackDelete(dsObj *);
+Int32 StackPop(dsObj *);
+void StackPush(dsObj *, Int32);
+Int8 StackIsEmpty(dsObj *);
+void StackDoEmpty(dsObj *);
+Int32 StackNElements(dsObj *);
+
+#define ListNew	StackNew
+#define ListDelete StackDelete
+#define ListAdd	StackPush
+#define ListNElements StackNElements
+
+Int32 ListGet(dsObj *, Int32);
+void ListSet(dsObj *, Int32, Int32);
+void ListInsert(dsObj *, Int32, Int32);
+Int32 ListRemove(dsObj *, Int32);
 
 #ifdef __cplusplus
 }

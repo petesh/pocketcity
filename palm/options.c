@@ -7,11 +7,11 @@
 #include <ui.h>
 #include <palmutils.h>
 
-static FormPtr setupOptions(void) OTHER_SECTION;
-static void saveOptions(void) OTHER_SECTION;
-static FormPtr setupButtonConfig(void) OTHER_SECTION;
-static void saveButtonConfig(void) OTHER_SECTION;
-static void clearButtonConfig(void) OTHER_SECTION;
+static FormPtr setupOptions(void) CONFIG_SECTION;
+static void saveOptions(void) CONFIG_SECTION;
+static FormPtr setupButtonConfig(void) CONFIG_SECTION;
+static void saveButtonConfig(void) CONFIG_SECTION;
+static void clearButtonConfig(void) CONFIG_SECTION;
 
 /*
  * Handler for the main options dialog.
@@ -71,12 +71,12 @@ static FormPtr
 setupOptions(void)
 {
 	FormPtr form = FrmGetActiveForm();
-	UInt8 tval = GetDisasterLevel();
+	UInt8 tval = getDisasterLevel();
 
 	tval = (tval > 3) ? 3 : tval;
 	CtlSetValue((ControlPtr)GetObjectPtr(form, buttonID_dis_off + tval), 1);
 
-	tval = GetDifficultyLevel();
+	tval = getDifficultyLevel();
 	tval = (tval > 2) ? 2 : tval;
 	CtlSetValue((ControlPtr)GetObjectPtr(form, buttonID_Easy + tval), 1);
 
@@ -94,26 +94,32 @@ static void
 saveOptions(void)
 {
 	FormPtr form = FrmGetActiveForm();
+	int level = 0;
 	if (CtlGetValue((ControlPtr)GetObjectPtr(form, buttonID_dis_off))) {
-		SetDisasterLevel(0);
+		level = 0;
 	} else if (CtlGetValue((ControlPtr)GetObjectPtr(form,
 			    buttonID_dis_one))) {
-		SetDisasterLevel(1);
+		level = 1;
 	} else if (CtlGetValue((ControlPtr)GetObjectPtr(form,
 			    buttonID_dis_two))) {
-		SetDisasterLevel(2);
+		level = 2;
 	} else if (CtlGetValue((ControlPtr)GetObjectPtr(form,
 			    buttonID_dis_three))) {
-		SetDisasterLevel(3);
+		level = 3;
 	}
+	setDisasterLevel(level);
+
+	level = 0;
+
 	if (CtlGetValue((ControlPtr)GetObjectPtr(form, buttonID_Easy))) {
-		SetDifficultyLevel(0);
+		level = 0;
 	} else if (CtlGetValue((ControlPtr)GetObjectPtr(form,
 			    buttonID_Medium))) {
-		SetDifficultyLevel(1);
+		level = 1;
 	} else if (CtlGetValue((ControlPtr)GetObjectPtr(form, buttonID_Hard))) {
-		SetDifficultyLevel(2);
+		level = 2;
 	}
+	setDifficultyLevel(level);
 	setAutoBulldoze(CtlGetValue((ControlPtr)GetObjectPtr(form,
 	    checkboxID_autobulldoze)));
 }

@@ -24,15 +24,15 @@
 #include <sections.h>
 
 /*! \brief Defines the build function pointer type */
-typedef void (*BuildF)(Int16 xpos, Int16 ypos, welem_t type);
+typedef int (*BuildF)(Int16 xpos, Int16 ypos, welem_t type);
 
-static void Build_Road(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
-static void Build_Rail(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
-static void Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
-static void Build_WaterPipe(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
-static void Build_Generic(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
-static void Build_Generic4(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
-static void Build_Defence(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
+static int Build_Road(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
+static int Build_Rail(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
+static int Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
+static int Build_WaterPipe(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
+static int Build_Generic(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
+static int Build_Generic4(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
+static int Build_Defence(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
 
 static void CreateForest(UInt32 pos, Int16 size) BUILD_SECTION;
 static void RemoveDefence(Int16 xpos, Int16 ypos) BUILD_SECTION;
@@ -89,7 +89,7 @@ static const struct _bldStruct {
  * \param xpos the X position on the map
  * \param ypos the Y position on the map
  */
-void
+int
 BuildSomething(Int16 xpos, Int16 ypos)
 {
 	UInt16 item = UIGetSelectedBuildItem();
@@ -97,14 +97,18 @@ BuildSomething(Int16 xpos, Int16 ypos)
 
 	if (item >= BS_LEN) {
 		UIDisplayError1("Unknown Build Item");
-		return;
+		return (0);
 	}
 	be = (struct _bldStruct *)&(buildStructure[item]);
 
-	if (be->bt == Be_OOB) return;
+	if (be->bt == Be_OOB) return (0);
 
-	be->func(xpos, ypos, be->type);
-	AddGridUpdate(be->gridsToUpdate);
+	if (be->func(xpos, ypos, be->type)) {
+		AddGridUpdate(be->gridsToUpdate);
+		UIUpdateMap(xpos, ypos);
+		return (1);
+	}
+	return (0);
 }
 
 /*!
@@ -164,7 +168,7 @@ static const struct buildCounters {
  * \param ypos item position on the y axis
  * \param type type of defence unit to build
  */
-static void
+static int
 Build_Defence(Int16 xpos, Int16 ypos, welem_t type)
 {
 	int oldx;
@@ -177,9 +181,10 @@ Build_Defence(Int16 xpos, Int16 ypos, welem_t type)
 	UInt16 max;
 	int nCounter;
 	const struct buildCounters *cnt;
+	int rv = 0;
 
 	if (type > DuMilitary)
-		return;
+		return (rv);
 
 	cnt = &counters[type];
 
@@ -187,7 +192,7 @@ Build_Defence(Int16 xpos, Int16 ypos, welem_t type)
 	nCounter = cnt->counter;
 
 	if (vgame.BuildCount[nCounter] == 0)
-		return; /* no special building */
+		return (rv); /* no special building */
 
 	start = cnt->start;
 	end = cnt->end;
@@ -206,7 +211,7 @@ Build_Defence(Int16 xpos, Int16 ypos, welem_t type)
 			game.units[i].active != 0) {
 			/* no need to build something already here */
 			if ((UInt16)game.units[i].type == type)
-				return;
+				return (rv);
 			game.units[i].active = 0;
 		}
 	}
@@ -249,10 +254,12 @@ Build_Defence(Int16 xpos, Int16 ypos, welem_t type)
 	game.units[sel].active = newactive;
 	game.units[sel].type = (DefenceUnitTypes)type;
 
-	LockWorld();
+	LockZone(lz_world);
+	rv = 1;
 	DrawCross(oldx, oldy, 1, 1);
 	DrawCross(xpos, ypos, 1, 1);
-	UnlockWorld();
+	UnlockZone(lz_world);
+	return (rv);
 }
 
 static int
@@ -279,13 +286,14 @@ blockSize(welem_t type)
  *
  * \todo Prohibit the rezoning of Wasteland.
  */
-void
+int
 Build_Bulldoze(Int16 xpos, Int16 ypos, welem_t _type __attribute__((unused)))
 {
+	int rv = 0;
 	welem_t type;
 
-	LockWorld();
-	type = GetWorld(WORLDPOS(xpos, ypos));
+	LockZone(lz_world);
+	type = getWorld(WORLDPOS(xpos, ypos));
 
 	WriteLog("BuildBulldoze(type=%d)\n", (int)type);
 	if (CantBulldoze(type)) {
@@ -294,11 +302,13 @@ Build_Bulldoze(Int16 xpos, Int16 ypos, welem_t _type __attribute__((unused)))
 	}
 	if (SpendMoney(BUILD_COST_BULLDOZER * blockSize(type))) {
 		Build_Destroy(xpos, ypos);
+		rv = 1;
 	} else {
 		UIDisplayError(enOutOfMoney);
 	}
 end:
-	UnlockWorld();
+	UnlockZone(lz_world);
+	return (rv);
 }
 
 /*!
@@ -332,7 +342,7 @@ Build_Destroy(Int16 xpos, Int16 ypos)
 	int y_destroy = 1;
 	int ty_destroy = 1;
 
-	type = GetWorld(WORLDPOS(xpos, ypos));
+	type = getWorld(WORLDPOS(xpos, ypos));
 	RemoveDefence(xpos, ypos);
 
 	if ((type >= Z_COMMERCIAL_MIN) && (type <= Z_COMMERCIAL_MAX)) {
@@ -462,21 +472,21 @@ finish:
 
 	if (IsRoadBridge(type) || IsRailTunnel(type) || IsRealWater(type)) {
 		/* A bridge turns into real_water when detroyed */
-		SetWorld(WORLDPOS(xpos, ypos), Z_REALWATER);
+		setWorld(WORLDPOS(xpos, ypos), Z_REALWATER);
 	} else {
 		if ((x_destroy != 1) || (y_destroy != 1)) {
 			ty_destroy = y_destroy;
 			while(ty_destroy) {
 				tx_destroy=x_destroy;
 				while(tx_destroy) {
-					SetWorld(WORLDPOS(xpos - 1 + tx_destroy,
+					setWorld(WORLDPOS(xpos - 1 + tx_destroy,
 					    ypos - 1 + ty_destroy), Z_DIRT);
 					tx_destroy--;
 				}
 				ty_destroy--;
 			}
 		} else {
-			SetWorld(WORLDPOS(xpos, ypos), Z_DIRT);
+			setWorld(WORLDPOS(xpos, ypos), Z_DIRT);
 		}
 	}
 
@@ -527,13 +537,14 @@ IsBulldozable(welem_t zone)
  * \param ypos the yposition to build the item at
  * \param type type of item to be built
  */
-static void
+static int
 Build_Generic4(Int16 xpos, Int16 ypos, welem_t type)
 {
 	unsigned char worldItem;
 	unsigned long toSpend = 0;
 	int loopx, loopy;
 	int canbuild = 1;
+	int rv = 0;
 
 	struct _costMappings *cmi = (struct _costMappings *)getIndexOf(
 	    (char *)&genericMappings[0], sizeof (genericMappings[0]), type);
@@ -543,14 +554,14 @@ Build_Generic4(Int16 xpos, Int16 ypos, welem_t type)
 	assert(cmi != NULL);
 #endif
 	if (cmi == NULL)
-		return;
-	LockWorld();
+		return (rv);
+	LockZone(lz_world);
 
 	toSpend = cmi->cost;
 
 	for (loopx = xpos; loopx < xpos + 2; loopx++) {
 		for (loopy = ypos; loopy < ypos + 2; loopy++) {
-			worldItem = GetWorld(WORLDPOS(loopx, loopy));
+			worldItem = getWorld(WORLDPOS(loopx, loopy));
 			if (IsBulldozable(worldItem)) {
 				if (worldItem == Z_REALTREE)
 					toSpend += BUILD_COST_BULLDOZER;
@@ -559,23 +570,27 @@ Build_Generic4(Int16 xpos, Int16 ypos, welem_t type)
 			}
 		}
 	}
-	if (!canbuild)
-		return;
+	if (!canbuild) {
+		UnlockZone(lz_world);
+		return (rv);
+	}
 
 	if (SpendMoney(toSpend)) {
 		for (loopy = ypos; loopy < ypos + 2; loopy++) {
 			for (loopx = xpos; loopx < xpos + 2; loopx++)
-				SetWorld(WORLDPOS(loopx, loopy), type++);
+				setWorld(WORLDPOS(loopx, loopy), type++);
 			}
 
 		if (cmi->count != -1)
 			vgame.BuildCount[cmi->count]++;
 
 		DrawCross(xpos, ypos, 2, 2);
+		rv = 1;
 	} else {
 		UIDisplayError(enOutOfMoney);
 	}
-	UnlockWorld();
+	UnlockZone(lz_world);
+	return (rv);
 }
 
 /*!
@@ -586,11 +601,12 @@ Build_Generic4(Int16 xpos, Int16 ypos, welem_t type)
  * \param ypos the yposition to build the item at
  * \param type type of item to be built
  */
-static void
+static int
 Build_Generic(Int16 xpos, Int16 ypos, welem_t type)
 {
 	unsigned char worldItem;
 	unsigned long toSpend = 0;
+	int rv = 0;
 
 	struct _costMappings *cmi = (struct _costMappings *)getIndexOf(
 	    (char *)&genericMappings[0], sizeof (genericMappings[0]), type);
@@ -600,23 +616,23 @@ Build_Generic(Int16 xpos, Int16 ypos, welem_t type)
 	assert(cmi != NULL);
 #endif
 	if (cmi == NULL)
-		return;
-	LockWorld();
+		return (rv);
+	LockZone(lz_world);
 
 	toSpend = cmi->cost;
 
-	worldItem = GetWorld(WORLDPOS(xpos, ypos));
+	worldItem = getWorld(WORLDPOS(xpos, ypos));
 
 	if ((type == Z_FAKETREE) && ((worldItem == Z_REALTREE) ||
 		    (worldItem == Z_FAKETREE))) {
-		UnlockWorld();
-		return;
+		UnlockZone(lz_world);
+		return (rv);
 	}
 
 	if (IsBulldozable(worldItem)) {
 		if (worldItem == Z_REALTREE) toSpend += BUILD_COST_BULLDOZER;
 		if (SpendMoney(toSpend)) {
-			SetWorld(WORLDPOS(xpos, ypos), (unsigned char)type);
+			setWorld(WORLDPOS(xpos, ypos), (unsigned char)type);
 			DrawCross(xpos, ypos, 1, 1);
 
 			/*  update counter */
@@ -626,11 +642,13 @@ Build_Generic(Int16 xpos, Int16 ypos, welem_t type)
 				if (cmi->count != -1)
 					vgame.BuildCount[cmi->count]++;
 			}
+			rv = 1;
 		} else {
 			UIDisplayError(enOutOfMoney);
 		}
 	}
-	UnlockWorld();
+	UnlockZone(lz_world);
+	return (rv);
 }
 
 /*!
@@ -641,14 +659,15 @@ Build_Generic(Int16 xpos, Int16 ypos, welem_t type)
  * \param ypos yposition to build the road at
  * \param type unused in this context
  */
-void
+static int
 Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 {
 	int old;
 	unsigned long toSpend = 0;
+	int rv = 0;
 
-	LockWorld();
-	old = GetWorld(WORLDPOS(xpos, ypos));
+	LockZone(lz_world);
+	old = getWorld(WORLDPOS(xpos, ypos));
 	toSpend = BUILD_COST_ROAD;
 	if (IsPowerLine(old) || IsPipe(old) || IsRail(old)) {
 		welem_t tobuil = 0;
@@ -673,9 +692,10 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			break;
 		}
 		if (SpendMoney(toSpend)) {
-			SetWorld(WORLDPOS(xpos, ypos), tobuil);
+			setWorld(WORLDPOS(xpos, ypos), tobuil);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_count_roads]++;
+			rv = 1;
 		} else {
 			UIDisplayError(enOutOfMoney);
 		}
@@ -702,14 +722,14 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			goto success_build;
 		}
 		if (((check_br & DIR_LEFT) &&
-		    (GetWorld(WORLDPOS(xpos - 1, ypos)) == Z_BRIDGE_HOR)) ||
+		    (getWorld(WORLDPOS(xpos - 1, ypos)) == Z_BRIDGE_HOR)) ||
 		    ((check_br & DIR_RIGHT) &&
-		    (GetWorld(WORLDPOS(xpos + 1, ypos)) == Z_BRIDGE_HOR))) {
+		    (getWorld(WORLDPOS(xpos + 1, ypos)) == Z_BRIDGE_HOR))) {
 			tobuil = Z_BRIDGE_HOR;
 		} else if (((check_br & DIR_UP) &&
-		    (GetWorld(WORLDPOS(xpos, ypos - 1)) == Z_BRIDGE_VER)) ||
+		    (getWorld(WORLDPOS(xpos, ypos - 1)) == Z_BRIDGE_VER)) ||
 		    ((check_br & DIR_DOWN) &&
-		    (GetWorld(WORLDPOS(xpos, ypos + 1)) == Z_BRIDGE_VER))) {
+		    (getWorld(WORLDPOS(xpos, ypos + 1)) == Z_BRIDGE_VER))) {
 			tobuil = Z_BRIDGE_VER;
 		}
 		if (tobuil == 0)
@@ -717,24 +737,27 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 		toSpend = BUILD_COST_BRIDGE;
 success_build:
 		if (SpendMoney(toSpend)) {
-			SetWorld(WORLDPOS(xpos, ypos), tobuil);
+			setWorld(WORLDPOS(xpos, ypos), tobuil);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_count_roads]++;
+			rv = 1;
 		} else {
 			UIDisplayError(enOutOfMoney);
 		}
 	} else if (IsBulldozable(old)) {
 		if (old == Z_REALTREE) toSpend += BUILD_COST_BULLDOZER;
 		if (SpendMoney(toSpend)) {
-			SetWorld(WORLDPOS(xpos, ypos), Z_ROAD);
+			setWorld(WORLDPOS(xpos, ypos), Z_ROAD);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_count_roads]++;
+			rv = 1;
 		} else {
 			UIDisplayError(enOutOfMoney);
 		}
 	}
 leaveme:
-	UnlockWorld();
+	UnlockZone(lz_world);
+	return (rv);
 }
 
 /*!
@@ -745,14 +768,15 @@ leaveme:
  * \param ypos yposition to build the rail line at
  * \param type unused in this context
  */
-void
+static int
 Build_Rail(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 {
 	int old;
 	unsigned long toSpend = 0;
+	int rv = 0;
 
-	LockWorld();
-	old = GetWorld(WORLDPOS(xpos, ypos));
+	LockZone(lz_world);
+	old = getWorld(WORLDPOS(xpos, ypos));
 	toSpend = BUILD_COST_RAIL;
 	if (IsPowerLine(old) || IsPipe(old) || IsRoad(old)) {
 		welem_t tobuil = 0;
@@ -777,9 +801,10 @@ Build_Rail(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			break;
 		}
 		if (SpendMoney(toSpend)) {
-			SetWorld(WORLDPOS(xpos, ypos), tobuil);
+			setWorld(WORLDPOS(xpos, ypos), tobuil);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_count_rail]++;
+			rv = 1;
 		} else {
 			UIDisplayError(enOutOfMoney);
 		}
@@ -806,15 +831,15 @@ Build_Rail(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			goto success_build;
 		}
 		if (((check_br & DIR_LEFT) &&
-		    (GetWorld(WORLDPOS(xpos - 1, ypos)) ==
+		    (getWorld(WORLDPOS(xpos - 1, ypos)) ==
 		     Z_RAILTUNNEL_RHOR)) || ((check_br & DIR_RIGHT) &&
-		    (GetWorld(WORLDPOS(xpos + 1, ypos)) ==
+		    (getWorld(WORLDPOS(xpos + 1, ypos)) ==
 		     Z_RAILTUNNEL_RHOR))) {
 			tobuil = Z_RAILTUNNEL_RHOR;
 		} else if (((check_br & DIR_UP) &&
-		    (GetWorld(WORLDPOS(xpos, ypos - 1)) ==
+		    (getWorld(WORLDPOS(xpos, ypos - 1)) ==
 		     Z_RAILTUNNEL_RVER)) || ((check_br & DIR_DOWN) &&
-		    (GetWorld(WORLDPOS(xpos, ypos + 1)) ==
+		    (getWorld(WORLDPOS(xpos, ypos + 1)) ==
 		     Z_RAILTUNNEL_RVER))) {
 			tobuil = Z_RAILTUNNEL_RVER;
 		}
@@ -823,24 +848,27 @@ Build_Rail(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 		toSpend = BUILD_COST_RAILTUNNEL;
 success_build:
 		if (SpendMoney(toSpend)) {
-			SetWorld(WORLDPOS(xpos, ypos), tobuil);
+			setWorld(WORLDPOS(xpos, ypos), tobuil);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_count_rail]++;
+			rv = 1;
 		} else {
 			UIDisplayError(enOutOfMoney);
 		}
 	} else if (IsBulldozable(old)) {
 		if (old == Z_REALTREE) toSpend += BUILD_COST_BULLDOZER;
 		if (SpendMoney(toSpend)) {
-			SetWorld(WORLDPOS(xpos, ypos), Z_RAIL);
+			setWorld(WORLDPOS(xpos, ypos), Z_RAIL);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_count_rail]++;
+			rv = 1;
 		} else {
 			UIDisplayError(enOutOfMoney);
 		}
 	}
 leaveme:
-	UnlockWorld();
+	UnlockZone(lz_world);
+	return (rv);
 }
 
 /*!
@@ -851,15 +879,16 @@ leaveme:
  * \param xpos y position on map to build on
  * \param type unused for this function
  */
-static void
+static int
 Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 {
 	int old;
 	unsigned long toSpend = 0;
+	int rv = 0;
 
-	LockWorld();
+	LockZone(lz_world);
 
-	old = GetWorld(WORLDPOS(xpos, ypos));
+	old = getWorld(WORLDPOS(xpos, ypos));
 	toSpend = BUILD_COST_POWER_LINE;
 	if (IsBulldozable(old) || IsRoad(old) || IsPipe(old)) {
 		if (IsRoad(old) || IsPipe(old)) {
@@ -880,24 +909,27 @@ Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 				break;
 			}
 			if (SpendMoney(toSpend)) {
-				SetWorld(WORLDPOS(xpos, ypos), tobuil);
+				setWorld(WORLDPOS(xpos, ypos), tobuil);
 				DrawCross(xpos, ypos, 1, 1);
 				vgame.BuildCount[bc_powerlines]++;
+				rv = 1;
 			} else {
 				UIDisplayError(enOutOfMoney);
 			}
 		} else {
 			if (old == Z_REALTREE) toSpend += BUILD_COST_BULLDOZER;
 			if (SpendMoney(toSpend)) {
-				SetWorld(WORLDPOS(xpos, ypos), Z_POWERLINE);
+				setWorld(WORLDPOS(xpos, ypos), Z_POWERLINE);
 				DrawCross(xpos, ypos, 1, 1);
 				vgame.BuildCount[bc_powerlines]++;
+				rv = 1;
 			} else {
 				UIDisplayError(enOutOfMoney);
 			}
 		}
 	}
-	UnlockWorld();
+	UnlockZone(lz_world);
+	return (rv);
 }
 
 /*!
@@ -908,17 +940,18 @@ Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
  * \param xpos y position on map to build on
  * \param type unused for this function
  */
-static void
+static int
 Build_WaterPipe(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 {
 	int old;
 	unsigned long toSpend = 0;
 	welem_t elt = 0;
+	int rv = 0;
 
-	LockWorld();
+	LockZone(lz_world);
 
 	toSpend = BUILD_COST_WATER_PIPE;
-	old = GetWorld(WORLDPOS(xpos, ypos));
+	old = getWorld(WORLDPOS(xpos, ypos));
 	if (IsBulldozable(old) || IsRoad(old) || IsPowerLine(old)) {
 		if (IsRoad(old) || IsPowerLine(old)) {
 			switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos))) {
@@ -936,24 +969,27 @@ Build_WaterPipe(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 				break;
 			}
 			if (SpendMoney(toSpend)) {
-				SetWorld(WORLDPOS(xpos, ypos), elt);
+				setWorld(WORLDPOS(xpos, ypos), elt);
 				DrawCross(xpos, ypos, 1, 1);
 				vgame.BuildCount[bc_waterpipes]++;
+				rv = 1;
 			} else {
 				UIDisplayError(enOutOfMoney);
 			}
 		} else {
 			if (old == Z_REALTREE) toSpend += BUILD_COST_BULLDOZER;
 			if (SpendMoney(toSpend)) {
-				SetWorld(WORLDPOS(xpos, ypos), Z_PIPE);
+				setWorld(WORLDPOS(xpos, ypos), Z_PIPE);
 				DrawCross(xpos, ypos, 1, 1);
 				vgame.BuildCount[bc_waterpipes]++;
+				rv = 1;
 			} else {
 				UIDisplayError(enOutOfMoney);
 			}
 		}
 	}
-	UnlockWorld();
+	UnlockZone(lz_world);
+	return (rv);
 }
 
 /*!
@@ -990,18 +1026,18 @@ CreateFullRiver(void)
 	int axis;
 
 	width = GetRandomNumber(5)+5;
-	j = GetRandomNumber(GetMapWidth());
+	j = GetRandomNumber(getMapWidth());
 	axis = GetRandomNumber(1);
-	LockWorld();
+	LockZone(lz_world);
 
-	for (i = 0; i < GetMapWidth(); i++) {
+	for (i = 0; i < getMapWidth(); i++) {
 		for (k = j; k < (width + j); k++) {
-			if ((k > 0) && (k < GetMapWidth())) {
+			if ((k > 0) && (k < getMapWidth())) {
 				if (axis)
-					SetWorld(WORLDPOS(i, k),
+					setWorld(WORLDPOS(i, k),
 					    Z_REALWATER);
 				else
-					SetWorld(WORLDPOS(k, i),
+					setWorld(WORLDPOS(k, i),
 					    Z_REALWATER);
 			}
 		}
@@ -1024,14 +1060,14 @@ CreateFullRiver(void)
 				j--;
 			break;
 		case 1:
-			if (j < GetMapWidth())
+			if (j < getMapWidth())
 				j++;
 			break;
 		default:
 			break;
 		}
 	}
-	UnlockWorld();
+	UnlockZone(lz_world);
 }
 
 /*!
@@ -1064,27 +1100,27 @@ CreateForest(UInt32 pos, Int16 size)
 {
 	int x, y, i, j, s;
 
-	x = pos % GetMapWidth();
-	y = pos / GetMapWidth();
-	LockWorld();
+	x = pos % getMapWidth();
+	y = pos / getMapWidth();
+	LockZone(lz_world);
 	i = x;
 	j = y;
 
 	for (i = x - size; i <= x + size; i++) {
 		for (j = y - size; j <= y + size; j++) {
-			if (i < 0 || i >= GetMapWidth() || j < 0 ||
-			    j >= GetMapWidth())
+			if (i < 0 || i >= getMapWidth() || j < 0 ||
+			    j >= getMapWidth())
 				continue;
-			if (GetWorld(WORLDPOS(i, j)) != Z_DIRT)
+			if (getWorld(WORLDPOS(i, j)) != Z_DIRT)
 				continue;
 			s = ((y > j) ? (y - j) : (j - y)) +
 			    ((x > i) ? (x - i) : (i - x));
 			if (GetRandomNumber(s) < 2) {
 				/*! \todo count_trees or count_real_trees */
-				SetWorld(WORLDPOS(i, j), Z_REALTREE);
+				setWorld(WORLDPOS(i, j), Z_REALTREE);
 				vgame.BuildCount[bc_count_trees]++;
 			}
 		}
 	}
-	UnlockWorld();
+	UnlockZone(lz_world);
 }

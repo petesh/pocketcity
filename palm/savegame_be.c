@@ -104,9 +104,9 @@ void
 ResetViewable(void)
 {
 	WriteLog("Reset viewable\n");
-	vgame.tileSize = 16;
-	vgame.visible_x = sWidth / vgame.tileSize;
-	vgame.visible_y = (sHeight / vgame.tileSize) - 2;
+	vgame.TileSize = 16;
+	vgame.visible_x = sWidth / gameTileSize();
+	vgame.visible_y = (sHeight / gameTileSize()) - 2;
 }
 
 /*
@@ -182,9 +182,9 @@ SaveGameByIndex(UInt16 index)
 		    WorldSize() + sizeof (GameStruct));
 	}
 	if (rec) {
-		LockWorld();
+		LockZone(lz_world);
 		WriteCityRecord(rec, &game, worldPtr);
-		UnlockWorld();
+		UnlockZone(lz_world);
 		DmReleaseRecord(db, index, true);
 	}
 
@@ -259,9 +259,9 @@ CreateNewSaveGame(char *name)
 		if (rec) {
 			ResetViewable();
 			ResumeGame();
-			LockWorld();
+			LockZone(lz_world);
 			WriteCityRecord(rec, &game, worldPtr);
-			UnlockWorld();
+			UnlockZone(lz_world);
 			DmReleaseRecord(db, index, true);
 		}
 	}
@@ -287,9 +287,9 @@ LoadGameByIndex(UInt16 index)
 	index = DmNumRecords(db) - 1;
 	rec = DmQueryRecord(db, index);
 	if (rec) {
-		LockWorld();
+		LockZone(lz_world);
 		loaded = ReadCityRecord(rec, &game, &worldPtr);
-		UnlockWorld();
+		UnlockZone(lz_world);
 	}
 	if (loaded != -1) {
 		PostLoadGame();
