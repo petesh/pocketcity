@@ -96,7 +96,8 @@ gint mainloop_callback(gpointer data)
     }
     
     if (timekeeper >= game.gameLoopSeconds && game.gameLoopSeconds != SPEED_PAUSED) {
-        g_print("A month has gone by - total months: %lu\n", game.TimeElapsed);
+        g_print("A month has gone by - total months: %lu\n",
+	    (unsigned long)game.TimeElapsed);
         timekeeper = 0;
         do {
             phase = Sim_DoPhase(phase);
@@ -414,7 +415,7 @@ void UIDrawBorder(void)
 void UIDrawCredits(void)
 {
     char temp[23];
-    sprintf(temp, "$: %ld", game.credits);
+    sprintf(temp, "$: %ld", (long)game.credits);
     gtk_label_set_text((GtkLabel*)creditslabel, temp);
     GetDate((char*)temp);
     gtk_label_set_text((GtkLabel*)timelabel, temp);
