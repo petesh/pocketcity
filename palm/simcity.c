@@ -521,7 +521,8 @@ static Boolean hPocketCity(EventPtr event)
 	    handled = 1;
 	    break;
 
-	case mi_buildExtra:
+	    /* for a reason ... */
+	case gi_buildExtra:
 	    UIPopUpExtraBuildList();
 	    handled = 1;
 	    break;
