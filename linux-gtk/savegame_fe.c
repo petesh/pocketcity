@@ -75,11 +75,13 @@ typedef struct {
  * \todo fix the code to open the specific filename based on introspection
  * into the filename
  */
-void
-open_filename(GtkFileSelection *sel, gpointer data)
+static void
+open_afile(GtkFileSelection *sel, gpointer data)
 {
 	fsh_data *dat = (fsh_data *)data;
-	doOpen(gtk_file_selection_get_filename(data->file_sel),
+	g_print("sel = %p; dat->file_sel = %p\n", sel, dat->file_sel);
+	doOpen((gchar *)gtk_file_selection_get_filename(
+		    GTK_FILE_SELECTION(dat->file_sel)),
 	    GPOINTER_TO_INT(dat->data));
 }
 
@@ -92,22 +94,23 @@ open_filename(GtkFileSelection *sel, gpointer data)
 void
 OpenGame(GtkWidget *w __attribute__((unused)), gpointer data)
 {
-	fsh_data handler;
+	fsh_data *handler = g_malloc(sizeof (fsh_data));
 
 	handler.file_sel = gtk_file_selection_new("Select saved game to open");
 	handler.data = data;
 
-	g_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
-	    "clicked", G_CALLBACK(open_platfilename), (gpointer)&handler);
+	g_signal_connect(GTK_OBJECT(
+		    GTK_FILE_SELECTION(handler.file_sel)->ok_button),
+	    "clicked", G_CALLBACK(open_afile), (gpointer)&handler);
 
 	g_signal_connect_swapped(
-	    GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
+	    GTK_OBJECT(GTK_FILE_SELECTION(handler.file_sel)->ok_button),
 	    "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)&handler);
 	g_signal_connect_swapped(
-	    GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->cancel_button),
+	    GTK_OBJECT(GTK_FILE_SELECTION(handler.file_sel)->cancel_button),
 	    "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)&handler);
 
-	gtk_widget_show(GTK_WIDGET(handler->file_sel));
+	gtk_widget_show(GTK_WIDGET(handler.file_sel));
 }
 
 /*!
@@ -142,11 +145,11 @@ store_filename(GtkFileSelection *sel, gpointer data __attribute((unused)))
 		savegamename = name;
 	}
 	WriteLog("This game will be saved as %s from now on\n", savegamename);
-	UISaveGame(NULL, 0);
+	SaveGame(NULL, 0);
 }
 
 void
-UISaveGameAs(GtkWidget *w __attribute__((unused)),
+SaveGameAs(GtkWidget *w __attribute__((unused)),
     gpointer data __attribute__((unused)))
 {
 	GtkWidget *fileSel;
@@ -166,11 +169,11 @@ UISaveGameAs(GtkWidget *w __attribute__((unused)),
 }
 
 void
-UISaveGame(GtkWidget *w __attribute__((unused)),
+SaveGame(GtkWidget *w __attribute__((unused)),
     gpointer data __attribute__((unused)))
 {
 	if (savegamename == NULL) {
-		UISaveGameAs(NULL, 0);
+		SaveGameAs(NULL, 0);
 		return;
 	}
 
