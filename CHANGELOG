@@ -16,6 +16,7 @@ Version 0.17dev
   + Power plants and defence stations (Fire, Police, Army) are now 4 zone items
   + Power lines and Water pipes can now overlap
   + Map is resizeable between 25x25 -> 120x120 (palmOS memory limitation)
+  + Rail Lines
   * Fix annoying winScreenLock issue
   * 818171 Hard Crash on Sony Clie SL10
   * 818172 Index out of range (0.16)
