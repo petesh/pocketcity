@@ -25,78 +25,110 @@ long unsigned int GetRandomZone(void);
 void FindZonesForUpgrading(void);
 int FindScoreForZones(void);
 
+/* The power grid is updated using a recursive function, here's how it
+ * basicly works:
+ * 1: scan the playingfield for a power plant and start there
+ * 2: move up (recursivly) from this plant, decrementing the powerleft var
+ * and marking every touched zone so it won't get power twice.
+ * 3: when there's no more power left, go back to 1 and scan for the next
+ * power plant
+ *
+ * The WorldFlag are used as a bitfield for this, every tile has a byte:
+ *  8765 4321
+ *  |||| |||`- 1 = this tile is powered
+ *  |||| ||`-- used as a marked for "already been here" in several routines
+ *  |||| |`--- 
+ *  |||| `----
+ *  |||`------
+ *  ||`-------
+ *  |`--------
+ *  `--------- 
+ *
+ *  don't use any of the free flags without asking zakarun (thanks)
+ *  please note that the flags are _not_ saved, they _must_ be able to be
+ *  recreated from the plain world[] array - else the savegames would be
+ *  10k larger (that's A LOT ;)
+ *  
+ *  How to recreate:
+ *  1: call Sim_DistributePower()
+ *  2: no need (only used as a temporary var)
+ *  3:
+ *  4:
+ *  5:
+ *  6:
+ *  7:
+ *  8:
+ */
+
 extern void Sim_DistributePower(void)
 {
     unsigned long i,j;
 
-    // reset powergrid
+    // reset powergrid - ie, clear flags 1 & 2
     LockWorldFlags();
     for (j=0; j<mapsize*mapsize; j++) { SetWorldFlags(j, GetWorldFlags(j) & 0xfc); }
 
-
-    // Find all the powerplants and move out from there
+    // Step 1: Find all the powerplants and move out from there
     LockWorld(); // this lock locks for ALL power subs
-    for (i=0; i<mapsize*mapsize; i++)
-    {
-        if (GetWorld(i) == 60 || GetWorld(i) == 61)
-        {
-            if ((GetWorldFlags(i) & 0x01) == 0) // have we already processed this powerplant?
-            {
-
+    for (i=0; i<mapsize*mapsize; i++) {
+        if (GetWorld(i) == TYPE_POWER_PLANT || GetWorld(i) == TYPE_NUCLEAR_PLANT) { // is this a powerplant?
+            if ((GetWorldFlags(i) & 0x01) == 0) { // have we already processed this powerplant?
                 powerleft=0;
                 PowerMoveOnFromThisPoint(i);
-                for (j=0; j<mapsize*mapsize; j++) { SetWorldFlags(j, GetWorldFlags(j) & 0xfd); }
+                for (j=0; j<mapsize*mapsize; j++) {
+                    SetWorldFlags(j, GetWorldFlags(j) & 0xfd); 
+                }
             }
-
         }
-
     }
     UnlockWorld();
     UnlockWorldFlags();
-
 }
 
 void PowerMoveOnFromThisPoint(unsigned long pos)
 {
     // a recursive function
+    // pos: here we start, all fields will be powered from here
     char cross = 0;
     char direction = 0;
 
-
-    do
-    {
-
-        if ((GetWorldFlags(pos) & 0x01) == 0)
-        {
+    do {
+        if ((GetWorldFlags(pos) & 0x01) == 0) {
+            /* if this field hasn't been powered, we need to "use" some power
+             * to move further along
+             * notice that the powerplantchecks are here, to avoid them from
+             * giving their power everytime we hit one
+             */
             powerleft--;
-            if (GetWorld(pos) == 60) { powerleft += 100; }
-            if (GetWorld(pos) == 61) { powerleft +=300; }
+            if (GetWorld(pos) == TYPE_POWER_PLANT)   { powerleft += 100; } // if this is a plant 
+            if (GetWorld(pos) == TYPE_NUCLEAR_PLANT) { powerleft += 300; } // we get more power
         }
 
-        SetWorldFlags(pos, GetWorldFlags(pos) | 0x03);
+        // now, set the two flags, to indicate
+        // 1: we've been here (look 4 lines above)
+        // 2: this field is now powered
+        SetWorldFlags(pos, GetWorldFlags(pos) | 0x03); 
 
+        // do we have more power left?
         if (powerleft < 1) { powerleft = 0; return; }
 
+        // find the possible ways we can move on from here
+        // se the function for the "strange" returned bitfield
         cross = PowerNumberOfSquaresAround(pos);
 
-        if ((cross & 0x0f) == 0)
-        {
-            return;
-        }
+        // if there's "no way out", return
+        if ((cross & 0x0f) == 0) { return; }
 
 
-        if ((cross & 0x0f) == 1)
-        {
+        if ((cross & 0x0f) == 1) {
             // just a single way out
             if ((cross & 0x10) == 0x10)	     { direction = 0; }
             else if ((cross & 0x20) == 0x20) { direction = 1; }
             else if ((cross & 0x40) == 0x40) { direction = 2; }
             else if ((cross & 0x80) == 0x80) { direction = 3; }
-        }
-
-        if ((cross & 0x0f) != 1)
-        {
+        } else {
             // we are at a power section
+            // initiate some recursive functions from here ;)
             if ((cross & 0x10) == 0x10) { PowerMoveOnFromThisPoint(pos-mapsize); }
             if ((cross & 0x20) == 0x20) { PowerMoveOnFromThisPoint(pos+1); }
             if ((cross & 0x40) == 0x40) { PowerMoveOnFromThisPoint(pos+mapsize); }
@@ -104,20 +136,22 @@ void PowerMoveOnFromThisPoint(unsigned long pos)
             return;
         }
 
+        // and finally, update our new position
         pos = PowerMoveOn(pos, direction);
 
-
-
     } while (PowerFieldCanCarry(pos));
-
 }
 
+// note that this function is used internally in the power distribution
+// routine. Therefore it will return false for tiles we've already been at,
+// to avoid backtracking the route we came from.
 int PowerFieldCanCarry(unsigned long pos)
 {
     if ((GetWorldFlags(pos) & 0x02) == 0x02) { return 0; } // allready been here with this plant
     return CarryPower(GetWorld(pos));
 }
 
+// gives a status of the situation around us
 int PowerNumberOfSquaresAround(unsigned long pos)
 {
     // return:
@@ -133,7 +167,6 @@ int PowerNumberOfSquaresAround(unsigned long pos)
     char retval=0;
     char number=0;
 
-
     if (PowerFieldCanCarry(PowerMoveOn(pos, 0))) { retval |= 0x10; number++; }
     if (PowerFieldCanCarry(PowerMoveOn(pos, 1))) { retval |= 0x20; number++; }
     if (PowerFieldCanCarry(PowerMoveOn(pos, 2))) { retval |= 0x40; number++; }
@@ -145,41 +178,36 @@ int PowerNumberOfSquaresAround(unsigned long pos)
 }
 
 
-
+/* this function take a position and a direction and
+ * moves the position in the direction, but won't move
+ * behind map borders 
+ */
 unsigned long PowerMoveOn(unsigned long pos, int direction)
 {
-
-    switch (direction)
-    {
+    switch (direction) {
         case 0: // up
             if (pos < mapsize) { return pos; }
             pos -= mapsize;
             break;
-
         case 1: // right
             if ((pos+1) >= mapsize*mapsize) { return pos; }
             pos++;
             break;
-
         case 2: // down
             if ((pos+mapsize) >= mapsize*mapsize) { return pos; }
             pos += mapsize;
             break;
-
         case 3: //left
             if (pos == 0) { return pos; }
             pos--;
             break;
     }
-
     return pos;
-
 }
 
 ////////// Zones upgrade/downgrade //////////
 
-typedef struct
-{
+typedef struct {
     long unsigned pos;
     long signed score;
     int used;
