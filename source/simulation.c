@@ -892,6 +892,9 @@ BudgetGetNumber(BudgetNumber type)
 	case bnIndustrial:
 		ret = (Int32)costIt(COUNT_INDUSTRIAL) * game.tax/100;
 		break;
+	case bnIncome:
+		ret = ((costIt(COUNT_RESIDENTIAL) + costIt(COUNT_COMMERCIAL) + costIt(COUNT_INDUSTRIAL)) * game.tax) / 100;
+		break;
 	case bnTraffic:
 		ret = (Int32)(costIt(COUNT_ROADS) *
 		    game.upkeep[UPKEEPS_TRAFFIC]) / 100;
@@ -911,9 +914,7 @@ BudgetGetNumber(BudgetNumber type)
 		ret = game.credits;
 		break;
 	case bnChange:
-		ret = (Int32)BudgetGetNumber(bnResidential)
-			+ BudgetGetNumber(bnCommercial)
-			+ BudgetGetNumber(bnIndustrial)
+		ret = (Int32)BudgetGetNumber(bnIncome)
 			- BudgetGetNumber(bnTraffic)
 			- BudgetGetNumber(bnPower)
 			- BudgetGetNumber(bnDefence);
@@ -932,8 +933,7 @@ BudgetGetNumber(BudgetNumber type)
 void
 DoTaxes()
 {
-	game.credits += BudgetGetNumber(bnResidential) +
-	    BudgetGetNumber(bnCommercial) + BudgetGetNumber(bnIndustrial);
+	game.credits += BudgetGetNumber(bnIncome);
 }
 
 /*

@@ -5,6 +5,7 @@ typedef enum {
 	bnResidential = 0,
 	bnCommercial,
 	bnIndustrial,
+	bnIncome,
 	bnTraffic,
 	bnPower,
 	bnDefence,
