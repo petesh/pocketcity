@@ -28,6 +28,7 @@ unsigned char selectedBuildItem = 0;
 void SetUpMainWindow(void);
 gint mainloop_callback(gpointer data);
 void UIQuitGame(GtkWidget *w, gpointer data) { gtk_main_quit(); }
+void UISetSpeed(GtkWidget *w, gpointer data);
 
 GtkItemFactoryEntry menu_items[] = {
     { "/_File",         NULL,           NULL,         0,      "<Branch>"    },
@@ -37,6 +38,13 @@ GtkItemFactoryEntry menu_items[] = {
     { "/File/Save _As", NULL,           UISaveGameAs, 0,      NULL          },
     { "/File/sep1",     NULL,           NULL,         0,      "<Separator>" },
     { "/File/_Quit",    NULL,           UIQuitGame,   0,      NULL          },
+    { "/Speed",         NULL,           NULL,         0,      "<Branch>"    },
+    { "/Speed/Pause",   NULL,           UISetSpeed,   SPEED_PAUSED, NULL    },
+    { "/Speed/sep1",    NULL,           NULL,         0,      "<Separator>" },
+    { "/Speed/Slow",    NULL,           UISetSpeed,   SPEED_SLOW,   NULL    },
+    { "/Speed/Medium",  NULL,           UISetSpeed,   SPEED_MEDIUM, NULL    },
+    { "/Speed/Fast",    NULL,           UISetSpeed,   SPEED_FAST,   NULL    },
+    { "/Speed/Turbo",   NULL,           UISetSpeed,   SPEED_TURBO,  NULL    },
 };
 
 
@@ -61,6 +69,13 @@ int main(int argc, char *argv[])
 unsigned int timekeeper = 0;
 unsigned int timekeeperdisaster = 0;
 
+void UISetSpeed(GtkWidget *w, gpointer data)
+{
+    g_print("Setting speed to %i\n",GPOINTER_TO_INT(data));
+    game.gameLoopSeconds = GPOINTER_TO_INT(data);
+
+}
+
 gint mainloop_callback(gpointer data)
 {
     // this will be called every second
@@ -75,7 +90,7 @@ gint mainloop_callback(gpointer data)
         }
     }
     
-    if (timekeeper >= game.gameLoopSeconds) {
+    if (timekeeper >= game.gameLoopSeconds && game.gameLoopSeconds != SPEED_PAUSED) {
         g_print("A month has gone by - total months: %lu\n", game.TimeElapsed);
         timekeeper = 0;
         do {
