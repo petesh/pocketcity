@@ -1862,7 +1862,7 @@ LockWorld()
 {
 #ifdef DEBUG
     if (worldPtr != NULL)
-        *(int *)0 = 5;
+        DbgBreak();
 #endif
     worldPtr = MemHandleLock(worldHandle);
 }
@@ -1872,7 +1872,7 @@ UnlockWorld()
 {
 #ifdef DEBUG
     if (worldPtr == NULL)
-        *(int *)0 = 5;
+        DbgBreak();
 #endif
     MemHandleUnlock(worldHandle);
     worldPtr = NULL;
@@ -1889,7 +1889,7 @@ LockWorldFlags()
 {
 #ifdef DEBUG
     if (worldFlagsPtr != NULL)
-        *(int *)0 = 5;
+        DbgBreak();
 #endif
     worldFlagsPtr = MemHandleLock(worldFlagsHandle);
 }
@@ -1899,7 +1899,7 @@ UnlockWorldFlags()
 {
 #ifdef DEBUG
     if (worldFlagsPtr == NULL)
-        *(int *)0 = 5;
+        DbgBreak();
 #endif
     MemHandleUnlock(worldFlagsHandle);
     worldFlagsPtr = NULL;
