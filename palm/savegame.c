@@ -243,8 +243,9 @@ int UILoadGame(UInt16 index)
             MemMove((void*)&game,pTemp,sizeof(GameStruct));
             MemMove(worldPtr,pTemp+sizeof(GameStruct),game.mapsize*game.mapsize);
             UnlockWorld();
-            // update the power grid:
-            Sim_DistributePower();
+            // update the power and water grid:
+            Sim_Distribute(0);
+            Sim_Distribute(1);
             loaded = 1;
         } else if (StrNCompare("PCNO",(char*)pTemp,4) == 0) { // flagged to be an empty save game
             loaded = 0;

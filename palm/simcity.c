@@ -807,6 +807,37 @@ extern void UIDrawCursor(int xpos, int ypos)
 {
 }
 
+extern void UIDrawWaterLoss(int xpos, int ypos)
+{
+    RectangleType rect;
+
+    if (DoDrawing == 0) { return; }
+    
+    rect.topLeft.x = 80;
+    rect.topLeft.y = 0;
+    rect.extent.x = game.tileSize;
+    rect.extent.y = game.tileSize;
+    
+    // copy/paste the graphic from the offscreen image
+    // first draw the overlay
+    WinCopyRectangle(
+            winZones,
+            WinGetActiveWindow(),
+            &rect,
+            xpos*game.tileSize+XOFFSET,
+            ypos*game.tileSize+YOFFSET,
+            winErase);
+    // now draw the powerloss icon
+    rect.topLeft.x = 64;
+    WinCopyRectangle(
+            winZones,
+            WinGetActiveWindow(),
+            &rect,
+            xpos*game.tileSize+XOFFSET,
+            ypos*game.tileSize+YOFFSET,
+            winOverlay);
+}
+
 extern void UIDrawPowerLoss(int xpos, int ypos)
 {
     RectangleType rect;

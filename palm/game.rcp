@@ -224,6 +224,7 @@ BEGIN
     LIST "Bulldozer" "Residential" "Commercial" "Industrial" "Road" 
          "Power Plant" "Nuclear Plant" "Power Line" "Tree" "Water" 
          "Fire Station" "Police Station" "Military Base"
+         "Water Pipe" "Water Pump"
          /* insert extra stuff here */
          ID listID_extraBuildList AT (1 18 158 77) USABLE 
     FIELD ID labelID_extraBuildDescription AT (prevleft prevbottom+2 158 50)
@@ -252,6 +253,8 @@ STRINGTABLE ID strID_Descriptions
     "Fire Station\t\t\tPrice: $700\n\nProvides fire fighters in case of an emergency"
     "Police Station\t\t\tPrice: $700\n\nProvides police units in case of an emergency"
     "Military Base\t\t\tPrice: $10.000\n\nProvides military units in case of an emergency"
+    "Water Pipe\t\t\tPrice: $20\n\nTransfers water from one place to another"
+    "Water Pump\t\t\tPrice: $3.000\n\nPumps water from the river. Must be placed next to the river to work"
 
 
 ALERT ID alertID_errorOutOfMemory
