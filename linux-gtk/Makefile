@@ -34,7 +34,7 @@ pocketcity: $(OBJECTS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.o pocketcity core*
+	rm -f *.o pocketcity core* pocketcity.exe
 
 clobber:
 	rm -f *.o core*
