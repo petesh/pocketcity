@@ -207,7 +207,7 @@ CreateWaste(Int16 x, Int16 y)
 	LockWorld();
 	node = GetWorld(WORLDPOS(x, y));
 	Build_Destroy(x, y);
-	if (node == Z_REALWATER || IsBridge(node)) {
+	if (node == Z_REALWATER || IsRoadBridge(node)) {
 		UnlockWorld();
 		return;
 	}

@@ -108,6 +108,7 @@ BEGIN
     /* Strings of items */
     "BULLDOZER" = "Bulldozer"
     "ROAD" = "Road"
+    "RAIL" = "Rail"
     "PPLANT_COAL" = "Coal Plant"
     "PPLANT_NUCLEAR" = "Nuclear Plant"
     "PPUMP_WATER" = "Water Pump"
@@ -128,6 +129,7 @@ BEGIN
     "DESCRIPTION_COMMERCIAL" = "Zones where shops, malls and offices are build"
     "DESCRIPTION_INDUSTRIAL" = "Zones for factories and chemical plants"
     "DESCRIPTION_ROADS" = "Zones to allow sims to get to and from other zones"
+    "DESCRIPTION_RAIL" = "Zones to allow items to get to and from other zones"
     "DESCRIPTION_COALPLANT" = "Provides electrical power for up to 100 zones"
     "DESCRIPTION_NUCLEARPLANT" = "Provides electrical power for up to 300 zones"
     "DESCRIPTION_POWERLINE" = "Carries power from one place to another"
@@ -242,6 +244,7 @@ BEGIN
 	"EMPTY_LAND" = "Empty Land"
 	"POWER_LINE" = "Power Line"
 	"ROAD"	= "Road"
+	"RAIL"	= "Rail"
 	"REAL_WATER" = "Sea Water / River"
 	"FOREST" = "Forest"
 	"RENDERING_MAP" = "Rendering Map"
@@ -268,6 +271,10 @@ BEGIN
 	"POWERROAD" = "Power Line / Road Zone"
 	"PIPEROAD" = "Water Pipe / Road Overlap"
 	"BRIDGE" = "Bridge"
+	"POWERRAIL" = "Power Line / Rail Track"
+	"PIPERAIL" = "Water Pipe / Rail Track"
+	"RAILTUNNEL" = "Rail Tunnel"
+	"RAILOVROAD" = "Rail Track / Road Overlap"
 
 	/* Densities / Values */
 	"SLUM" = "Slum"

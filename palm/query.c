@@ -91,6 +91,11 @@ static const struct type_zone {
 	{ Z_PIPEROAD_START, Z_PIPEROAD_END, si_piperoad },
 	{ Z_ROAD_START, Z_ROAD_END, si_road },
 	{ Z_BRIDGE_START, Z_BRIDGE_END, si_bridge },
+	{ Z_RAIL_START, Z_RAIL_END, si_rail },
+	{ Z_RAILPIPE_START, Z_RAILPIPE_END, si_railpipe },
+	{ Z_RAILPOWER_START, Z_RAILPOWER_END, si_railpower },
+	{ Z_RAILOVROAD_START, Z_RAILOVROAD_END, si_railovroad },
+	{ Z_RAILTUNNEL_START, Z_RAILTUNNEL_END, si_railtunnel },
 	{ 0, 0, 0 }
 };
 

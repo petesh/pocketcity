@@ -27,6 +27,7 @@
 typedef void (*BuildF)(Int16 xpos, Int16 ypos, welem_t type);
 
 static void Build_Road(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
+static void Build_Rail(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
 static void Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
 static void Build_WaterPipe(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
 static void Build_Generic(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
@@ -61,6 +62,7 @@ static const struct _bldStruct {
 	{ Be_Zone_Commercial, Build_Generic, Z_COMMERCIAL_SLUM, GRID_ALL},
 	{ Be_Zone_Industrial, Build_Generic, Z_INDUSTRIAL_SLUM, GRID_ALL},
 	{ Be_Road, Build_Road, 0, 0 },
+	{ Be_Rail, Build_Rail, 0, 0 },
 	{ Be_Power_Plant, Build_Generic4, Z_COALPLANT, GRID_ALL },
 	{ Be_Nuclear_Plant, Build_Generic4, Z_NUCLEARPLANT, GRID_ALL },
 	{ Be_Power_Line, Build_PowerLine, 0, GRID_ALL },
@@ -419,7 +421,7 @@ Build_Destroy(Int16 xpos, Int16 ypos)
 	if (IsWaterPipe(type)) {
 		vgame.BuildCount[bc_waterpipes]--;
 	}
-	if (IsRoadWater(type)) {
+	if (IsRoadPipe(type)) {
 		vgame.BuildCount[bc_count_roads]--;
 		vgame.BuildCount[bc_waterpipes]--;
 		vgame.BuildCount[bc_value_roads] -= ZoneValue(type);
@@ -433,11 +435,32 @@ Build_Destroy(Int16 xpos, Int16 ypos)
 		vgame.BuildCount[bc_waterpipes]--;
 		vgame.BuildCount[bc_powerlines]--;
 	}
-	    
+
+	if (IsRail(type)) {
+		vgame.BuildCount[bc_count_rail]--;
+		vgame.BuildCount[bc_value_rail] -= ZoneValue(type);
+	}
+	if (IsRailPower(type)) {
+		vgame.BuildCount[bc_count_rail]--;
+		vgame.BuildCount[bc_value_rail] -= ZoneValue(type);
+		vgame.BuildCount[bc_powerlines]--;
+	}
+	if (IsRailPipe(type)) {
+		vgame.BuildCount[bc_count_rail]--;
+		vgame.BuildCount[bc_value_rail] -= ZoneValue(type);
+		vgame.BuildCount[bc_waterpipes]--;
+	}
+	if (IsRailOvRoad(type)) {
+		vgame.BuildCount[bc_count_rail]--;
+		vgame.BuildCount[bc_value_rail] -= ZoneValue(type);
+		vgame.BuildCount[bc_count_roads]--;
+		vgame.BuildCount[bc_value_roads] -= ZoneValue(type);
+	}
+
 finish:
 	AddGridUpdate(GRID_ALL);
 
-	if (IsBridge(type) || type == Z_REALWATER) {
+	if (IsRoadBridge(type) || IsRailTunnel(type) || IsRealWater(type)) {
 		/* A bridge turns into real_water when detroyed */
 		SetWorld(WORLDPOS(xpos, ypos), Z_REALWATER);
 	} else {
@@ -627,7 +650,7 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 	LockWorld();
 	old = GetWorld(WORLDPOS(xpos, ypos));
 	toSpend = BUILD_COST_ROAD;
-	if (IsPowerLine(old) || IsPipe(old)) {
+	if (IsPowerLine(old) || IsPipe(old) || IsRail(old)) {
 		welem_t tobuil = 0;
 		switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos))) {
 		case Z_POWERLINE: /* straight power line - Horizontal */
@@ -641,6 +664,12 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			break;
 		case Z_PIPE_START+1: /* Straight water pipe - Vertical */
 			tobuil = Z_PIPEROAD_PVER;
+			break;
+		case Z_RAIL_START: /* Straight rail line - Horizontal */
+			tobuil = Z_RAILOVROAD_RHOR;
+			break;
+		case Z_RAIL_START+1: /* Straight rail line - Vertical */
+			tobuil = Z_RAILOVROAD_RVER;
 			break;
 		}
 		if (SpendMoney(toSpend)) {
@@ -656,7 +685,7 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 		UInt8 check_br;
 		UInt32 wp = WORLDPOS(xpos, ypos);
 		check_rd = CheckNextTo(wp, DIR_ALL, IsRoad);
-		check_br = CheckNextTo(wp, DIR_ALL, IsBridge);
+		check_br = CheckNextTo(wp, DIR_ALL, IsRoadBridge);
 
 		if ((check_rd == 0) && (check_br == 0))
 			goto leaveme;
@@ -685,6 +714,7 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 		}
 		if (tobuil == 0)
 			goto leaveme;
+		toSpend = BUILD_COST_BRIDGE;
 success_build:
 		if (SpendMoney(toSpend)) {
 			SetWorld(WORLDPOS(xpos, ypos), tobuil);
@@ -699,6 +729,112 @@ success_build:
 			SetWorld(WORLDPOS(xpos, ypos), Z_ROAD);
 			DrawCross(xpos, ypos, 1, 1);
 			vgame.BuildCount[bc_count_roads]++;
+		} else {
+			UIDisplayError(enOutOfMoney);
+		}
+	}
+leaveme:
+	UnlockWorld();
+}
+
+/*!
+ * \brief Build a rail line.
+ *
+ * Auto bulldoze if requested
+ * \param xpos xposition to build the rail line at
+ * \param ypos yposition to build the rail line at
+ * \param type unused in this context
+ */
+void
+Build_Rail(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
+{
+	int old;
+	unsigned long toSpend = 0;
+
+	LockWorld();
+	old = GetWorld(WORLDPOS(xpos, ypos));
+	toSpend = BUILD_COST_RAIL;
+	if (IsPowerLine(old) || IsPipe(old) || IsRoad(old)) {
+		welem_t tobuil = 0;
+		switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos))) {
+		case Z_POWERLINE: /* straight power line - Horizontal */
+			tobuil = Z_RAILPOWER_RHOR;
+			break;
+		case Z_POWERLINE+1: /* Straight power line - Vertical */
+			tobuil = Z_RAILPOWER_RVER;
+			break;
+		case Z_PIPE_START: /* Straight water pipe - Horizontal */
+			tobuil = Z_RAILPIPE_RHOR;
+			break;
+		case Z_PIPE_START+1: /* Straight water pipe - Vertical */
+			tobuil = Z_RAILPIPE_RVER;
+			break;
+		case Z_ROAD_START: /* Straight road - Horizontal */
+			tobuil = Z_RAILOVROAD_RVER;
+			break;
+		case Z_ROAD_START+1: /* Straight road - Vertical */
+			tobuil = Z_RAILOVROAD_RHOR;
+			break;
+		}
+		if (SpendMoney(toSpend)) {
+			SetWorld(WORLDPOS(xpos, ypos), tobuil);
+			DrawCross(xpos, ypos, 1, 1);
+			vgame.BuildCount[bc_count_rail]++;
+		} else {
+			UIDisplayError(enOutOfMoney);
+		}
+	} else if (IsRealWater(old)) {
+		welem_t tobuil = 0;
+		UInt8 check_rd;
+		UInt8 check_br;
+		UInt32 wp = WORLDPOS(xpos, ypos);
+		check_rd = CheckNextTo(wp, DIR_ALL, IsRail);
+		check_br = CheckNextTo(wp, DIR_ALL, IsRailTunnel);
+
+		if ((check_rd == 0) && (check_br == 0))
+			goto leaveme;
+		/*
+		 * build a tunnel only if one of the squares around is
+		 * either a tunnel or a rail line.
+		 */
+		if ((check_rd & DIR_UP) || (check_rd & DIR_DOWN)) {
+			tobuil = Z_RAILTUNNEL_RVER;
+			goto success_build;
+		}
+		if ((check_rd & DIR_LEFT) || (check_rd & DIR_RIGHT)) {
+			tobuil = Z_RAILTUNNEL_RHOR;
+			goto success_build;
+		}
+		if (((check_br & DIR_LEFT) &&
+		    (GetWorld(WORLDPOS(xpos - 1, ypos)) ==
+		     Z_RAILTUNNEL_RHOR)) || ((check_br & DIR_RIGHT) &&
+		    (GetWorld(WORLDPOS(xpos + 1, ypos)) ==
+		     Z_RAILTUNNEL_RHOR))) {
+			tobuil = Z_RAILTUNNEL_RHOR;
+		} else if (((check_br & DIR_UP) &&
+		    (GetWorld(WORLDPOS(xpos, ypos - 1)) ==
+		     Z_RAILTUNNEL_RVER)) || ((check_br & DIR_DOWN) &&
+		    (GetWorld(WORLDPOS(xpos, ypos + 1)) ==
+		     Z_RAILTUNNEL_RVER))) {
+			tobuil = Z_RAILTUNNEL_RVER;
+		}
+		if (tobuil == 0)
+			goto leaveme;
+		toSpend = BUILD_COST_RAILTUNNEL;
+success_build:
+		if (SpendMoney(toSpend)) {
+			SetWorld(WORLDPOS(xpos, ypos), tobuil);
+			DrawCross(xpos, ypos, 1, 1);
+			vgame.BuildCount[bc_count_rail]++;
+		} else {
+			UIDisplayError(enOutOfMoney);
+		}
+	} else if (IsBulldozable(old)) {
+		if (old == Z_REALTREE) toSpend += BUILD_COST_BULLDOZER;
+		if (SpendMoney(toSpend)) {
+			SetWorld(WORLDPOS(xpos, ypos), Z_RAIL);
+			DrawCross(xpos, ypos, 1, 1);
+			vgame.BuildCount[bc_count_rail]++;
 		} else {
 			UIDisplayError(enOutOfMoney);
 		}

@@ -1230,8 +1230,15 @@ getPopulation()
 Int16
 CarryPower(welem_t x)
 {
-	return ((x == Z_PUMP) || 
-	    ((x >= Z_POWERLINE) && (x <= Z_POWERROAD_PVER)) ? 1 : 0);
+	return 
+	/* ((IsPump(x) || IsPowerLine(x) || IsPowerWater(x) ||
+	    IsSlum(x) || IsCoalPlant(x) || IsNuclearPlant(x) ||
+	    IsFireStation(x) || IsPoliceDept(x) || IsArmyBase(x) ||
+	    IsCommercial(x) || IsResidential(x) || IsIndustrial(x) ||
+	    IsPowerRoad(x) || IsRailPower(x)) ? 1 : 0); */
+	    ((IsPump(x)) ||
+	    ((x >= Z_POWERLINE) && (x <= Z_POWERROAD_PVER)) ||
+	    (IsRailPower(x)) ? 1 : 0);
 }
 
 /*!
@@ -1248,20 +1255,9 @@ CarryPower(welem_t x)
 Int16
 CarryWater(welem_t x)
 {
-	return ((x == Z_PUMP) || ((x >= Z_PIPE_START) && (x <= Z_PIPE_END)) ||
+	return (IsPump(x) || IsPipe(x) ||
 	    ((x >= Z_POWERWATER_START) && (x <= Z_INDUSTRIAL_MAX)) ||
-	    ((x >= Z_PIPEROAD_START) && (x <= Z_PIPEROAD_END)) ? 1 : 0);
-}
-
-/*!
- * \brief Is this node a power line
- * \param x the node entry to query
- * \return true if it's a power line
- */
-Int16
-IsPowerRoad(welem_t x)
-{
-	return (((x >= Z_POWERROAD_START) && (x <= Z_POWERROAD_END)) ? 1 : 0);
+	    IsRoadPipe(x) || IsRailPipe(x) ? 1 : 0);
 }
 
 /*!
@@ -1292,7 +1288,7 @@ IsRoad(welem_t x)
  * \return true if we're a bridge (this is not the same as a road)
  */
 Int16
-IsBridge(welem_t x)
+IsRoadBridge(welem_t x)
 {
 	return (((x >= Z_BRIDGE_START) && (x <= Z_BRIDGE_END)) ? 1 : 0);
 }
@@ -1320,8 +1316,10 @@ ZoneValue(welem_t x)
 		return (0);
 	if ((x >= Z_COMMERCIAL_MIN) && (x <= Z_INDUSTRIAL_MAX))
 		return (1 + ((x - Z_COMMERCIAL_MIN) % 10));
-	if ((x >= Z_ROAD_START) && (x <= Z_ROAD_END))
+	if (IsRoad(x))
 		return ((x - Z_ROAD_START) + 1);
+	if (IsRail(x))
+		return ((x - Z_RAIL_START) + 1);
 	else
 		return (0);
 }
@@ -1344,17 +1342,6 @@ IsPipe(welem_t x)
  */
 Int16
 IsRoadPipe(welem_t x)
-{
-	return (((x >= Z_PIPEROAD_START) && (x <= Z_PIPEROAD_END)) ? 1 : 0);
-}
-
-/*!
- * \brief is the node a road overlapping with water
- * \param x the node to query
- * \return true if the node is a road overlapping with water
- */
-Int16
-IsRoadWater(welem_t x)
 {
 	return (((x >= Z_PIPEROAD_START) && (x <= Z_PIPEROAD_END)) ? 1 : 0);
 }
@@ -1409,7 +1396,73 @@ IsZone(welem_t x, zoneType nType)
 Int16
 IsRoadOrBridge(welem_t x)
 {
-	return (IsRoad(x) || IsBridge(x));
+	return (IsRoad(x) || IsRoadBridge(x));
+}
+
+/*!
+ * \brief is the node Rail
+ * \param x the zone to test
+ * \return true if the zone is rail
+ */
+Int16
+IsRail(welem_t x)
+{
+	return (((x >= Z_RAIL_START) && (x <= Z_RAIL_END)) ? 1 : 0);
+}
+
+/*!
+ * \brief is the node rail overlapping power
+ * \param x the zone to test
+ * \return true of the zone is a rail overlapping with power
+ */
+Int16
+IsRailPower(welem_t x)
+{
+	return (((x >= Z_RAILPOWER_START) && (x <= Z_RAILPOWER_END)) ? 1 : 0);
+}
+
+/*!
+ * \brief is the node rail overlapping with a pipe
+ * \param x the node to test
+ * \return true if the zone is a rail line overlapping with a pipe
+ */
+Int16
+IsRailPipe(welem_t x)
+{
+	return (((x >= Z_RAILPIPE_START) && (x <= Z_RAILPIPE_END)) ? 1 : 0);
+}
+
+/*!
+ * \brief is the node a rail tunnel
+ * \param x the node to test
+ * \return true if the zone is a rail tunnel
+ */
+Int16
+IsRailTunnel(welem_t x)
+{
+	return (((x >= Z_RAILTUNNEL_START) && (x <= Z_RAILTUNNEL_END)) ? 1 : 0);
+}
+
+/*!
+ * \brief is the node a rail line or a tunnel
+ * \param x the node to test
+ * \return true if the node is a rail line or a tunnel
+ */
+Int16
+IsRailOrTunnel(welem_t x)
+{
+	return (IsRail(x) || IsRailTunnel(x));
+}
+
+/*!
+ * \brief is the node a rail track overlapping with a road
+ * \param x the node to test
+ * \return true if the case is true
+ */
+Int16
+IsRailOvRoad(welem_t x)
+{
+	return (((x >= Z_RAILOVROAD_START) && (x <= Z_RAILOVROAD_END)) ? 1 : 0);
 }
 
 /*!

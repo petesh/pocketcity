@@ -47,21 +47,22 @@
 #define	gi_buildCommercial 1102
 #define	gi_buildIndustrial 1103
 #define	gi_buildRoad 1104
+#define	gi_buildRail 1105
 
-#define	gi_buildPowerPlant 1105
-#define	gi_buildNuclearPlant 1106
-#define	gi_buildPowerLine 1107
+#define	gi_buildPowerPlant 1106
+#define	gi_buildNuclearPlant 1107
+#define	gi_buildPowerLine 1108
 
-#define	gi_buildWaterPlant 1108
-#define	gi_buildWaterPipe 1109
+#define	gi_buildWaterPlant 1109
+#define	gi_buildWaterPipe 1110
 
-#define	gi_buildTree 1110
-#define	gi_buildWater 1111
-#define	gi_defenceFire 1112
-#define	gi_defencePolice 1113
-#define	gi_defenceMilitary 1114
-#define	gi_queryItem 1115
-#define	gi_buildExtra 1116
+#define	gi_buildTree 1111
+#define	gi_buildWater 1112
+#define	gi_defenceFire 1113
+#define	gi_defencePolice 1114
+#define	gi_defenceMilitary 1115
+#define	gi_queryItem 1116
+#define	gi_buildExtra 1117
 
 #define	listID_shifter_popup 5000
 #define	listID_shifter 5001
@@ -76,24 +77,25 @@
 #define	bitmapID_iconCommercial 1102
 #define	bitmapID_iconIndustrial 1103
 #define	bitmapID_iconRoad 1104
-#define	bitmapID_iconPowerPlant 1105
-#define	bitmapID_iconNuclear 1106
-#define	bitmapID_iconPowerline 1107
+#define	bitmapID_iconRail 1105
+#define	bitmapID_iconPowerPlant 1106
+#define	bitmapID_iconNuclear 1107
+#define	bitmapID_iconPowerline 1108
 
-#define	bitmapID_iconWaterPlant 1108
-#define	bitmapID_iconWaterPipe 1109
+#define	bitmapID_iconWaterPlant 1109
+#define	bitmapID_iconWaterPipe 1110
 
-#define	bitmapID_iconTree 1110
-#define	bitmapID_iconWater 1111
+#define	bitmapID_iconTree 1111
+#define	bitmapID_iconWater 1112
 
-#define	bitmapID_iconDefFire 1112
-#define	bitmapID_iconDefPolice 1113
-#define	bitmapID_iconDefMilitary 1114
+#define	bitmapID_iconDefFire 1113
+#define	bitmapID_iconDefPolice 1114
+#define	bitmapID_iconDefMilitary 1115
 
-#define	bitmapID_iconQuery 1115
+#define	bitmapID_iconQuery 1116
 
 /* anything after this isn't on the toolbar */
-#define	bitmapID_iconExtra 1116
+#define	bitmapID_iconExtra 1117
 
 /* Make sure this keeps in sync with the iconExtra */
 #define	OFFSET_EXTRA (bitmapID_iconExtra-bitmapID_iconBulldoze)
@@ -267,31 +269,36 @@
 #define	si_empty_land	1
 #define	si_power_line	2
 #define	si_road		3
-#define	si_realwater	4
-#define	si_forest	5
-#define	si_maprender	6
-#define	si_fakewater	7
-#define	si_faketree	8
-#define	si_pump		9
-#define	si_waste	10
-#define	si_fire		11
-#define	si_crater	12
-#define	si_pipe		13
-#define	si_powerline	14
-#define	si_powerwater	15
-#define	si_commercialslum	16
-#define	si_residentialslum	17
-#define	si_industrialslum	18
-#define	si_coalplant	19
-#define	si_nuclearplant	20
-#define	si_firestation	21
-#define	si_policedept	22
-#define	si_armybase	23
-#define	si_commercial	24
-#define	si_residential	25
-#define	si_industrial	26
-#define	si_powerroad	27
-#define	si_piperoad	28
-#define si_bridge	29
-#define si_carries	30
-#define si_needs	31
+#define	si_rail		4
+#define	si_realwater	5
+#define	si_forest	6
+#define	si_maprender	7
+#define	si_fakewater	8
+#define	si_faketree	9
+#define	si_pump		10
+#define	si_waste	11
+#define	si_fire		12
+#define	si_crater	13
+#define	si_pipe		14
+#define	si_powerline	15
+#define	si_powerwater	16
+#define	si_commercialslum	17
+#define	si_residentialslum	18
+#define	si_industrialslum	19
+#define	si_coalplant	20
+#define	si_nuclearplant	21
+#define	si_firestation	22
+#define	si_policedept	23
+#define	si_armybase	24
+#define	si_commercial	25
+#define	si_residential	26
+#define	si_industrial	27
+#define	si_powerroad	28
+#define	si_piperoad	29
+#define si_bridge	30
+#define	si_railpower	31
+#define	si_railpipe	32
+#define	si_railovroad	33
+#define si_railtunnel	34
+#define si_carries	35
+#define si_needs	36

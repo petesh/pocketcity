@@ -41,19 +41,27 @@ UInt32 getPopulation(void);
 Int16 IsRoad(welem_t x);
 Int16 IsRoadPower(welem_t x);
 Int16 IsRoadPipe(welem_t x);
+Int16 IsRoadBridge(welem_t x);
+Int16 IsRoadOrBridge(welem_t x);
+
+Int16 IsRail(welem_t x);
+Int16 IsRailPower(welem_t x);
+Int16 IsRailPipe(welem_t x);
+Int16 IsRailTunnel(welem_t x);
+Int16 IsRailOrTunnel(welem_t x);
+
+Int16 IsRailOvRoad(welem_t x);
+
 Int16 IsPowerWater(welem_t x);
 
 Int16 ZoneValue(welem_t x);
 Int16 IsPipe(welem_t x);
-Int16 IsBridge(welem_t x);
 Int16 IsPowerLine(welem_t x);
-Int16 IsRoadPower(welem_t x);
 Int16 IsWaterPipe(welem_t x);
-Int16 IsRoadWater(welem_t x);
-Int16 IsBridge(welem_t x);
-Int16 IsRoadOrBridge(welem_t x);
 Int16 IsZone(welem_t x, zoneType nType);
-#define IsRealWater(X)	(X == Z_REALWATER)
+
+#define IsRealWater(X)	((X) == Z_REALWATER)
+#define IsPump(X) ((X) == Z_PUMP)
 
 #define DIR_UP		(1<<0)
 #define	DIR_DOWN	(1<<1)

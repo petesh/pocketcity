@@ -296,7 +296,8 @@ drawing_realized_callback(GtkWidget *widget __attribute__((unused)),
     gpointer data __attribute__((unused)))
 {
 	PCityMain();
-	NewGame();
+	InitGameStruct();
+	ConfigureNewGame();
 	ResizeCheck(320, 240);
 	return (FALSE);
 }

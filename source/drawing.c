@@ -307,9 +307,9 @@ GetGraphicNumber(UInt32 pos)
 		retval = GetSpecialGraphicNumber(pos);
 	} else if (IsWaterPipe(retval)) {
 		retval = GetSpecialGraphicNumber(pos);
-	} /* else if (IsBridge(retval)) {
+	} else if (IsRail(retval)) {
 		retval = GetSpecialGraphicNumber(pos);
-	} */
+	}
 	return (retval);
 }
 
@@ -333,23 +333,23 @@ GetSpecialGraphicNumber(UInt32 pos)
 	if (IsRoad(wpe)) {
 		if (pos >= GetMapWidth()) {
 			elt = GetWorld(pos - GetMapWidth());
-			a = IsRoad(elt) || IsBridge(elt) || IsRoadPower(elt) ||
-			    IsRoadWater(elt);
+			a = IsRoad(elt) || IsRoadBridge(elt) ||
+			    IsRoadPower(elt) || IsRoadPipe(elt);
 		}
 		if (pos < (unsigned long)(MapMul() - GetMapWidth()))
 			elt = GetWorld(pos + GetMapWidth());
-			c = IsRoad(elt) || IsBridge(elt) || IsRoadPower(elt) ||
-			    IsRoadWater(elt);
+			c = IsRoad(elt) || IsRoadBridge(elt) ||
+			    IsRoadPower(elt) || IsRoadPipe(elt);
 		if ((unsigned long)(pos % GetMapWidth()) <
 		    (unsigned long)(GetMapWidth() - 1)) {
 		    	elt = GetWorld(pos + 1);
-			b = IsRoad(elt) || IsBridge(elt) || IsRoadPower(elt) ||
-			    IsRoadWater(elt);
+			b = IsRoad(elt) || IsRoadBridge(elt) ||
+			    IsRoadPower(elt) || IsRoadPipe(elt);
 		}
 		if (pos % GetMapWidth() > 0) {
 			elt = GetWorld(pos - 1);
-			d = IsRoad(elt) || IsBridge(elt) || IsRoadPower(elt) ||
-			    IsRoadWater(elt);
+			d = IsRoad(elt) || IsRoadBridge(elt) ||
+			    IsRoadPower(elt) || IsRoadPipe(elt);
 		}
 		nAddMe = Z_ROAD_START;
 	} else if (IsPipe(wpe)) {
@@ -370,18 +370,29 @@ GetSpecialGraphicNumber(UInt32 pos)
 			b = CarryPower(GetWorld(pos+1));
 		if (pos % GetMapWidth() > 0) d = CarryPower(GetWorld(pos - 1));
 		nAddMe = Z_POWERLINE;
-	}
-	/* else if (IsBridge(wpe)) {
+	} else if (IsRail(wpe)) {
 		if (pos >= GetMapWidth()) {
 			elt = GetWorld(pos - GetMapWidth());
-			a = IsRoad(elt) || IsBridge(elt);
+			a = IsRail(elt) || IsRailTunnel(elt) ||
+			    IsRailPower(elt) || IsRailPipe(elt);
 		}
-		if (pos < (unsigned long)(MapMul() - GetMapWidth())) {
+		if (pos < (unsigned long)(MapMul() - GetMapWidth()))
 			elt = GetWorld(pos + GetMapWidth());
-			c = IsRoad(elt) || IsBridge(elt);
+			c = IsRail(elt) || IsRailTunnel(elt) ||
+			    IsRailPower(elt) || IsRailPipe(elt);
+		if ((unsigned long)(pos % GetMapWidth()) <
+		    (unsigned long)(GetMapWidth() - 1)) {
+		    	elt = GetWorld(pos + 1);
+			b = IsRail(elt) || IsRailTunnel(elt) ||
+			    IsRailPower(elt) || IsRailPipe(elt);
 		}
-		nAddMe = Z_BRIDGE_START;
-	} */
+		if (pos % GetMapWidth() > 0) {
+			elt = GetWorld(pos - 1);
+			d = IsRail(elt) || IsRailTunnel(elt) ||
+			    IsRailPower(elt) || IsRailPipe(elt);
+		}
+		nAddMe = Z_RAIL_START;
+	}
 
 	if ((a && b && c && d) == 1)
 		return (10 + nAddMe);

@@ -10,6 +10,7 @@ bitmapID_iconResidential|graphic/icons/residential.bmp||graphic/icons-color/resi
 bitmapID_iconCommercial|graphic/icons/commercial.bmp||graphic/icons-color/commercial.bmp|graphic/icons-color/commercial.bmp
 bitmapID_iconIndustrial|graphic/icons/industrial.bmp||graphic/icons-color/industrial.bmp|graphic/icons-color/industrial.bmp
 bitmapID_iconRoad|graphic/icons/road.bmp||graphic/icons-color/road.bmp|graphic/icons-color/road.bmp
+bitmapID_iconRail|graphic/icons/rail.bmp||graphic/icons/rail.bmp|graphic/icons/rail.bmp
 bitmapID_iconPowerPlant|graphic/icons/powerplant.bmp||graphic/icons-color/powerplant.bmp|graphic/icons-color/powerplant.bmp
 bitmapID_iconNuclear|graphic/icons/nuclear.bmp||graphic/icons-color/nuclear.bmp|graphic/icons-color/nuclear.bmp
 bitmapID_iconPowerline|graphic/icons/powerline.bmp||graphic/icons-color/powerline.bmp|graphic/icons-color/powerline.bmp

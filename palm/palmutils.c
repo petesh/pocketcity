@@ -319,9 +319,11 @@ FillStringList(UInt16 resID, UInt16 *length)
 	lom = (Char *)MemPtrNew(sizeof (*lom) * maxlen);
 	rv[0] = lom;
 	while (atitem < max) {
+		UInt16 sli;
 		SysStringByIndex(resID, atitem, item, 200);
-		StrNCopy(rv[atitem], item, 200);
-		rv[atitem+1] = rv[atitem] + (StrLen(item)+1);
+		sli = StrLen(item);
+		StrNCopy(rv[atitem], item, sli);
+		rv[atitem + 1] = rv[atitem] + (sli + 1);
 		atitem++;
 	}
 	*length = max;

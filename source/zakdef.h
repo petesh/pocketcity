@@ -369,6 +369,8 @@ typedef enum {
 	bc_cashflow, /*!< cashflow value */
 	bc_pollution, /*!< pollution valuation */
 	bc_crime, /*!< Criminal level */
+	bc_count_rail, /*!< Count of rail zones */
+	bc_value_rail, /*!< Value of rail zones */
 	bc_tail		/*!< tail ender */
 } BuildCount;
 

@@ -10,6 +10,7 @@
 
 #include <zakdef.h>
 #include <appconfig.h>
+#include <sections.h>
 
 /*!
  * \brief The codes that are mapped for building items.
@@ -23,6 +24,7 @@ typedef enum {
 	Be_Zone_Commercial,
 	Be_Zone_Industrial,
 	Be_Road,
+	Be_Rail,
 	Be_Power_Plant,
 	Be_Nuclear_Plant,
 	Be_Power_Line,
@@ -61,6 +63,12 @@ typedef enum {
 #define	BUILD_COST_WATER			200
 /*! \brief The cost of building a bridge (over water) */
 #define	BUILD_COST_BRIDGE		   100
+
+/*! \brief Cost of building a rail line */
+#define BUILD_COST_RAIL			25
+/*! \brief cost of building a rail tunnel */
+#define BUILD_COST_RAILTUNNEL		125
+
 /*! \brief The cost of building a fire station */
 #define	BUILD_COST_FIRE_STATION	 700
 /*! \brief The cost of building a police station */
