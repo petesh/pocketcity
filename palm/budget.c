@@ -101,6 +101,9 @@ budgetSetup(void)
     struct updateentity *entityp = (struct updateentity *)&entity[0];
 
     form = FrmGetActiveForm();
+    /*
+     * Allocate 12 characters for each budget label in one place
+     */
     temp = MemPtrNew(12 * (sizeof (entity) / sizeof (entity[0])));
 
     while (entityp->formatstr != NULL) {

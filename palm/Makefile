@@ -1,4 +1,6 @@
 
+PLATFORM = PALM
+
 CC = m68k-palmos-gcc
 AWK = gawk
 MULTIGEN = m68k-palmos-multigen
@@ -7,13 +9,18 @@ RC = pilrc
 VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 
 RCFLAGS = -q
-CFLAGS = -O2 -Wall -DPALM -I . -I ../source
-#LDFLAGS = -T text_64k
+
+OPTFLAGS = -O2
+WARNFLAGS = -Wall -Werror-implicit-function-declaration
+INCLUDES = -I . -I ../source
+DEFINES = -D$(PLATFORM)
+
+CFLAGS = $(OPTFLAGS) $(WARNFLAGS) $(DEFINES) $(INCLUDES)
 LDLIBS =
 OBJECTS = stack.o simcity.o handler.o drawing.o globals.o build.o \
-	simulation.o HiRes.o savegame.o disaster.o palmutils.o \
+	simulation.o HiRes.o disaster.o palmutils.o savegame_be.o \
 	pcity-sections.o \
-	options.o map.o budget.o query.o
+	options.o map.o budget.o query.o savegame.o
 PROGNAME = "Pocket City"
 PROGTOKEN = PCit
 PRCTARGETS = pcity pcity-grey pcity-color mg-pcity

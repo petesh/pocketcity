@@ -55,6 +55,7 @@ hQuery(EventPtr event)
 
 /*
  * Convert a zone type into a display string.
+ * Probably should ahve an array of all zone entries -> zonetype
  */
 static void
 zonetoPtr(UInt8 type, Char *zonemesg)

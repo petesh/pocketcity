@@ -200,6 +200,8 @@ enum DefenceUnitTypes {
     DuFireman = 0, DuPolice, DuMilitary
 };
 
+#define	CITYNAMELEN 20
+
 /*
  * this is the central game struct only one of this exists at a time
  * and is called 'game'. This entire struct will be saved between games.
@@ -221,7 +223,7 @@ typedef struct _game_struct05 {
     UInt8           tax;                /* Tax rate */
     UInt8           auto_bulldoze;      /* was _tilesize ... Deprecated */
     UInt16          gameLoopSeconds;    /* Speed */
-    Int8            cityname[20];       /* Name of city */
+    Int8            cityname[CITYNAMELEN]; /* Name of city */
     UInt8           upkeep[3];          /* upkeep %ages for bits */
     UInt8           diff_disaster;      /* rate of disasters */
     DefenceUnit     units[10];          /* Defence Units */
