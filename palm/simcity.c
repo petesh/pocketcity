@@ -63,6 +63,7 @@ static void initTextPositions(void);
 static void _UIGetFieldToBuildOn(int x, int y);
 static Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags);
 extern void UIDrawLoc(void);
+static void cycleSpeed(void);
 
 UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 {
@@ -326,14 +327,7 @@ static Boolean hPocketCity(EventPtr event)
             break;
         } else if ((event->screenX >= (sWidth - 12)) && (event->screenY < 12)) {
             // click was on change speed
-            switch (game.gameLoopSeconds) {
-            case SPEED_PAUSED:
-                game.gameLoopSeconds = SPEED_MEDIUM;
-                break;
-            default:
-                game.gameLoopSeconds = SPEED_PAUSED;
-                break;
-            }
+            cycleSpeed();
             UIDrawPop();
         } else if (event->screenX < 12 && event->screenY < 12) {
             // click was on change production
@@ -1437,4 +1431,26 @@ extern void UIWriteLog(char * s)
         HostFClose(hf);
     }
 #endif
+}
+
+static void
+cycleSpeed(void)
+{
+    static struct fromto {
+        UInt32 from, to;
+    } ft[] = {
+        {SPEED_PAUSED, SPEED_SLOW},
+        {SPEED_SLOW, SPEED_MEDIUM},
+        {SPEED_MEDIUM, SPEED_FAST},
+        {SPEED_FAST, SPEED_TURBO},
+        {SPEED_TURBO, SPEED_PAUSED}
+    };
+
+    int i;
+    for (i = 0; i < (sizeof (ft) / sizeof (ft[0])); i++) {
+        if (ft[i].from == game.gameLoopSeconds) {
+            game.gameLoopSeconds = ft[i].to;
+            break;
+        }
+    }
 }
