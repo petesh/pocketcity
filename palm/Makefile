@@ -1,6 +1,7 @@
 
 CC = m68k-palmos-gcc
 CFLAGS = -O2 -Wall -DPALM
+LDLIBS =
 OBJECTS = simcity.o handler.o drawing.o globals.o build.o simulation.o \
 	HiRes.o savegame.o disaster.o map.o budget.o
 PROGNAME = "Pocket City"
@@ -84,7 +85,7 @@ game.stm: game.rcp
 #### actual source
 
 simcity: $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o simcity
+	$(CC) $(CFLAGS) $(OBJECTS) -o simcity $(LDLIBS)
 
 simcity.o: simcity.c simcity.h ../source/handler.h ../source/ui.h \
 	../source/zakdef.h
@@ -101,7 +102,7 @@ sy/:
 	@-[ -d "$@" ] || mkdir -p $@
 
 sy/simcity: $(SYOBJECTS)
-	$(CC) $(HCFLAGS) $(CFLAGS) $(SYOBJECTS) -o $@
+	$(CC) $(HCFLAGS) $(CFLAGS) $(SYOBJECTS) -o $@ $(LDLIBS)
 
 sy/simcity.o: simcity.c simcity.h ../source/handler.h ../source/ui.h \
 	../source/zakdef.h
