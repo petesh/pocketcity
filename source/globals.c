@@ -1,3 +1,4 @@
+#include "zakdef.h"
 int mapsize = 100;
 int map_xpos = 50;
 int map_ypos = 50;
@@ -12,6 +13,7 @@ short updatePowerGrid = 1;
 
 short unsigned int SIM_GAME_LOOP_SECONDS = 0;
 int tax = 8;
+MoveableObject objects[10];
 
 #ifdef __palmos__
 int TILE_SIZE = 16;

@@ -14,6 +14,7 @@ void CreateWaste(int x, int y);
 
 extern void DoNastyStuffTo(int type, unsigned int probability)
 {
+    // nasty stuff means: turn it into wasteland
     long unsigned int randomTile;
     int i,x,y;
 
@@ -51,18 +52,22 @@ extern void DoRandomDisaster(void)
             type != TYPE_REAL_WATER) {
             x = randomTile % mapsize;
             y = randomTile / mapsize;
-            switch(GetRandomNumber(50))
+            switch(GetRandomNumber(250))
             {
                 case 1:
                     if (BurnField(x,y)) {
                         UIDisplayError(ERROR_FIRE_OUTBREAK);
                     }
                     break;
+                case 2:
+                    if (CreateMonster(x,y)) {
+                        //TODO: display diaster warning
+                    }
                 default:
                     break;
             }
             UnlockWorld();
-            return; // only one disaster per turn
+            return; // only one chance for disaster per turn
         }
     }
     UnlockWorld();
@@ -146,4 +151,103 @@ extern int BurnField(int x, int y)
     }
     UnlockWorld();
     return 0;
+}
+
+
+extern int CreateMonster(int x, int y)
+{
+    // return true on success, false on error
+    int type;
+    LockWorld();
+    type = GetWorld(WORLDPOS(x,y));
+    UnlockWorld();
+    if (type != TYPE_REAL_WATER) {
+        objects[OBJ_MONSTER].x = x;
+        objects[OBJ_MONSTER].y = y;
+        objects[OBJ_MONSTER].dir = GetRandomNumber(8);
+        objects[OBJ_MONSTER].active = 1;
+        DrawField(x,y);
+        return 1;
+    }
+    return 0;
+}
+
+extern void MoveAllObjects(void)
+{
+    int i,x,y;
+    for (i=0; i<NUM_OF_OBJECTS; i++) {
+        if (objects[i].active != 0) {
+            // hmm, is this thing destructive?
+            if (i == OBJ_MONSTER) {
+                // sure it is :D
+                if (!BurnField(objects[i].x, objects[i].y)) {
+                    CreateWaste(objects[i].x, objects[i].y);
+                }
+            }
+            x = objects[i].x; // save old position
+            y = objects[i].y;
+
+            switch(GetRandomNumber(OBJ_CHANCE_OF_TURNING))
+            { // should we let it turn?
+                case 1: // yes, clockwise
+                    objects[i].dir = (objects[i].dir+1)%8;
+                    UIWriteLog("Turning clockwise\n");
+                    break;
+                case 2: // yes, counter-clockwise
+                    objects[i].dir = (objects[i].dir+7)%8;
+                    UIWriteLog("Turning counter-clockwise\n");
+                    break;
+                default: // nope
+                    break; 
+            }
+            // now move it a nod
+            switch(objects[i].dir) { // first up/down
+                case 0: // up
+                case 1: // up-right
+                case 7: // up-left
+                    if (objects[i].y > 0) {
+                        objects[i].y--;
+                    } else {
+                        objects[i].dir = 4;
+                    }
+                    break;
+                case 3: // down-right
+                case 4: // down
+                case 5: // down-left
+                    if (objects[i].y < mapsize-1) { 
+                        objects[i].y++; 
+                    } else {
+                        objects[i].dir = 0;
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            switch(objects[i].dir) { // then left/right
+                case 1: // up-right
+                case 2: // right
+                case 3: // down-right
+                    if (objects[i].x < mapsize-1) { 
+                        objects[i].x++; 
+                    } else {
+                        objects[i].dir = 6;
+                    }
+                    break;
+                case 5: // down-left
+                case 6: // left
+                case 7: // up-left
+                    if (objects[i].x > 0) { 
+                        objects[i].x--; 
+                    } else {
+                        objects[i].dir = 2;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            DrawCross(x, y); // draw where it came from (erase it)
+            DrawField(objects[i].x, objects[i].y); // draw object
+        }
+    }
 }

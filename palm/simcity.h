@@ -108,4 +108,5 @@ extern void UIWriteLog(char * s);
 #define buttonID_FilesNewCancel        1012
 
 #define bitmapID_zones      1600
+#define bitmapID_monsters   1601
 

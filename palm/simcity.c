@@ -12,6 +12,7 @@
 #include "../source/handler.h"
 #include "../source/globals.h"
 #include "../source/simulation.h"
+#include "../source/disaster.h"
 
 #ifdef DEBUG
 #include <HostControl.h>
@@ -23,6 +24,7 @@ MemPtr worldPtr;
 MemPtr worldFlagsPtr;
 RectangleType rPlayGround;
 WinHandle winZones;
+WinHandle winMonsters;
 unsigned char nSelectedBuildItem = 0;
 unsigned char nPreviousBuildItem = 0;
 short int game_in_progress = 0;
@@ -125,6 +127,10 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
                 {
                     UIWriteLog("Setting drawing to 1\n");
                     DoDrawing = 1;
+                    RedrawAllFields(); //update screen with after menu etc.
+                } else {
+                    UIWriteLog("Setting drawing to 0\n");
+                    DoDrawing = 0;
                 }
             }
 
@@ -147,18 +153,24 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
                 }
             }
 
-            // do a disaster update every 2 secound nomatter what
-            // we don't want the (l)user to get help by pausing the game
+            // Do a disaster update every 2 secound nomatter what.
+            // We don't want the (l)user to get help by pausing the game
             // (not realistic enough) - TODO: Pause should be enabled on
             // 'easy' difficulty.
             if (game_in_progress == 1 && building == 0) {
                 timeTemp = TimGetSeconds();
                 if (timeTemp >= timeStampDisaster+SIM_GAME_LOOP_DISASTER) {
                     UIWriteLog("Disaster update\n");
+                    MoveAllObjects();
                     if (UpdateDisasters()) {
                         RedrawAllFields();
                     }
                     timeStampDisaster = timeTemp;
+                    // TODO: Tthis would be the place to create animation...
+                    // perhaps with a second offscreen window for the
+                    // second animation frame of each zone
+                    // Then swap the winZones between the two,
+                    // and do the RedrawAllFields() from above here
                 }
             }
             
@@ -214,17 +226,27 @@ void _PalmInit(void)
     winZones = WinCreateOffscreenWindow(1024, 32, genericFormat,&err); //space for 64*2=128 zones
     if (err != errNone) {
         // TODO: alert user, and quit program
-        UIWriteLog("Offscreen window failed\n");
-        if (err == sysErrNoFreeResource) {
-            UIWriteLog("^- no free resources\n");
-        }
+        UIWriteLog("Offscreen window for zones failed\n");
     }
     winHandle = WinSetDrawWindow(winZones);
     // draw the bitmap into the offscreen window
     WinDrawBitmap(bitmap, 0, 0);
-
-    // clean up 
     MemHandleUnlock(bitmaphandle);
+
+
+    // now, ditto for the monsters
+    bitmaphandle = DmGet1Resource( TBMP, bitmapID_monsters);
+    bitmap = MemHandleLock(bitmaphandle);
+    winMonsters = WinCreateOffscreenWindow(128,32,genericFormat,&err);
+    if (err != errNone) {
+        // TODO: alert user, and quit program
+        UIWriteLog("Offscreen window for monsters failed\n");
+    }
+    WinSetDrawWindow(winMonsters); // note we don't save the old winhandle here
+    WinDrawBitmap(bitmap,0,0);
+    MemHandleUnlock(bitmaphandle);
+    
+    // clean up 
     WinSetDrawWindow(winHandle);
 }
 
@@ -451,8 +473,9 @@ static Boolean hPocketCity(EventPtr event)
             break;
         case penUpEvent:
             building = 0;
-            timeStamp = TimGetSeconds(); // so the simulation routine won't kick in right away
-            timeStampDisaster = timeStamp; // ditto
+            timeStamp = TimGetSeconds()-SIM_GAME_LOOP_SECONDS+2; 
+                    // so the simulation routine won't kick in right away
+            timeStampDisaster = timeStamp-SIM_GAME_LOOP_DISASTER+1; // ditto
             handled = 1;
             break;
         case menuEvent:
@@ -468,7 +491,7 @@ static Boolean hPocketCity(EventPtr event)
                         // change this to whatever testing you're doing ;)
                         // just handy with a 'trigger' button for testing
                         // ie. disaters
-                        BurnField(5,5);
+                        CreateMonster(5,5);
                         handled = 1;
                         break;
                     case menuitemID_Map:
@@ -548,6 +571,11 @@ static Boolean hPocketCity(EventPtr event)
                         handled = 1;
                     }
                     break;
+                case vchrFind:
+                    /* goto map */
+                    SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
+                    FrmGotoForm(formID_map);
+                    break;
                 case pageUpChr:
                     /* scroll map up */
                     ScrollMap(0);
@@ -604,6 +632,14 @@ static Boolean hQuickList(EventPtr event)
             break;      
         case frmCloseEvent:
             break;      
+        case keyDownEvent:
+            switch (event->data.keyDown.chr)
+            {
+                case vchrCalc:
+                    /* close the quicksheet */
+                    FrmReturnToForm(0);
+                    break;
+            }
         default:
             break;
     }
@@ -680,7 +716,7 @@ void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth)
 
     RectangleType rect;
 
-    if (DoDrawing == 0) { return; }
+//    if (DoDrawing == 0) { return; }
 
     rect.topLeft.x = nLeft;
     rect.topLeft.y = nTop;
@@ -738,13 +774,29 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
             winOverlay);
 }
 
+extern void UIDrawSpecialObject(int i, int xpos, int ypos)
+{
+    RectangleType rect;
+    if (DoDrawing == 0) { return; }
+    
+    rect.topLeft.x = (objects[i].dir)*TILE_SIZE;
+    rect.topLeft.y = i*TILE_SIZE;
+    rect.extent.x = TILE_SIZE;
+    rect.extent.y = TILE_SIZE;
+
+    WinCopyRectangle(
+            winMonsters,
+            WinGetActiveWindow(),
+            &rect,
+            xpos*TILE_SIZE+XOFFSET,
+            ypos*TILE_SIZE+YOFFSET,
+            winOverlay);
+
+}
 
 extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
 {
     RectangleType rect;
-//    char temp[100];
-//    StrPrintF(temp,"Drawing %i at (%i,%i)\n",nGraphic, xpos,ypos);
-//    UIWriteLog(temp);
     
     if (DoDrawing == 0) { return; }
 
@@ -761,7 +813,6 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
             xpos*TILE_SIZE+XOFFSET,
             ypos*TILE_SIZE+YOFFSET,
             winPaint);
-
 }
 
 

@@ -1,3 +1,6 @@
+#ifndef INCLUDE_ZAKDEF_H
+#define INCLUDE_ZAKDEF_H
+
 #define TBMP 1415736688
 
 #define SIM_GAME_LOOP_DISASTER  2
@@ -55,3 +58,21 @@
 #define UPKEEP_POWERPLANT       200
 
 #define WORLDPOS(x,y)		(x+y*mapsize)
+
+
+// moveable objects
+#define NUM_OF_OBJECTS          1
+#define OBJ_CHANCE_OF_TURNING   5 // must be at least 3
+typedef struct _moveable_object {
+        unsigned short x;
+        unsigned short y;
+        unsigned short dir;
+        unsigned short active;
+} MoveableObject;
+
+enum Objects {  OBJ_MONSTER,
+                OBJ_CHOPPER, // not done
+                OBJ_SHIP,    // not done
+                OBJ_TRAIN};  // not done
+
+#endif

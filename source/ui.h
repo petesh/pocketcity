@@ -19,6 +19,7 @@ extern void UIScrollMap(int direction);
 
 
 extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic);
+extern void UIDrawSpecialObject(int i, int xpos, int ypos);
 extern void UIDrawCursor(int xpos, int ypos);
 extern void UIDrawPowerLoss(int xpos, int ypos);
 extern unsigned char UIGetSelectedBuildItem(void);

@@ -1,3 +1,5 @@
+#include "zakdef.h"
+
 extern int mapsize;
 extern int visible_x;
 extern int visible_y;
@@ -20,3 +22,7 @@ extern char* GetDate(char * temp);
 extern void UIDrawPop(void);
 extern void UIDoTaxes(void);
 
+
+
+
+extern MoveableObject objects[10];

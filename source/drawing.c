@@ -102,7 +102,13 @@ extern void MoveCursor(int direction)
 extern void DrawField(int xpos, int ypos)
 {
     UIInitDrawing();
+    LockWorld();
+    LockWorldFlags();
+
     DrawFieldWithoutInit(xpos, ypos);
+    
+    UnlockWorldFlags();
+    UnlockWorld();
     UIFinishDrawing();
 }
 
@@ -129,6 +135,7 @@ extern void DrawCross(int xpos, int ypos)
 // Also remember to call (Un)lockWorld(flags) (4 functions)
 extern void DrawFieldWithoutInit(int xpos, int ypos)
 {
+    int i;
     if (xpos < map_xpos ||
             xpos >= map_xpos+visible_x ||
             ypos < map_ypos ||
@@ -149,10 +156,16 @@ extern void DrawFieldWithoutInit(int xpos, int ypos)
         UIDrawCursor(cursor_xpos-map_xpos, cursor_ypos-map_ypos);
     }
 
+    // draw monster
+    for (i=0; i<NUM_OF_OBJECTS; i++) {
+        if (xpos == objects[i].x &&
+            ypos == objects[i].y &&
+            objects[i].active != 0) {
+            UIDrawSpecialObject(i, xpos - map_xpos, ypos - map_ypos);
+        }
+    }
+
 }
-
-
-
 
 unsigned char GetGraphicNumber(long unsigned int pos)
 {
