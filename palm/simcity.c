@@ -17,6 +17,7 @@ MemPtr worldPtr;
 MemPtr worldFlagsPtr;
 RectangleType rPlayGround;
 unsigned char nSelectedBuildItem = 0;
+unsigned char nPreviousBuildItem = 0;
 
 short int lowShown = 0;
 short int noShown = 0;
@@ -171,6 +172,15 @@ static Boolean hPocketCity(EventPtr event)
                         break;
                 }
                 UIDrawPop();
+            } else if (event->screenX >= 140 && event->screenY >= 150) {
+                // click was on change production
+                if (nSelectedBuildItem == BUILD_BULLDOZER) {
+                    nSelectedBuildItem = nPreviousBuildItem;
+                } else {
+                    nPreviousBuildItem = nSelectedBuildItem;
+                    nSelectedBuildItem = BUILD_BULLDOZER;
+                }
+                UIUpdateBuildIcon();
             }
             // check for other 'penclicks' here
             break;
@@ -190,6 +200,7 @@ static Boolean hPocketCity(EventPtr event)
             if (event->data.menu.itemID >= menuitemID_buildBulldoze)
             {
                 nSelectedBuildItem = event->data.menu.itemID - menuitemID_buildBulldoze;
+                UIUpdateBuildIcon();
                 handled = 1;
             } else {
                 switch (event->data.menu.itemID)
@@ -433,6 +444,19 @@ extern void UIDrawCredits(void)
     WinDrawChars((char*)temp,StrLen(temp),120,1);
 }
 
+extern void UIUpdateBuildIcon(void)
+{
+    MemHandle bitmaphandle;
+    BitmapPtr bitmap;
+    if (DoDrawing == 0) { return; }
+
+    bitmaphandle = DmGet1Resource(TBMP,bitmapID_iconBulldoze + nSelectedBuildItem);
+    bitmap = MemHandleLock(bitmaphandle);
+    WinPaintBitmap(bitmap,140,150);
+    MemHandleUnlock(bitmaphandle);
+}
+
+
 extern void UIDrawPop(void)
 {
     char temp[50];
@@ -451,7 +475,7 @@ extern void UIDrawPop(void)
 
     rect.topLeft.x = 3;
     rect.topLeft.y = 148;
-    rect.extent.x = 160;
+    rect.extent.x = 137;
     rect.extent.y = 11;
 
     WinEraseRectangle(&rect,0);
@@ -482,42 +506,6 @@ extern void UICheckMoney(void)
         }
     }
 }
-/*
-    extern void UISetTileSize(int size)
-    {
-    if (!(size >= 4 && size <= 6)) { return; }
-
-    switch (size)
-    {
-    case 5: // 16px
-    visible_x = 10;
-    visible_y = 8;
-    TILE_SIZE = 16;
-    XOFFSET = 0;
-    YOFFSET = 15;
-    break;
-    case 6: // 32px
-    visible_x = 5;
-    visible_y = 4;
-    TILE_SIZE = 32;
-    XOFFSET = 0;
-    YOFFSET = 15;
-    break;
-    }
-
-    rPlayGround.topLeft.x = XOFFSET;
-    rPlayGround.topLeft.y = YOFFSET;
-    rPlayGround.extent.x = TILE_SIZE*visible_x;
-    rPlayGround.extent.y = TILE_SIZE*visible_y;
-
-    RedrawAllFields();
-    UIDrawBorder();
-    }
-    */
-
-
-
-
 
 
 

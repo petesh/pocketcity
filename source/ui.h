@@ -12,6 +12,7 @@ extern void UILockScreen(void);
 extern void UIDrawBorder(void);
 extern void UISetUpGraphic(void);
 extern void UIDrawCredits(void);
+extern void UIUpdateBuildIcon(void);
 
 extern void UICheckMoney(void);
 

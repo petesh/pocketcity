@@ -36,6 +36,7 @@ extern void DrawGame(int full)
 
     UIDrawBorder();
     RedrawAllFields();
+    UIUpdateBuildIcon();
     //DrawHeader();
     full = full;
 

@@ -26,6 +26,17 @@
 #define menuitemID_buildTree             1108
 #define menuitemID_buildWater            1109
 
+// notice how the IDs here are the same as the menuIDs
+#define bitmapID_iconBulldoze            1100
+#define bitmapID_iconResidential         1101
+#define bitmapID_iconCommercial          1102
+#define bitmapID_iconIndustrial          1103
+#define bitmapID_iconRoad                1104
+#define bitmapID_iconPowerPlant          1105
+#define bitmapID_iconNuclear             1106
+#define bitmapID_iconPowerline           1107
+#define bitmapID_iconTree                1108
+#define bitmapID_iconWater               1109
 
 #define alertID_errorOutOfMemory         1000
 #define alertID_RomIncompatible          1001

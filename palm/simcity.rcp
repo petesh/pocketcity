@@ -95,3 +95,13 @@ BITMAPFAMILY ID bitmapID_SpeedNormal         "graphic/speed_normal.bmp" "" "" "g
 BITMAPFAMILY ID bitmapID_SpeedFast           "graphic/speed_fast.bmp"   "" "" "graphic/speed_fast-color.bmp"   COMPRESS
 BITMAPFAMILY ID bitmapID_SpeedUltra          "graphic/speed_ultra.bmp"  "" "" "graphic/speed_ultra-color.bmp"  COMPRESS
 
+BITMAPFAMILY ID bitmapID_iconBulldoze        "graphic/icons/bulldozer.bmp"   "" "" "" COMPRESS
+BITMAPFAMILY ID bitmapID_iconResidential     "graphic/icons/residential.bmp" "" "" "" COMPRESS
+BITMAPFAMILY ID bitmapID_iconCommercial      "graphic/icons/commercial.bmp"  "" "" "" COMPRESS
+BITMAPFAMILY ID bitmapID_iconIndustrial      "graphic/icons/industrial.bmp"  "" "" "" COMPRESS
+BITMAPFAMILY ID bitmapID_iconRoad            "graphic/icons/road.bmp"        "" "" "" COMPRESS
+BITMAPFAMILY ID bitmapID_iconPowerPlant      "graphic/icons/powerplant.bmp"  "" "" "" COMPRESS
+BITMAPFAMILY ID bitmapID_iconNuclear         "graphic/icons/nuclear.bmp"     "" "" "" COMPRESS
+BITMAPFAMILY ID bitmapID_iconPowerline       "graphic/icons/powerline.bmp"   "" "" "" COMPRESS
+BITMAPFAMILY ID bitmapID_iconTree            "graphic/icons/tree.bmp"        "" "" "" COMPRESS
+BITMAPFAMILY ID bitmapID_iconWater           "graphic/icons/water.bmp"       "" "" "" COMPRESS
