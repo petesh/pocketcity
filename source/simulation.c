@@ -81,12 +81,19 @@ extern void Sim_Distribute(char type)
         if (GetWorld(i) == TYPE_POWER_PLANT 
                 || GetWorld(i) == TYPE_NUCLEAR_PLANT
                 || GetWorld(i) == TYPE_WATER_PUMP) { // is this a source?
-            if ((GetWorldFlags(i) & (type==0?0x1:0x4)) == 0) { // have we already processed this source?
-                powerleft=0;
-                DistributeMoveOnFromThisPoint(i);
-                for (j=0; j<game.mapsize*game.mapsize; j++) {
-                    SetWorldFlags(j, GetWorldFlags(j) & 0xfd); 
-                }
+
+            powerleft=0;
+            if (GetWorld(i) == TYPE_POWER_PLANT && distributetype==0)   { powerleft += 100; } // if this is a plant 
+            if (GetWorld(i) == TYPE_NUCLEAR_PLANT && distributetype==0) { powerleft += 300; } // we get more power
+            if (GetWorld(i) == TYPE_WATER_PUMP && distributetype==1 
+                && (GetWorldFlags(i)&1)==1 && ExistsNextto(i,TYPE_REAL_WATER))  { powerleft += 200; } // pumps need power and REAL_WATER
+
+            // begin the distribution
+            DistributeMoveOnFromThisPoint(i);
+
+            // prepare for next round
+            for (j=0; j<game.mapsize*game.mapsize; j++) {
+                SetWorldFlags(j, GetWorldFlags(j) & 0xfd); 
             }
         }
     }
@@ -106,15 +113,8 @@ void DistributeMoveOnFromThisPoint(unsigned long pos)
             ((GetWorldFlags(pos) & 0x04) == 0 && distributetype == 1)) {
             /* if this field hasn't been powered, we need to "use" some power
              * to move further along
-             * notice that the powerplantchecks are here, to avoid them from
-             * giving their power everytime we hit one
              */
             powerleft--;
-            if (GetWorld(pos) == TYPE_POWER_PLANT && distributetype==0)   { powerleft += 100; } // if this is a plant 
-            if (GetWorld(pos) == TYPE_NUCLEAR_PLANT && distributetype==0) { powerleft += 300; } // we get more power
-
-            if (GetWorld(pos) == TYPE_WATER_PUMP && distributetype==1 
-                && (GetWorldFlags(pos)&1)==1 && ExistsNextto(pos,TYPE_REAL_WATER))  { powerleft += 200; } // pumps need power and REAL_WATER
         }
 
         // do we have more power left?
@@ -160,8 +160,7 @@ void DistributeMoveOnFromThisPoint(unsigned long pos)
 // to avoid backtracking the route we came from.
 int DistributeFieldCanCarry(unsigned long pos)
 {
-    if ((GetWorldFlags(pos) & 0x02) == 0x02 && distributetype==0) { return 0; } // allready been here with this plant
-    if ((GetWorldFlags(pos) & 0x04) == 0x04 && distributetype==1) { return 0; } // allready been here with this plant
+    if ((GetWorldFlags(pos) & 0x02) == 0x02) { return 0; } // allready been here with this plant
     return distributetype==0?CarryPower(GetWorld(pos)):CarryWater(GetWorld(pos));
 }
 
