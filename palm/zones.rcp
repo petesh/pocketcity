@@ -2,9 +2,6 @@
 #include "simcity.h"
 
 
-BITMAP ID bitmapID_ScrollBars			"graphic/scrollbars.bmp" COMPRESS
-
-
 // Here comes the tiles for 32x32
 
 
@@ -18,16 +15,16 @@ BITMAP ID bitmapID_PowerRoadLeftRight	"graphic/32x32/something.bmp" COMPRESS
 BITMAP ID bitmapID_PowerLoss			"graphic/32x32/powerloss.bmp" COMPRESS
 BITMAP ID bitmapID_PowerLossOverlay		"graphic/32x32/powerloss2.bmp" COMPRESS
 BITMAP ID bitmapID_CursorBmp			"graphic/32x32/something.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadLeftRight		"graphic/32x32/road.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadUpDown			"graphic/32x32/road.bmp" COMPRESS	
+BITMAP ID bitmapID_RoadLeftRight		"graphic/32x32/road01.bmp" COMPRESS	
+BITMAP ID bitmapID_RoadUpDown			"graphic/32x32/road02.bmp" COMPRESS	
 BITMAP ID bitmapID_RoadRightDown		"graphic/32x32/road.bmp" COMPRESS	
 BITMAP ID bitmapID_RoadLeftDown			"graphic/32x32/road.bmp" COMPRESS
 BITMAP ID bitmapID_RoadLeftUp			"graphic/32x32/road.bmp" COMPRESS	
 BITMAP ID bitmapID_RoadRightUp			"graphic/32x32/road.bmp" COMPRESS
-BITMAP ID bitmapID_RoadLeftUpDown		"graphic/32x32/road.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadRightUpDown		"graphic/32x32/road.bmp" COMPRESS
-BITMAP ID bitmapID_RoadRightLeftDown	"graphic/32x32/road.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadRightLeftUp		"graphic/32x32/road.bmp" COMPRESS
+BITMAP ID bitmapID_RoadLeftUpDown		"graphic/32x32/road07.bmp" COMPRESS	
+BITMAP ID bitmapID_RoadRightUpDown		"graphic/32x32/road08.bmp" COMPRESS
+BITMAP ID bitmapID_RoadRightLeftDown	"graphic/32x32/road09.bmp" COMPRESS	
+BITMAP ID bitmapID_RoadRightLeftUp		"graphic/32x32/road10.bmp" COMPRESS
 BITMAP ID bitmapID_RoadCross			"graphic/32x32/road.bmp" COMPRESS	
 BITMAP ID bitmapID_TreeBmp				"graphic/32x32/something.bmp" COMPRESS
 BITMAP ID bitmapID_WaterBmp				"graphic/32x32/something.bmp" COMPRESS

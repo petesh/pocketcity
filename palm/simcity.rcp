@@ -39,8 +39,8 @@ BEGIN
   END
   PULLDOWN "View"
   BEGIN
-	MENUITEM "32px"	menuID_view32
-	MENUITEM "16px" menuID_view16
+	MENUITEM "32px"	menuID_view32	"1"
+	MENUITEM "16px" menuID_view16	"2"
   END
 END
 
