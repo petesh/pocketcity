@@ -9,7 +9,9 @@ BEGIN
 	MENUITEM "Budget"                           menuitemID_Budget "b"
 	MENUITEM "Map"                              menuitemID_Map "m"
 	MENUITEM SEPARATOR
-@@DEBUG@@	MENUITEM "Test"                             menuitemID_Funny
+/* DEBUG>> */
+	MENUITEM "Test"                             menuitemID_Funny
+/* <<DEBUG */
 	MENUITEM "Settings"                      menuitemID_Configuration
 	MENUITEM "Buttons"                      menuitemID_Buttons
   END

@@ -1,5 +1,9 @@
 #include "simcity_resconsts.h"
 
+ICONFAMILY "graphic/pcity.bmp" "" "" "graphic/pcity-color.bmp"
+SMALLICONFAMILY "graphic/pcitysmall.bmp" "" "" "graphic/pcitysmall-color.bmp"
+LAUNCHERCATEGORY ID 1000 "Games"
+
 FORM ID formID_pocketCity AT ( 0 0 160 160 )
 NOFRAME
 USABLE
@@ -8,9 +12,47 @@ MENUID menu_pocketCity
 BEGIN
 END
 
-ICONFAMILY "graphic/pcity.bmp" "" "" "graphic/pcity-color.bmp"
-SMALLICONFAMILY "graphic/pcitysmall.bmp" "" "" "graphic/pcitysmall-color.bmp"
-LAUNCHERCATEGORY ID 1000 "Games"
+MENU ID menu_pocketCity
+BEGIN
+  PULLDOWN "Game"
+  BEGIN
+    MENUITEM "New/Load..."                      menuitemID_loadGame
+	MENUITEM "Save"                             menuitemID_saveGame "s"
+	MENUITEM "Budget"                           menuitemID_Budget "b"
+	MENUITEM "Map"                              menuitemID_Map "m"
+	MENUITEM SEPARATOR
+/* DEBUG>> */
+	MENUITEM "Test"                             menuitemID_Funny
+/* <<DEBUG */
+	MENUITEM "Settings"                      menuitemID_Configuration
+	MENUITEM "Buttons"                      menuitemID_Buttons
+  END
+  PULLDOWN "Build"
+  BEGIN
+	MENUITEM "Remove defence"               mi_removeDefence
+	MENUITEM "List..."                      gi_buildExtra "i"
+	MENUITEM SEPARATOR
+	MENUITEM "Fire"				mi_CauseFire
+	MENUITEM "Meltdown(NYI)"		mi_CauseMeltDown
+	MENUITEM "Mo'zilla"			mi_CauseMonster
+	MENUITEM "Dragon"			mi_CauseDragon
+	MENUITEM "Meteor"			mi_CauseMeteor
+  END
+  PULLDOWN "Speed"
+  BEGIN
+	MENUITEM "Slow"                         menuID_SlowSpeed
+	MENUITEM "Medium"                       menuID_MediumSpeed
+	MENUITEM "Fast"                         menuID_FastSpeed
+	MENUITEM "Turbo"                        menuID_TurboSpeed
+	MENUITEM SEPARATOR
+	MENUITEM "Pause"                        menuID_PauseSpeed
+  END
+  PULLDOWN "Help"
+  BEGIN
+	MENUITEM "Tips"				menuitemID_tips
+	MENUITEM "About"			menuitemID_about
+  END
+END
 
 FORM ID formID_budget AT ( 0 0 160 160 )
 NOFRAME
@@ -131,7 +173,6 @@ BEGIN
     BUTTON "Delete"  ID buttonID_FilesDelete  AT (prevright+4 prevtop AUTO AUTO)
 END
 
-
 FORM ID formID_filesNew AT ( 1 98 158 59 )
 USABLE
 SAVEBEHIND
@@ -221,10 +262,8 @@ USABLE
 NOSAVEBEHIND
 BEGIN
 	TITLE "Configure Buttons"
-	LABEL "Button" AUTOID AT ( 8 16 ) FONT 1
-	LABEL "Function" AUTOID AT ( 100 PREVTOP ) FONT 1
 
-	LABEL "Calendar" AUTOID AT ( 8 PREVBOTTOM+2 )
+	LABEL "Calendar" AUTOID AT ( 8 12 )
 	POPUPTRIGGER "" ID List_Cal_Popup AT ( 100 PREVTOP 40 AUTO ) LEFTANCHOR
 	LIST "" ID List_Cal AT ( 100 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
 	POPUPLIST ID List_Cal_Popup List_Cal
@@ -259,20 +298,22 @@ BEGIN
 	LIST "" ID List_Find AT ( 100 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
 	POPUPLIST ID List_Find_Popup List_Find
 
-@@HIRES@@ LABEL "Jog Up" AUTOID AT ( 8 PREVTOP+12 )
-@@HIRES@@	POPUPTRIGGER "" ID List_JogUp_Popup AT ( 100 PREVTOP 40 AUTO ) LEFTANCHOR
-@@HIRES@@	LIST "" ID List_JogUp AT ( 100 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
-@@HIRES@@	POPUPLIST ID List_JogUp_Popup List_JogUp
+/* HIRES>> */
+	LABEL "Jog Up" AUTOID AT ( 8 PREVTOP+12 )
+	POPUPTRIGGER "" ID List_JogUp_Popup AT ( 100 PREVTOP 40 AUTO ) LEFTANCHOR
+	LIST "" ID List_JogUp AT ( 100 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
+	POPUPLIST ID List_JogUp_Popup List_JogUp
 
-@@HIRES@@	LABEL "Jog Down" AUTOID AT ( 8 PREVTOP+12 )
-@@HIRES@@	POPUPTRIGGER "" ID List_JogDn_Popup AT ( 100 PREVTOP 40 AUTO ) LEFTANCHOR
-@@HIRES@@	LIST "" ID List_JogDn AT ( 100 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
-@@HIRES@@	POPUPLIST ID List_JogDn_Popup List_JogDn
+	LABEL "Jog Down" AUTOID AT ( 8 PREVTOP+12 )
+	POPUPTRIGGER "" ID List_JogDn_Popup AT ( 100 PREVTOP 40 AUTO ) LEFTANCHOR
+	LIST "" ID List_JogDn AT ( 100 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
+	POPUPLIST ID List_JogDn_Popup List_JogDn
 
-@@HIRES@@	LABEL "Jog Out" AUTOID AT ( 8 PREVTOP+12 )
-@@HIRES@@	POPUPTRIGGER "" ID List_JogOut_Popup AT ( 100 PREVTOP 40 AUTO ) LEFTANCHOR
-@@HIRES@@	LIST "" ID List_JogOut AT ( 100 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
-@@HIRES@@	POPUPLIST ID List_JogOut_Popup List_JogOut
+	LABEL "Jog Out" AUTOID AT ( 8 PREVTOP+12 )
+	POPUPTRIGGER "" ID List_JogOut_Popup AT ( 100 PREVTOP 40 AUTO ) LEFTANCHOR
+	LIST "" ID List_JogOut AT ( 100 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
+	POPUPLIST ID List_JogOut_Popup List_JogOut
+/* <<HIRES */
 
 
 	BUTTON "OK" ID buttonID_OK AT ( 8 146 AUTO AUTO )
@@ -392,3 +433,4 @@ BEGIN
     MESSAGE "I've been told to tell you that ^1 has happened. This is bad. I, as a program can't handle this. Quit ASAP!"
     BUTTONS "Oh Well"
 END
+

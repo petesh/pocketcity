@@ -1,6 +1,9 @@
-VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
+
 CC = m68k-palmos-gcc
+AWK = gawk
 MULTIGEN = m68k-palmos-multigen
+
+VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 CFLAGS = -O2 -Wall -DPALM -I . -I ../source
 #LDFLAGS = -T text_64k
 LDLIBS =
@@ -10,8 +13,8 @@ PROGNAME = "Pocket City"
 PROGTOKEN = PCit
 PRCTARGETS = pcity pcity-grey pcity-color mg-pcity
 
-SEDIS = '/@@DEBUG@@/d'
-HRSED = '/@@HIRES@@/d'
+DEBUG=0
+HIRES=0
 
 DSTAMP := $(shell date "+%Y/%m/%d@%H:%M")
 
@@ -44,38 +47,37 @@ cheat: debug
 ##################
 
 debug dhires: CFLAGS += -g -DDEBUG
-debug dhires: SEDIS = 's/@@DEBUG@@//'
-debug dhires: HRSED = 's/@@HIRES@@//'
+debug dhires: DEBUG=1
 
-dhires hires: HCFLAGS = -DSONY_CLIE
-dhires hires: HRSED = 's/@@HIRES@@//'
+hires dhires: HCFLAGS = -DSONY_CLIE
+hires dhires: HIRES=1
 
 #### the different versions
 pcity-%.prc: simcity-%.stm zones-%.stm game.stm version.stm touch.stm \
-		pcitymain.stm pcity
+		pcity
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		pcity temp$*/*.bin temp/*.bin
 
-mg-pcity.prc: game.stm mg.stm version.stm touch.stm pcitymain.stm pcity
+mg-pcity.prc: game.stm mg.stm version.stm touch.stm pcity
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		pcity mg/*.bin temp/*.bin
 
-pcity.prc: simcity.stm zones.stm game.stm version.stm touch.stm pcitymain.stm pcity
+pcity.prc: simcity.stm zones.stm game.stm version.stm touch.stm pcity
 	build-prc -o pcity.prc -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		pcity tempbw/*.bin temp/*.bin
 
 sy-pcity.prc: sy/ game.stm sy/syicons.stm simcity.stm zones.stm \
-		version.stm touch.stm pcitymain.stm sy/pcity
+		version.stm touch.stm sy/pcity
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/pcity tempbw/*.bin temp/*.bin
 
 sy-mg-pcity.prc: sy/ game.stm sy/syicons.stm simcity.stm zones.stm \
-		mg.stm version.stm touch.stm pcitymain.stm sy/pcity
+		mg.stm version.stm touch.stm sy/pcity
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/pcity mg/*.bin temp/*.bin sy/*.bin
 
 sy-pcity-%.prc: sy/ game.stm sy/syicons.stm simcity-%.stm zones-%.stm \
-		version.stm touch.stm pcitymain.stm sy/pcity
+		version.stm touch.stm sy/pcity
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/pcity temp$*/*.bin temp/*.bin sy/*.bin
 
@@ -103,17 +105,11 @@ version.stm: ../CHANGELOG
 	@rm -f version.rcp
 	@echo touching>$@
 
-pcitymain.stm: pcitymain.rcp
-	@sed -e $(SEDIS) pcitymain.rcp > mainmenu.rcp
-	@pilrc -q mainmenu.rcp temp
-	@rm -f mainmenu.rcp
-	@echo $(SEDIS)>$@
-
 game.stm: game.rcp simcity_resconsts.h
-	@sed -e $(HRSED) game.rcp > ngame.rcp
+	@$(AWK) -v DEBUG=$(DEBUG) -v HIRES=$(HIRES) -f filter.awk \
+		game.rcp > ngame.rcp
 	@pilrc -q ngame.rcp temp
-	@rm -f ngame.rcp
-	@echo $(HRSED)>$@
+	@cat ngame.rcp > $@
 
 touch.stm:
 	@echo "#include \"simcity_resconsts.h\"" > touch.rcp
