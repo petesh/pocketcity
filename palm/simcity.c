@@ -12,6 +12,7 @@
 #include <PalmOS.h>
 #include <SysEvtMgr.h>
 #include <StringMgr.h>
+#include <KeyMgr.h>
 #include "simcity.h"
 #include "../source/ui.h"
 #include "../source/handler.h"
@@ -53,10 +54,10 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 	{
 		_PalmInit();
 		ZakMain();
+
 		FrmGotoForm(formID_pocketCity);
 		do {
 			EvtGetEvent(&event, 1);
-			if (SysHandleEvent(&event)) continue;
 			if (MenuHandleEvent((void*)0, &event, &err)) continue;
 
 			if (event.eType == frmLoadEvent)
@@ -86,7 +87,8 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 				}
 			}
 			
-			FrmDispatchEvent(&event);
+			if (FrmDispatchEvent(&event)) continue;
+			if (SysHandleEvent(&event)) continue;
 
 			// the almighty homemade >>"multithreader"<<
 			if (simState == 0)
@@ -174,23 +176,52 @@ static Boolean hPocketCity(EventPtr event)
 		{
 			_UIGetFieldToBuildOn(event->screenX, event->screenY);
 		}
+		handled = 1;
 		break;
 	case menuEvent:
 		if (event->data.menu.itemID >= menuitemID_buildBulldoze)
 		{
 			nSelectedBuildItem = event->data.menu.itemID - menuitemID_buildBulldoze;
+			handled = 1;
 		} else {
 			switch (event->data.menu.itemID)
 			{
 			case menuID_view32:
 				UISetTileSize(6);
+				handled = 1;
 				break;
 			case menuID_view16:
 				UISetTileSize(5);
+				handled = 1;
 				break;
 			}
 		}
 		break;
+	case keyDownEvent:
+		switch (event->data.keyDown.chr)
+		{
+		case pageUpChr:
+			/* scroll map up */
+			ScrollMap(0);
+			handled = 1;
+			break;
+		case pageDownChr:
+			/* scroll map down */
+			ScrollMap(2);
+			handled = 1;
+			break;
+		case vchrHard2:
+			/* scroll map left */
+			ScrollMap(3);
+			handled = 1;
+			break;
+		case vchrHard3:
+			/* scroll map right */
+			ScrollMap(1);
+			handled = 1;
+			break;
+		}
+
 	}
 
 	
