@@ -3,76 +3,78 @@
 
 
 // Here comes the tiles for 32x32
+// removed!
+// looked ugly and was almost never used
+// plus it took A LOT of space in the binary
 
-
-BITMAP ID bitmapID_DirtBmp				"graphic/32x32/dirt.bmp" COMPRESS
-BITMAP ID bitmapID_CommZone				"graphic/32x32/c_00.bmp" COMPRESS
-BITMAP ID bitmapID_ResZone				"graphic/32x32/r_00.bmp" COMPRESS
-BITMAP ID bitmapID_IndZone				"graphic/32x32/i_00.bmp" COMPRESS
-	
-BITMAP ID bitmapID_PowerRoadUpDown		"graphic/32x32/powerroad1.bmp" COMPRESS
-BITMAP ID bitmapID_PowerRoadLeftRight	"graphic/32x32/powerroad2.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerLoss			"graphic/32x32/powerloss.bmp" COMPRESS
-BITMAP ID bitmapID_PowerLossOverlay		"graphic/32x32/powerloss2.bmp" COMPRESS
-//BITMAP ID bitmapID_CursorBmp			"graphic/32x32/something.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadLeftRight		"graphic/32x32/road01.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadUpDown			"graphic/32x32/road02.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadRightDown		"graphic/32x32/road03.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadLeftDown			"graphic/32x32/road04.bmp" COMPRESS
-BITMAP ID bitmapID_RoadLeftUp			"graphic/32x32/road05.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadRightUp			"graphic/32x32/road06.bmp" COMPRESS
-BITMAP ID bitmapID_RoadLeftUpDown		"graphic/32x32/road07.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadRightUpDown		"graphic/32x32/road08.bmp" COMPRESS
-BITMAP ID bitmapID_RoadRightLeftDown	"graphic/32x32/road09.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadRightLeftUp		"graphic/32x32/road10.bmp" COMPRESS
-BITMAP ID bitmapID_RoadCross			"graphic/32x32/road11.bmp" COMPRESS	
-BITMAP ID bitmapID_TreeBmp				"graphic/32x32/tree.bmp" COMPRESS
-BITMAP ID bitmapID_WaterBmp				"graphic/32x32/water.bmp" COMPRESS
-
-BITMAP ID bitmapID_CommOne				"graphic/32x32/c_01.bmp" COMPRESS
-BITMAP ID bitmapID_CommTwo				"graphic/32x32/c_02.bmp" COMPRESS
-BITMAP ID bitmapID_CommThree			"graphic/32x32/c_03.bmp" COMPRESS	
-BITMAP ID bitmapID_CommFour				"graphic/32x32/c_04.bmp" COMPRESS
-BITMAP ID bitmapID_CommFive				"graphic/32x32/c_05.bmp" COMPRESS
-BITMAP ID bitmapID_CommSix				"graphic/32x32/c_06.bmp" COMPRESS
-BITMAP ID bitmapID_CommSeven			"graphic/32x32/c_07.bmp" COMPRESS	
-BITMAP ID bitmapID_CommEight			"graphic/32x32/c_08.bmp" COMPRESS	
-BITMAP ID bitmapID_CommNine				"graphic/32x32/c_09.bmp" COMPRESS
-BITMAP ID bitmapID_CommTen				"graphic/32x32/c_10.bmp" COMPRESS
-BITMAP ID bitmapID_ResOne				"graphic/32x32/r_01.bmp" COMPRESS	
-BITMAP ID bitmapID_ResTwo				"graphic/32x32/r_02.bmp" COMPRESS	
-BITMAP ID bitmapID_ResThree				"graphic/32x32/r_03.bmp" COMPRESS
-BITMAP ID bitmapID_ResFour				"graphic/32x32/r_04.bmp" COMPRESS
-BITMAP ID bitmapID_ResFive				"graphic/32x32/r_05.bmp" COMPRESS
-BITMAP ID bitmapID_ResSix				"graphic/32x32/r_06.bmp" COMPRESS	
-BITMAP ID bitmapID_ResSeven				"graphic/32x32/r_07.bmp" COMPRESS
-BITMAP ID bitmapID_ResEight				"graphic/32x32/r_08.bmp" COMPRESS
-BITMAP ID bitmapID_ResNine				"graphic/32x32/r_09.bmp" COMPRESS
-BITMAP ID bitmapID_ResTen				"graphic/32x32/r_10.bmp" COMPRESS	
-BITMAP ID bitmapID_IndOne				"graphic/32x32/i_01.bmp" COMPRESS	
-BITMAP ID bitmapID_IndTwo				"graphic/32x32/i_02.bmp" COMPRESS	
-BITMAP ID bitmapID_IndThree				"graphic/32x32/i_03.bmp" COMPRESS
-BITMAP ID bitmapID_IndFour				"graphic/32x32/i_04.bmp" COMPRESS
-BITMAP ID bitmapID_IndFive				"graphic/32x32/i_05.bmp" COMPRESS
-BITMAP ID bitmapID_IndSix				"graphic/32x32/i_06.bmp" COMPRESS	
-BITMAP ID bitmapID_IndSeven				"graphic/32x32/i_07.bmp" COMPRESS
-BITMAP ID bitmapID_IndEight				"graphic/32x32/i_08.bmp" COMPRESS
-BITMAP ID bitmapID_IndNine				"graphic/32x32/i_09.bmp" COMPRESS
-BITMAP ID bitmapID_IndTen				"graphic/32x32/i_10.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerPlant			"graphic/32x32/powerplant.bmp" COMPRESS	
-BITMAP ID bitmapID_NulearPlant			"graphic/32x32/nuclear.bmp" COMPRESS
-
-BITMAP ID bitmapID_PowerLeftRight		"graphic/32x32/power01.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerUpDown			"graphic/32x32/power02.bmp" COMPRESS
-BITMAP ID bitmapID_PowerRightDown		"graphic/32x32/power03.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerLeftDown		"graphic/32x32/power04.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerLeftUp			"graphic/32x32/power05.bmp" COMPRESS
-BITMAP ID bitmapID_PowerRightUp			"graphic/32x32/power06.bmp" COMPRESS
-BITMAP ID bitmapID_PowerLeftUpDown		"graphic/32x32/power07.bmp" COMPRESS
-BITMAP ID bitmapID_PowerRightUpDown		"graphic/32x32/power08.bmp" COMPRESS
-BITMAP ID bitmapID_PowerLeftRightDown	"graphic/32x32/power09.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerLeftRightUp		"graphic/32x32/power10.bmp" COMPRESS
-BITMAP ID bitmapID_PowerCross			"graphic/32x32/power11.bmp" COMPRESS	
+//BITMAP ID bitmapID_DirtBmp				"graphic/32x32/dirt.bmp" COMPRESS
+//BITMAP ID bitmapID_CommZone				"graphic/32x32/c_00.bmp" COMPRESS
+//BITMAP ID bitmapID_ResZone				"graphic/32x32/r_00.bmp" COMPRESS
+//BITMAP ID bitmapID_IndZone				"graphic/32x32/i_00.bmp" COMPRESS
+//	
+//BITMAP ID bitmapID_PowerRoadUpDown		"graphic/32x32/powerroad1.bmp" COMPRESS
+//BITMAP ID bitmapID_PowerRoadLeftRight	"graphic/32x32/powerroad2.bmp" COMPRESS	
+//BITMAP ID bitmapID_PowerLoss			"graphic/32x32/powerloss.bmp" COMPRESS
+//BITMAP ID bitmapID_PowerLossOverlay		"graphic/32x32/powerloss2.bmp" COMPRESS
+////BITMAP ID bitmapID_CursorBmp			"graphic/32x32/something.bmp" COMPRESS	
+//BITMAP ID bitmapID_RoadLeftRight		"graphic/32x32/road01.bmp" COMPRESS	
+//BITMAP ID bitmapID_RoadUpDown			"graphic/32x32/road02.bmp" COMPRESS	
+//BITMAP ID bitmapID_RoadRightDown		"graphic/32x32/road03.bmp" COMPRESS	
+//BITMAP ID bitmapID_RoadLeftDown			"graphic/32x32/road04.bmp" COMPRESS
+//BITMAP ID bitmapID_RoadLeftUp			"graphic/32x32/road05.bmp" COMPRESS	
+//BITMAP ID bitmapID_RoadRightUp			"graphic/32x32/road06.bmp" COMPRESS
+//BITMAP ID bitmapID_RoadLeftUpDown		"graphic/32x32/road07.bmp" COMPRESS	
+//BITMAP ID bitmapID_RoadRightUpDown		"graphic/32x32/road08.bmp" COMPRESS
+//BITMAP ID bitmapID_RoadRightLeftDown	"graphic/32x32/road09.bmp" COMPRESS	
+//BITMAP ID bitmapID_RoadRightLeftUp		"graphic/32x32/road10.bmp" COMPRESS
+//BITMAP ID bitmapID_RoadCross			"graphic/32x32/road11.bmp" COMPRESS	
+//BITMAP ID bitmapID_TreeBmp				"graphic/32x32/tree.bmp" COMPRESS
+//BITMAP ID bitmapID_WaterBmp				"graphic/32x32/water.bmp" COMPRESS
+//
+//BITMAP ID bitmapID_CommOne				"graphic/32x32/c_01.bmp" COMPRESS
+//BITMAP ID bitmapID_CommTwo				"graphic/32x32/c_02.bmp" COMPRESS
+//BITMAP ID bitmapID_CommThree			"graphic/32x32/c_03.bmp" COMPRESS	
+//BITMAP ID bitmapID_CommFour				"graphic/32x32/c_04.bmp" COMPRESS
+//BITMAP ID bitmapID_CommFive				"graphic/32x32/c_05.bmp" COMPRESS
+//BITMAP ID bitmapID_CommSix				"graphic/32x32/c_06.bmp" COMPRESS
+//BITMAP ID bitmapID_CommSeven			"graphic/32x32/c_07.bmp" COMPRESS	
+//BITMAP ID bitmapID_CommEight			"graphic/32x32/c_08.bmp" COMPRESS	
+//BITMAP ID bitmapID_CommNine				"graphic/32x32/c_09.bmp" COMPRESS
+//BITMAP ID bitmapID_CommTen				"graphic/32x32/c_10.bmp" COMPRESS
+//BITMAP ID bitmapID_ResOne				"graphic/32x32/r_01.bmp" COMPRESS	
+//BITMAP ID bitmapID_ResTwo				"graphic/32x32/r_02.bmp" COMPRESS	
+//BITMAP ID bitmapID_ResThree				"graphic/32x32/r_03.bmp" COMPRESS
+//BITMAP ID bitmapID_ResFour				"graphic/32x32/r_04.bmp" COMPRESS
+//BITMAP ID bitmapID_ResFive				"graphic/32x32/r_05.bmp" COMPRESS
+//BITMAP ID bitmapID_ResSix				"graphic/32x32/r_06.bmp" COMPRESS	
+//BITMAP ID bitmapID_ResSeven				"graphic/32x32/r_07.bmp" COMPRESS
+//BITMAP ID bitmapID_ResEight				"graphic/32x32/r_08.bmp" COMPRESS
+//BITMAP ID bitmapID_ResNine				"graphic/32x32/r_09.bmp" COMPRESS
+//BITMAP ID bitmapID_ResTen				"graphic/32x32/r_10.bmp" COMPRESS	
+//BITMAP ID bitmapID_IndOne				"graphic/32x32/i_01.bmp" COMPRESS	
+//BITMAP ID bitmapID_IndTwo				"graphic/32x32/i_02.bmp" COMPRESS	
+//BITMAP ID bitmapID_IndThree				"graphic/32x32/i_03.bmp" COMPRESS
+//BITMAP ID bitmapID_IndFour				"graphic/32x32/i_04.bmp" COMPRESS
+//BITMAP ID bitmapID_IndFive				"graphic/32x32/i_05.bmp" COMPRESS
+//BITMAP ID bitmapID_IndSix				"graphic/32x32/i_06.bmp" COMPRESS	
+//BITMAP ID bitmapID_IndSeven				"graphic/32x32/i_07.bmp" COMPRESS
+//BITMAP ID bitmapID_IndEight				"graphic/32x32/i_08.bmp" COMPRESS
+//BITMAP ID bitmapID_IndNine				"graphic/32x32/i_09.bmp" COMPRESS
+//BITMAP ID bitmapID_IndTen				"graphic/32x32/i_10.bmp" COMPRESS	
+//BITMAP ID bitmapID_PowerPlant			"graphic/32x32/powerplant.bmp" COMPRESS	
+//BITMAP ID bitmapID_NulearPlant			"graphic/32x32/nuclear.bmp" COMPRESS
+//
+//BITMAP ID bitmapID_PowerLeftRight		"graphic/32x32/power01.bmp" COMPRESS	
+//BITMAP ID bitmapID_PowerUpDown			"graphic/32x32/power02.bmp" COMPRESS
+//BITMAP ID bitmapID_PowerRightDown		"graphic/32x32/power03.bmp" COMPRESS	
+//BITMAP ID bitmapID_PowerLeftDown		"graphic/32x32/power04.bmp" COMPRESS	
+//BITMAP ID bitmapID_PowerLeftUp			"graphic/32x32/power05.bmp" COMPRESS
+//BITMAP ID bitmapID_PowerRightUp			"graphic/32x32/power06.bmp" COMPRESS
+//BITMAP ID bitmapID_PowerLeftUpDown		"graphic/32x32/power07.bmp" COMPRESS
+//BITMAP ID bitmapID_PowerRightUpDown		"graphic/32x32/power08.bmp" COMPRESS
+//BITMAP ID bitmapID_PowerLeftRightDown	"graphic/32x32/power09.bmp" COMPRESS	
+//BITMAP ID bitmapID_PowerLeftRightUp		"graphic/32x32/power10.bmp" COMPRESS
+//BITMAP ID bitmapID_PowerCross			"graphic/32x32/power11.bmp" COMPRESS	
 
 
 

@@ -6,8 +6,6 @@
 #define menuitemID_loadGame				1001
 #define menuitemID_saveGame				1002
 #define menuitemID_about				1003
-#define menuID_view32					1050
-#define menuID_view16					1051
 #define menuID_SlowSpeed				1052
 #define menuID_MediumSpeed				1053
 #define menuID_FastSpeed				1054

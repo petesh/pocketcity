@@ -37,11 +37,8 @@ BEGIN
 	MENUITEM "Tree -$10"				menuitemID_buildTree
 	MENUITEM "Water -$200"				menuitemID_buildWater
   END
-  PULLDOWN "View/Speed"
+  PULLDOWN "Speed"
   BEGIN
-        MENUITEM "32px" menuID_view32   "1"
-	MENUITEM "16px" menuID_view16	"2"
-	MENUITEM SEPARATOR
 	MENUITEM "Slow" menuID_SlowSpeed
 	MENUITEM "Medium" menuID_MediumSpeed
 	MENUITEM "Fast"   menuID_FastSpeed

@@ -1,14 +1,3 @@
-/******************************************************************************
- *
- * Copyright (c) 1999 Palm, Inc. or its subsidiaries.
- * All rights reserved.
- *
- * File: DotDotTwo.c
- *
- * Release: Palm OS SDK 4.0 (63220)
- *
- *****************************************************************************/
-
 #include <PalmOS.h>
 #include <SysEvtMgr.h>
 #include <StringMgr.h>
@@ -61,7 +50,6 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 	{
 		_PalmInit();
 		ZakMain();
-		UISetTileSize(5);
 
 		FrmGotoForm(formID_pocketCity);
 		do {
@@ -179,14 +167,6 @@ static Boolean hPocketCity(EventPtr event)
 		} else {
 			switch (event->data.menu.itemID)
 			{
-			case menuID_view32:
-				UISetTileSize(6);
-				handled = 1;
-				break;
-			case menuID_view16:
-				UISetTileSize(5);
-				handled = 1;
-				break;
 			case menuID_SlowSpeed:
 				SIM_GAME_LOOP_SECONDS = 15;
 				handled = 1;
@@ -329,7 +309,7 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
 	WinPushDrawState();
 
 
-	if (TILE_SIZE == 32) { overlayID = bitmapID_PowerLossOverlay; powerID = bitmapID_PowerLoss; };
+//	if (TILE_SIZE == 32) { overlayID = bitmapID_PowerLossOverlay; powerID = bitmapID_PowerLoss; };
 	if (TILE_SIZE == 16) { overlayID = bitmapID_PowerLossOverlay2; powerID = bitmapID_PowerLoss2; };
 	
 	// first draw the overlay
@@ -359,7 +339,7 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
 
 	if (DoDrawing == 0) { return; }
 
-	if (TILE_SIZE == 32) { startID = bitmapID_DirtBmp; };
+//	if (TILE_SIZE == 32) { startID = bitmapID_DirtBmp; };
 	if (TILE_SIZE == 16) { startID = bitmapID_DirtBmp2; };
 
 	bitmaphandle = DmGet1Resource( TBMP , nGraphic + startID);
@@ -445,17 +425,9 @@ extern void UICheckMoney(void)
 		}
 	}
 }
-
+/*
 extern void UISetTileSize(int size)
 {
-	/*
-	1 = 1x1		128
-	2 = 2x2		64
-	3 = 4x4		32
-	4 = 8x8		16
-	5 = 16x16	8
-	6 = 32x32	4
-	*/
 	if (!(size >= 4 && size <= 6)) { return; }
 
 	switch (size)
@@ -484,6 +456,7 @@ extern void UISetTileSize(int size)
 	RedrawAllFields();
 	UIDrawBorder();
 }
+*/
 
 
 
