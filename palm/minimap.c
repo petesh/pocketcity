@@ -12,12 +12,13 @@
 #include <resCompat.h>
 #include <UIColor.h>
 
+/*! \brief structure containing information about the minimap */
 static struct minimap {
-	RectangleType rect;
-	RectangleType rout;
+	RectangleType rect; /*!< the location of the minimap on screen */
+	RectangleType rout; /*!< the location of the minimap in fractions */
 
-	Int8 showing:1;
-	Int8 detailed:1;
+	Int8 showing:1; /*!< is the minimap showing */
+	Int8 detailed:1; /*!< is the minimap detailed */
 } minimap;
 
 Int8

@@ -515,6 +515,7 @@ typedef struct _vgame_struct {
 	UInt16	oldLoopSeconds;	/*!< last selected speed - for pause */
 } vGameStruct;
 
+/*! \brief game visual entities related to the game, but not the simulation */
 typedef struct _visual_tag {
 	UInt8	TileSize;	/*!< size of a tile */
 	UInt8	MapTileSize;	/*!< size of a tile on the map */

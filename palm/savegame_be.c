@@ -127,6 +127,7 @@ saveGameSize(void)
  * \param rec the record to read
  * \param gs the game structure
  * \param wp the pointer to the world (resized in call)
+ * \param fp the world field pointer to be replaced on write
  * \return 0 if it all went well, -1 otherwise.
  */
 static int

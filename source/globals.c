@@ -275,7 +275,7 @@ setWorld(UInt32 pos, welem_t value)
  * \brief set the world field and field flag
  * \param pos the position
  * \param value the value
- * \param flag the flagvalue
+ * \param status the status of this position
  */
 void
 setWorldAndFlag(UInt32 pos, welem_t value, selem_t status)

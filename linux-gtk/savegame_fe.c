@@ -90,9 +90,6 @@ ImportOneFromGame(GtkWidget *widget, gint response, gpointer data)
  *
  * happens when a row is double clicked. We emulate clicking the OK
  * response in the dialog.
- * \param widget the treeview (unused)
- * \param path the treepath (unused)
- * \param col the column (unused)
  * \param data the struct city_listselect *
  */
 static void

@@ -380,7 +380,7 @@ UIPaintMapField(UInt16 xpos, UInt16 ypos, welem_t elem)
 	if (pmh.allmap == NULL)
 		doPixPaint();
 
-	UIPaintMapZone(xpos, ypos, elem,
+	UIDrawMapZone(xpos, ypos, elem,
 	    GDK_DRAWABLE(pmh.allmap));
 }
 

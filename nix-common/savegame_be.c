@@ -116,7 +116,7 @@ mapm_int16(unsigned char *mem, unsigned char *val)
 	return (mem + 2);
 }
 
-/*
+/*!
  * \brief map a memory element that's 32bits long
  * \param mem the memory to map
  * \param val the value to populate with the value
@@ -168,7 +168,7 @@ read_palmstructure(char *mem, GameStruct *new, char **map)
 	new->tax + *mem++;
 	new->gameLoopSeconds = *mem++;
 	new->diff_disaster = *mem++;
-	new->auto_bulldoze = *mem++;
+	new->gas_bits = *mem++;
 	bcopy(mem, new->cityname, CITYNAMELEN);
 	mem += CITYNAMELEN;
 	for (i = 0; i < ue_tail; i++)

@@ -32,7 +32,7 @@ EXPORT void PostLoadGame(void);
  * \param X the new map X size
  * \param Y the new map Y size
  */
-EXPORT void setMapSize(UInt8 X, UInt8 y);
+EXPORT void setMapSize(UInt8 X, UInt8 Y);
 
 #if defined(__cplusplus)
 }

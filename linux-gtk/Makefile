@@ -1,13 +1,13 @@
 VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 CC = gcc
-GCPPFLAGS := $(shell pkg-config --cflags gtk+-2.0) \
+GCPPFLAGS := $(shell pkg-config --cflags gtk+-win32-2.0) \
 	-DGTK_DISABLE_COMPAT_H -DGDK_DISABLE_DEPRECATED
 GCCFLAGS = -W -Wall -Werror
 INCLUDEDIRS = -I . -I ../source -I ../nix-common -I ../graphic
 OPTFLAGS = -O2
 CPPFLAGS=$(GCPPFLAGS) -DLINUX $(INCLUDEDIRS)
 CFLAGS = $(CPPFLAGS) $(OPTFLAGS) $(GCCFLAGS)
-GLFLAGS = $(shell pkg-config --libs gtk+-2.0) 
+GLFLAGS = $(shell pkg-config --libs gtk+-win32-2.0) 
 LIBS = 
 LDLIBS = $(LIBS) $(GLFLAGS)
 # -lefence

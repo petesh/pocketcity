@@ -11,8 +11,8 @@
 extern "C" {
 #endif
 
-void PackBits(void *src, void *dest, UInt8 nbits, UInt32 count);
-void UnpackBits(void *src, void *dest, UInt8 nbits, UInt32 count);
+void PackBits(void *src, void *dest, UInt8 nbits, UInt32 count) PACK_SECTION;
+void UnpackBits(void *src, void *dest, UInt8 nbits, UInt32 count) PACK_SECTION;
 
 #if defined (__cplusplus)
 }

@@ -4,6 +4,7 @@
  * pack and unpack bit field arrays.
  */
 
+#include <pack.h>
 #include <appconfig.h>
 
 #define ANDUPTO(X) \

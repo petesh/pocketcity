@@ -998,7 +998,7 @@ _UIDrawRect(Int16 nTop __attribute__((unused)),
 }
 
 void
-UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
+UIPaintField(UInt16 xpos, UInt16 ypos, welem_t nGraphic)
 {
 	GdkGC *gc = gdk_gc_new(mw.p_play);
 
@@ -1017,7 +1017,7 @@ UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
 }
 
 void
-UIDrawSpecialObject(Int16 xpos, Int16 ypos, Int8 i)
+UIPaintSpecialObject(UInt16 xpos, UInt16 ypos, Int8 i)
 {
 	GdkGC *gc;
 
@@ -1042,7 +1042,7 @@ UIDrawSpecialObject(Int16 xpos, Int16 ypos, Int8 i)
 }
 
 void
-UIDrawSpecialUnit(Int16 xpos, Int16 ypos, Int8 i)
+UIPaintSpecialUnit(UInt16 xpos, UInt16 ypos, Int8 i)
 {
 	GdkGC *gc;
 
@@ -1120,8 +1120,8 @@ UIDrawMapSpecialUnit(Int16 xpos, Int16 ypos, Int16 i, GdkDrawable *drawable)
 }
 
 void
-UIDrawCursor(Int16 xpos __attribute__((unused)),
-    Int16 ypos __attribute__((unused)))
+UIPaintCursor(UInt16 xpos __attribute__((unused)),
+    UInt16 ypos __attribute__((unused)))
 {
 	/* not used on this platform */
 }
@@ -1133,7 +1133,7 @@ UIDrawCursor(Int16 xpos __attribute__((unused)),
  * \param offset the offst of the item to paint.
  */
 static void
-DrawOverlay(Int16 xpos, Int16 ypos, welem_t offset)
+DrawOverlay(UInt16 xpos, UInt16 ypos, welem_t offset)
 {
 	GdkGC *gc;
 
@@ -1157,13 +1157,13 @@ DrawOverlay(Int16 xpos, Int16 ypos, welem_t offset)
 }
 
 void
-UIDrawPowerLoss(Int16 xpos, Int16 ypos)
+UIPaintPowerLoss(UInt16 xpos, UInt16 ypos)
 {
 	DrawOverlay(xpos, ypos, Z_POWER_OUT);
 }
 
 void
-UIDrawWaterLoss(Int16 xpos, Int16 ypos)
+UIPaintWaterLoss(UInt16 xpos, UInt16 ypos)
 {
 	DrawOverlay(xpos, ypos, Z_WATER_OUT);
 }
