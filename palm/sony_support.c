@@ -339,14 +339,17 @@ IsSony(void)
  * \return 0 - always works.
  */
 static Err
-SonyNotifyHook(SysNotifyParamType *notifyParamsP __attribute__((unused)))
+SonyNotifyHook(SysNotifyParamType *notifyParamsP)
 {
 	EventType ev;
-
+	SysNotifyDisplayChangeDetailsType *dat =
+	    (SysNotifyDisplayChangeDetailsType *)notifyParamsP->notifyDetailsP;
+	if (dat->oldDepth != dat->newDepth) return (errNone);
+	notifyParamsP->handled = false;
 	MemSet(&ev, sizeof(ev), 0);
 	ev.eType = winDisplayChangedEvent;
 	EvtAddUniqueEventToQueue(&ev, 0,  true);
-	return (0);
+	return (errNone);
 }
 
 Boolean
@@ -370,12 +373,12 @@ SonySilk(void)
 	WriteLog("found sony silk library ");
 
 	error = FtrGet(sonySysFtrCreator, sonySysFtrNumVskVersion, &version);
-	if (error) {
+	if (error || !version) {
 		silk_ver = 0;
 		SilkLibOpen(silk_ref);
 	} else {
 		VskOpen(silk_ref);
-		silk_ver = 1;
+		silk_ver = VskGetAPIVersion(silk_ref);
 	}
 
 	WriteLog("version: %d\n", silk_ver);
@@ -430,7 +433,7 @@ SonySetSilkResizable(UInt8 state)
 	} else {
 		if (!state)
 			VskSetState(silk_ref, vskStateEnable, state);
-		else if (VskGetAPIVersion(silk_ref) >= 0x03)
+		else if (silk_ver >= 0x03)
 			VskSetState(silk_ref, vskStateEnable, 
 			    vskResizeVertically | vskResizeHorizontally);
 		else

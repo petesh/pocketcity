@@ -6,6 +6,7 @@ TILE=$(BIN)
 
 NDTARGETS=lores palm5 sony
 DTARGETS=dlores dpalm5 dsony cheat
+LTARGETS=llores lpalm5 lsony
 
 .PHONY: %-nextdir
 .NOTPARALLEL:
@@ -24,25 +25,18 @@ TARGETS=$(NDTARGETS)
 BINNAME=$(BIN)
 
 lores: TDIR =standard
-#lores: BINNAME=$(BIN)
-
 dlores: TDIR =debug
-#dlores: BINNAME=$(BIN)
+llores: TDIR =logging
 
 palm5: TDIR =palm5
-#palm5: BINNAME=$(BIN)
-
 dpalm5: TDIR =debug-palm5
-#dpalm5: BINNAME=$(BIN)
+lpalm5: TDIR =logging-palm5
 
 sony: TDIR =sony
-#sony: BINNAME=$(BIN)
-
 dsony: TDIR =debug-sony
-#dsony: BINNAME=$(BIN)
+lsony: TDIR =logging-sony
 
 cheat: TDIR =cheat
-#cheat: BINNAME=$(BIN)
 
 OBJDIR = out-$(TDIR)
 
@@ -55,13 +49,16 @@ DSTAMP := $(shell date "+%Y/%m/%d@%H:%M")
 
 debug: debug-nextdir $(DTARGETS)
 all: all-nextdir $(TARGETS)
+logging: debug-nextdir $(LTARGETS)
 nearlylive: all-nextdir
 dist: all-nextdir
 
-TARGETDIRPRE=standard debug palm5 debug-palm5 sony debug-sony cheat
+TARGETDIRPRE=standard debug palm5 debug-palm5 sony debug-sony cheat \
+    logging logging-palm5 logging-sony
+
 CLEANTARGETS=$(TARGETDIRPRE:%=purge-%)
 
-$(TARGETS) $(DTARGETS): VER $(COLORTARGETS)
+$(TARGETS) $(DTARGETS) $(LTARGETS): VER $(COLORTARGETS)
 	$(MAKE) -f Makefile-dowork BINARY=$(BINNAME) \
 		OBJDIR=out-$(TDIR) BINPRE=$(TDIR) $@
 

@@ -2845,7 +2845,7 @@ WriteLog(char *s, ...)
 	HostFILE * hf = NULL;
 	Char text[0x100];
 
-	hf = HostFOpen("\\pcity.log", "a");
+	hf = HostFOpen("\\tmp\\pcity.log", "a");
 	if (hf) {
 		va_start(args, s);
 		StrVPrintF(text, s, args);
@@ -2863,7 +2863,7 @@ WriteLogX(char *s, ...)
 	HostFILE * hf = NULL;
 	Char text[0x100];
 
-	hf = HostFOpen("\\pcity-buildcount.log", "a");
+	hf = HostFOpen("\\tmp\\pcity-buildcount.log", "a");
 	if (hf) {
 		va_start(args, s);
 		StrVPrintF(text, s, args);

@@ -9,6 +9,7 @@
 
 #ifdef SONY_HIGH
 
+#include <sections.h>
 #include <Font.h>
 #include <FontSelect.h>
 #include <SonyCLIE.h>
@@ -17,30 +18,30 @@
  * \brief test if this handheld can perform sony high resolution functions
  * \return true if it can perform sony high resolution functions
  */
-Boolean sonyCanHires(void);
+Boolean sonyCanHires(void) SONY_SECTION;
 
 /*!
  * \brief is this a sony high resolution implementation
  * \return true if it's a sony high resolution implementation.
  */
-Boolean sonyHires(void);
+Boolean sonyHires(void) SONY_SECTION;
 /*!
  * \brief Sony specific code to load high resolution library
  * \return ErrNone if it all went OK.
  */
-Err loadHiRes(void);
+Err loadHiRes(void) SONY_SECTION;
 /*!
  * \brief code to unload the high resolution library if we loaded it
  * \return ErrNone -- it always succeeds
  */
-Err unloadHiRes(void);
+Err unloadHiRes(void) SONY_SECTION;
 /*! \brief unhook the hold switch */
-void unhookHoldSwitch(void);
+void unhookHoldSwitch(void) SONY_SECTION;
 /*!
  * \brief hook into the hold switch
  * \param CallBack the callback routine
  */
-void hookHoldSwitch(void (*CallBack)(UInt32));
+void hookHoldSwitch(void (*CallBack)(UInt32)) SONY_SECTION;
 
 /*!
  * \brief check if the draw-window occupies most of the screen.
@@ -49,13 +50,13 @@ void hookHoldSwitch(void (*CallBack)(UInt32));
  * over 80% of the screen then we've not popped up a menu.
  * \return true if the current draw window occupies 80% of the screen.
  */
-int IsDrawWindowMostOfScreen(void);
+int IsDrawWindowMostOfScreen(void) SONY_SECTION;
 
 /*!
  * \brief Check if this device is a Sony. For Jog Navigation Support
  * \return true if device is a sony.
  */
-Boolean IsSony(void);
+Boolean IsSony(void) SONY_SECTION;
 
 /*!
  * \brief Check if sony silk available.
@@ -63,7 +64,7 @@ Boolean IsSony(void);
  * Loads library as well.
  * \return true if sony silk library is available
  */
-Boolean SonySilk(void);
+Boolean SonySilk(void) SONY_SECTION;
 
 /*!
  * \brief finish up with the sony silk library.
@@ -72,13 +73,13 @@ Boolean SonySilk(void);
  * library then the handheld is unable to use it correctly until after the
  * next reset, which is not nice!
  */
-void SonyEndSilk(void);
+void SonyEndSilk(void) SONY_SECTION;
 
 /*!
  * \brief set silk area to be resizable or not
  * \param state the choice - non-zero implies resizable
  */
-void SonySetSilkResizable(UInt8 resizeable);
+void SonySetSilkResizable(UInt8 resizeable) SONY_SECTION;
 
 /*!
  * \brief redraw routine for post-collapse event
@@ -87,7 +88,7 @@ void SonySetSilkResizable(UInt8 resizeable);
  * Needed because the first incarnation of the sony silk library needs
  * to have the form erased manually after a collapse/expand event
  */
-void SonyCollapsePreRedraw(FormPtr form);
+void SonyCollapsePreRedraw(FormPtr form) SONY_SECTION;
 
 /*!
  * \brief WinScreenMode call for sony handheld
@@ -101,21 +102,21 @@ void SonyCollapsePreRedraw(FormPtr form);
  * Deals with the high-resolution displays also.
  */
 Err _WinScreenMode(WinScreenModeOperation op, UInt32 *width, UInt32 *height,
-    UInt32 *depth, Boolean *enableColor);
+    UInt32 *depth, Boolean *enableColor) SONY_SECTION;
 
 /*!
  * \brief Erase a rectangle
  * \param r the rectangle
  * \param cornerDiam diameter of corner
  */
-void _WinEraseRectangle(RectangleType *r, UInt16 cornerDiam);
+void _WinEraseRectangle(RectangleType *r, UInt16 cornerDiam) SONY_SECTION;
 
 /*!
  * \brief Fill a rectangle
  * \param r the rectangle
  * \param cornerDiam the diameter of the corner
  */
-void _WinDrawRectangle(RectangleType *rect, UInt16 cornerDiam);
+void _WinDrawRectangle(RectangleType *rect, UInt16 cornerDiam) SONY_SECTION;
 
 /*!
  * \brief create a bitmap
@@ -127,7 +128,7 @@ void _WinDrawRectangle(RectangleType *rect, UInt16 cornerDiam);
  * \return pointer to bitmap, or NULL, reason is in error
  */
 BitmapType *_BmpCreate(Coord width, Coord height, UInt8 depth,
-    ColorTableType *clut, UInt16 *error);
+    ColorTableType *clut, UInt16 *error) SONY_SECTION;
 
 /*!
  * \brief Draw a bitmap
@@ -135,7 +136,7 @@ BitmapType *_BmpCreate(Coord width, Coord height, UInt8 depth,
  * \param x the starting x coordinate
  * \param y the starting y coordinate
  */
-void _WinDrawBitmap(BitmapPtr bmp, Coord x, Coord y);
+void _WinDrawBitmap(BitmapPtr bmp, Coord x, Coord y) SONY_SECTION;
 
 /*!
  * \brief create a bitmap window
@@ -143,7 +144,7 @@ void _WinDrawBitmap(BitmapPtr bmp, Coord x, Coord y);
  * \param err <out> the reaon for a failure
  * \return the handle to the window, or NULL on error
  */
-WinHandle _WinCreateBitmapWindow(BitmapType *pBitmap, UInt16 *err);
+WinHandle _WinCreateBitmapWindow(BitmapType *pBitmap, UInt16 *err) SONY_SECTION;
 
 /*!
  * \brief create an offscreen bitmap
@@ -154,7 +155,7 @@ WinHandle _WinCreateBitmapWindow(BitmapType *pBitmap, UInt16 *err);
  * \return the handle to the bitmap, or NULL on error
  */
 WinHandle _WinCreateOffscreenWindow(Coord width, Coord height,
-    WindowFormatType format, UInt16 *error);
+    WindowFormatType format, UInt16 *error) SONY_SECTION;
 
 /*!
  * \brief copy a rectangle from one window to another
@@ -166,7 +167,8 @@ WinHandle _WinCreateOffscreenWindow(Coord width, Coord height,
  * \param mode painting mode (copy &c)
  */
 void _WinCopyRectangle(WinHandle srcWin, WinHandle dstWin,
-    RectangleType *srcRect, Coord destX, Coord destY, WinDrawOperation mode);
+    RectangleType *srcRect, Coord destX, Coord destY, WinDrawOperation mode)
+    SONY_SECTION;
 
 /*!
  * \brief draw some characters on the screen
@@ -175,20 +177,20 @@ void _WinCopyRectangle(WinHandle srcWin, WinHandle dstWin,
  * \param x the x position
  * \param y the y position
  */
-void _WinDrawChars(const Char *chars, Int16 len, Coord x, Coord y);
+void _WinDrawChars(const Char *chars, Int16 len, Coord x, Coord y) SONY_SECTION;
 
 /*!
  * \brief draw a rectangle frame
  * \param frame the type of frame to draw
  * \param rP the rectangle to draw
  */
-void _WinDrawRectangleFrame(FrameType frame, RectangleType *rP);
+void _WinDrawRectangleFrame(FrameType frame, RectangleType *rP) SONY_SECTION;
 
 /*!
  * \brief set the current font
  * \param font the font to use
  */
-void _FntSetFont(FontID font);
+void _FntSetFont(FontID font) SONY_SECTION;
 
 #else
 

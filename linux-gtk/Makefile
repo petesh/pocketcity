@@ -11,7 +11,12 @@ endif
 INCLUDEDIRS = -I . -I ../source -I ../nix-common -I ../graphic
 CPPFLAGS=$(GCPPFLAGS) -DLINUX $(INCLUDEDIRS)
 CFLAGS = $(CPPFLAGS) $(OPTFLAGS) $(GCCFLAGS)
+<<<<<<< Makefile
+#GLFLAGS = $(shell pkg-config --libs gtk+-win32-2.0) 
+GLFLAGS = $(shell pkg-config --libs gtk+-x11-2.0) 
+=======
 GLFLAGS = $(shell pkg-config --libs gtk+-2.0)
+>>>>>>> 1.34
 LIBS = 
 LDLIBS = $(LIBS) $(GLFLAGS)
 # -lefence

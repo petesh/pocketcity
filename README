@@ -10,15 +10,12 @@ Don't forget to read the GAMEHINTS file.
 
 INSTALLATION
 -----------
-To compile for PalmOS:
- type `make` in the 'palm' folder
- 
- install:               for this:
+ install:               	for this:
 
- normal-PocketCity-EN.prc		pocketcity in english
- sony-PocketCity-EN.prc			pocketcity in english for sony palmos
-					  devices (including palm5 sony devices)
- palm5-PocketCity-EN.prc		pocketcity in english for palm 5 devices
+ standard-PocketCity-EN.prc	pocketcity in english
+ sony-PocketCity-EN.prc		pocketcity in english for sony palmos
+				  devices (including palm5 sony devices)
+ palm5-PocketCity-EN.prc	pocketcity in english for palm 5 devices
  
  		--- but also install one of:
  PocketCity-bw-1.pdb		black/white displays

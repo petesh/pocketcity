@@ -177,8 +177,8 @@
  * \param Y the size on the Y axis
  */
 #define setMapVariables(X, Y)	{ \
-	GG.mapx = X; \
-	GG.mapy = Y; \
+	GG.mapx = (X); \
+	GG.mapy = (Y); \
 	vgame.mapmul = (UInt16)GG.mapx * GG.mapy; \
 }
 

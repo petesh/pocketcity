@@ -35,11 +35,13 @@ TEMPDIRS:=$(TEMPENDS:%=.temp-%)
 # make all
 #
 
-lores dlores palm5 dpalm5 sony dsony: $(PRCTARGETS)
+lores dlores llores palm5 dpalm5 lpalm5 sony dsony lsony: $(PRCTARGETS)
 
 nearlylive: lores palm5 sony
 
 debug: dlores dpalm5 dsony
+
+logdebug: llores lpalm5 lsony
 
 #
 # make cheat
@@ -53,8 +55,12 @@ cheat: dlores
 
 # you can add: -DMEM_DEBUG to add logging of most palm memory allocation calls
 # -mdebug-labels
+
 dlores dpalm5 dsony: AXCFLAGS = -g -DDEBUG
 dlores dpalm5 dsony: DEBUG=1
+
+llores lpalm5 lsony: AXCFLAGS = -g -DDEBUG -DLOGGING
+llores lpalm5 lsony: DEBUG=1
 
 palm5 dpalm5: BXCFLAGS = -DPALM_HIGH
 palm5 dpalm5: HIRES=1

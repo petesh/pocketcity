@@ -17,9 +17,14 @@ ALLFILES=$(COLORS:%=$(ICONFILE)-%)
 
 all: $(ALLFILES)
 
+<<<<<<< Makefile
+#$(ICONFILE)-%: $(DEPPNGS:%=$$*/%) $(MAPFILE)
+$(ICONFILE)-%: $(MAPFILE)
+=======
 $(DEPPNGS):
 
 $(ICONFILE)-%: $(MAPFILE)
+>>>>>>> 1.5
 	./dotilezones.sh -t $* -d $(DIM) -s $(SHAPE) -c welem_t $(MAPFILE) \
 		$(ICONFILE)-$(DIM) tileheader.h
 	eval `identify -format "w=%w;h=%h" $(ICONFILE)-$(DIM)-$*.bmp`; \

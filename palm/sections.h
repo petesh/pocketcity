@@ -24,5 +24,10 @@
 #define PACK_SECTION LARD_SECTION
 #define BEAM_SECTION LARD_SECTION
 #define MINIMAP_SECTION LARD_SECTION
+#if defined(DEBUG)
+#define SONY_SECTION LARD_SECTION
+#else
+#define SONY_SECTION
+#endif
 
 #endif /* _SECTIONS_H_ */
