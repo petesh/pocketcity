@@ -1,0 +1,136 @@
+
+include Makefile-include
+
+OBJECTS := stack.o simcity.o handler.o drawing.o globals.o build.o \
+	simulation.o HiRes.o disaster.o palmutils.o savegame_be.o \
+	pcity-sections.o \
+	options.o map.o budget.o query.o savegame.o
+
+BUILDENDS=nd d ndh dh
+BUILDDIRS:=$(BUILDENDS:%=out-%)
+
+PROGNAME := "Pocket City"
+DBNAME := "Pocket City Tiles"
+PROGTOKEN := PCit
+# tile database type
+COLORDBTOKEN := tidb
+#PRCTARGETS = pcity
+
+DEBUG := 0
+HIRES := 0
+
+# Multi language support - game-$(LANGUAGES).stm
+LANGUAGES := EN
+
+DESTOBJS = $(OBJECTS:%=$(OBJDIR)/%)
+PRCTARGETS = $(LANGUAGES:%=$(OBJDIR)/pcity-%.prc)
+
+LANGDIRS = $(LANGUAGES:%=(OBJDIR)/%)
+
+# Resource PDBs (graphical; non-language)
+COLORTYPES := bw grey color merged
+COLORTARGETS := $(COLORTYPES:%=pcity-%.pdb)
+
+.PHONY: all debug clean cheat hires dhires VER
+.PRECIOUS: %.stm $(OBJDIR)/%-lang $(OBJDIR)/lang-%/game.stm \
+		$(OBJDIR) temp temp-%
+
+TEMPENDS=$(LANGUAGES) $(COLORTYPES)
+TEMPDIRS:=$(TEMPENDS:%=temp-%)
+
+#
+# make all
+#
+
+all debug hires dhires: VER $(COLORTARGETS) $(PRCTARGETS)
+
+nearlylive: all hires
+
+#
+# make cheat
+#
+cheat: CFLAGS += -DCHEAT
+cheat: debug
+
+##################
+### make debug ###
+##################
+
+debug dhires: CFLAGS += -g -DDEBUG
+debug dhires: DEBUG=1
+
+hires dhires: CFLAGS += -DSONY_CLIE
+hires dhires: HIRES=1
+
+# the different language versions
+$(OBJDIR)/pcity-%.prc: $(OBJDIR) $(OBJDIR)/pcity $(OBJDIR)/%-lang/game.stm
+	$(BUILDPRC) -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
+		$(OBJDIR)/pcity $(OBJDIR)/$*-lang/*.bin
+
+# The tile databases
+pcity-%.pdb: simcity-%.stm zones-%.stm
+	$(BUILDPRC) -o $@ -n $(DBNAME) -c $(PROGTOKEN) -t $(COLORDBTOKEN) \
+		temp-$*/*.bin
+
+$(OBJDIR)/pcity-sections.o: $(OBJDIR)/pcity-sections.s
+	$(CC) -c $< -o $@
+
+$(OBJDIR)/pcity-sections.s $(OBJDIR)/pcity-sections.ld: pcity.def
+	$(MULTIGEN) -b $(OBJDIR)/pcity-sections pcity.def
+
+#### resources
+
+temp-%:
+	@mkdir -p temp-$*
+
+# Language
+$(OBJDIR)/%-lang/game.stm: $(OBJDIR) $(OBJDIR)/%-lang \
+		game.rcp simcity_resconsts.h
+	@$(AWK) -v DEBUG=$(DEBUG) -v HIRES=$(HIRES) -f filter.awk \
+		game.rcp > $(OBJDIR)/$*-lang/ngame.rcp
+	$(RC.rcp) -L $* $(OBJDIR)/$*-lang/ngame.rcp $(OBJDIR)/$*-lang
+	@cat $(OBJDIR)/$*-lang/ngame.rcp > $@ && \
+		rm -f $(OBJDIR)/$*-lang/ngame.rcp
+
+$(OBJDIR)/%-lang:
+	mkdir -p $@
+
+# This will take care of all *.rcp
+# the files must be called this:
+#	*-?.rcp => temp-?
+
+# simcity_resconsts.h
+%.stm: %.rcp
+	@end=$(word 2, $(subst -, ,$*)); \
+	if [ ! -d temp-$$end ]; then mkdir -p temp-$$end; fi; \
+	echo $(RC.rcp) -L $$end $< temp-$$end; \
+	$(RC.rcp) -L $$end $< temp-$$end;
+	@echo touching>$@
+
+#
+# actual source
+#
+
+$(OBJDIR):
+	@-[ -d "$@" ] || mkdir -p $@
+
+$(OBJDIR)/pcity: $(OBJDIR) $(DESTOBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(DESTOBJS) -o $@ $(LDLIBS) \
+		$(OBJDIR)/pcity-sections.ld
+
+$(OBJDIR)/simcity.o: simcity.c simcity.h ../source/handler.h ../source/ui.h \
+	../source/zakdef.h simcity_resconsts.h
+
+$(OBJDIR)/%.o: ../source/%.c ../source/%.h ../source/zakdef.h ../source/ui.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJDIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+#
+# make clean 
+#
+clean:
+	rm -f *.stm *.pdb temp*/*.bin build*/* *.zip *.gz
+	rm -rf $(TEMPDIRS) temp
+	rm -rf $(BUILDDIRS)

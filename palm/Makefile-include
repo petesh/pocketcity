@@ -1,0 +1,20 @@
+
+PLATFORM = PALM
+
+CC = m68k-palmos-gcc
+AWK = gawk
+MULTIGEN = m68k-palmos-multigen
+BUILDPRC = build-prc
+RC = pilrc
+
+RCFLAGS = -q
+
+OPTFLAGS = -O2
+WARNFLAGS = -Wall -Werror-implicit-function-declaration
+INCLUDES = -I . -I ../source
+DEFINES = -D$(PLATFORM)
+
+CFLAGS = $(OPTFLAGS) $(WARNFLAGS) $(DEFINES) $(INCLUDES)
+LDLIBS =
+
+RC.rcp=$(RC) $(RCFLAGS)
