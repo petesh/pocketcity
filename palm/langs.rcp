@@ -166,6 +166,7 @@ BEGIN
     /* Query Form */
     "T_STATUS"      = "Zone Status"
     "L_ZONETYPE"    = "Type:"
+    "L_ZONELOCATION" = "Location:"
     "L_ZONEVALUE"   = "Value:"
     "L_ZONEDENSITY" = "Density:"
     "L_POLLUTION"   = "Pollution:"
