@@ -9,24 +9,24 @@ GtkWidget *dlg=0;
 GtkWidget *lres,*lcom,*lind,*lpow,*ltra,*ldef,*lbal,*lcha,*lnex;
 GtkObject *adjust_tra, *adjust_pow, *adjust_def;
 
-extern void UIUpdateBudget(void)
+void UIUpdateBudget(void)
 {
     char temp[20];
     if (!dlg) { return; }
 
     sprintf(temp,"%li", BudgetGetNumber(bnResidential));
-    gtk_label_set_text((GtkLabel*)lres,temp);
+    gtk_label_set_text((GtkLabel*)lres, temp);
     sprintf(temp,"%li", BudgetGetNumber(bnCommercial));
-    gtk_label_set_text((GtkLabel*)lcom,temp);
+    gtk_label_set_text((GtkLabel*)lcom, temp);
     sprintf(temp,"%li", BudgetGetNumber(bnIndustrial));
-    gtk_label_set_text((GtkLabel*)lind,temp);
+    gtk_label_set_text((GtkLabel*)lind, temp);
     
     sprintf(temp,"%li", BudgetGetNumber(bnPower));
-    gtk_label_set_text((GtkLabel*)lpow,temp);
+    gtk_label_set_text((GtkLabel*)lpow, temp);
     sprintf(temp,"%li", BudgetGetNumber(bnTraffic));
-    gtk_label_set_text((GtkLabel*)ltra,temp);
+    gtk_label_set_text((GtkLabel*)ltra, temp);
     sprintf(temp,"%li", BudgetGetNumber(bnDefence));
-    gtk_label_set_text((GtkLabel*)ldef,temp);
+    gtk_label_set_text((GtkLabel*)ldef, temp);
     
     sprintf(temp,"%li", BudgetGetNumber(bnCurrentBalance));
     gtk_label_set_text((GtkLabel*)lbal,temp);

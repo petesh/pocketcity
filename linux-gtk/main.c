@@ -24,9 +24,9 @@ GtkWidget *timelabel;
 GtkObject *playscrollerh, *playscrollerv;
 void * worldPtr;
 void * worldFlagsPtr;
-GdkPixmap *zones_bitmap,*monsters,*units;
-GdkBitmap *zones_mask,*monsters_mask,*units_mask;
-unsigned char selectedBuildItem = 0;
+GdkPixmap *zones_bitmap, *monsters, *units;
+GdkBitmap *zones_mask, *monsters_mask, *units_mask;
+UInt8 selectedBuildItem = 0;
 void SetUpMainWindow(void);
 gint mainloop_callback(gpointer data);
 void UIQuitGame(GtkWidget *w, gpointer data) { gtk_main_quit(); }
@@ -353,7 +353,7 @@ void UISetUpGraphic(void)
 }
 
 
-int
+Int16
 UIDisplayError1(char *error)
 {
     GtkWidget * dialog;
@@ -368,7 +368,7 @@ UIDisplayError1(char *error)
     return (0);
 }
 
-int
+Int16
 UIDisplayError(erdiType nError) 
 {
     char temp[100];
@@ -433,7 +433,7 @@ void UIUpdateBuildIcon(void)
     g_print("UIUpdateBuildIcon\n");
 }
 
-void UIGotoForm(int n)
+void UIGotoForm(Int16 n)
 {
     g_print("UIGotoForm\n");
 }
@@ -451,12 +451,13 @@ UIScrollMap(dirType direction)
     RedrawAllFields();
 }
 
-void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth)
+void
+_UIDrawRect(Int16 nTop, Int16 nLeft, Int16 nHeight, Int16 nWidth)
 {
     g_print("_UIDrawRect\n");
 }
 
-void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
+void UIDrawField(Int16 xpos, Int16 ypos, UInt8 nGraphic)
 {
     GdkGC *gc;
 
@@ -474,7 +475,8 @@ void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
     gdk_gc_destroy(gc);
 }
 
-void UIDrawSpecialObject(int i, int xpos, int ypos)
+void
+UIDrawSpecialObject(Int16 i, Int16 xpos, Int16 ypos)
 {
     GdkGC *gc;
     gc = gdk_gc_new(drawingarea->window);
@@ -496,7 +498,8 @@ void UIDrawSpecialObject(int i, int xpos, int ypos)
     gdk_gc_destroy(gc);
 }
 
-void UIDrawSpecialUnit(int i, int xpos, int ypos)
+void
+UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos)
 {
     GdkGC *gc;
     gc = gdk_gc_new(drawingarea->window);
@@ -518,12 +521,14 @@ void UIDrawSpecialUnit(int i, int xpos, int ypos)
     gdk_gc_destroy(gc);
 }
 
-void UIDrawCursor(int xpos, int ypos)
+void
+UIDrawCursor(Int16 xpos, Int16 ypos)
 {
     /* not used on this platform */
 }
 
-void UIDrawPowerLoss(int xpos, int ypos)
+void
+UIDrawPowerLoss(Int16 xpos, Int16 ypos)
 {
     GdkGC *gc;
     gc = gdk_gc_new(drawingarea->window);
@@ -545,7 +550,8 @@ void UIDrawPowerLoss(int xpos, int ypos)
     gdk_gc_destroy(gc);
 }
 
-void UIDrawWaterLoss(int xpos, int ypos)
+void
+UIDrawWaterLoss(Int16 xpos, Int16 ypos)
 {
     GdkGC *gc;
     gc = gdk_gc_new(drawingarea->window);
@@ -567,12 +573,13 @@ void UIDrawWaterLoss(int xpos, int ypos)
     gdk_gc_destroy(gc);
 }
 
-unsigned char UIGetSelectedBuildItem(void)
+UInt8 UIGetSelectedBuildItem(void)
 {
     return selectedBuildItem;
 }
 
-int InitWorld(void)
+Int16
+InitWorld(void)
 {
     worldPtr = malloc(10);
     worldFlagsPtr = malloc(10);
@@ -585,7 +592,8 @@ int InitWorld(void)
     return 1;
 }
 
-int ResizeWorld(unsigned long size)
+Int16
+ResizeWorld(UInt32 size)
 {
     worldPtr = realloc(worldPtr, size);
     worldFlagsPtr = realloc(worldFlagsPtr, size);
@@ -612,18 +620,18 @@ UnlockWorld(void)
     /* not used on this platform */
 }
 
-unsigned char
-GetWorld(unsigned long pos)
+UInt8
+GetWorld(UInt32 pos)
 {
     if (pos > GetMapMul()) { return 0; }
-    return ((char*)worldPtr)[pos];
+    return ((UInt8 *)worldPtr)[pos];
 }
 
 void
-SetWorld(unsigned long pos, unsigned char value)
+SetWorld(UInt32 pos, UInt8 value)
 {
     if (pos > GetMapMul()) { return; }
-    ((char*)worldPtr)[pos] = value;
+    ((UInt8 *)worldPtr)[pos] = value;
 }
 
 void
@@ -638,39 +646,39 @@ UnlockWorldFlags(void)
     /* not used on this platform */
 }
 
-unsigned char
-GetWorldFlags(unsigned long pos)
+UInt8
+GetWorldFlags(UInt32 pos)
 {
     if (pos > GetMapMul()) { return 0; }
-    return ((char*)worldFlagsPtr)[pos];
+    return ((UInt8 *)worldFlagsPtr)[pos];
 }
 
 void
-SetWorldFlags(unsigned long pos, unsigned char value)
+SetWorldFlags(UInt32 pos, UInt8 value)
 {
     if (pos > GetMapMul()) { return; }
-    ((char*)worldFlagsPtr)[pos] = value;
+    ((UInt8 *)worldFlagsPtr)[pos] = value;
 }
 
 void
-AndWorldFlags(unsigned long pos, unsigned char value)
+AndWorldFlags(UInt32 pos, UInt8 value)
 {
     if (pos > GetMapMul()) { return; }
-    ((char*)worldFlagsPtr)[pos] &= value;
+    ((UInt8 *)worldFlagsPtr)[pos] &= value;
 }
 
 void
-OrWorldFlags(unsigned long pos, unsigned char value)
+OrWorldFlags(UInt32 pos, UInt8 value)
 {
     if (pos > GetMapMul()) { return; }
-    ((char*)worldFlagsPtr)[pos] |= value;
+    ((UInt8 *)worldFlagsPtr)[pos] |= value;
 }
 
-unsigned long
-GetRandomNumber(unsigned long max)
+UInt32
+GetRandomNumber(UInt32 max)
 {
     /* se `man 3 rand` why I'm not using: return (rand() % max) */
-    return (unsigned long)((float)max*rand()/(RAND_MAX+1.0));
+    return (UInt32)((float)max*rand()/(RAND_MAX+1.0));
 }
 
 void
@@ -684,7 +692,7 @@ MapHasJumped(void)
 }
 
 void
-UISetTileSize(int size)
+UISetTileSize(Int16 size)
 {
     g_print("UISetTileSize\n");
 }
