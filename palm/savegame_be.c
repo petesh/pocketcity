@@ -497,6 +497,9 @@ FreeCityNames(char **names)
     char **at = names;
     char *gnat = *at;
 
+    if (names == NULL)
+        return;
+
     while(*at != NULL) {
 	if (gnat > *at)
 	    gnat = *at;
