@@ -522,6 +522,7 @@ static Boolean hPocketCity(EventPtr event)
                         // just handy with a 'trigger' button for testing
                         // ie. disaters
                         BurnField(5,5,1);
+			MeteorDisaster();
                         handled = 1;
                         break;
                     case menuitemID_removeDefence:
@@ -766,6 +767,7 @@ extern int UIDisplayError(int nError)
         case ERROR_PLANT_EXPLOSION: FrmAlert(alertID_plantExplosion); break;
         case ERROR_MONSTER: FrmAlert(alertID_monster); break;
         case ERROR_DRAGON: FrmAlert(alertID_dragon); break;
+	case ERROR_METEOR: FrmAlert(alertID_meteor); break;
     }
     return 0;
 }

@@ -286,3 +286,11 @@ BEGIN
   MESSAGE "A fire dragon wants to use your city as it's lair!"
   BUTTONS "Uh-oh!"
 END
+
+ALERT ID alertID_meteor
+BEGIN
+  TITLE "Disaster"
+  MESSAGE "A gigantic meteor has hit your city!"
+  BUTTONS "Uh-oh!"
+END
+

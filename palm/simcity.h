@@ -83,6 +83,7 @@ extern void UIWriteLog(char * s);
 #define alertID_plantExplosion           1012
 #define alertID_monster                  1013
 #define alertID_dragon                   1014
+#define alertID_meteor			 1015
 
 // the jumps in these defines makes coding easier
 #define bitmapID_SpeedPaused            3000
