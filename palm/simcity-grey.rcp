@@ -1,5 +1,4 @@
-
-#include "simcity.h"
+#include "simcity_resconsts.h"
 
 BITMAP ID bitmapID_SpeedPaused         "graphic/speed_paused.bmp"  COMPRESS
 BITMAP ID bitmapID_SpeedSlow           "graphic/speed_slow.bmp"      COMPRESS

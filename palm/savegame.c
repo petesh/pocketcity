@@ -6,6 +6,7 @@
 #include <unix_stdlib.h>
 #include <StdIOPalm.h>
 #include "simcity.h"
+#include "simcity_resconsts.h"
 #include "savegame.h"
 #include "../source/ui.h"
 #include "../source/globals.h"

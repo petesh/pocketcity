@@ -16,6 +16,7 @@
 #include "../source/simulation.h"
 #include "../source/disaster.h"
 #include "resCompat.h"
+#include "simcity_resconsts.h"
 
 #ifdef DEBUG
 #include <HostControl.h>
@@ -53,6 +54,7 @@ static Boolean hQuickList(EventPtr event);
 static Boolean hExtraList(EventPtr event);
 static Boolean hOptions(EventPtr event);
 static void _PalmInit(void);
+static void _PalmFini(void);
 static void UIDoQuickList(void);
 static void UIPopUpExtraBuildList(void);
 void UIDrawPop(void);
@@ -62,16 +64,20 @@ static void initTextPositions(void);
 
 static void _UIGetFieldToBuildOn(int x, int y);
 static Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags);
-extern void UIDrawLoc(void);
+static void EventLoop(void);
 static void cycleSpeed(void);
+static void DoAbout(void);
+
+#if defined(SONY_CLIE)
+static void HoldHook(UInt32);
+static void toolBarCheck(Coord);
+static void UIDrawToolBar(void);
+#endif
+
+extern void UIDrawLoc(void);
 
 UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 {
-    EventType event;
-    short err;
-    FormPtr form;
-    int formID;
-    UInt32 timeTemp;
     UInt16 error;
 
     error = RomVersionCompatible (
@@ -88,145 +94,151 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
             FrmGotoForm(formID_files);
         }
 
-        do {
-            EvtGetEvent(&event, 1);
-
-            if (event.eType == keyDownEvent) {
-                UIWriteLog("keydown event\n");
-                if (FrmDispatchEvent(&event)) continue;
-            }
-
-            if (SysHandleEvent(&event)) continue;
-
-            if (MenuHandleEvent((void*)0, &event, &err)) continue;
-
-            if (event.eType == frmLoadEvent) {
-                UIWriteLog("Main::frmLoadEvent\n");
-                formID = event.data.frmLoad.formID;
-                form = FrmInitForm(formID);
-                FrmSetActiveForm(form);
-
-                switch (formID)
-                {
-                    case formID_pocketCity:
-                        FrmSetEventHandler(form, hPocketCity);
-                        break;
-                    case formID_budget:
-                        FrmSetEventHandler(form, hBudget);
-                        break;
-                    case formID_map:
-                        FrmSetEventHandler(form, hMap);
-                        break;
-                    case formID_options:
-                        FrmSetEventHandler(form, hOptions);
-                        break;
-                    case formID_files:
-                        FrmSetEventHandler(form, hFiles);
-                        break;
-                    case formID_filesNew:
-                        FrmSetEventHandler(form, hFilesNew);
-                        break;
-                    case formID_quickList:
-                        FrmSetEventHandler(form, hQuickList);
-                        break;
-                    case formID_extraBuild:
-                        FrmSetEventHandler(form, hExtraList);
-                        break;
-                }
-            }
-            else if (event.eType == winExitEvent) {
-                if (event.data.winExit.exitWindow == (WinHandle) FrmGetFormPtr(formID_pocketCity)) {
-                    UIWriteLog("Setting drawing to 0\n");
-                    DoDrawing = 0;
-                }
-            }
-            else if (event.eType == winEnterEvent) {
-                if (event.data.winEnter.enterWindow == (WinHandle) FrmGetFormPtr(formID_pocketCity) && event.data.winEnter.enterWindow == (WinHandle) FrmGetFirstForm())
-                {
-                    UIWriteLog("Setting drawing to 1\n");
-                    DoDrawing = 1;
-                    RedrawAllFields(); //update screen after menu etc.
-                } else {
-                    UIWriteLog("Setting drawing to 0\n");
-                    DoDrawing = 0;
-                }
-            }
-
-            if (FrmDispatchEvent(&event)) continue;
-
-            // the almighty homemade >>"multithreader"<<
-            if (game_in_progress == 1 && building == 0 && game.gameLoopSeconds != SPEED_PAUSED) {
-                if (simState == 0) {
-                    timeTemp = TimGetSeconds();
-                    if (timeTemp >= timeStamp+game.gameLoopSeconds)
-                    {
-                        simState = 1;
-                        timeStamp = timeTemp;
-                    }
-                } else  {
-                    simState = Sim_DoPhase(simState);
-                    if (simState == 0) {
-                        RedrawAllFields();
-                    }
-                }
-            }
-
-            // Do a disaster update every 2 secound nomatter what.
-            // We don't want the (l)user to get help by pausing the game
-            // (not realistic enough) - TODO: Pause should be enabled on
-            // 'easy' difficulty.
-            if (game_in_progress == 1 && building == 0) {
-                timeTemp = TimGetSeconds();
-                if (timeTemp >= timeStampDisaster+SIM_GAME_LOOP_DISASTER) {
-                    MoveAllObjects();
-#ifdef DEBUG
-                    { // block so we can initialize more vars
-                        // this will print the BuildCount array
-                        // don't forget to keep an eye on it
-                        // in the log - should be up-to-date
-                        // AT ALL TIMES!
-                        char temp[10];
-                        int q;
-                        for (q=0; q<20; q++) {
-                            sprintf(temp,"%li",game.BuildCount[q]);
-                            UIWriteLog(temp);
-                            UIWriteLog(" ");
-                        }
-                        UIWriteLog("\n");
-
-                    } // end debug block
-#endif
-                    if (UpdateDisasters()) {
-                        RedrawAllFields();
-                    }
-                    timeStampDisaster = timeTemp;
-                    // TODO: This would be the place to create animation...
-                    // perhaps with a second offscreen window for the
-                    // second animation frame of each zone
-                    // Then swap the winZones between the two,
-                    // and do the RedrawAllFields() from above here
-                }
-            }
-
-
-
-        } while (event.eType != appStopEvent);
+        EventLoop();
 
         if (game_in_progress) {
             UISaveGame(0);
         }
-        // clean up
-        WinDeleteWindow(winZones,0);
-        WinDeleteWindow(winMonsters,0);
-        WinDeleteWindow(winUnits,0);
-        MemPtrFree(worldPtr);
-        MemPtrFree(worldFlagsPtr);
-        restoreDepthRes();
+
+        _PalmFini();
     }
 
     return 0;
 }
 
+static void
+EventLoop(void)
+{
+    EventType event;
+    FormPtr form;
+    int formID;
+    UInt32 timeTemp;
+    short err;
+
+    do {
+        EvtGetEvent(&event, 1);
+
+       if (event.eType == keyDownEvent) {
+           UIWriteLog("keydown event\n");
+           if (FrmDispatchEvent(&event)) continue;
+       }
+
+       if (SysHandleEvent(&event)) continue;
+
+       if (MenuHandleEvent((void*)0, &event, &err)) continue;
+
+       if (event.eType == frmLoadEvent) {
+           UIWriteLog("Main::frmLoadEvent\n");
+           formID = event.data.frmLoad.formID;
+           form = FrmInitForm(formID);
+           FrmSetActiveForm(form);
+           
+           switch (formID) {
+           case formID_pocketCity:
+               FrmSetEventHandler(form, hPocketCity);
+               break;
+           case formID_budget:
+               FrmSetEventHandler(form, hBudget);
+               break;
+           case formID_map:
+               FrmSetEventHandler(form, hMap);
+               break;
+           case formID_options:
+               FrmSetEventHandler(form, hOptions);
+               break;
+           case formID_files:
+               FrmSetEventHandler(form, hFiles);
+               break;
+           case formID_filesNew:
+               FrmSetEventHandler(form, hFilesNew);
+               break;
+           case formID_quickList:
+               FrmSetEventHandler(form, hQuickList);
+               break;
+           case formID_extraBuild:
+               FrmSetEventHandler(form, hExtraList);
+               break;
+           }
+       }
+       else if (event.eType == winExitEvent) {
+           if (event.data.winExit.exitWindow ==
+             (WinHandle) FrmGetFormPtr(formID_pocketCity)) {
+               UIWriteLog("Setting drawing to 0\n");
+               DoDrawing = 0;
+           }
+       }
+       else if (event.eType == winEnterEvent) {
+           if (event.data.winEnter.enterWindow ==
+             (WinHandle) FrmGetFormPtr(formID_pocketCity) &&
+             event.data.winEnter.enterWindow == (WinHandle) FrmGetFirstForm()) {
+               UIWriteLog("Setting drawing to 1\n");
+               DoDrawing = 1;
+               RedrawAllFields(); //update screen after menu etc.
+           } else {
+               UIWriteLog("Setting drawing to 0\n");
+               DoDrawing = 0;
+           }
+       }
+       
+       if (FrmDispatchEvent(&event)) continue;
+       
+       // the almighty homemade >>"multithreader"<<
+       if (game_in_progress == 1 && building == 0 &&
+         game.gameLoopSeconds != SPEED_PAUSED) {
+           if (simState == 0) {
+               timeTemp = TimGetSeconds();
+               if (timeTemp >= timeStamp+game.gameLoopSeconds) {
+                   simState = 1;
+                   timeStamp = timeTemp;
+               }
+           } else  {
+               simState = Sim_DoPhase(simState);
+               if (simState == 0) {
+                   RedrawAllFields();
+               }
+           }
+       }
+       
+       // Do a disaster update every 2 secound nomatter what.
+       // We don't want the (l)user to get help by pausing the game
+       // (not realistic enough) - TODO: Pause should be enabled on
+       // 'easy' difficulty.
+       if (game_in_progress == 1 && building == 0) {
+           timeTemp = TimGetSeconds();
+
+           if (timeTemp >= timeStampDisaster+SIM_GAME_LOOP_DISASTER) {
+               MoveAllObjects();
+#ifdef DEBUG
+               { // block so we can initialize more vars
+                   // this will print the BuildCount array
+                   // don't forget to keep an eye on it
+                   // in the log - should be up-to-date
+                   // AT ALL TIMES!
+                   char temp[10];
+                   int q;
+                   for (q=0; q<20; q++) {
+                       sprintf(temp,"%li",game.BuildCount[q]);
+                       UIWriteLog(temp);
+                       UIWriteLog(" ");
+                   }
+                   UIWriteLog("\n");
+                   
+               } // end debug block
+#endif
+               if (UpdateDisasters()) {
+                   RedrawAllFields();
+               }
+               timeStampDisaster = timeTemp;
+               // TODO: This would be the place to create animation...
+               // perhaps with a second offscreen window for the
+               // second animation frame of each zone
+               // Then swap the winZones between the two,
+               // and do the RedrawAllFields() from above here
+           }
+       }
+    } while (event.eType != appStopEvent);
+
+}
 
 void _PalmInit(void)
 {
@@ -301,6 +313,22 @@ void _PalmInit(void)
 
     // clean up
     WinSetDrawWindow(winHandle);
+
+    hookHoldSwitch(HoldHook);
+}
+
+static void
+_PalmFini(void)
+{
+    unhookHoldSwitch();
+
+    // clean up
+    WinDeleteWindow(winZones,0);
+    WinDeleteWindow(winMonsters,0);
+    WinDeleteWindow(winUnits,0);
+    MemPtrFree(worldPtr);
+    MemPtrFree(worldFlagsPtr);
+    restoreDepthRes();
 }
 
 static Boolean hPocketCity(EventPtr event)
@@ -325,21 +353,32 @@ static Boolean hPocketCity(EventPtr event)
             _UIGetFieldToBuildOn(event->screenX, event->screenY);
             handled = 1;
             break;
-        } else if ((event->screenX >= (sWidth - 12)) && (event->screenY < 12)) {
-            // click was on change speed
-            cycleSpeed();
-            UIDrawPop();
-        } else if (event->screenX < 12 && event->screenY < 12) {
-            // click was on change production
-            if (nSelectedBuildItem == BUILD_BULLDOZER) {
-                nSelectedBuildItem = nPreviousBuildItem;
-            } else {
-                nPreviousBuildItem = nSelectedBuildItem;
-                nSelectedBuildItem = BUILD_BULLDOZER;
-            }
-            UIUpdateBuildIcon();
         }
-        // check for other 'penclicks' here
+        if (event->screenY < 12) {
+            handled = 1;
+            if (event->screenX >= (sWidth - 12)) {
+                // click was on change speed
+                cycleSpeed();
+                UIDrawPop();
+                break;
+            }
+            if (event->screenX < 12) {
+                // click was on toggle production
+                if (nSelectedBuildItem == BUILD_BULLDOZER) {
+                    nSelectedBuildItem = nPreviousBuildItem;
+                } else {
+                    nPreviousBuildItem = nSelectedBuildItem;
+                    nSelectedBuildItem = BUILD_BULLDOZER;
+                }
+                UIUpdateBuildIcon();
+                break;
+            }
+#if defined(SONY_CLIE)
+            if (isHires())
+                toolBarCheck(event->screenX);
+#endif
+            // check for other 'penclicks' here
+        }
         break;
     case penMoveEvent:
         scaleEvent(event);
@@ -356,6 +395,13 @@ static Boolean hPocketCity(EventPtr event)
         timeStampDisaster = timeStamp-game.gameLoopSeconds+1; // ditto
         handled = 1;
         break;
+#if !defined(CHEAT) && !defined(DEBUG)
+    case menuOpenEvent:
+        if (!oldROM)
+            MenuHideItem(menuitemID_Funny);
+        handled = 1;
+        break;
+#endif
     case menuEvent:
         if (event->data.menu.itemID >= menuitemID_buildBulldoze) {
             if (event->data.menu.itemID == menuitemID_buildExtra) {
@@ -371,7 +417,8 @@ static Boolean hPocketCity(EventPtr event)
             case menuitemID_Funny:
                 // change this to whatever testing you're doing ;)
                 // just handy with a 'trigger' button for testing
-                // ie. disaters
+                // ie. disaters... this item is erased if you've
+                // not compiled with CHEAT or DEBUG
 #ifdef CHEAT
                 game.credits += 100000;
 #endif
@@ -395,20 +442,12 @@ static Boolean hPocketCity(EventPtr event)
                 handled = 1;
                 break;
             case menuitemID_about:
-                {
-                    MemHandle mhp;
-                    MemPtr mp = NULL;
-
-                    mhp = DmGetResource('tver', 1);
-                    if (mhp != NULL) mp = MemHandleLock(mhp);
-                    if (mp == NULL) mp = "??";
-                    FrmCustomAlert(alertID_about, mp, NULL, NULL);
-                    if (mhp) {
-                        MemPtrUnlock(mp);
-                        DmReleaseResource(mhp);
-                    }
-                    handled = 1;
-                }
+                DoAbout();
+                handled = 1;
+                break;
+            case menuitemID_tips:
+                FrmHelp(StrID_tips);
+                handled = 1;
                 break;
             case menuitemID_Configuration:
                 FrmGotoForm(formID_options);
@@ -514,6 +553,21 @@ static Boolean hPocketCity(EventPtr event)
     return handled;
 }
 
+static void
+DoAbout(void)
+{
+    MemHandle mhp;
+    MemPtr mp = NULL;
+
+    mhp = DmGetResource('tver', 1);
+    if (mhp != NULL) mp = MemHandleLock(mhp);
+    if (mp == NULL) mp = "??";
+    FrmCustomAlert(alertID_about, mp, NULL, NULL);
+    if (mhp) {
+        MemPtrUnlock(mp);
+        DmReleaseResource(mhp);
+    }
+}
 
 extern void
 UIGotoForm(int n)
@@ -694,6 +748,7 @@ static Boolean hOptions(EventPtr event)
 {
     FormPtr form;
     int handled = 0;
+    static char okHit = 0;
 
     switch (event->eType) {
     case frmOpenEvent:
@@ -701,22 +756,25 @@ static Boolean hOptions(EventPtr event)
         FrmDrawForm(form);
         CtlSetValue(FrmGetObjectPtr(form, FrmGetObjectIndex(form,
                   buttonID_dis_off+game.disaster_level)), 1);
+        okHit = 0;
         handled = 1;
         break;
     case frmCloseEvent:
-        form = FrmGetActiveForm();
-        if (CtlGetValue(FrmGetObjectPtr(form,
-                  FrmGetObjectIndex(form, buttonID_dis_off)))) {
-            game.disaster_level = 0;
-        } else if (CtlGetValue(FrmGetObjectPtr(form,
-                  FrmGetObjectIndex(form, buttonID_dis_one)))) {
-            game.disaster_level = 1;
-        } else if (CtlGetValue(FrmGetObjectPtr(form,
-                  FrmGetObjectIndex(form, buttonID_dis_two)))) {
-            game.disaster_level = 2;
-        } else if (CtlGetValue(FrmGetObjectPtr(form,
-                  FrmGetObjectIndex(form, buttonID_dis_three)))) {
-            game.disaster_level = 3;
+        if (okHit) {
+            form = FrmGetActiveForm();
+            if (CtlGetValue(FrmGetObjectPtr(form,
+                      FrmGetObjectIndex(form, buttonID_dis_off)))) {
+                game.disaster_level = 0;
+            } else if (CtlGetValue(FrmGetObjectPtr(form,
+                      FrmGetObjectIndex(form, buttonID_dis_one)))) {
+                game.disaster_level = 1;
+            } else if (CtlGetValue(FrmGetObjectPtr(form,
+                      FrmGetObjectIndex(form, buttonID_dis_two)))) {
+                game.disaster_level = 2;
+            } else if (CtlGetValue(FrmGetObjectPtr(form,
+                      FrmGetObjectIndex(form, buttonID_dis_three)))) {
+                game.disaster_level = 3;
+            }
         }
         break;
     case keyDownEvent:
@@ -727,12 +785,19 @@ static Boolean hOptions(EventPtr event)
             handled = 1;
             break;
         }
-    case popSelectEvent:
-        if (event->data.popSelect.controlID == listID_shifter_popup) {
-            UIGotoForm(event->data.popSelect.selection);
+    case ctlSelectEvent:
+        switch (event->data.ctlEnter.controlID) {
+        case buttonID_OK:
+            okHit = 1;
             handled = 1;
+            FrmGotoForm(formID_pocketCity);
+            break;
+        case buttonID_Cancel:
+            okHit = 0;
+            handled = 1;
+            FrmGotoForm(formID_pocketCity);
+            break;
         }
-        break;
     default:
         break;
     }
@@ -1075,14 +1140,6 @@ struct StatusPositions {
 
 // extent.x is filled in automatically
 
-#ifdef SONY_CLIE
-static struct StatusPositions hrpositions[] = {
-    { { {2, 0}, {0, 11} }, { 0, 1 }, ENDY },  // DATELOC
-    { { {80, 0}, {0, 11} }, {0, 1}, ENDY }, // CREDITSLOC
-    { { {160, 0}, {0, 11} }, {0, 1}, ENDY }, // POPLOC
-    { { {280, 0}, {0, 11} }, {0, 1}, ENDY }, // POSITIONLOC
-};
-#endif
 static struct StatusPositions lrpositions[] = {
     { { {0, 0}, {0, 11} }, { 0, 1 }, MIDX },  // DATELOC
     { { {0, 0}, {0, 11} }, {0, 1}, ENDY }, // CREDITSLOC
@@ -1090,6 +1147,14 @@ static struct StatusPositions lrpositions[] = {
     { { {0, 0}, {0, 11} }, {0, 1}, ENDX | ENDY }, // POSITIONLOC
 };
 #ifdef SONY_CLIE
+
+static struct StatusPositions hrpositions[] = {
+    { { {2, 0}, {0, 11} }, { 0, 1 }, ENDY },  // DATELOC
+    { { {80, 0}, {0, 11} }, {0, 1}, ENDY }, // CREDITSLOC
+    { { {160, 0}, {0, 11} }, {0, 1}, ENDY }, // POPLOC
+    { { {280, 0}, {0, 11} }, {0, 1}, ENDY }, // POSITIONLOC
+};
+
 static struct StatusPositions *
 posAt(int pos)
 {
@@ -1101,6 +1166,7 @@ posAt(int pos)
         sp = &(lrpositions[0]);
     return (&(sp[pos]));
 }
+
 #else
 #define posAt(x)        &(lrpositions[(x)])
 #endif
@@ -1125,7 +1191,7 @@ void UIDrawItem(int location, char *text)
     Int16 sl;
     Coord tx;
     ErrFatalDisplayIf((location < 0) || (location >= MAXLOC),
-      "Location is too large");
+      "Item Location is out of range");
     pos = posAt(location);
     if (pos->rect.extent.x && pos->rect.extent.y) {
         _WinEraseRectangle(&(pos->rect), 0);
@@ -1158,6 +1224,7 @@ extern void UIDrawDate(void)
     GetDate((char*)temp);
     UIDrawItem(DATELOC, temp);
 }
+
 
 extern void UIDrawCredits(void)
 {
@@ -1238,6 +1305,10 @@ UIUpdateBuildIcon(void)
     _WinDrawBitmap(bitmap, 2, 2);
     MemPtrUnlock(bitmap);
     DmReleaseResource(bitmaphandle);
+#if defined(SONY_CLIE)
+    if (isHires())
+        UIDrawToolBar();
+#endif
 }
 
 extern void UIDrawSpeed(void)
@@ -1317,7 +1388,6 @@ extern int InitWorld(void)
 
 extern int ResizeWorld(long unsigned size)
 {
-    int i;
 #ifdef DEBUG
     char temp[20];
     StrPrintF(temp,"%i\n",size);
@@ -1325,8 +1395,8 @@ extern int ResizeWorld(long unsigned size)
     UIWriteLog(temp);
 #endif
 
-
-    if (MemHandleResize(worldHandle, size) != 0 || MemHandleResize(worldFlagsHandle, size) != 0) {
+    if (MemHandleResize(worldHandle, size) != 0 ||
+      MemHandleResize(worldFlagsHandle, size) != 0) {
         UIDisplayError(0);
         //QuitGameError();
         UIWriteLog("FAILED!\n");
@@ -1336,13 +1406,13 @@ extern int ResizeWorld(long unsigned size)
     LockWorld();
     LockWorldFlags();
 
-    for (i=0; i<size; i++) { *(((unsigned char*)worldPtr)+i) = 0; }
-    for (i=0; i<size; i++) { *(((unsigned char*)worldFlagsPtr)+i) = 0; }
+    MemSet(worldPtr, size, 0);
+    MemSet(worldFlagsPtr, size, 0);
 
     UnlockWorld();
     UnlockWorldFlags();
 
-    return 1;
+    return (1);
 }
 
 extern void MapHasJumped(void) { }
@@ -1352,8 +1422,6 @@ extern void LockWorld() { worldPtr = MemHandleLock(worldHandle); }
 extern void UnlockWorld() { MemHandleUnlock(worldHandle); }
 extern void LockWorldFlags() { worldFlagsPtr = MemHandleLock(worldFlagsHandle); }
 extern void UnlockWorldFlags() { MemHandleUnlock(worldFlagsHandle); }
-
-
 
 extern unsigned char GetWorldFlags(long unsigned int pos)
 {
@@ -1382,10 +1450,7 @@ extern void SetWorld(unsigned long pos, unsigned char value)
     ((unsigned char*)worldPtr)[pos] = value;
 }
 
-
-/*** end ***/
-
-Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags)
+static Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags)
 {
     UInt32 romVersion;
 #ifdef DEBUG
@@ -1423,19 +1488,6 @@ Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags)
     return (0);
 }
 
-extern void UIWriteLog(char * s)
-{
-#ifdef DEBUG
-    HostFILE * hf = NULL;
-
-    hf = HostFOpen("pcity.log", "a");
-    if (hf) {
-        HostFPrintF(hf, s);
-        HostFClose(hf);
-    }
-#endif
-}
-
 static void
 cycleSpeed(void)
 {
@@ -1457,3 +1509,64 @@ cycleSpeed(void)
         }
     }
 }
+
+#ifdef SONY_CLIE
+
+static void
+UIDrawToolBar(void)
+{
+    Coord startx = 16;
+    Coord starty = 2;
+    UInt32 id;
+    MemHandle hBitmap;
+    MemPtr pBitmap;
+
+    for (id = bitmapID_iconBulldoze; id <= bitmapID_iconExtra; id++) {
+        hBitmap = DmGet1Resource(TBMP, id);
+        if (hBitmap == NULL) continue;
+        pBitmap = MemHandleLock(hBitmap);
+        if (pBitmap == NULL) {
+            DmReleaseResource(hBitmap);
+            continue;
+        }
+        _WinDrawBitmap(pBitmap, startx, starty);
+        startx += 14;
+        MemPtrUnlock(pBitmap);
+        DmReleaseResource(hBitmap);
+    }
+}
+
+static void
+toolBarCheck(Coord xpos)
+{
+    // We've already confirmed the y-axis.
+    int id = (xpos - 16) / 14;
+    if (id == (bitmapID_iconExtra - bitmapID_iconBulldoze)) {
+        UIPopUpExtraBuildList();
+    } else {
+        nSelectedBuildItem = id;
+    }
+    UIUpdateBuildIcon();
+}
+
+// Pauses the game if you flick the 'hold' switch
+static void
+HoldHook(UInt32 held)
+{
+    if (held) game.gameLoopSeconds = SPEED_PAUSED;
+    UIDrawSpeed();
+}
+#endif
+
+#ifdef DEBUG
+extern void UIWriteLog(char * s)
+{
+    HostFILE * hf = NULL;
+
+    hf = HostFOpen("pcity.log", "a");
+    if (hf) {
+        HostFPrintF(hf, s);
+        HostFClose(hf);
+    }
+}
+#endif

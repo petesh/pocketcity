@@ -45,4 +45,8 @@ extern void MapHasJumped(void);
 
 extern unsigned long GetRandomNumber(unsigned long max);
 extern void UISetTileSize(int size);
+#ifdef DEBUG
 extern void UIWriteLog(char*);
+#else
+#define UIWriteLog(x)
+#endif

@@ -1,10 +1,8 @@
 #include <PalmTypes.h>
 #include <FeatureMgr.h>
+#include <ErrorBase.h>
 #include <ErrorMgr.h>
-
-// Change Resolution
-UInt32 sWidth;
-UInt32 sHeight;
+#include <SystemMgr.h>
 
 #define _HIRESSOURCE_
 #include "resCompat.h"
@@ -20,7 +18,64 @@ static Boolean oUseColor = 0;
 #define hires   0
 
 #else /* SONY_CLIE */
+// Change Resolution
+UInt32 sWidth;
+UInt32 sHeight;
+
 static UInt16 hires = 0;
+static void (*holdCB)(UInt32 held);
+
+static Err
+PrvHoldNotificationHandler(SysNotifyParamType *npp)
+{
+    UInt32 held;
+    if (npp->broadcaster != sonySysNotifyBroadcasterCode) return (errNone);
+    held = ((SonySysNotifyHoldStatusChangeDetailsP)
+      (npp->notifyDetailsP))->holdOn;
+    ErrFatalDisplayIf(holdCB == NULL, "Received hold call w/o valid handler");
+    holdCB(held);
+    return (errNone);
+}
+
+void
+hookHoldSwitch(void (*CallBack)(UInt32))
+{
+    Err err;
+    UInt32 val;
+
+    err = FtrGet(sysFtrCreator, sysFtrNumNotifyMgrVersion, &val);
+    if (!err && val) {
+        UInt16 CardNo;
+        LocalID dbID;
+        DmSearchStateType state;
+        DmGetNextDatabaseByTypeCreator(true, &state, 'appl',
+          GetCreatorID(), true, &CardNo, &dbID);
+        SysNotifyRegister(CardNo, dbID,
+          sonySysNotifyHoldStatusChangeEvent,
+          PrvHoldNotificationHandler, sysNotifyNormalPriority, NULL);
+        holdCB = CallBack;
+    }
+}
+
+void
+unhookHoldSwitch(void)
+{
+    Err err;
+    UInt32 val;
+
+    err = FtrGet(sysFtrCreator, sysFtrNumNotifyMgrVersion, &val);
+    if (!err && val) {
+        UInt16 CardNo;
+        LocalID dbID;
+        DmSearchStateType state;
+        DmGetNextDatabaseByTypeCreator(true, &state, 'appl',
+          GetCreatorID(), true, &CardNo, &dbID);
+        SysNotifyUnregister(CardNo, dbID,
+          sonySysNotifyHoldStatusChangeEvent,
+          sysNotifyNormalPriority);
+        holdCB = NULL;
+    }
+}
 
 Err
 loadHiRes(void)
@@ -317,5 +372,24 @@ canColor(UInt16 nbits)
             rv = true;
     }
     return (rv);
+}
+
+UInt32
+GetCreatorID(void)
+{
+    static UInt32 nCreatorID = 0;
+
+    if (nCreatorID == 0) {
+        UInt16 nCard;
+        LocalID LocalDB;
+
+        ErrFatalDisplayIf(SysCurAppDatabase(&nCard, &LocalDB),
+          "Could not get current app database.");
+        ErrFatalDisplayIf(DmDatabaseInfo(nCard, LocalDB, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, &nCreatorID),
+          "Could not get app database info, looking for creator ID");
+    }
+
+    return nCreatorID;
 }
 

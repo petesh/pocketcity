@@ -7,6 +7,7 @@ Boolean canColor(UInt16 nbits);
 Err changeDepthRes(UInt32 ncolors);
 Err restoreDepthRes(void);
 UInt32 getDepth(void);
+UInt32 GetCreatorID(void);
 
 #ifdef SONY_CLIE
 #include <Font.h>
@@ -22,6 +23,8 @@ Err unloadHiRes(void);
 Boolean isHires(void);
 Boolean canHires(void);
 void scaleEvent(EventPtr event);
+void unhookHoldSwitch(void);
+void hookHoldSwitch(void (*CallBack)(UInt32));
 
 Err _WinScreenMode(WinScreenModeOperation op, UInt32 *width, UInt32 *height,
   UInt32 *depth, Boolean *enableColor);
@@ -47,6 +50,9 @@ void _FntSetFont(FontID font);
 #define isHires() false
 #define canHires() false
 #define scaleEvent(t)
+#define unhookHoldSwitch()
+#define hookHoldSwitch(x)
+
 #define _WinScreenMode WinScreenMode
 #define _WinEraseRectangle WinEraseRectangle
 #define _WinDrawBitmap WinDrawBitmap

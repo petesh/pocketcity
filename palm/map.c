@@ -2,6 +2,7 @@
 #include <Window.h>
 #include <Rect.h>
 #include "simcity.h"
+#include "simcity_resconsts.h"
 #include "../source/ui.h"
 #include "../source/globals.h"
 #include "../source/drawing.h"

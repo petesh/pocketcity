@@ -74,26 +74,33 @@ extern void Sim_Distribute(char type)
     // reset powergrid - ie, clear flags 1 & 2
     // or flags 1 & 3 for watergrid
     LockWorldFlags();
-    for (j=0; j<game.mapsize*game.mapsize; j++) { SetWorldFlags(j, GetWorldFlags(j) & (type==0?0xfc:0xf9)); }
+    for (j = 0; j < game.mapsize * game.mapsize; j++) {
+        SetWorldFlags(j, GetWorldFlags(j) & (type==0?0xfc:0xf9));
+    }
 
     // Step 1: Find all the powerplants and move out from there
     LockWorld(); // this lock locks for ALL power subs
-    for (i=0; i<game.mapsize*game.mapsize; i++) {
+    for (i = 0; i < game.mapsize * game.mapsize; i++) {
         if (GetWorld(i) == TYPE_POWER_PLANT 
                 || GetWorld(i) == TYPE_NUCLEAR_PLANT
                 || GetWorld(i) == TYPE_WATER_PUMP) { // is this a source?
-
             powerleft=0;
-            if (GetWorld(i) == TYPE_POWER_PLANT && distributetype==0)   { powerleft += 100; } // if this is a plant 
-            if (GetWorld(i) == TYPE_NUCLEAR_PLANT && distributetype==0) { powerleft += 300; } // we get more power
-            if (GetWorld(i) == TYPE_WATER_PUMP && distributetype==1 
-                && (GetWorldFlags(i)&1)==1 && ExistsNextto(i,TYPE_REAL_WATER))  { powerleft += 200; } // pumps need power and REAL_WATER
+            if (distributetype == 0) {
+                if (GetWorld(i) == TYPE_POWER_PLANT)
+                    powerleft += 100; // if this is a plant 
+                if (GetWorld(i) == TYPE_NUCLEAR_PLANT)
+                    powerleft += 300; // we get more power
+            } else if (distributetype == 1) {
+                if (GetWorld(i) == TYPE_WATER_PUMP
+                && (GetWorldFlags(i)&1)==1 && ExistsNextto(i,TYPE_REAL_WATER))
+                    powerleft += 200; // pumps need power and REAL_WATER
+            }
 
             // begin the distribution
             DistributeMoveOnFromThisPoint(i);
 
             // prepare for next round
-            for (j=0; j<game.mapsize*game.mapsize; j++) {
+            for (j = 0; j < game.mapsize * game.mapsize; j++) {
                 SetWorldFlags(j, GetWorldFlags(j) & 0xfd); 
             }
         }

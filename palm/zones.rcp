@@ -1,4 +1,4 @@
-#include "simcity.h"
+#include "simcity_resconsts.h"
 
 
 BITMAP ID bitmapID_zones  "graphic/zones_16x16-bw.bmp" 

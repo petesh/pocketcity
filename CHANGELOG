@@ -12,9 +12,11 @@ Version 0.13
 ==========================
 Pete Shanahan:
  PalmOS:
-  + High Resolution Support
+  + Clie device support (High Resolution, Jog Dial, Hold, Toolbar)
+  + Tapping the speed icon cycles through the speeds
+  + Added the Water Pump and Water Pipe to the quick list
   + Map has color when available
-  + Added version number to about dialog
+  + Added version number to the about dialog
   * Rearranged Layout & reduced memory usage of forms (NOSAVEBEHIND)
 
 Version 0.12

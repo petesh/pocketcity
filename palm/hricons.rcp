@@ -1,4 +1,4 @@
-#include "simcity.h"
+#include "simcity_resconsts.h"
 
 BITMAPCOLOR ID bitmapID_coin	"graphic/icons-color/coin.bmp"
 BITMAPCOLOR ID bitmapID_popu	"graphic/icons-color/people.bmp"
