@@ -1,7 +1,7 @@
 README - Pocket City
 --------------------
 Pocket City is a Sim City clone for embedded devices, right now it runs on
-the Nokia 9000/9110 and on PalmOS.
+PalmOS only.
 
 Pocket City is licensed under the GPL, see COPYING file for more
 information.
