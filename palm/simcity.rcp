@@ -43,6 +43,9 @@ BEGIN
 	MENUITEM "Medium" menuID_MediumSpeed
 	MENUITEM "Fast"   menuID_FastSpeed
 	MENUITEM "Turbo"   menuID_TurboSpeed
+	MENUITEM SEPARATOR
+	MENUITEM "Pause" menuID_PauseSpeed
+	MENUITEM "Unpause" menuID_UnPauseSpeed
   END
 END
 
