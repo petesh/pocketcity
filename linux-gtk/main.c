@@ -61,11 +61,11 @@ main(int argc, char *argv[])
 
 	SetUpMainWindow();
 	/* start the timer */
-	timerID = gtk_timeout_add(1000, (mainloop_callback), 0);
+	timerID = g_timeout_add(1000, (mainloop_callback), 0);
 
 	gtk_main();
 	WriteLog("Cleaning up\n");
-	gtk_timeout_remove(timerID);
+	g_source_remove(timerID);
 	free(worldPtr);
 	free(worldFlagsPtr);
 
@@ -127,10 +127,22 @@ scrollbar(GtkAdjustment *adj)
 	    GTK_ADJUSTMENT(playscrollerv)->value);
 }
 
+/*
+ * XXX: fix this to constrain the width/height so as to not be too big
+ */
 void
-winresize(GtkWidget *widget, GdkEvent *event, gpointer data)
+ResizeCheck(int width, int height)
 {
-	g_print("resizeme");
+	vgame.tileSize = 16;
+	vgame.visible_x = width / vgame.tileSize;
+	vgame.visible_y = height / vgame.tileSize;
+}
+
+void
+checkresize(GtkContainer *widget, GdkEvent *event, gpointer data)
+{
+	GdkEventConfigure *gek = (GdkEventConfigure *)event;
+	ResizeCheck(gek->width, gek->height);
 }
 
 static gint
@@ -140,6 +152,10 @@ delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 	return (FALSE);
 }
 
+/*
+ * XXX: horribly inefficient.
+ * It's an expose event for the drawing widget only.
+ */
 static gint
 drawing_exposed_callback(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
@@ -319,7 +335,7 @@ SetUpMainWindow(void)
 
 	/* the actual playfield is a GtkDrawingArea */
 	drawingarea = gtk_drawing_area_new();
-	gtk_drawing_area_size((GtkDrawingArea *)drawingarea, 320, 240);
+	gtk_widget_set_size_request(drawingarea, 320, 240);
 	/* and some scrollbars for the drawingarea */
 	playscrollerh = gtk_adjustment_new(60, 10, 110, 1, 10, 20);
 	playscrollerv = gtk_adjustment_new(57, 10, 107, 1, 10, 15);
@@ -331,19 +347,19 @@ SetUpMainWindow(void)
 	    G_CALLBACK(scrollbar), NULL);
 
 	gtk_table_attach(GTK_TABLE(playingbox), drawingarea,
-	    0, 1, 0, 1, GTK_EXPAND, GTK_EXPAND, 0, 0);
+	    0, 1, 0, 1, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 0, 0);
 	gtk_table_attach(GTK_TABLE(playingbox), hscroll, 0, 1, 1, 2,
 	    GTK_FILL, 0, 0, 0);
 	gtk_table_attach(GTK_TABLE(playingbox), vscroll, 1, 2, 0, 1,
 	    0, GTK_FILL, 0, 0);
-	g_signal_connect(G_OBJECT(window), "configure_event",
-	    G_CALLBACK(winresize), NULL);
+	g_signal_connect(G_OBJECT(drawingarea), "configure_event",
+	    G_CALLBACK(checkresize), NULL);
 
 	/* arange in boxes  */
 	toolbox = setupToolBox();
 	gtk_box_pack_end(GTK_BOX(main_box), box, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(box), toolbox, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(box), fieldbox, TRUE, TRUE, 0);
+	gtk_box_pack_end(GTK_BOX(box), fieldbox, TRUE, TRUE, 0);
 
 	gtk_box_pack_start(GTK_BOX(fieldbox), headerbox, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(fieldbox), playingbox, TRUE, TRUE, 0);

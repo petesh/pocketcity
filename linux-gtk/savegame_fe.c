@@ -26,8 +26,6 @@ UIResetViewable(void)
 {
 	vgame.tileSize = 16;
 	/* XXX: set based on size of window */
-	vgame.visible_x = 320 / vgame.tileSize;
-	vgame.visible_y = 240 / vgame.tileSize;
 }
 
 static void
