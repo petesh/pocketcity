@@ -1,8 +1,7 @@
-
 #include "zakdef.h"
 
 
-#define MSG_QUESTION_REALLY_QUIT	1
+#define MSG_QUESTION_REALLY_QUIT        1
 
 
 extern int  UIDisplayError(int nError);
@@ -35,5 +34,3 @@ extern void SetWorldFlags(long unsigned int pos, unsigned char value);
 
 extern unsigned long GetRandomNumber(unsigned long max);
 extern void UISetTileSize(int size);
-
-

@@ -14,128 +14,128 @@ int SpendMoney(unsigned long howMuch);
 
 extern void BuildSomething(int xpos, int ypos)
 {
-	switch (UIGetSelectedBuildItem())
-	{
-	case BUILD_BULLDOZER:
-		Build_Bulldoze(xpos, ypos);
-        updatePowerGrid = 1;
-		break;
-	case BUILD_ZONE_RESIDENTIAL:
-		Build_Generic(xpos, ypos, BUILD_COST_ZONE, ZONE_RESIDENTIAL);
-        updatePowerGrid = 1;
-		break;
-	case BUILD_ZONE_COMMERCIAL:
-		Build_Generic(xpos, ypos, BUILD_COST_ZONE, ZONE_COMMERCIAL);
-        updatePowerGrid = 1;
-		break;
-	case BUILD_ZONE_INDUSTRIAL:
-		Build_Generic(xpos, ypos, BUILD_COST_ZONE, ZONE_INDUSTRIAL);
-        updatePowerGrid = 1;
-		break;
-	case BUILD_ROAD:
-		Build_Road(xpos, ypos);
-		break;
-	case BUILD_POWER_LINE:
-		Build_PowerLine(xpos, ypos);
-        updatePowerGrid = 1;
-		break;
-	case BUILD_POWER_PLANT:
-		Build_Generic(xpos, ypos, BUILD_COST_POWER_PLANT, 60);
-        updatePowerGrid = 1;
-		break;
-	case BUILD_NUCLEAR_PLANT:
-		Build_Generic(xpos, ypos, BUILD_COST_NUCLEAR_PLANT, 61);
-        updatePowerGrid = 1;
-		break;
-	case BUILD_WATER:
-		Build_Generic(xpos, ypos, BUILD_COST_WATER, 22);
-		break;
-	case BUILD_TREE:
-		Build_Generic(xpos, ypos, BUILD_COST_TREE, 21);
-		break;
-	}
+    switch (UIGetSelectedBuildItem())
+    {
+        case BUILD_BULLDOZER:
+            Build_Bulldoze(xpos, ypos);
+            updatePowerGrid = 1;
+            break;
+        case BUILD_ZONE_RESIDENTIAL:
+            Build_Generic(xpos, ypos, BUILD_COST_ZONE, ZONE_RESIDENTIAL);
+            updatePowerGrid = 1;
+            break;
+        case BUILD_ZONE_COMMERCIAL:
+            Build_Generic(xpos, ypos, BUILD_COST_ZONE, ZONE_COMMERCIAL);
+            updatePowerGrid = 1;
+            break;
+        case BUILD_ZONE_INDUSTRIAL:
+            Build_Generic(xpos, ypos, BUILD_COST_ZONE, ZONE_INDUSTRIAL);
+            updatePowerGrid = 1;
+            break;
+        case BUILD_ROAD:
+            Build_Road(xpos, ypos);
+            break;
+        case BUILD_POWER_LINE:
+            Build_PowerLine(xpos, ypos);
+            updatePowerGrid = 1;
+            break;
+        case BUILD_POWER_PLANT:
+            Build_Generic(xpos, ypos, BUILD_COST_POWER_PLANT, 60);
+            updatePowerGrid = 1;
+            break;
+        case BUILD_NUCLEAR_PLANT:
+            Build_Generic(xpos, ypos, BUILD_COST_NUCLEAR_PLANT, 61);
+            updatePowerGrid = 1;
+            break;
+        case BUILD_WATER:
+            Build_Generic(xpos, ypos, BUILD_COST_WATER, 22);
+            break;
+        case BUILD_TREE:
+            Build_Generic(xpos, ypos, BUILD_COST_TREE, 21);
+            break;
+    }
 }
 
 
 extern void Build_Bulldoze(int xpos, int ypos)
 {
-	LockWorld();
-	if (GetWorld(WORLDPOS(xpos, ypos)) != 0)
-	{
-		if (SpendMoney(BUILD_COST_BULLDOZER))
-		{
-			Build_Destroy(xpos, ypos);
-		} else {
-			UIDisplayError(ERROR_OUT_OF_MONEY);
-		}
+    LockWorld();
+    if (GetWorld(WORLDPOS(xpos, ypos)) != 0)
+    {
+        if (SpendMoney(BUILD_COST_BULLDOZER))
+        {
+            Build_Destroy(xpos, ypos);
+        } else {
+            UIDisplayError(ERROR_OUT_OF_MONEY);
+        }
 
-	}
-	UnlockWorld();
+    }
+    UnlockWorld();
 }
 
 
 void Build_Destroy(int xpos, int ypos)
 {
-	unsigned char type;
+    unsigned char type;
 
-	LockWorld();
-	type = GetWorld(WORLDPOS(xpos,ypos));
-	
-	BuildCount[COUNT_COMMERCIAL] -= (type >= (ZONE_COMMERCIAL*10+20) && type <= (ZONE_COMMERCIAL*10+29)) ? (type%10)+1 : 0;
-	BuildCount[COUNT_RESIDENTIAL] -= (type >= (ZONE_RESIDENTIAL*10+20) && type <= (ZONE_RESIDENTIAL*10+29)) ? (type%10)+1 : 0;
-	BuildCount[COUNT_INDUSTRIAL] -= (type >= (ZONE_INDUSTRIAL*10+20) && type <= (ZONE_INDUSTRIAL*10+29)) ? (type%10)+1 : 0;
-	BuildCount[COUNT_ROADS] -= IsRoad(type);
-	BuildCount[COUNT_TREES] -= (type == 21);
-	BuildCount[COUNT_WATER] -= (type == 22);
-	BuildCount[COUNT_POWERPLANTS] -= (type == 60);
-	BuildCount[COUNT_POWERPLANTS] -= (type == 61)*2;
-	BuildCount[COUNT_POWERLINES] -= ((type == 7) || (type == 6) || (type == 5));
-	
-	SetWorld(WORLDPOS(xpos,ypos),0);
-	UnlockWorld();
+    LockWorld();
+    type = GetWorld(WORLDPOS(xpos,ypos));
 
-	DrawCross(xpos, ypos);
+    BuildCount[COUNT_COMMERCIAL] -= (type >= (ZONE_COMMERCIAL*10+20) && type <= (ZONE_COMMERCIAL*10+29)) ? (type%10)+1 : 0;
+    BuildCount[COUNT_RESIDENTIAL] -= (type >= (ZONE_RESIDENTIAL*10+20) && type <= (ZONE_RESIDENTIAL*10+29)) ? (type%10)+1 : 0;
+    BuildCount[COUNT_INDUSTRIAL] -= (type >= (ZONE_INDUSTRIAL*10+20) && type <= (ZONE_INDUSTRIAL*10+29)) ? (type%10)+1 : 0;
+    BuildCount[COUNT_ROADS] -= IsRoad(type);
+    BuildCount[COUNT_TREES] -= (type == 21);
+    BuildCount[COUNT_WATER] -= (type == 22);
+    BuildCount[COUNT_POWERPLANTS] -= (type == 60);
+    BuildCount[COUNT_POWERPLANTS] -= (type == 61)*2;
+    BuildCount[COUNT_POWERLINES] -= ((type == 7) || (type == 6) || (type == 5));
+
+    SetWorld(WORLDPOS(xpos,ypos),0);
+    UnlockWorld();
+
+    DrawCross(xpos, ypos);
 }
 
 void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nType)
 {
-	LockWorld();
-	if (GetWorld(WORLDPOS(xpos, ypos)) == 0)
-	{
-		if (SpendMoney(nCost))
-		{
-			SetWorld(WORLDPOS(xpos,ypos),nType);
-			DrawCross(xpos, ypos);
-			
-			if(nType == 60) {
-				BuildCount[COUNT_POWERPLANTS]++;
-			} else if(nType == 61) {
-				BuildCount[COUNT_POWERPLANTS]++;
-				BuildCount[COUNT_POWERPLANTS]++;
-			} else if(nType == 2) {
-				BuildCount[COMMERCIAL_UNDEVEL]++;
-			} else if(nType == 3) {
-				BuildCount[INDUSTRIAL_UNDEVEL]++;
-			}
-			//  update counter
-			BuildCount[COUNT_ROADS] += IsRoad(nType);
-			BuildCount[COUNT_TREES] += (nType == 21);
-			BuildCount[COUNT_WATER] += (nType == 22);
-		} else {
+    LockWorld();
+    if (GetWorld(WORLDPOS(xpos, ypos)) == 0)
+    {
+        if (SpendMoney(nCost))
+        {
+            SetWorld(WORLDPOS(xpos,ypos),nType);
+            DrawCross(xpos, ypos);
+
+            if(nType == 60) {
+                BuildCount[COUNT_POWERPLANTS]++;
+            } else if(nType == 61) {
+                BuildCount[COUNT_POWERPLANTS]++;
+                BuildCount[COUNT_POWERPLANTS]++;
+            } else if(nType == 2) {
+                BuildCount[COMMERCIAL_UNDEVEL]++;
+            } else if(nType == 3) {
+                BuildCount[INDUSTRIAL_UNDEVEL]++;
+            }
+            //  update counter
+            BuildCount[COUNT_ROADS] += IsRoad(nType);
+            BuildCount[COUNT_TREES] += (nType == 21);
+            BuildCount[COUNT_WATER] += (nType == 22);
+        } else {
             UIDisplayError(ERROR_OUT_OF_MONEY);
-		}
-	}
-	UnlockWorld();
+        }
+    }
+    UnlockWorld();
 }
 
 
 void Build_Road(int xpos, int ypos)
 {
-	int old;
-	LockWorld();
-	old = GetWorld(WORLDPOS(xpos, ypos));
-	if (old == 0 || old == 5)
-	{
+    int old;
+    LockWorld();
+    old = GetWorld(WORLDPOS(xpos, ypos));
+    if (old == 0 || old == 5)
+    {
         if (old == 5)
         {
             switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),1))
@@ -157,7 +157,7 @@ void Build_Road(int xpos, int ypos)
                         DrawCross(xpos, ypos);
                         BuildCount[COUNT_ROADS]++;
                     } else {
-			            UIDisplayError(ERROR_OUT_OF_MONEY);
+                        UIDisplayError(ERROR_OUT_OF_MONEY);
                     }
 
                     break;
@@ -173,22 +173,22 @@ void Build_Road(int xpos, int ypos)
                 DrawCross(xpos, ypos);
                 BuildCount[COUNT_ROADS]++;
             } else {
-    			UIDisplayError(ERROR_OUT_OF_MONEY);
-	        }
+                UIDisplayError(ERROR_OUT_OF_MONEY);
+            }
 
         }
-	}
-	UnlockWorld();
+    }
+    UnlockWorld();
 }
 
 void Build_PowerLine(int xpos, int ypos)
 {
-	int old;
-	LockWorld();
+    int old;
+    LockWorld();
 
-	old = GetWorld(WORLDPOS(xpos, ypos));
-	if (old == 0 || old == 4)
-	{
+    old = GetWorld(WORLDPOS(xpos, ypos));
+    if (old == 0 || old == 4)
+    {
         if (old == 4)
         {
             switch(GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),0))
@@ -200,8 +200,8 @@ void Build_PowerLine(int xpos, int ypos)
                         DrawCross(xpos, ypos);
                         BuildCount[COUNT_POWERLINES]++;
                     } else {
-	        			UIDisplayError(ERROR_OUT_OF_MONEY);
-			        }
+                        UIDisplayError(ERROR_OUT_OF_MONEY);
+                    }
 
                     break;
                 case 11:
@@ -211,8 +211,8 @@ void Build_PowerLine(int xpos, int ypos)
                         DrawCross(xpos, ypos);
                         BuildCount[COUNT_POWERLINES]++;
                     } else {
-    	    			UIDisplayError(ERROR_OUT_OF_MONEY);
-		            }
+                        UIDisplayError(ERROR_OUT_OF_MONEY);
+                    }
 
                     break;
             }
@@ -225,26 +225,26 @@ void Build_PowerLine(int xpos, int ypos)
                 DrawCross(xpos, ypos);
                 BuildCount[COUNT_POWERLINES]++;
             } else {
-			    UIDisplayError(ERROR_OUT_OF_MONEY);
-    		}
+                UIDisplayError(ERROR_OUT_OF_MONEY);
+            }
 
         }
-	}
-	UnlockWorld();
+    }
+    UnlockWorld();
 }
 
 int SpendMoney(unsigned long howMuch)
 {
-	if (howMuch > credits)
-	{
-		return 0;
-	}
+    if (howMuch > credits)
+    {
+        return 0;
+    }
 
-	credits -= howMuch;
+    credits -= howMuch;
 
-	// now redraw the credits
-	UIInitDrawing();
-	UIDrawCredits();
-	UIFinishDrawing();
-	return 1;
+    // now redraw the credits
+    UIInitDrawing();
+    UIDrawCredits();
+    UIFinishDrawing();
+    return 1;
 }

@@ -29,3 +29,40 @@ Aaron Kill (new developer):
   + Upkeep on roads, powerlines, powerplants paid each month
   + Pause feature added
   * Fixed powerplants so they generate more realistic amounts of power
+
+Version 0.06 - 11 Sep 2001
+============
+Kean Pedersen:
+  + Zoom mode on Palm.
+  + Hardware scroll keys on Palm.
+  + Better multithreading on Palm.
+  * Tweaked the simulation a bit.
+
+Version 0.05 - 22 Jul 2001
+============
+Kean Pedersen:
+  + Basic PDR (Population Development Routine) added.
+
+Version 0.04 - 19 Jul 2001
+============
+Kean Pedersen:
+  * Alert on wrong PalmOS version (v3.5 or higher needed).
+
+Version 0.03 - 14 Jul 2001
+============
+Kean Pedersen:
+  + Simulation preparing. Power distribution.
+
+Version 0.02 - 12 Jul 2001
+============
+Kean Pedersen:
+  * Can now build everything.
+  + Shortcut keys/strokes for quick selection.
+  * Credits.
+
+Version 0.01 - 11 Jul 2001
+============
+Kean Pedersen:
+  + Basic drawing
+  + Made the graphic work on Palm IIIc.
+  + Basic PDR (Population Development Routine) added.

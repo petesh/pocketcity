@@ -4,3 +4,22 @@ To compile for Nokia 9000/9110:
 
 To compile for PalmOS:
  type make in the 'palm' folder
+
+Special Features:
+=================
+Keys/strokes
+    Palm:    /B for bulldozer
+             /R for residential zoning
+             /C for commercial zoning
+             /I for industrial zoning
+             /1 to zoom in
+             /2 to zoom out
+             Tap or drag the pen for building
+             Use the hardware keys for scrolling (up/down/phone/todo)
+
+    Nokia:    'Backspace' for bulldozing
+              'R' for residential zoning
+              'C' for commercial zoning
+              'I' for industrial zoning
+              Press or hold the 'space bar' or 'ctrl' for building
+              'Enter' for build menu

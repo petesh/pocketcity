@@ -204,7 +204,7 @@ word timerID;
 
 @method SimCityProcessClass, MSG_GEN_PROCESS_OPEN_APPLICATION
 {
-	ZakMain();
+	PCityMain();
 	FloatRandomize(RGIF_GENERATE_SEED,49);
 	@callsuper();
     thTimer = TimerStart(TIMER_EVENT_CONTINUAL,
@@ -217,7 +217,7 @@ word timerID;
 
 @method SimCityProcessClass, MSG_TEST_BUTTON_PRESSED
 {
-	OnZakEvent(0);
+	OnPCityEvent(0);
 }
 
 @method SimBoardClass, MSG_SIM_BOARD_DUMMY {}
@@ -578,7 +578,6 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
 	// Frees memory, cleans up and quits sim city
 	if (!UIDisplayError(MSG_QUESTION_REALLY_QUIT)) { return; }
 
-	ZakStop();
 	//StopSimulation();
 	//UninitGame();
 	@send SimCityApp::MSG_META_QUIT();
