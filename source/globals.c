@@ -31,6 +31,9 @@ int visible_y = 7;
 
 int GetCiffer(int number, signed long value);
 
+/* gah - maybe I should find a function that does this for me
+ * but I'm too lazy, and this is crossplatform ;)
+ */
 extern void LongToString(signed long value, char* out)
 {
     int move=0;

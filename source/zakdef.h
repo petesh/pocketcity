@@ -11,7 +11,7 @@
 #define ERROR_PLANT_EXPLOSION   4
 #define ERROR_MONSTER           5
 #define ERROR_DRAGON            6
-#define ERROR_METEOR		7
+#define ERROR_METEOR            7
 
 #define SPEED_SLOW              15
 #define SPEED_MEDIUM            10
@@ -19,26 +19,27 @@
 #define SPEED_TURBO             1
 #define SPEED_PAUSED            0
 
+#define TYPE_DIRT               0
 #define ZONE_COMMERCIAL         1
 #define ZONE_RESIDENTIAL        2
 #define ZONE_INDUSTRIAL         3
-
-#define TYPE_DIRT               0
-#define TYPE_FIRE1              63
-#define TYPE_FIRE2              64
-#define TYPE_FIRE3              65
-#define TYPE_REAL_WATER         66
-#define TYPE_CRATER             67
+#define TYPE_ROAD               4
+#define TYPE_POWER_LINE         5
+#define TYPE_POWERROAD_1        6
+#define TYPE_POWERROAD_2        7
+#define TYPE_TREE               21
+#define TYPE_WATER              22
 #define TYPE_FIRE_STATION       23
 #define TYPE_POLICE_STATION     24
 #define TYPE_MILITARY_BASE      25
 #define TYPE_POWER_PLANT        60
 #define TYPE_NUCLEAR_PLANT      61
 #define TYPE_WASTE              62
-#define TYPE_WATER              22
-#define TYPE_TREE               21
-#define TYPE_POWER_LINE         5
-#define TYPE_ROAD               4
+#define TYPE_FIRE1              63
+#define TYPE_FIRE2              64
+#define TYPE_FIRE3              65
+#define TYPE_REAL_WATER         66
+#define TYPE_CRATER             67
 #define TYPE_BRIDGE             81
 
 #define COUNT_RESIDENTIAL       0

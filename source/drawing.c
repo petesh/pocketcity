@@ -34,10 +34,8 @@ extern void RedrawAllFields(void)
     LockWorldFlags();
     UIInitDrawing();
     UILockScreen();
-    for (i=map_xpos; i<visible_x+map_xpos; i++)
-    {
-        for (j=map_ypos; j<visible_y+map_ypos; j++)
-        {
+    for (i=map_xpos; i<visible_x+map_xpos; i++) {
+        for (j=map_ypos; j<visible_y+map_ypos; j++) {
             DrawFieldWithoutInit(i,j);
         }
     }
@@ -54,8 +52,7 @@ extern void RedrawAllFields(void)
 
 extern void ScrollMap(int direction)
 {
-    switch (direction)
-    {
+    switch (direction) {
         case 0: // up
             if (map_ypos > 0) { map_ypos-=1; } else {  map_ypos=0; return; }
             break;
@@ -73,7 +70,6 @@ extern void ScrollMap(int direction)
     }
 
     UIScrollMap(direction);
-
 }
 
 
@@ -82,8 +78,7 @@ extern void MoveCursor(int direction)
     int old_x = cursor_xpos, old_y = cursor_ypos;
     LockWorld();
 
-    switch (direction)
-    {
+    switch (direction) {
         case 0: // up
             if (cursor_ypos > 0) { cursor_ypos--; }
             if ((cursor_ypos < map_ypos)) { ScrollMap(0); }
@@ -156,13 +151,11 @@ extern void DrawFieldWithoutInit(int xpos, int ypos)
 
     UIDrawField(xpos-map_xpos, ypos-map_ypos,GetGraphicNumber(WORLDPOS(xpos,ypos)));
 
-    if ((GetWorldFlags(WORLDPOS(xpos,ypos)) & 0x01) == 0 && CarryPower(GetWorld(WORLDPOS(xpos, ypos))))
-    {
+    if ((GetWorldFlags(WORLDPOS(xpos,ypos)) & 0x01) == 0 && CarryPower(GetWorld(WORLDPOS(xpos, ypos)))) {
         UIDrawPowerLoss(xpos-map_xpos, ypos-map_ypos);
     }
 
-    if (xpos == cursor_xpos && ypos == cursor_ypos)
-    {
+    if (xpos == cursor_xpos && ypos == cursor_ypos) {
         UIDrawCursor(cursor_xpos-map_xpos, cursor_ypos-map_ypos);
     }
 
@@ -182,7 +175,6 @@ extern void DrawFieldWithoutInit(int xpos, int ypos)
             UIDrawSpecialUnit(i, xpos - map_xpos, ypos - map_ypos);
         }
     }
-
 }
 
 unsigned char GetGraphicNumber(long unsigned int pos)
@@ -190,8 +182,7 @@ unsigned char GetGraphicNumber(long unsigned int pos)
     unsigned char retval = 0;
     LockWorld();
     retval = GetWorld(pos);
-    switch (retval)
-    {
+    switch (retval) {
         case 4:    // special case: roads
             retval = GetSpecialGraphicNumber(pos, 0);
             break;
@@ -218,21 +209,20 @@ extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
 
     LockWorld();
 
-    switch (nType)
-    {
+    switch (nType) {
         case 0: // roads
         case 2: // bridge
-            if (pos >= mapsize)                        { a = IsRoad(GetWorld(pos-mapsize));    }
-            if (pos < (mapsize*mapsize)-mapsize)    { c = IsRoad(GetWorld(pos+mapsize));    }
-            if (pos % mapsize < mapsize-1)            { b = IsRoad(GetWorld(pos+1));            }
-            if (pos % mapsize > 0)                    { d = IsRoad(GetWorld(pos-1));            }
-            nAddMe = nType==2?81:10; // 81 for bridge, 0 for normal road
+            if (pos >= mapsize)                       { a = IsRoad(GetWorld(pos-mapsize));    }
+            if (pos < (mapsize*mapsize)-mapsize)      { c = IsRoad(GetWorld(pos+mapsize));    }
+            if (pos % mapsize < mapsize-1)            { b = IsRoad(GetWorld(pos+1));          }
+            if (pos % mapsize > 0)                    { d = IsRoad(GetWorld(pos-1));          }
+            nAddMe = nType== 2 ? TYPE_BRIDGE : 10; // 81 for bridge, 0 for normal road
             break;
         case 1:    // power lines
-            if (pos >= mapsize)                        { a = CarryPower(GetWorld(pos-mapsize));    }
-            if (pos < (mapsize*mapsize)-mapsize)    { c = CarryPower(GetWorld(pos+mapsize));    }
-            if (pos % mapsize < mapsize-1)            { b = CarryPower(GetWorld(pos+1));            }
-            if (pos % mapsize > 0)                    { d = CarryPower(GetWorld(pos-1));            }
+            if (pos >= mapsize)                       { a = CarryPower(GetWorld(pos-mapsize));    }
+            if (pos < (mapsize*mapsize)-mapsize)      { c = CarryPower(GetWorld(pos+mapsize));    }
+            if (pos % mapsize < mapsize-1)            { b = CarryPower(GetWorld(pos+1));          }
+            if (pos % mapsize > 0)                    { d = CarryPower(GetWorld(pos-1));          }
             nAddMe = 70;
             break;
         default:
@@ -241,11 +231,11 @@ extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
 
     UnlockWorld(); 
 
-    if ((a && b && c && d) == 1)    { return 10+nAddMe; }
-    if ((a && b && d) == 1)            { return 9+nAddMe; }
-    if ((b && c && d) == 1)            { return 8+nAddMe; }
-    if ((a && b && c) == 1)            { return 7+nAddMe; }
-    if ((a && c && d) == 1)            { return 6+nAddMe; }
+    if ((a && b && c && d) == 1)      { return 10+nAddMe; }
+    if ((a && b && d) == 1)           { return 9+nAddMe; }
+    if ((b && c && d) == 1)           { return 8+nAddMe; }
+    if ((a && b && c) == 1)           { return 7+nAddMe; }
+    if ((a && c && d) == 1)           { return 6+nAddMe; }
     if ((a && b) == 1)                { return 5+nAddMe; }
     if ((a && d) == 1)                { return 4+nAddMe; }
     if ((c && d) == 1)                { return 3+nAddMe; }
@@ -256,11 +246,10 @@ extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
 
 }
 
-
-extern int CarryPower(unsigned char x)            { return ((x)>=1&&(x)<=7&&(x)!=4) || ((x)>=23&&(x)<=61)  ?1:0; }
+/* some small usefull functions */
+extern int CarryPower(unsigned char x)         { return ((x)>=1&&(x)<=7&&(x)!=4) || ((x)>=23&&(x)<=61)  ?1:0; }
 extern int IsPowerLine(unsigned char x)        { return ((x)>=5 && (x)<=7)  ?1:0; }
-
-extern int IsRoad(unsigned char x)        { return ((x)==4 || (x)==6 || (x)==7 || (x)==81)  ?1:0; }
+extern int IsRoad(unsigned char x)             { return ((x)==4 || (x)==6 || (x)==7 || (x)==81)  ?1:0; }
 
 extern int IsZone(unsigned char x, int nType)
 {

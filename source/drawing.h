@@ -1,14 +1,3 @@
-/*extern void      DrawGame(GStateHandle gstate, int full);
-extern void        RedrawField(unsigned long pos);
-extern void        UpdateFieldAtCursor(void);
-extern void        UpdateCrossAtCursor(void);
-extern int         GetGraphicNumber(int coords);
-extern int         GetRoadType(long coords, int power);
-extern void        MoveCursor(int direction);
-extern void        ScrollMap(int direction);
-extern void        DrawCredits(GStateHandle gstate);*/
-
-
 extern void                SetUpGraphic(void);
 extern void                RedrawAllFields(void);
 extern void                ScrollMap(int direction);

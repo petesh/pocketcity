@@ -16,8 +16,7 @@ int SpendMoney(unsigned long howMuch);
 
 extern void BuildSomething(int xpos, int ypos)
 {
-    switch (UIGetSelectedBuildItem())
-    {
+    switch (UIGetSelectedBuildItem()) {
         case BUILD_BULLDOZER:
             Build_Bulldoze(xpos, ypos);
             updatePowerGrid = 1;
@@ -145,8 +144,6 @@ void Build_Defence(int xpos, int ypos, int type)
         newactive=2;
     }
         
-    
-
     oldx = units[sel].x;
     oldy = units[sel].y;
 
@@ -196,12 +193,12 @@ extern void Build_Destroy(int xpos, int ypos)
     BuildCount[COUNT_RESIDENTIAL] -= (type >= (ZONE_RESIDENTIAL*10+20) && type <= (ZONE_RESIDENTIAL*10+29)) ? (type%10)+1 : 0;
     BuildCount[COUNT_INDUSTRIAL] -= (type >= (ZONE_INDUSTRIAL*10+20) && type <= (ZONE_INDUSTRIAL*10+29)) ? (type%10)+1 : 0;
     BuildCount[COUNT_ROADS] -= IsRoad(type);
-    BuildCount[COUNT_TREES] -= (type == 21);
-    BuildCount[COUNT_WATER] -= (type == 22);
+    BuildCount[COUNT_TREES] -= (type == TYPE_TREE);
+    BuildCount[COUNT_WATER] -= (type == TYPE_WATER);
     BuildCount[COUNT_WASTE] -= (type == TYPE_WASTE);
-    BuildCount[COUNT_POWERPLANTS] -= (type == 60);
-    BuildCount[COUNT_NUCLEARPLANTS] -= (type == 61);
-    BuildCount[COUNT_POWERLINES] -= ((type == 7) || (type == 6) || (type == 5));
+    BuildCount[COUNT_POWERPLANTS] -= (type == TYPE_POWER_PLANT);
+    BuildCount[COUNT_NUCLEARPLANTS] -= (type == TYPE_NUCLEAR_PLANT);
+    BuildCount[COUNT_POWERLINES] -= ((type == TYPE_POWERROAD_2) || (type == TYPE_POWERROAD_1) || (type == TYPE_POWER_LINE));
     BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE1);
     BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE2);
     BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE3);
@@ -209,11 +206,11 @@ extern void Build_Destroy(int xpos, int ypos)
     BuildCount[COUNT_POLICE_STATIONS] -= (type == TYPE_POLICE_STATION);
     BuildCount[COUNT_MILITARY_BASES] -= (type == TYPE_MILITARY_BASE);
     updatePowerGrid = 1; // to make sure the powergrid is uptodate
-    if (type == 81 || type == TYPE_REAL_WATER) {
+    if (type == TYPE_BRIDGE || type == TYPE_REAL_WATER) {
         // A bridge turns into real_water when detroyed
         SetWorld(WORLDPOS(xpos,ypos),TYPE_REAL_WATER);
     } else {
-        SetWorld(WORLDPOS(xpos,ypos),0);
+        SetWorld(WORLDPOS(xpos,ypos),TYPE_DIRT);
     }
     UnlockWorld();
 
@@ -223,7 +220,7 @@ extern void Build_Destroy(int xpos, int ypos)
 void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nType)
 {
     LockWorld();
-    if (GetWorld(WORLDPOS(xpos, ypos)) == 0) {
+    if (GetWorld(WORLDPOS(xpos, ypos)) == TYPE_DIRT) {
 
         if (SpendMoney(nCost)) {
             SetWorld(WORLDPOS(xpos,ypos),nType);
@@ -252,23 +249,20 @@ void Build_Road(int xpos, int ypos)
     int old;
     LockWorld();
     old = GetWorld(WORLDPOS(xpos, ypos));
-    if (old == 5) {
-        switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),1))
-        {
-            case 70:
-                if (SpendMoney(BUILD_COST_ROAD))
-                {
-                    SetWorld(WORLDPOS(xpos, ypos),6);
+    if (old == TYPE_POWER_LINE) {
+        switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),1)) { 
+            case 70: // straight power line, we can build here
+                if (SpendMoney(BUILD_COST_ROAD)) {
+                    SetWorld(WORLDPOS(xpos, ypos),TYPE_POWERROAD_1);
                     DrawCross(xpos, ypos);
                     BuildCount[COUNT_ROADS]++;
                 } else {
                     UIDisplayError(ERROR_OUT_OF_MONEY);
                 }
                 break;
-            case 71:
-                if (SpendMoney(BUILD_COST_ROAD))
-                {
-                    SetWorld(WORLDPOS(xpos, ypos),7);
+            case 71: // ditto
+                if (SpendMoney(BUILD_COST_ROAD)) {
+                    SetWorld(WORLDPOS(xpos, ypos),TYPE_POWERROAD_2);
                     DrawCross(xpos, ypos);
                     BuildCount[COUNT_ROADS]++;
                 } else {
@@ -279,17 +273,17 @@ void Build_Road(int xpos, int ypos)
             default:
                 break;
         }
-    } else if (old == TYPE_REAL_WATER) { // build a bridge across the water
+    } else if (old == TYPE_REAL_WATER) { // build a bridge across the water (yup, that's a song)
         if (SpendMoney(BUILD_COST_BRIDGE)) {
-            SetWorld(WORLDPOS(xpos, ypos), 81);
+            SetWorld(WORLDPOS(xpos, ypos), TYPE_BRIDGE);
             DrawCross(xpos, ypos);
             BuildCount[COUNT_ROADS]++;
         } else {
             UIDisplayError(ERROR_OUT_OF_MONEY);
         }
-    } else if (old == 0) {
+    } else if (old == TYPE_DIRT) {
         if (SpendMoney(BUILD_COST_ROAD)) {
-            SetWorld(WORLDPOS(xpos, ypos),4);
+            SetWorld(WORLDPOS(xpos, ypos),TYPE_ROAD);
             DrawCross(xpos, ypos);
             BuildCount[COUNT_ROADS]++;
         } else {
@@ -305,47 +299,36 @@ void Build_PowerLine(int xpos, int ypos)
     LockWorld();
 
     old = GetWorld(WORLDPOS(xpos, ypos));
-    if (old == 0 || old == 4)
-    {
-        if (old == 4)
-        {
-            switch(GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),0))
-            {
-                case 10:
-                    if (SpendMoney(BUILD_COST_POWER_LINE)) 
-                    {
-                        SetWorld(WORLDPOS(xpos, ypos),7);
+    if (old == TYPE_DIRT || old == TYPE_ROAD) {
+        if (old == TYPE_ROAD) {
+            switch(GetSpecialGraphicNumber(WORLDPOS(xpos, ypos),0)) {
+                case 10: // straight road, we can build a power line
+                    if (SpendMoney(BUILD_COST_POWER_LINE)) {
+                        SetWorld(WORLDPOS(xpos, ypos),TYPE_POWERROAD_2);
                         DrawCross(xpos, ypos);
                         BuildCount[COUNT_POWERLINES]++;
                     } else {
                         UIDisplayError(ERROR_OUT_OF_MONEY);
                     }
-
                     break;
-                case 11:
-                    if (SpendMoney(BUILD_COST_POWER_LINE)) 
-                    {
-                        SetWorld(WORLDPOS(xpos, ypos),6);
+                case 11: // ditto
+                    if (SpendMoney(BUILD_COST_POWER_LINE)) {
+                        SetWorld(WORLDPOS(xpos, ypos),TYPE_POWERROAD_1);
                         DrawCross(xpos, ypos);
                         BuildCount[COUNT_POWERLINES]++;
                     } else {
                         UIDisplayError(ERROR_OUT_OF_MONEY);
                     }
-
                     break;
             }
-        }
-        else
-        {
-            if (SpendMoney(BUILD_COST_POWER_LINE)) 
-            {
-                SetWorld(WORLDPOS(xpos, ypos),5);
+        } else {
+            if (SpendMoney(BUILD_COST_POWER_LINE)) {
+                SetWorld(WORLDPOS(xpos, ypos),TYPE_POWER_LINE);
                 DrawCross(xpos, ypos);
                 BuildCount[COUNT_POWERLINES]++;
             } else {
                 UIDisplayError(ERROR_OUT_OF_MONEY);
             }
-
         }
     }
     UnlockWorld();
@@ -353,9 +336,7 @@ void Build_PowerLine(int xpos, int ypos)
 
 int SpendMoney(unsigned long howMuch)
 {
-    if (howMuch > credits) {
-        return 0;
-    }
+    if (howMuch > credits) { return 0; }
 
     credits -= howMuch;
 
@@ -366,9 +347,10 @@ int SpendMoney(unsigned long howMuch)
     return 1;
 }
 
-
-
-
+/* this creates a river through the playfield
+ * TODO: make this more interesting, perhaps
+ *       it can run the other way too ;)
+ */
 extern void CreateFullRiver(void)
 {
     int i,j,k,width;
@@ -377,8 +359,7 @@ extern void CreateFullRiver(void)
     j = GetRandomNumber(100);
     LockWorld();
     
-    for (i=0; i<mapsize; i++)
-    {
+    for (i=0; i<mapsize; i++) {
         for (k=j; k<width+j; k++) {
             if (k > 0 && k < mapsize) {
                 SetWorld(WORLDPOS(i,k),TYPE_REAL_WATER);
@@ -399,7 +380,9 @@ extern void CreateFullRiver(void)
     UnlockWorld();
 }
 
-
+/* creates some "spraypainted" (someone called them that ;)
+ * forests throughout the `wilderness`
+ */
 extern void CreateForests(void)
 {
     int i,j,k;
@@ -413,6 +396,7 @@ extern void CreateForests(void)
 
 }
 
+// create a single forest - look above
 void CreateForest(long unsigned int pos, int size)
 {
     int x,y,i,j,s;
