@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "main.h"
 #include "savegame.h"
@@ -637,10 +638,13 @@ extern void UIDrawPop(void)
 
 }
 
-
+#ifdef DEBUG
 extern void UIWriteLog(char* s)
 {
     g_print(s); 
 }
+#else
+#define UIWriteLog(s)
+#endif
 
 
