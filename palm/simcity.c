@@ -1197,6 +1197,7 @@ UIFinishDrawing(void)
  * by using these two APIs we can get faster, flickerless allscreen updating
  */
 static UInt8 *didLock = NULL;
+static int lockCount = 0;
 
 /*
  * Try to lock the screen from updates.
@@ -1205,6 +1206,8 @@ static UInt8 *didLock = NULL;
 void
 UILockScreen(void)
 {
+	lockCount++;
+	ErrFatalDisplayIf(lockCount > 1, "double lock on screen attempted");
 	if (IsNewROM() && !didLock)
 		didLock = WinScreenLock(winLockCopy);
 }
@@ -1216,9 +1219,11 @@ UILockScreen(void)
 void
 UIUnlockScreen(void)
 {
-	if (IsNewROM() && didLock) {
+	lockCount--;
+	ErrFatalDisplayIf(lockCount < 0, "double free on screen attempted");
+	if (IsNewROM() && didLock != NULL) {
 		WinScreenUnlock();
-		didLock = 0;
+		didLock = NULL;
 	}
 }
 
@@ -1405,8 +1410,6 @@ UIScrollMap(dirType direction)
 	if (IsDeferDrawing())
 		return;
 
-	UILockScreen();
-
 	rect.topLeft.x = XOFFSET + vgame.tileSize * (direction == 1);
 	rect.topLeft.y = YOFFSET + vgame.tileSize * (direction == 2);
 	rect.extent.x =
@@ -1446,7 +1449,6 @@ UIScrollMap(dirType direction)
 	UIDrawCredits();
 	UIDrawPop();
 
-	UIUnlockScreen();
 	UIFinishDrawing();
 	UnlockWorldFlags();
 	UnlockWorld();
@@ -2282,15 +2284,14 @@ WriteLog(char *s, ...)
 	HostFILE * hf = NULL;
 	Char text[0x100];
 
-	va_start(args, s);
-
 	hf = HostFOpen("\\pcity.log", "a");
 	if (hf) {
+		va_start(args, s);
 		StrVPrintF(text, s, args);
 
 		HostFPrintF(hf, text);
 		HostFClose(hf);
+		va_end(args);
 	}
-	va_end(args);
 }
 #endif
