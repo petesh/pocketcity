@@ -71,11 +71,14 @@ static Int16 doButtonEvent(ButtonEvent key);
 
 #if defined(SONY_CLIE)
 static void HoldHook(UInt32);
+#endif
+
+#if defined(HRSUPPORT)
 static void toolBarCheck(Coord);
 static void UIDrawToolBar(void);
-static void clearToolbarBitmap(void);
+static void freeToolbarBitmap(void);
 #else
-#define	clearToolbarBitmap()
+#define	freeToolbarBitmap()
 #endif
 
 extern void UIDrawLoc(void);
@@ -140,9 +143,9 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP __attribute__ ((unused)),
 	if (-1 != UILoadAutoGame()) {
 		SetLowNotShown();
 		SetOutNotShown();
-	FrmGotoForm(formID_pocketCity);
+		FrmGotoForm(formID_pocketCity);
 	} else {
-	FrmGotoForm(formID_files);
+		FrmGotoForm(formID_files);
 	}
 
 	EventLoop();
@@ -169,7 +172,8 @@ AppEvent(EventPtr event)
 
 	if (event->eType == frmLoadEvent) {
 		formID = event->data.frmLoad.formID;
-		WriteLog("Main::frmLoadEvent: %d -> %d\n", oldFormID, formID);
+		WriteLog("Main::frmLoadEvent: %d -> %d\n", (int)oldFormID,
+		    (int)formID);
 		oldFormID = formID;
 		form = FrmInitForm(formID);
 		FrmSetActiveForm(form);
@@ -317,7 +321,7 @@ EventLoop(void)
 			 * AT ALL TIMES!
 			 */
 			for (q = 0; q < 20; q++)
-				WriteLog("%li ", vgame.BuildCount[q]);
+				WriteLog("%li ", (long)vgame.BuildCount[q]);
 			WriteLog("\n");
 #endif
 			if (UpdateDisasters()) {
@@ -429,7 +433,7 @@ _PalmInit(void)
 		}
 
 		privhandle = _WinCreateOffscreenWindow(handles[i].width,
-		    handles[i].height, genericFormat, (UInt16 *)&err);
+		    handles[i].height, nativeFormat, (UInt16 *)&err);
 		if (err != errNone) {
 			/* TODO: alert user, and quit program */
 			WriteLog("Offscreen window for zone[%d] failed\n",
@@ -474,7 +478,7 @@ _PalmFini(Int16 reached)
 	UInt16 i;
 
 	unhookHoldSwitch();
-	clearToolbarBitmap();
+	freeToolbarBitmap();
 
 	switch (reached) {
 	case 0:
@@ -549,7 +553,7 @@ DoPCityMenuProcessing(UInt16 itemID)
 		 * not compiled with CHEAT or DEBUG
 		 */
 #ifdef CHEAT
-		game.credits += 100000;
+		game.credits += 10000;
 #endif
 #ifdef DEBUG
 		MeteorDisaster(20, 20);
@@ -648,6 +652,7 @@ hPocketCity(EventPtr event)
 		SetGameInProgress();
 		ResumeGame();
 		FrmDrawForm(form);
+		SetDrawing();
 		DrawGame(1);
 		handled = true;
 		break;
@@ -681,7 +686,7 @@ hPocketCity(EventPtr event)
 				UIUpdateBuildIcon();
 				break;
 			}
-#if defined(SONY_CLIE)
+#if defined(HRSUPPORT)
 			if (isHires())
 				toolBarCheck(event->screenX);
 #endif
@@ -708,7 +713,7 @@ hPocketCity(EventPtr event)
 		handled = true;
 		break;
 	case menuEvent:
-		WriteLog("Menu Item: %d\n", event->data.menu.itemID);
+		WriteLog("Menu Item: %d\n", (int)event->data.menu.itemID);
 		handled = DoPCityMenuProcessing(event->data.menu.itemID);
 
 
@@ -815,7 +820,8 @@ UIPopUpExtraBuildList(void)
 		break;
 	}
 
-	WriteLog("sfe = %u, bi = %u\n", sfe, nSelectedBuildItem);
+	WriteLog("sfe = %u, bi = %u\n", (unsigned int)sfe,
+	    (unsigned int)nSelectedBuildItem);
 
 	CleanUpExtraBuildForm();
 	UIUpdateBuildIcon();
@@ -1051,7 +1057,7 @@ static UInt8 __state;
  * You Define the Bit, Clearer, Setter and Tester
  * of the Bit field you care about.
  * If you need more than 8 bits (0..7) then change the return type here and
- * in any of the enties shared in the header file.
+ * in any of the entries shared in the header file.
  */
 #define	BUILD_STATEBITACCESSOR(BIT, CLEARER, SETTER, TESTER, VISIBILITY) \
 VISIBILITY void \
@@ -1197,7 +1203,6 @@ UIFinishDrawing(void)
  * by using these two APIs we can get faster, flickerless allscreen updating
  */
 static UInt8 *didLock = NULL;
-static int lockCount = 0;
 
 /*
  * Try to lock the screen from updates.
@@ -1206,9 +1211,9 @@ static int lockCount = 0;
 void
 UILockScreen(void)
 {
-	lockCount++;
-	ErrFatalDisplayIf(lockCount > 1, "double lock on screen attempted");
-	if (IsNewROM() && !didLock)
+	if (!IsNewROM()) return;
+	ErrFatalDisplayIf(didLock != NULL, "double lock on screen attempted");
+	if (!didLock)
 		didLock = WinScreenLock(winLockCopy);
 }
 
@@ -1219,9 +1224,9 @@ UILockScreen(void)
 void
 UIUnlockScreen(void)
 {
-	lockCount--;
-	ErrFatalDisplayIf(lockCount < 0, "double free on screen attempted");
-	if (IsNewROM() && didLock != NULL) {
+	if (!IsNewROM()) return;
+	ErrFatalDisplayIf(didLock == NULL, "double free on screen attempted");
+	if (didLock != NULL) {
 		WinScreenUnlock();
 		didLock = NULL;
 	}
@@ -1242,7 +1247,10 @@ _UIDrawRect(Int16 nTop, Int16 nLeft, Int16 nHeight, Int16 nWidth)
 	rect.extent.x = nWidth;
 	rect.extent.y = nHeight;
 
+	
+	StartHiresDraw();
 	_WinDrawRectangleFrame(1, &rect);
+	EndHiresDraw();
 }
 
 /*
@@ -1296,6 +1304,7 @@ UIDrawLossIcon(Int16 xpos, Int16 ypos, Coord tilex, Coord tiley)
 	rect.extent.y = vgame.tileSize;
 
 	/* copy/paste the graphic from the offscreen image */
+	StartHiresDraw();
 	/* first draw the overlay */
 	_WinCopyRectangle(winZones, WinGetActiveWindow(), &rect,
 	    xpos * vgame.tileSize +XOFFSET, ypos * vgame.tileSize + YOFFSET,
@@ -1305,6 +1314,7 @@ UIDrawLossIcon(Int16 xpos, Int16 ypos, Coord tilex, Coord tiley)
 	_WinCopyRectangle(winZones, WinGetActiveWindow(), &rect,
 	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
 	    winOverlay);
+	EndHiresDraw();
 }
 
 /*
@@ -1341,6 +1351,7 @@ UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos)
 	rect.extent.x = vgame.tileSize;
 	rect.extent.y = vgame.tileSize;
 
+	StartHiresDraw();
 	_WinCopyRectangle(winUnits, WinGetActiveWindow(), &rect,
 	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
 	    winErase);
@@ -1348,6 +1359,7 @@ UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos)
 	_WinCopyRectangle(winUnits, WinGetActiveWindow(), &rect,
 	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
 	    winOverlay);
+	EndHiresDraw();
 }
 
 /*
@@ -1366,6 +1378,7 @@ UIDrawSpecialObject(Int16 i, Int16 xpos, Int16 ypos)
 	rect.extent.x = vgame.tileSize;
 	rect.extent.y = vgame.tileSize;
 
+	StartHiresDraw();
 	_WinCopyRectangle(winMonsters, WinGetActiveWindow(), &rect,
 	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
 	    winErase);
@@ -1373,6 +1386,7 @@ UIDrawSpecialObject(Int16 i, Int16 xpos, Int16 ypos)
 	_WinCopyRectangle(winMonsters, WinGetActiveWindow(), &rect,
 	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
 	    winOverlay);
+	EndHiresDraw();
 }
 
 /*
@@ -1392,9 +1406,11 @@ UIDrawField(Int16 xpos, Int16 ypos, UInt8 nGraphic)
 	rect.extent.y = vgame.tileSize;
 
 	/* copy/paste the graphic from the offscreen image */
+	StartHiresDraw();
 	_WinCopyRectangle(winZones, WinGetActiveWindow(), &rect,
 	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
 	    winPaint);
+	EndHiresDraw();
 }
 
 /*
@@ -1423,7 +1439,9 @@ UIScrollMap(dirType direction)
 
 
 	screen = WinGetActiveWindow();
+	StartHiresDraw();
 	_WinCopyRectangle(screen, screen, &rect, to_x, to_y, winPaint);
+	EndHiresDraw();
 
 	/* and lastly, fill the gap */
 	LockWorld();
@@ -1506,7 +1524,7 @@ static struct StatusPositions lrpositions[] = {
 	{ { {0, 0}, {0, 11} }, {0, 1}, MIDX | ENDY }, /* POPLOC */
 	{ { {0, 0}, {0, 11} }, {0, 1}, ENDX | ENDY }, /* POSITIONLOC */
 };
-#ifdef SONY_CLIE
+#ifdef HRSUPPORT
 
 /*
  * High resolution version of the positions
@@ -1572,7 +1590,9 @@ UIDrawItem(Int16 location, char *text)
 	}
 	pos = posAt(location);
 	if (pos->rect.extent.x && pos->rect.extent.y) {
+		StartHiresDraw();
 		_WinEraseRectangle(&(pos->rect), 0);
+		EndHiresDraw();
 	}
 
 	if (isHires())
@@ -1588,7 +1608,15 @@ UIDrawItem(Int16 location, char *text)
 		break;
 	}
 	pos->rect.extent.x = tx;
-	_WinDrawChars(text, sl, pos->rect.topLeft.x, pos->rect.topLeft.y);
+	if (highDensityFeatureSet()) {
+		StartHiresFontDraw();
+		_WinDrawChars(text, sl, pos->rect.topLeft.x >> 1,
+		    pos->rect.topLeft.y >> 1);
+		EndHiresFontDraw();
+	} else {
+		_WinDrawChars(text, sl, pos->rect.topLeft.x,
+		    pos->rect.topLeft.y);
+	}
 	if (isHires())
 		_FntSetFont(stdFont);
 }
@@ -1664,7 +1692,7 @@ void
 UIDrawCredits(void)
 {
 	char temp[23];
-#ifdef SONY_CLIE
+#ifdef HRSUPPORT
 	MemHandle bitmapHandle;
 	BitmapPtr bitmap;
 #endif
@@ -1674,13 +1702,15 @@ UIDrawCredits(void)
 
 	StrPrintF(temp, "$: %ld", game.credits);
 	UIDrawItem(CREDITSLOC, temp);
-#ifdef SONY_CLIE
+#ifdef HRSUPPORT
 	if (isHires()) {
 		bitmapHandle = DmGetResource('Tbmp', bitmapID_coin);
 		if (bitmapHandle == NULL)
 			return;
 		bitmap = MemHandleLock(bitmapHandle);
+		StartHiresDraw();
 		_WinDrawBitmap(bitmap, 68, sHeight - 11);
+		EndHiresDraw();
 		MemPtrUnlock(bitmap);
 		DmReleaseResource(bitmapHandle);
 	}
@@ -1695,7 +1725,7 @@ void
 UIDrawLoc(void)
 {
 	char temp[25];
-#ifdef SONY_CLIE
+#ifdef HRSUPPORT
 	MemHandle bitmapHandle;
 	BitmapPtr bitmap;
 #endif
@@ -1703,14 +1733,16 @@ UIDrawLoc(void)
 	if (IsDeferDrawing())
 		return;
 
-#ifdef SONY_CLIE
+#ifdef HRSUPPORT
 	if (isHires()) {
 		StrPrintF(temp, "%02u,%02u", game.map_xpos, game.map_ypos);
 		bitmapHandle = DmGetResource('Tbmp', bitmapID_loca);
 		if (bitmapHandle == NULL)
 			return;
 		bitmap = MemHandleLock(bitmapHandle);
+		StartHiresDraw();
 		_WinDrawBitmap(bitmap, 270, sHeight - 11);
+		EndHiresDraw();
 		MemPtrUnlock(bitmap);
 		DmReleaseResource(bitmapHandle);
 	} else
@@ -1718,15 +1750,19 @@ UIDrawLoc(void)
 		StrPrintF(temp, "(%02u,%02u)", game.map_xpos, game.map_ypos);
 
 #ifdef SONY_CLIE
-	bitmapHandle = DmGetResource('Tbmp', bitmapID_updn + jog_lr);
-	/* place at rt - (12 + 8), 1 */
-	if (bitmapHandle) {
-		bitmap = MemHandleLock(bitmapHandle);
-		if (bitmap) {
-			_WinDrawBitmap(bitmap, sWidth - (12 + 8), 1);
-			MemPtrUnlock(bitmap);
+	if (IsSony()) {
+		bitmapHandle = DmGetResource('Tbmp', bitmapID_updn + jog_lr);
+		/* place at rt - (12 + 8), 1 */
+		if (bitmapHandle) {
+			bitmap = MemHandleLock(bitmapHandle);
+			if (bitmap) {
+				StartHiresDraw();
+				_WinDrawBitmap(bitmap, sWidth - (12 + 8), 1);
+				EndHiresDraw();
+				MemPtrUnlock(bitmap);
+			}
+			DmReleaseResource(bitmapHandle);
 		}
-		DmReleaseResource(bitmapHandle);
 	}
 
 #endif
@@ -1752,12 +1788,15 @@ UIUpdateBuildIcon(void)
 		/* TODO: onscreen error? +save? */
 		return;
 	bitmap = (BitmapPtr)MemHandleLock(bitmaphandle);
+	StartHiresDraw();
 	_WinDrawBitmap(bitmap, 2, 2);
+	EndHiresDraw();
 	MemPtrUnlock(bitmap);
 	DmReleaseResource(bitmaphandle);
-#if defined(SONY_CLIE)
-	if (isHires())
+#if defined(HRSUPPORT)
+	if (isHires()) {
 		UIDrawToolBar();
+	}
 #endif
 }
 
@@ -1776,7 +1815,9 @@ UIDrawSpeed(void)
 		/* TODO: onscreen error? +save? */
 		return;
 	bitmap = (BitmapPtr)MemHandleLock(bitmaphandle);
+	StartHiresDraw();
 	_WinDrawBitmap(bitmap, sWidth - 12, 2);
+	EndHiresDraw();
 	MemPtrUnlock(bitmap);
 	DmReleaseResource(bitmaphandle);
 }
@@ -1789,10 +1830,6 @@ void
 UIDrawPop(void)
 {
 	char temp[25];
-#ifdef SONY_CLIE
-	MemHandle bitmapHandle;
-	BitmapPtr bitmap;
-#endif
 
 	if (IsDeferDrawing())
 		return;
@@ -1801,13 +1838,18 @@ UIDrawPop(void)
 	UIDrawItem(POPLOC, temp);
 	UIDrawLoc();
 	UIDrawSpeed();
-#ifdef SONY_CLIE
+#ifdef HRSUPPORT
 	if (isHires()) {
+		MemHandle bitmapHandle;
+		BitmapPtr bitmap;
+		
 		bitmapHandle = DmGetResource('Tbmp', bitmapID_popu);
 		if (bitmapHandle == NULL)
 			return;
 		bitmap = MemHandleLock(bitmapHandle);
+		StartHiresDraw();
 		_WinDrawBitmap(bitmap, 146, sHeight - 11);
+		EndHiresDraw();
 		MemPtrUnlock(bitmap);
 		DmReleaseResource(bitmapHandle);
 	}
@@ -1893,25 +1935,24 @@ LockedWorld()
 	return (worldPtr != NULL);
 }
 
+int lockWorldCount = 0;
+
 void
 LockWorld()
 {
-#ifdef DEBUG
-	if (worldPtr != NULL)
-		DbgBreak();
-#endif
-	worldPtr = MemHandleLock(worldHandle);
+	if (++lockWorldCount == 1)
+		worldPtr = MemHandleLock(worldHandle);
 }
 
 void
 UnlockWorld()
 {
-#ifdef DEBUG
-	if (worldPtr == NULL)
-		DbgBreak();
-#endif
-	MemHandleUnlock(worldHandle);
-	worldPtr = NULL;
+	if (--lockWorldCount == 0) {
+		MemHandleUnlock(worldHandle);
+		worldPtr = NULL;
+	}
+	ErrFatalDisplayIf(lockWorldCount < 0,
+	    "Too many unlock world calls");
 }
 
 UInt8
@@ -1920,25 +1961,24 @@ LockedWorldFlags()
 	return (worldFlagsPtr != NULL);
 }
 
+int lockWorldFlagsCount = 0;
+
 void
 LockWorldFlags()
 {
-#ifdef DEBUG
-	if (worldFlagsPtr != NULL)
-		DbgBreak();
-#endif
-	worldFlagsPtr = MemHandleLock(worldFlagsHandle);
+	if (++lockWorldFlagsCount == 1)
+		worldFlagsPtr = MemHandleLock(worldFlagsHandle);
 }
 
 void
 UnlockWorldFlags()
 {
-#ifdef DEBUG
-	if (worldFlagsPtr == NULL)
-		DbgBreak();
-#endif
-	MemHandleUnlock(worldFlagsHandle);
-	worldFlagsPtr = NULL;
+	if (--lockWorldFlagsCount == 0) {
+		MemHandleUnlock(worldFlagsHandle);
+		worldFlagsPtr = NULL;
+	}
+	ErrFatalDisplayIf(lockWorldFlagsCount < 0,
+	    "Too many unlock world flags calls");
 }
 
 UInt8
@@ -2088,9 +2128,14 @@ doButtonEvent(ButtonEvent event)
 	case BePassthrough:
 		return (0);
 #ifdef SONY_CLIE
+	/*
+	 * if the draw window doesn't occupy most of the screen ...
+	 *  - for example if it's a menu
+	 * allow jog assist to work.
+	 */
 	case BeJogUp:
 		if (!IsDrawWindowMostOfScreen())
-			return (1);
+			return (0);
 		if (jog_lr)
 			ScrollMap(dtLeft);
 		else
@@ -2098,7 +2143,7 @@ doButtonEvent(ButtonEvent event)
 		break;
 	case BeJogDown:
 		if (!IsDrawWindowMostOfScreen())
-			return (1);
+			return (0);
 		if (jog_lr)
 			ScrollMap(dtRight);
 		else
@@ -2106,7 +2151,7 @@ doButtonEvent(ButtonEvent event)
 		break;
 	case BeJogRelease:
 		if (!IsDrawWindowMostOfScreen())
-			return (1);
+			return (0);
 		jog_lr = 1 - jog_lr;
 		UIDrawLoc();
 		break;
@@ -2153,10 +2198,8 @@ buildSilkList()
 	/* favorites / find */
 	while (silky[atsilk].vChar != 1) atsilk++;
 	while (atbtn < btncount) {
-#if defined(DEBUG)
 		WriteLog("btn: %ld char: %lx\n", (long)atbtn,
 		    (long)silkinfo[atbtn].asciiCode);
-#endif
 		if (silkinfo[atbtn].asciiCode == vchrFind) {
 			if (atbtn > 0) {
 				silky[atsilk].vChar =
@@ -2182,12 +2225,17 @@ vkDoEvent(UInt16 key)
 
 }
 
-#ifdef SONY_CLIE
+#ifdef HRSUPPORT
 static BitmapType *pToolbarBitmap = NULL;
+BitmapType *pOldBitmap;;
 
 static void
-clearToolbarBitmap(void)
+freeToolbarBitmap(void)
 {
+	if (pOldBitmap != NULL) {
+		BmpDelete(pOldBitmap);
+		pOldBitmap = NULL;
+	}
 	if (pToolbarBitmap != NULL) {
 		BmpDelete(pToolbarBitmap);
 		pToolbarBitmap = NULL;
@@ -2195,13 +2243,16 @@ clearToolbarBitmap(void)
 }
 
 static void
-drawToolBitmaps(Coord startx, Coord starty)
+drawToolBitmaps(Coord startx, Coord starty, Coord spacing)
 {
 	MemHandle hBitmap;
 	MemPtr pBitmap;
 	UInt32 id;
 
+	StartHiresDraw();
 	for (id = bitmapID_iconBulldoze; id <= bitmapID_iconExtra; id++) {
+		WriteLog("Rendering bitmap %ld\n",
+		    (long)id - bitmapID_iconBulldoze);
 		hBitmap = DmGetResource('Tbmp', id);
 		if (hBitmap == NULL) continue;
 		pBitmap = MemHandleLock(hBitmap);
@@ -2210,13 +2261,37 @@ drawToolBitmaps(Coord startx, Coord starty)
 			continue;
 		}
 		_WinDrawBitmap(pBitmap, startx, starty);
-		startx += 14;
+		startx += spacing;
 		MemPtrUnlock(pBitmap);
 		DmReleaseResource(hBitmap);
 	}
+	EndHiresDraw();
 }
 
-#define	TBWIDTH ((Coord)(14 *(bitmapID_iconExtra+1 - bitmapID_iconBulldoze)))
+int
+GetBitmapDimensions(UInt16 resID, Coord *width, Coord *height)
+{
+	BitmapPtr bmp;
+	MemHandle mh = DmGetResource(bitmapRsc, resID);
+
+	if (mh == NULL)
+		return (1);
+
+	bmp = MemHandleLock(mh);
+
+	if (bmp == NULL) {
+		DmReleaseResource(mh);
+		return (1);
+	}
+
+	BmpGetDimensions(bmp, width, height, NULL);
+	MemHandleUnlock(mh);
+	DmReleaseResource(mh);
+	return (0);
+}
+
+static Coord tbWidth;
+Coord bWidth;
 
 static void
 UIDrawToolBar(void)
@@ -2226,23 +2301,39 @@ UIDrawToolBar(void)
 
 	if (pToolbarBitmap == NULL) {
 		UInt16 err;
-		pToolbarBitmap = _BmpCreate(TBWIDTH, 12, getDepth(),
+		Coord bHeight;
+
+		GetBitmapDimensions(bitmapID_iconBulldoze, &bWidth, &bHeight);
+
+		tbWidth = (1 + (bitmapID_iconExtra - bitmapID_iconBulldoze)) *
+		    (4 + bWidth);
+
+		pToolbarBitmap = _BmpCreate(tbWidth, bHeight, getDepth(),
 		    NULL, &err);
+		if (pToolbarBitmap  != NULL && highDensityFeatureSet()) {
+			pOldBitmap = pToolbarBitmap;
+			pToolbarBitmap = (BitmapPtr)BmpCreateBitmapV3(
+			    pToolbarBitmap, kDensityDouble, 
+			    BmpGetBits(pToolbarBitmap), NULL);
+		}
 		if (pToolbarBitmap != NULL) {
 			wh = _WinCreateBitmapWindow(pToolbarBitmap, &err);
 			if (wh != NULL) {
 				owh = WinSetDrawWindow(wh);
-				drawToolBitmaps(0, 0);
+				drawToolBitmaps(0, 0, bWidth + 4);
 				WinSetDrawWindow(owh);
 				WinDeleteWindow(wh, false);
 			}
 		} else {
-			drawToolBitmaps((sWidth - TBWIDTH) >> 1, 2);
+			drawToolBitmaps((sWidth - tbWidth) >> 1, 2,
+			    bWidth + 4);
 			return;
 		}
 	}
 	if (pToolbarBitmap != NULL) {
-		_WinDrawBitmap(pToolbarBitmap, (sWidth - TBWIDTH) >> 1, 2);
+		StartHiresDraw();
+		_WinDrawBitmap(pToolbarBitmap, (sWidth - tbWidth) >> 1, 2);
+		EndHiresDraw();
 	}
 }
 
@@ -2251,10 +2342,10 @@ toolBarCheck(Coord xpos)
 {
 	int id;
 	/* We've already confirmed the y-axis. */
-	if (xpos < ((sWidth - TBWIDTH) >> 1) ||
-	    xpos > ((sWidth + TBWIDTH) >> 1)) return;
+	if (xpos < ((sWidth - tbWidth) >> 1) ||
+	    xpos > ((sWidth + tbWidth) >> 1)) return;
 
-	id = (xpos - ((sWidth - TBWIDTH) >> 1)) / 14;
+	id = (xpos - ((sWidth - tbWidth) >> 1)) / bWidth;
 	if (id == (bitmapID_iconExtra - bitmapID_iconBulldoze)) {
 		UIPopUpExtraBuildList();
 	} else {
@@ -2262,6 +2353,10 @@ toolBarCheck(Coord xpos)
 	}
 	UIUpdateBuildIcon();
 }
+
+#endif /* HRSUPPORT */
+
+#ifdef	SONY_CLIE
 
 /* Pauses the game if you flick the 'hold' switch */
 static void

@@ -3,18 +3,27 @@ include Makefile-include
 
 BINNAME=pcity
 
-NDTARGETS=lores hires
-DTARGETS=debug dhires
+NDTARGETS=lores palm5 sony
+DTARGETS=debug dpalm5 dsony
 
 TARGETS=$(NDTARGETS) $(DTARGETS) cheat
 
 lores: TDIR =-nd
 
 debug: TDIR =-d
-hires: TDIR =-ndh
-hires: BINNAME=hires-pcity
-dhires: TDIR =-dh
-dhires: BINNAME=hires-pcity
+
+palm5: TDIR =-nd5
+palm5: BINNAME=palm5-pcity
+
+dpalm5: TDIR =-d5
+dpalm5: BINNAME=palm5-pcity
+
+sony: TDIR =-nds
+sony: BINNAME=sony-pcity
+
+dsony: TDIR =-ds
+dsony: BINNAME=sony-pcity
+
 cheat: TDIR =-dc
 
 OBJDIR = out$(TDIR)
@@ -26,7 +35,7 @@ nearlylive: VERSION = $(shell date +%Y.%m.%d)
 
 DSTAMP := $(shell date "+%Y/%m/%d@%H:%M")
 
-all: lores
+all: full
 
 $(TARGETS): VER
 	$(MAKE) -f Makefile-dowork BINARY=$(BINNAME) OBJDIR=out$(TDIR) $@
@@ -58,13 +67,16 @@ DDIR=pcity-palm_$(VERSION)
 
 DISTFILES=../INSTALL ../CHANGELOG ../COPYING ../GAMEHINTS ../README
 
+# This is the first target listed; hence it is the default target.
 full: $(TARGETS)
 
 dist nearlylive: $(NDTARGETS)
 	@mkdir -p $(DDIR)
-	@cp $(DISTFILES) out-nd/*.prc *.pdb $(DDIR)
+	@cp $(DISTFILES) *.pdb $(DDIR)
+	for I in out-nd out-nd5 out-nds; do \
+		cp $$I/*.prc $(DDIR); \
+	done
 	@tar cvf - $(DDIR) | gzip -9c >$(DDIR).tar.gz
-	@cp out-ndh/*.prc $(DDIR)
 	@zip -9R $(DDIR).zip $(DDIR)/*
 	@rm -rf $(DDIR)
 

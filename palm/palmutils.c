@@ -10,11 +10,8 @@
 #include <resCompat.h>
 #include <simcity_resconsts.h>
 #include <simcity.h>
+#include <ui.h>
 
-static UInt32 oWidth = 0;
-static UInt32 oHeight = 0;
-static UInt32 oDepth = 0;
-static Boolean oUseColor = 0;
 /* included the TRG magic numbers :( */
 #define	TRGSysFtrID	'TRG '
 #define	TRGVgaFtrNum	2
@@ -34,14 +31,16 @@ UInt32
 getDepth(void)
 {
 	static UInt32 avd = 0;
-	if (avd != 0)
+	if (avd != 0) {
+		WriteLog("Depth: saved == %ld\n", (long)avd);
 		return (avd);
+	}
 	if (IsNewROM()) {
 		(void) _WinScreenMode(winScreenModeGet, NULL, NULL, &avd, NULL);
-		/* avd = 1 << (avd-1); */
 	} else {
 		avd = 1;
 	}
+	WriteLog("Depth: == %ld\n", (long)avd);
 	return (avd);
 }
 
@@ -76,8 +75,6 @@ changeDepthRes(UInt32 ndepth)
 		SETWIDTH(320);
 		SETHEIGHT(320);
 	}
-	(void) _WinScreenMode(winScreenModeGet, &oWidth, &oHeight, &oDepth,
-	    &oUseColor);
 	(void) _WinScreenMode(winScreenModeGetSupportsColor, NULL, NULL, NULL,
 	    &enablecol);
 	(void) _WinScreenMode(winScreenModeGetSupportedDepths, NULL, NULL,
@@ -126,20 +123,11 @@ changeDepthRes(UInt32 ndepth)
 Err
 restoreDepthRes(void)
 {
-	UInt32 de;
-	UInt32 wi;
-	UInt32 he;
-	Boolean ec;
 	Err rv;
 
-	de = oDepth;
-	wi = oWidth;
-	he = oHeight;
-	ec = oUseColor;
-	if (canHires())
-		if ((rv = _WinScreenMode(winScreenModeSet,
-		    &wi, &he, &de, &ec)) != 0)
-			return (rv);
+	if (0 != (rv = WinScreenMode(winScreenModeSetToDefaults, NULL, NULL,
+		    NULL, NULL)))
+		return (rv);
 	if (0 != (rv = unloadHiRes()))
 		return (rv);
 	return (0);

@@ -3,10 +3,10 @@ include Makefile-include
 
 OBJECTS := stack.o simcity.o handler.o drawing.o globals.o build.o \
 	simulation.o HiRes.o disaster.o palmutils.o savegame_be.o \
-	pcity-sections.o \
+	sony_support.o pcity-sections.o \
 	options.o map.o budget.o query.o savegame.o
 
-BUILDENDS=nd d ndh dh dc
+BUILDENDS=nd d nd5 d5 nds ds dc
 BUILDDIRS:=$(BUILDENDS:%=out-%)
 
 PROGNAME := "Pocket City"
@@ -18,6 +18,7 @@ COLORDBTOKEN := tidb
 
 DEBUG := 0
 HIRES := 0
+SONY := 0
 
 # Multi language support - game-$(LANGUAGES).stm
 LANGUAGES := EN
@@ -28,7 +29,7 @@ PRCTARGETS = $(LANGUAGES:%=$(OBJDIR)/$(BINARY)-%.prc)
 LANGDIRS = $(LANGUAGES:%=(OBJDIR)/%)
 
 # Resource PDBs (graphical; non-language)
-COLORTYPES := bw grey color merged
+COLORTYPES := bw grey color merged bw_hd grey_hd color_hd merged_hd
 # high density:- bw_hd grey_hd color_hd merged_hd
 
 COLORTARGETS := $(COLORTYPES:%=pcity-%.pdb)
@@ -44,9 +45,9 @@ TEMPDIRS:=$(TEMPENDS:%=temp-%)
 # make all
 #
 
-lores debug hires dhires: VER $(COLORTARGETS) $(PRCTARGETS)
+lores debug palm5 dpalm5 sony dsony: VER $(COLORTARGETS) $(PRCTARGETS)
 
-nearlylive: all hires
+nearlylive: all palm5 sony
 
 #
 # make cheat
@@ -58,13 +59,17 @@ cheat: debug
 ### make debug ###
 ##################
 
-debug dhires: AXCFLAGS = -g -DDEBUG
-debug dhires: DEBUG=1
+debug dpalm5 dsony: AXCFLAGS = -g -DDEBUG
+debug dpalm5 dsony: DEBUG=1
 
-hires dhires: BXCFLAGS = -DSONY_CLIE
-hires dhires: HIRES=1
+palm5 dpalm5: BXCFLAGS = -DPALM_HIGH
+palm5 dpalm5: HIRES=1
 
-CFLAGS += $(AXCFLAGS) $(BXCFLAGS)
+# Sony app also contains all the hires functionality
+sony dsony: CXCFLAGS = -DSONY_CLIE -DPALM_HIGH
+sony dsony: SONY=1
+
+CFLAGS += $(AXCFLAGS) $(BXCFLAGS) $(CXCFLAGS)
 
 # the different language versions
 $(OBJDIR)/$(BINARY)-%.prc: $(OBJDIR) $(OBJDIR)/pcity $(OBJDIR)/%-lang/game.stm
@@ -90,7 +95,8 @@ temp-%:
 # Language
 $(OBJDIR)/%-lang/game.stm: $(OBJDIR) $(OBJDIR)/%-lang \
 		game.rcp langs.rcp simcity_resconsts.h
-	@$(AWK) -v DEBUG=$(DEBUG) -v HIRES=$(HIRES) -f filter.awk \
+	@$(AWK) -v DEBUG=$(DEBUG) -v HIRES=$(HIRES) \
+		-v SONY=$(SONY) -f filter.awk \
 		game.rcp > $(OBJDIR)/$*-lang/ngame.rcp
 	$(RC.rcp) -L $* $(OBJDIR)/$*-lang/ngame.rcp $(OBJDIR)/$*-lang
 	@cat $(OBJDIR)/$*-lang/ngame.rcp > $@ && \

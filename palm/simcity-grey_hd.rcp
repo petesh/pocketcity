@@ -1,0 +1,35 @@
+#include "simcity_resconsts.h"
+
+BITMAP ID bitmapID_SpeedPaused         "graphic/speed_paused.bmp"  COMPRESS
+BITMAP ID bitmapID_SpeedSlow           "graphic/speed_slow.bmp"      COMPRESS
+BITMAP ID bitmapID_SpeedNormal         "graphic/speed_normal.bmp"  COMPRESS
+BITMAP ID bitmapID_SpeedFast           "graphic/speed_fast.bmp"      COMPRESS
+BITMAP ID bitmapID_SpeedUltra          "graphic/speed_ultra.bmp"    COMPRESS
+
+BITMAP ID bitmapID_iconBulldoze        "graphic/icons/bulldozer.bmp"    COMPRESS
+BITMAP ID bitmapID_iconResidential     "graphic/icons/residential.bmp"  COMPRESS
+BITMAP ID bitmapID_iconCommercial      "graphic/icons/commercial.bmp"   COMPRESS
+BITMAP ID bitmapID_iconIndustrial      "graphic/icons/industrial.bmp"   COMPRESS
+BITMAP ID bitmapID_iconRoad            "graphic/icons/road.bmp"         COMPRESS
+BITMAP ID bitmapID_iconPowerPlant      "graphic/icons/powerplant.bmp"   COMPRESS
+BITMAP ID bitmapID_iconNuclear         "graphic/icons/nuclear.bmp"      COMPRESS
+BITMAP ID bitmapID_iconPowerline       "graphic/icons/powerline.bmp"    COMPRESS
+
+BITMAP ID bitmapID_iconWaterPlant      "graphic/icons/waterplant.bmp"	COMPRESS
+BITMAP ID bitmapID_iconWaterPipe       "graphic/icons/waterpipe.bmp"	COMPRESS
+
+BITMAP ID bitmapID_iconQuery		"graphic/icons/query.bmp"	COMPRESS
+
+BITMAP ID bitmapID_iconTree            "graphic/icons/tree.bmp"         COMPRESS
+BITMAP ID bitmapID_iconWater           "graphic/icons/water.bmp"        COMPRESS
+BITMAP ID bitmapID_iconExtra           "graphic/icons/extra.bmp"        COMPRESS
+BITMAP ID bitmapID_iconDefPolice       "graphic/icons/def_police.bmp"        COMPRESS
+BITMAP ID bitmapID_iconDefFire         "graphic/icons/def_firemen.bmp"        COMPRESS
+BITMAP ID bitmapID_iconDefMilitary     "graphic/icons/def_military.bmp"        COMPRESS
+
+BITMAP ID bitmapID_coin	"graphic/icons/coin.bmp"
+BITMAP ID bitmapID_popu	"graphic/icons/people.bmp"
+BITMAP ID bitmapID_loca	"graphic/icons/location.bmp"
+
+BITMAP ID bitmapID_updn	"graphic/icons/updown.bmp"
+BITMAP ID bitmapID_ltrt	"graphic/icons/leftright.bmp"

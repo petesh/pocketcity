@@ -1,0 +1,154 @@
+#include "simcity_resconsts.h"
+
+BITMAPFAMILYEX ID bitmapID_SpeedPaused COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/speed_paused-color.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_SpeedSlow COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/speed_slow-color.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_SpeedNormal COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/speed_normal-color.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_SpeedFast COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/speed_fast-color.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_SpeedUltra COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/speed_ultra-color.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconBulldoze COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/bulldozer.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconResidential COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/residential.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconCommercial COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/commercial.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconIndustrial COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/industrial.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconRoad COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/road.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconPowerPlant COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/powerplant.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconNuclear COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/nuclear.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconPowerline COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/powerline.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconWaterPlant COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/waterplant.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconWaterPipe COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/waterpipe.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconQuery COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/query.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconTree COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/tree.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconWater COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/water.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconExtra COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/extra.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconDefFire COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/def_firemen.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconDefPolice COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/def_police.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_iconDefMilitary COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/def_military.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_coin COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/coin.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_popu COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/people.bmp" BPP 8 DENSITY 2
+END
+
+BITMAPFAMILYEX ID bitmapID_loca	COMPRESS
+BEGIN
+	BITMAP "graphic/blank.bmp" BPP 8 DENSITY 1
+	BITMAP "graphic/icons-color/location.bmp" BPP 8 DENSITY 2
+END
+
+BITMAP ID bitmapID_updn	"graphic/icons/updown.bmp"
+BITMAP ID bitmapID_ltrt	"graphic/icons/leftright.bmp"
