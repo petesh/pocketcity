@@ -1,38 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?eclipse-cdt version="2.0"?>
+
 <cdtproject id="org.eclipse.cdt.make.core.make">
-    <extension id="org.eclipse.cdt.make.core.MakeScannerProvider" point="org.eclipse.cdt.core.ScannerInfoProvider"/>
-    <extension id="org.eclipse.cdt.core.Elf" point="org.eclipse.cdt.core.BinaryParser"/>
-    <data>
-        <item id="org.eclipse.cdt.make.core.makeScannerInfo">
-            <includePath path="$(SDK5_LOCATION)\include"/>
-            <includePath path="$(SDK5_LOCATION)\include\Core"/>
-            <includePath path="$(SDK5_LOCATION)\include\Core\Hardware"/>
-            <includePath path="$(SDK5_LOCATION)\include\Core\System"/>
-            <includePath path="$(SDK5_LOCATION)\include\Core\System\Unix"/>
-            <includePath path="$(SDK5_LOCATION)\include\Core\UI"/>
-            <includePath path="$(SDK5_LOCATION)\include\Dynamic"/>
-            <includePath path="$(SDK5_LOCATION)\include\Extensions"/>
-            <includePath path="$(SDK5_LOCATION)\include\Extensions\Bluetooth"/>
-            <includePath path="$(SDK5_LOCATION)\include\Extensions\ExpansionMgr"/>
-            <includePath path="$(SDK5_LOCATION)\include\Incs"/>
-            <includePath path="$(SDK5_LOCATION)\include\Incs\Libraries"/>
-            <includePath path="$(SDK5_LOCATION)\include\Incs\System"/>
-            <includePath path="$(SDK5_LOCATION)\include\Incs\System\etc"/>
-            <includePath path="$(SDK5_LOCATION)\include\Libraries"/>
-            <includePath path="$(SDK5_LOCATION)\include\Libraries\AddressSort"/>
-            <includePath path="$(SDK5_LOCATION)\include\Libraries\CPMLib"/>
-            <includePath path="$(SDK5_LOCATION)\include\Libraries\ExgLocal"/>
-            <includePath path="$(SDK5_LOCATION)\include\Libraries\INet"/>
-            <includePath path="$(SDK5_LOCATION)\include\Libraries\Lz77"/>
-            <includePath path="$(SDK5_LOCATION)\include\Libraries\PalmOSGlue"/>
-            <includePath path="$(SDK5_LOCATION)\include\Libraries\Pdi"/>
-            <includePath path="$(SDK5_LOCATION)\include\Libraries\Simulator"/>
-            <includePath path="$(SDK5_LOCATION)\include\Libraries\Simulator\Locale"/>
-            <includePath path="$(SDK5_LOCATION)\include\Libraries\Sms"/>
-            <includePath path="$(SDK5_LOCATION)\include\Libraries\SSL"/>
-            <includePath path="$(SDK5_LOCATION)\include\Libraries\Telephony"/>
-            <includePath path="$(SDK5_LOCATION)\include\Libraries\Telephony\UI"/>
-            <includePath path="C:\Code-Work\palm\pcity\source"/>
-        </item>
-    </data>
+<extension id="org.eclipse.cdt.core.PE" point="org.eclipse.cdt.core.BinaryParser"/>
+<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+<extension id="org.eclipse.cdt.core.Cygwin_PE" point="org.eclipse.cdt.core.BinaryParser">
+<attribute key="addr2line" value="addr2line"/>
+<attribute key="cygpath" value="cygpath"/>
+<attribute key="c++filt" value="c++filt"/>
+</extension>
+<data>
+        
+    <item id="org.eclipse.cdt.core.pathentry">
+<pathentry kind="con" path="org.eclipse.cdt.make.core.DISCOVERED_SCANNER_INFO"/>
+<pathentry kind="src" path=""/>
+<pathentry kind="out" path=""/>
+<pathentry include="C:/Code-Work/palm/pcity/source" kind="inc" path=""/>
+</item>
+<item id="cdt_resolver">
+<custom value="false"/>
+</item>
+<item id="cdt_indexer">
+<indexEnabled indexValue="true"/>
+<indexerProblemsEnabled indexProblemsValue="7"/>
+</item>
+</data>
 </cdtproject>
