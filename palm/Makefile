@@ -8,6 +8,7 @@ PROGTOKEN = PCit
 PRCTARGETS = pcity pcity-grey pcity-color
 
 .PHONY: all debug clean cheat
+.PRECIOUS: simcity-grey.stm zones-grey.stm simcity-color.stm zones-color.stm
 
 ##################
 ### make all #####
