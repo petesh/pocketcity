@@ -126,6 +126,11 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 void _PalmInit(void)
 {
 	timeStamp = TimGetSeconds();
+
+    rPlayGround.topLeft.x = 0;
+    rPlayGround.topLeft.y = 15;
+    rPlayGround.extent.x = 16*10;
+    rPlayGround.extent.y = 16*8;
 }
 
 
