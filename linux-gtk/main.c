@@ -2,11 +2,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
 
+#include "main.h"
+#include "savegame.h"
 #include "../source/ui.h"
 #include "../source/handler.h"
 #include "../source/drawing.h"
@@ -29,154 +27,16 @@ GdkBitmap *zones_mask,*monsters_mask,*units_mask;
 unsigned char selectedBuildItem = 0;
 void SetUpMainWindow(void);
 gint mainloop_callback(gpointer data);
-gchar * savegamename;
-void save_game(GtkWidget *w, gpointer data);
-
-
-void open_filename(GtkFileSelection *sel, gpointer data)
-{
-    int fd, ret;
-    savegamename = (gchar*)gtk_file_selection_get_filename(GTK_FILE_SELECTION(data));
-    g_print("Opening save game from %s\n", savegamename);
-    
-    fd = open(savegamename, O_RDONLY);
-    if (fd == -1) {
-        perror("open"); // TODO: make this nicer
-        return;
-    }
-    // God, I love to read all my vars at one time
-    // using a struct :D
-    ret = read(fd,(void*)&game,sizeof(GameStruct));
-    if (ret == -1) {
-        perror("read game"); // TODO: make this nicer
-        return;
-    } else if (ret != sizeof(GameStruct)) {
-        g_print("Whoops, couldn't read full lenght of game\n");
-        return;
-    }
-
-    // and now the great worldPtr :D
-    ret = read(fd,(void*)worldPtr, game.mapsize*game.mapsize);
-    if (ret == -1) {
-        perror("read world"); // TODO: make this nicer
-        return;
-    } else if (ret != game.mapsize*game.mapsize) {
-        g_print("Whoops, couldn't read full lenght of world\n");
-        return;
-    }
-    
-    if (close(fd) == -1) {
-        perror("close"); // TODO: make this nicer
-        return;
-    }
-
-    // update the screen with the new game
-    DrawGame(1);
-    gtk_adjustment_set_value(GTK_ADJUSTMENT(playscrollerh), game.map_xpos+10);
-    gtk_adjustment_set_value(GTK_ADJUSTMENT(playscrollerv), game.map_ypos+7);
-    
-}
-
-void open_game(GtkWidget *w, gpointer data)
-{
-    GtkWidget *fileSel;
-
-    fileSel = gtk_file_selection_new("Select saved game to open");
-    g_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
-            "clicked", G_CALLBACK(open_filename), (gpointer)fileSel);
-
-    g_signal_connect_swapped(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
-            "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
-    g_signal_connect_swapped(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->cancel_button),
-            "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
-            
-    gtk_widget_show(GTK_WIDGET(fileSel));
-}
-
-void new_game(GtkWidget *w, gpointer data)
-{
-    SetupNewGame();
-    game.visible_x = 320/16;
-    game.visible_y = 240/16;
-    game.gameLoopSeconds = SPEED_FAST;
-}
-
-
-void store_filename(GtkFileSelection *sel, gpointer data)
-{
-    savegamename = (gchar*)gtk_file_selection_get_filename(GTK_FILE_SELECTION(data));
-    g_print("This game will be saved as %s from now on\n", savegamename);
-    save_game(NULL,0);
-}
-
-void save_game_as(GtkWidget *w, gpointer data)
-{
-    GtkWidget *fileSel;
-
-    fileSel = gtk_file_selection_new("Save game as...");
-    g_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
-            "clicked", G_CALLBACK(store_filename), (gpointer)fileSel);
-
-    g_signal_connect_swapped(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
-            "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
-    g_signal_connect_swapped(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->cancel_button),
-            "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
-            
-    gtk_widget_show(GTK_WIDGET(fileSel));
-
-}
-
-void save_game(GtkWidget *w, gpointer data)
-{
-    int fd, ret;
-    
-    if (savegamename == NULL) {
-        save_game_as(NULL,0);
-        return;
-    }
-    g_print("Saving game as %s...\n", savegamename);
-
-    fd = open(savegamename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-    if (fd == -1) {
-        perror("open"); // TODO: make this nicer
-        return;
-    }
-    // God, I love to write all my vars at one time
-    // using a struct :D
-    ret = write(fd,(void*)&game,sizeof(GameStruct));
-    if (ret == -1) {
-        perror("write game"); // TODO: make this nicer
-        return;
-    } else if (ret != sizeof(GameStruct)) {
-        g_print("Whoops, couldn't write full lenght of game\n");
-        return;
-    }
-
-    // and now the great worldPtr :D
-    ret = write(fd,(void*)worldPtr, game.mapsize*game.mapsize);
-    if (ret == -1) {
-        perror("write world"); // TODO: make this nicer
-        return;
-    } else if (ret != game.mapsize*game.mapsize) {
-        g_print("Whoops, couldn't write full lenght of world\n");
-        return;
-    }
-    
-    if (close(fd) == -1) {
-        perror("close"); // TODO: make this nicer
-        return;
-    }
-
-}
+void UIQuitGame(GtkWidget *w, gpointer data) { gtk_main_quit(); }
 
 GtkItemFactoryEntry menu_items[] = {
     { "/_File",         NULL,           NULL,         0,      "<Branch>"    },
-    { "/File/_New",     "<control>N",   new_game,     0,      NULL          },
-    { "/File/_Open",    "<control>O",   open_game,    0,      NULL          },
-    { "/File/_Save",    "<control>S",   save_game,    0,      NULL          },
-    { "/File/Save _As", NULL,           save_game_as, 0,      NULL          },
+    { "/File/_New",     "<control>N",   UINewGame,    0,      NULL          },
+    { "/File/_Open",    "<control>O",   UIOpenGame,   0,      NULL          },
+    { "/File/_Save",    "<control>S",   UISaveGame,   0,      NULL          },
+    { "/File/Save _As", NULL,           UISaveGameAs, 0,      NULL          },
     { "/File/sep1",     NULL,           NULL,         0,      "<Separator>" },
-    { "/File/_Quit",    NULL,           NULL,         0,      NULL          },
+    { "/File/_Quit",    NULL,           UIQuitGame,   0,      NULL          },
 };
 
 
@@ -254,7 +114,7 @@ static gint drawing_exposed_callback(GtkWidget *widget, GdkEvent *event, gpointe
 static gint drawing_realized_callback(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
     PCityMain();
-    new_game(NULL,0);
+    UINewGame(NULL,0);
     return FALSE;
 }
 
@@ -733,8 +593,8 @@ extern unsigned long GetRandomNumber(unsigned long max)
 
 extern void MapHasJumped(void)
 {
-//    gtk_adjustment_set_value(GTK_ADJUSTMENT(playscrollerh), game.map_xpos+10);
-//    gtk_adjustment_set_value(GTK_ADJUSTMENT(playscrollerv), game.map_ypos+7);
+    gtk_adjustment_set_value(GTK_ADJUSTMENT(playscrollerh), game.map_xpos+10);
+    gtk_adjustment_set_value(GTK_ADJUSTMENT(playscrollerv), game.map_ypos+7);
 
 }
 

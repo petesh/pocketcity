@@ -1,5 +1,6 @@
-SOURCEFILES = main.c ../source/handler.c ../source/build.c ../source/disaster.c \
-                     ../source/drawing.c  ../source/globals.c ../source/simulation.c
+SOURCEFILES = main.c savegame.c \
+					../source/handler.c ../source/build.c ../source/disaster.c \
+                    ../source/drawing.c  ../source/globals.c ../source/simulation.c
 DEBUGFLAGS = -g
 #DEBUGFLAGS += -a -pg
 
