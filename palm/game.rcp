@@ -2,14 +2,18 @@
 
 ICONFAMILYEX COMPRESS
 BEGIN
-  BITMAP "graphic/pcity.bmp" BPP 1 DENSITY 1
-  BITMAP "graphic/pcity-color.bmp" BPP 8 DENSITY 1
+  BITMAP "graphic/pcity.bmp" BPP 1 DENSITY 72
+  BITMAP "graphic/pcity-color.bmp" BPP 8 DENSITY 72
+  BITMAP "graphic/pcity-hd.bmp" BPP 1 DENSITY 144
+  BITMAP "graphic/pcity-color-hd.bmp" BPP 8 DENSITY 144
 END
 
 SMALLICONFAMILYEX COMPRESS
 BEGIN
-  BITMAP "graphic/pcitysmall.bmp" BPP 1 DENSITY 1
-  BITMAP "graphic/pcitysmall-color.bmp" BPP 8 DENSITY 1
+  BITMAP "graphic/pcitysmall.bmp" BPP 1 DENSITY 72
+  BITMAP "graphic/pcitysmall-color.bmp" BPP 8 DENSITY 72
+  BITMAP "graphic/pcitysmall-hd.bmp" BPP 1 DENSITY 144
+  BITMAP "graphic/pcitysmall-color-hd.bmp" BPP 8 DENSITY 144
 END
 
 LAUNCHERCATEGORY ID 1000 "Games"
