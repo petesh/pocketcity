@@ -1,0 +1,44 @@
+
+@ifndef __SOL_GRAPHIC_H
+@define __SOL_GRAPHIC_H
+
+
+
+
+
+typedef struct {
+    Bitmap bitmapHeader;
+    unsigned char bitmapData[96];
+} FieldBmp;
+
+typedef struct {
+    Bitmap bitmapHeader;
+    unsigned char bitmapData[192];
+} FieldMaskBmp;
+
+
+typedef struct {
+    Bitmap bitmapHeader;
+    unsigned char bitmapData[576];
+} GreyScaleBmp;
+
+
+@start GraphicResource, data;
+
+@include "graphic/commercial.goh"
+@include "graphic/industrial.goh"
+@include "graphic/misc.goh"
+@include "graphic/residential.goh"
+@include "graphic/roads.goh"
+@include "graphic/power.goh"
+
+
+
+@end    GraphicResource;
+
+
+
+
+
+
+@endif
