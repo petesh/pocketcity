@@ -47,7 +47,6 @@ UInt16 YOFFSET = 15;
 UInt16 jog_lr = 0;
 #endif
 
-int type;//Zone type for transfer into Query form
 static Boolean hPocketCity(EventPtr event);
 static Boolean hQuickList(EventPtr event);
 static Boolean hExtraList(EventPtr event);
@@ -1081,10 +1080,7 @@ _UIGetFieldToBuildOn(Int16 x, Int16 y)
         if (UIGetSelectedBuildItem() != Be_Query)
             BuildSomething(xpos, ypos);
         else {
-        	LockWorld();
-        	type=GetWorld(WORLDPOS(xpos, ypos));
-        	UnlockWorld();
-        	FrmGotoForm(formID_Query);
+   	    FrmGotoForm(formID_Query);
         }
     }
 }

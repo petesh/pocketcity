@@ -7,14 +7,11 @@
 #include <simcity.h>
 #include <ui.h>
 #include <simcity_resconsts.h>
-#include "../source/zakdef.h"
+#include <zakdef.h>
 
-
-static void zonetoPtr(Char *zonemesg) MAP_SECTION;
+static void zonetoPtr(Char *zonemesg, UInt8 tile) MAP_SECTION;
 static FormPtr querySetup(void) MAP_SECTION;
 static void queryCleanup(void) MAP_SECTION;
-
-extern int type;
 
 /*
  * Handler for the query form
@@ -59,32 +56,31 @@ hQuery(EventPtr event)
 
 /*
  * Convert a zone type into a display string.
- * Probably should ahve an array of all zone entries -> zonetype
+ * Probably should have an array of all zone entries -> zonetype
  */
 static void
-zonetoPtr(Char *zonemsg)
+zonetoPtr(Char *zonemsg, UInt8 tile)
 {
-    switch(type)
-	{
-		case TYPE_DIRT:
-			StrCopy(zonemsg, "Empty land");
-			break;
-		case TYPE_POWER_LINE:
-			StrCopy(zonemsg, "Power line");
-			break;
-		case TYPE_ROAD:
-			StrCopy(zonemsg, "Road");
-			break;
-		case TYPE_REAL_WATER:
-			StrCopy(zonemsg, "Water");
-			break;
-		case TYPE_TREE:
-			StrCopy(zonemsg, "Forest");
-			break;
-		default:
-			StrIToA(zonemsg, type);
-			break;
-	}
+    switch(tile) {
+    case TYPE_DIRT:
+        StrCopy(zonemsg, "Empty land");
+        break;
+    case TYPE_POWER_LINE:
+        StrCopy(zonemsg, "Power line");
+        break;
+    case TYPE_ROAD:
+        StrCopy(zonemsg, "Road");
+        break;
+    case TYPE_REAL_WATER:
+        StrCopy(zonemsg, "Water");
+        break;
+    case TYPE_TREE:
+        StrCopy(zonemsg, "Forest");
+        break;
+    default:
+        StrIToA(zonemsg, tile);
+        break;
+    }
 }
 
 /*
@@ -99,7 +95,7 @@ querySetup(void)
 
     form = FrmGetActiveForm();
     temp = MemPtrNew(255);
-    zonetoPtr(temp);
+    zonetoPtr(temp, GetItemClicked());
     ctl = FrmGetObjectPtr(form, FrmGetObjectIndex(form, labelID_zonetype));
     CtlSetLabel(ctl, temp);
     return (form);
