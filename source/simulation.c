@@ -682,7 +682,7 @@ GetScoreFor(unsigned char iamthis, unsigned char what)
     }
     if ((what == TYPE_WATER) || (what == TYPE_REAL_WATER)) {
         return (iamthis == ztCommercial) ? 175 :
-            ((iamthis == ztIndustrial) ? 550 :
+            ((iamthis == ztResidential) ? 550 :
             ((iamthis == ztIndustrial) ? 95 : 250));
     }
     return 0;
