@@ -116,7 +116,7 @@ read_palmstructure(GameStruct *new, int fd)
 	ptr = map_int8(fd, ptr);
 	ptr = map_int8(fd, ptr);
 	i = 0;
-	while (i < si_tail) {
+	while (i < st_tail) {
 		for (j = 0; j < STATS_COUNT; j++) {
 			ptr = map_int16(fd, ptr);
 		}
