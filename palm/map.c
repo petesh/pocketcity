@@ -1,7 +1,14 @@
+
+/*
+ * Performs the rendering of the individual maps on the screen.
+ * The only functional map is the general area.
+ */
+
 #define	ALLOW_ACCESS_TO_INTERNALS_OF_WINDOWS
 #include <PalmOS.h>
 #include <Window.h>
 #include <Rect.h>
+#include <Progress.h>
 #include <simcity.h>
 #include <simcity_resconsts.h>
 #include <ui.h>
@@ -13,9 +20,53 @@
 #include <sections.h>
 
 static void DrawMap(void) MAP_SECTION;
+static void RenderMaps(void) MAP_SECTION;
+static void freemaps(void) MAP_SECTION;
+
+typedef enum e_map_type { mt_fullpaint = 1, mt_overlay } map_type;
+
+typedef enum e_map_entries {
+	me_basemap = 0,
+	me_end /* end entry... used for memory allocation ... don't overrun */
+} map_entry;
+
+/* Map structure for the various maps to be displayed */
+typedef struct scr_map {
+	WinHandle	handle;	/* handle for map painting */
+	map_type	type;	/* overlay | normal map */
+} scr_map_t;
+
+/* Map structures ... it's a cheap ass array. 0 .. me_end-1 */
+map_entry currmap;
+scr_map_t *themaps = NULL;
 
 static const int StartX = 1;
 static const int StartY = 17;
+
+static void
+AddMap(WinHandle handle, map_type type, map_entry code)
+{
+	if (themaps == NULL) {
+		themaps = (scr_map_t *)MemPtrNew((int)me_end *
+		    sizeof(scr_map_t));
+	}
+	themaps[code].handle = handle;
+	themaps[code].type = type;
+}
+
+static void
+freemaps(void)
+{
+	map_entry entry = me_basemap;
+
+	if (themaps == NULL) return;
+	while (entry != me_end) {
+		WinDeleteWindow(themaps[entry].handle, false);
+		entry++;
+	}
+	MemPtrFree(themaps);
+	themaps = NULL;
+}
 
 /*
  * Handler for the map.
@@ -33,7 +84,9 @@ hMap(EventPtr event)
 		    event->screenX <= (GetMapSize() + StartX) &&
 		    event->screenY >= StartY &&
 		    event->screenY <= (GetMapSize() + StartY)) {
-			Goto(event->screenX - StartX, event->screenY - StartY);
+			Int16 x = event->screenX - StartX;
+			Int16 y = event->screenY - StartY;
+			Goto(x, y);
 			FrmGotoForm(formID_pocketCity);
 			handled = true;
 		}
@@ -44,10 +97,12 @@ hMap(EventPtr event)
 		WriteLog("map opened\n");
 		form = FrmGetActiveForm();
 		FrmDrawForm(form);
+		RenderMaps();
 		DrawMap();
 		handled = true;
 		break;
 	case frmCloseEvent:
+		freemaps();
 		WriteLog("map closed\n");
 		break;
 	case keyDownEvent:
@@ -80,34 +135,74 @@ hMap(EventPtr event)
 	return (handled);
 }
 
-/*
- * Draw the Map.
- * Does not use the High-Resolution calls because the map would be too small
- * on a high-resolution screen.
- */
-static void DrawMap(void)
+static void
+DrawMap(void)
 {
-	int x, y;
+	const RectangleType rect = {
+		{ StartX, StartY }, { GetMapSize(), GetMapSize() }
+	};
+	const RectangleType grect = {
+		{ 0, 0 }, { GetMapSize(), GetMapSize() }
+	};
+
+	map_entry entry = currmap;
+	WinHandle swh = WinGetDrawWindow();
+
+	WinDrawRectangleFrame(1, &rect);
+
+	while(themaps[entry].type != mt_fullpaint) {
+		entry--;
+	}
+	WinCopyRectangle(themaps[entry].handle, swh,
+	    (RectangleType *)&grect, StartX, StartY, winPaint);
+	if (entry != currmap) {
+		/* Erase the bit's we're going to paint on */
+		WinCopyRectangle(themaps[currmap].handle, swh,
+		    (RectangleType *)&grect, StartX, StartY, winErase);
+		WinCopyRectangle(themaps[currmap].handle, swh,
+		    (RectangleType *)&grect, StartX, StartY, winInvert);
+	}
+}
+
+/*
+ * Render the Maps.
+ */
+static void
+RenderMaps(void)
+{
+	PointType posits = { 0, 0 };
 	static IndexedColorType entries[5] = { 0, 1, 2, 3, 4 };
 	static int inited = 0; /* 0 == not done 1 == */
 	IndexedColorType cc = 1;
-	const RectangleType rect = { {StartX, StartY}, {100, 100} };
 	WinHandle wh;
 	WinHandle swh;
 	Err e;
 	char *addr = NULL;
 	int shift = 0;
 	UInt32 depth;
+	char mapRenderString[80];
+	char perc[5];
 
-	wh = WinCreateOffscreenWindow(100, 100, screenFormat, &e);
-	if (e != errNone)
+	currmap = me_basemap;
+
+	ResGetString(si_maprender, mapRenderString, 79);
+
+	WinPaintChars(mapRenderString, StrLen(mapRenderString), 20, 20);
+	StrPrintF(perc, "%d%%", 0);
+	WinPaintChars(perc, StrLen(perc), 20, 40);
+
+	wh = WinCreateOffscreenWindow(GetMapSize(), GetMapSize(),
+	    screenFormat, &e);
+	if (e != errNone) {
 		return;
+	}
 
 	LockWorld();
-	UILockScreen();
 
 	swh = WinSetDrawWindow(wh);
-	WinDrawRectangleFrame(1, &rect);
+	WinSetDrawWindow(swh);
+
+	/* We are on the 'standard' window */
 
 	if (!IsNewROM()) {
 		/* Draw On The Bitmap Using direct write */
@@ -124,36 +219,53 @@ static void DrawMap(void)
 			/* water */
 			RGBColorType rg = { 0, 0, 0, 255 };
 			entries[0] = WinRGBToIndex(&rg);
-			/* house */
+			/* house - green */
 			rg.g = 255; rg.b = 0;
 			entries[1] = WinRGBToIndex(&rg);
-			/* commercial */
-			rg.g = 127; rg.b = 127;
+			/* commercial ~ 50% g, ~ 50% blue */
+			rg.g = 102; rg.b = 102;
 			entries[2] = WinRGBToIndex(&rg);
 			/* industrial */
-			rg.r = 255; rg.g = 255; rg.b = 0;
+			rg.r = 242; rg.g = 103; rg.b = 57;
 			entries[3] = WinRGBToIndex(&rg);
 			/* other */
-			rg.r = 127; rg.g = 127; rg.b = 127;
+			//rg.r = 127; rg.g = 127; rg.b = 127;
+			rg.r = 99; rg.g = 43; rg.b = 170;
 			entries[4] = WinRGBToIndex(&rg);
 			inited++;
 		}
 	}
 
-	if (IsNewROM()) {
-		WinPushDrawState();
-	}
-	for (y = 0; y < GetMapSize(); y++) {
-		for (x = 0; x < GetMapSize(); x++) {
-			int wt = GetWorld(WORLDPOS(x, y));
+	for (posits.y = 0; posits.y < GetMapSize(); posits.y++) {
+		if (IsNewROM() && (posits.y & 0xF) == 0xF) {
+			int prc = (int)(( (long)posits.y * 100 ) /
+			    GetMapSize());
+			StrPrintF(perc, "%d%%", prc);
+			WinPaintChars(perc, StrLen(perc), 20, 40);
+		}
+		for (posits.x = 0; posits.x < GetMapSize(); posits.x++) {
+			int wt = GetWorld(WORLDPOS(posits.x, posits.y));
 			if (inited >= 1) {
 				switch (wt) {
-				case TYPE_DIRT: cc = 0; break;
-				case TYPE_WATER: cc = entries[0]; break;
-				case ZONE_RESIDENTIAL: cc = entries[1]; break;
-				case ZONE_COMMERCIAL: cc = entries[2]; break;
-				case ZONE_INDUSTRIAL: cc = entries[3]; break;
-				default: cc = entries[4]; break;
+				case TYPE_DIRT:
+					cc = 0;
+					break;
+				case TYPE_WATER:
+				case TYPE_REAL_WATER:
+					cc = entries[0];
+					break;
+				case ZONE_RESIDENTIAL:
+					cc = entries[1];
+					break;
+				case ZONE_COMMERCIAL:
+					cc = entries[2];
+					break;
+				case ZONE_INDUSTRIAL:
+					cc = entries[3];
+					break;
+				default:
+					cc = entries[4];
+					break;
 				}
 			}
 
@@ -176,7 +288,7 @@ static void DrawMap(void)
 					}
 					break;
 				case 4:
-					if (x & 0x1) { /* Low nibble */
+					if (posits.x & 0x1) { /* Low nibble */
 						*addr &= (unsigned char)0xf0;
 						*addr |= cc;
 						addr++;
@@ -190,18 +302,15 @@ static void DrawMap(void)
 					break;
 				}
 			} else {
-				WinSetForeColor(cc);
-				WinDrawPixel(x, y);
+				IndexedColorType color;
+				swh = WinSetDrawWindow(wh);
+				color = WinSetForeColor(cc);
+				WinDrawPixel(posits.x, posits.y);
+				WinSetForeColor(color);
+				WinSetDrawWindow(swh);
 			}
 		}
 	}
-	if (IsNewROM()) {
-		WinPopDrawState();
-	}
-	WinSetDrawWindow(swh);
-	WinCopyRectangle(wh, swh, (RectangleType *)&rect, 2, 18, winPaint);
-
-	UIUnlockScreen();
-	WinDeleteWindow(wh, false);
+	AddMap(wh, mt_fullpaint, me_basemap);
 	UnlockWorld();
 }

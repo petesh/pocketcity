@@ -18,6 +18,8 @@ Version 0.16dev
   + difficulty level (currently adjusts money at start)
   + Query tool.
   + Variable tax rate
+  + Progress Meter for Map Rendering.
+	- Extend to Load Game / Initialization
   * Better Pause / Freeze logic for dialogs.
   * mycity == autosave city
   * code and tiles are in separate programs (pdb, prc)

@@ -232,4 +232,5 @@ BEGIN
 	"ROAD"	= "Road"
 	"REAL_WATER" = "Sea Water / River"
 	"FOREST" = "Forest"
+	"RENDERING_MAP" = "Rendering Map"
 END

@@ -414,6 +414,7 @@ STRINGTABLE ID resstrings_base ""
 	"ROAD"
 	"REAL_WATER"
 	"FOREST"
+	"RENDERING_MAP"
 
 FORM ID formID_DistribDetails AT ( 0 0 160 160 )
 USABLE
