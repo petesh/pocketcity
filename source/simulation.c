@@ -472,7 +472,7 @@ long unsigned int GetRandomZone()
 
 void DoTaxes()
 {
-    credits += (BuildCount[COUNT_RESIDENTIAL]+BuildCount[COUNT_COMMERCIAL]+BuildCount[COUNT_INDUSTRIAL])*75*tax/100;
+    credits += (BuildCount[COUNT_RESIDENTIAL]+BuildCount[COUNT_COMMERCIAL]+BuildCount[COUNT_INDUSTRIAL])*50*tax/100;
 }
 
 void DoUpkeep()

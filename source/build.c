@@ -87,6 +87,7 @@ void Build_Destroy(int xpos, int ypos)
     BuildCount[COUNT_ROADS] -= IsRoad(type);
     BuildCount[COUNT_TREES] -= (type == 21);
     BuildCount[COUNT_WATER] -= (type == 22);
+    BuildCount[COUNT_WASTE] -= (type == TYPE_WASTE);
     BuildCount[COUNT_POWERPLANTS] -= (type == 60);
     BuildCount[COUNT_NUCLEARPLANTS] -= (type == 61);
     BuildCount[COUNT_POWERLINES] -= ((type == 7) || (type == 6) || (type == 5));

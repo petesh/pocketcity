@@ -32,5 +32,6 @@
 #define COUNT_POWERLINES        6
 #define COUNT_POWERPLANTS       7
 #define COUNT_NUCLEARPLANTS     8
+#define COUNT_WASTE             9
 
 #define WORLDPOS(x,y)		(x+y*mapsize)

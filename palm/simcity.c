@@ -31,6 +31,7 @@ unsigned short XOFFSET =0;
 unsigned short YOFFSET =15;
 
 static Boolean hPocketCity(EventPtr event);
+static Boolean hBudget(EventPtr event);
 void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth);
 void _PalmInit(void);
 void UISaveGame(void);
@@ -78,6 +79,9 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
                 {
                     case formID_pocketCity:
                         FrmSetEventHandler(form, hPocketCity);
+                        break;
+                    case formID_budget:
+                        FrmSetEventHandler(form, hBudget);
                         break;
                 }
             }
@@ -147,6 +151,33 @@ void _PalmInit(void)
 
 
 
+static Boolean hBudget(EventPtr event)
+{
+    FormPtr form;
+    int handled = 0;
+
+    switch (event->eType)
+    {
+        case frmOpenEvent:
+            form = FrmGetActiveForm();
+            FrmDrawForm(form);
+            handled = 1;
+            break;
+        case menuEvent:
+            switch (event->data.menu.itemID)
+            {
+                case menuitemID_BudgetBack:
+                    FrmGotoForm(formID_pocketCity);
+                    handled = 1;
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return handled;
+}
 
 
 static Boolean hPocketCity(EventPtr event)
@@ -211,6 +242,11 @@ static Boolean hPocketCity(EventPtr event)
             } else {
                 switch (event->data.menu.itemID)
                 {
+                    case menuitemID_Budget:
+                        SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
+                        FrmGotoForm(formID_budget);
+                        handled = 1;
+                        break;
                     case menuitemID_about:
                          FrmAlert(alertID_about);
                          handled = 1;

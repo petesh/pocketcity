@@ -14,11 +14,11 @@ CCFLAGS = -O2 -Wall -g
 
 all: blackwhite color
 
-blackwhite: bin.stm grcs.stm zones.stm
-	build-prc pcity.prc "Pocket City" PCit *.grc tempbw/*.bin
+blackwhite: bin.stm grcs.stm zones.stm game.stm
+	build-prc pcity.prc "Pocket City" PCit *.grc tempbw/*.bin temp/*.bin
 	
-color:  bin-color.stm grcs.stm zones-color.stm
-	build-prc pcity-color.prc "Pocket City" PCit *.grc tempcolor/*.bin
+color:  bin-color.stm grcs.stm zones-color.stm game.stm
+	build-prc pcity-color.prc "Pocket City" PCit *.grc tempcolor/*.bin temp/*.bin
     
 bin.stm: simcity.rcp
 	pilrc simcity.rcp tempbw
@@ -31,6 +31,10 @@ bin-color.stm: simcity-color.rcp
 zones.stm: zones.rcp
 	pilrc zones.rcp tempbw
 	echo touching>zones.stm
+
+game.stm: game.rcp
+	pilrc game.rcp temp
+	echo touching>game.stm
 
 zones-color.stm: zones-color.rcp
 	pilrc zones-color.rcp tempcolor
@@ -74,4 +78,4 @@ simulation.o: ../source/simulation.c
 
 
 clean:
-	rm -f *.bin *.o *.grc *.stm simcity tempbw/*.bin tempcolor/*.bin
+	rm -f *.bin *.o *.grc *.stm simcity tempbw/*.bin tempcolor/*.bin temp/*
