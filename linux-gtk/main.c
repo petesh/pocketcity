@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdio.h>
 #include "../source/ui.h"
 #include "../source/handler.h"
 #include "../source/drawing.h"
@@ -11,6 +12,8 @@
 
 
 GtkWidget *drawingarea;
+GtkWidget *window;
+GtkWidget *creditslabel;
 void * worldPtr;
 void * worldFlagsPtr;
 GdkPixmap *zones,*monsters,*units;
@@ -155,8 +158,7 @@ static gint motion_notify_event(GtkWidget *widget, GdkEventMotion *event)
 
 void SetUpMainWindow(void)
 {
-    GtkWidget *box, *toolbox;
-    GtkWidget *window;
+    GtkWidget *fieldbox,*box, *toolbox;
     GtkWidget *button;
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -164,16 +166,22 @@ void SetUpMainWindow(void)
     g_signal_connect(G_OBJECT(window), "delete_event", G_CALLBACK(delete_event), NULL);
     
     box = gtk_hbox_new(FALSE,0);
+    fieldbox = gtk_vbox_new(FALSE,0);
     toolbox = gtk_table_new(10,3,TRUE);
     gtk_container_add(GTK_CONTAINER(window), box);
 
     gtk_container_set_border_width(GTK_CONTAINER(toolbox), 3);
 
+    creditslabel = gtk_label_new("test?");
+
     // the actual playfield is a GtkDrawingArea
     drawingarea = gtk_drawing_area_new();
     gtk_drawing_area_size((GtkDrawingArea*)drawingarea,320,240);
+    // arange in boxes 
     gtk_box_pack_start(GTK_BOX(box), toolbox, TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(box), drawingarea, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(box), fieldbox, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(fieldbox), creditslabel, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(fieldbox), drawingarea, TRUE, TRUE, 0);
 
     g_signal_connect(G_OBJECT(drawingarea),"expose_event",
             G_CALLBACK(drawing_exposed_callback), NULL);
@@ -231,10 +239,11 @@ void SetUpMainWindow(void)
 
     
     // show all the widgets
+    gtk_widget_show(creditslabel);
     gtk_widget_show(drawingarea);
+    gtk_widget_show(fieldbox);
     gtk_widget_show(toolbox);
     gtk_widget_show(box);
-
     
     // finally, show the main window    
     gtk_widget_show(window);
@@ -259,7 +268,27 @@ extern void UISetUpGraphic(void)
 
 extern int UIDisplayError(int nError) 
 {
-    g_print("UIDisplayError\n");
+    GtkWidget * dialog;
+    char temp[100];
+
+    switch (nError)
+    {
+        case ERROR_OUT_OF_MEMORY: strcpy(temp,"Out of memory"); break;
+        case ERROR_OUT_OF_MONEY: strcpy(temp,"Out of money"); break;
+        case ERROR_FIRE_OUTBREAK: strcpy(temp,"An Australian fire has broken out somewhere!"); break;
+        case ERROR_PLANT_EXPLOSION: strcpy(temp,"A power plant just exploded!"); break;
+        case ERROR_MONSTER: strcpy(temp,"Godzilla just came to town!"); break;
+        case ERROR_DRAGON: strcpy(temp,"A fire dragon wants to use your city as it's lair!"); break;
+        case ERROR_METEOR: strcpy(temp,"A gigantic meteor has hit your city!"); break;
+    }
+    dialog = gtk_message_dialog_new(GTK_WINDOW(window),
+                                  GTK_DIALOG_DESTROY_WITH_PARENT,
+                                  GTK_MESSAGE_ERROR,
+                                  GTK_BUTTONS_OK,
+                                  "%s",
+                                  temp);
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(GTK_WIDGET(dialog));
     return 0;
 }
 
@@ -290,7 +319,9 @@ extern void UIDrawBorder(void)
 
 extern void UIDrawCredits(void)
 {
-    g_print("UIDrawCredits\n");
+    char temp[23];
+    sprintf(temp, "$: %ld", game.credits);
+    gtk_label_set_text((GtkLabel*)creditslabel, temp);
 }
 
 extern void UIUpdateBuildIcon(void)
