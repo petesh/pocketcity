@@ -1259,7 +1259,9 @@ void _UIDeleteFromList(void)
 {
     FormPtr form = FrmGetActiveForm();
     int index = LstGetSelection(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)));
-    return UIDeleteGame(index+1); // +1 is because the savegame in slot 0 isn't in the list
+    if (index != noListSelection) {
+        return UIDeleteGame(index+1); // +1 is because the savegame in slot 0 isn't in the list
+    }
 }
 
 void _UIClearAutoSaveSlot(void)
