@@ -1,6 +1,8 @@
 #if !defined(_APPCONFIG_H)
 #define _APPCONFIG_H
 
+#include <PalmTypes.h>
+
 typedef enum ButtonEvent {
     BeIgnore = 0,
     BeUp,
