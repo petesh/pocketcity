@@ -82,7 +82,7 @@
 // Here comes the tiles for 16x16
 
 
-BITMAP ID bitmapID_DirtBmp2				"graphic/16x16/dirt.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_DirtBmp2                     "graphic/16x16/dirt.bmp" "" "" "graphic/16x16-color/dirt.bmp" COMPRESS
 BITMAP ID bitmapID_CommZone2			"graphic/16x16/c_00.bmp" COMPRESS
 BITMAP ID bitmapID_ResZone2				"graphic/16x16/r_00.bmp" COMPRESS
 BITMAP ID bitmapID_IndZone2				"graphic/16x16/i_00.bmp" COMPRESS
@@ -92,19 +92,20 @@ BITMAP ID bitmapID_PowerRoadLeftRight2	"graphic/16x16/powerroad2.bmp" COMPRESS
 BITMAP ID bitmapID_PowerLoss2			"graphic/16x16/powerloss.bmp" COMPRESS
 BITMAP ID bitmapID_PowerLossOverlay2	"graphic/16x16/powerloss2.bmp" COMPRESS
 //BITMAP ID bitmapID_CursorBmp2			"graphic/16x16/something.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadLeftRight2		"graphic/16x16/road01.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadUpDown2			"graphic/16x16/road02.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadRightDown2		"graphic/16x16/road03.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadLeftDown2		"graphic/16x16/road04.bmp" COMPRESS
-BITMAP ID bitmapID_RoadLeftUp2			"graphic/16x16/road05.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadRightUp2			"graphic/16x16/road06.bmp" COMPRESS
-BITMAP ID bitmapID_RoadLeftUpDown2		"graphic/16x16/road07.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadRightUpDown2		"graphic/16x16/road08.bmp" COMPRESS
-BITMAP ID bitmapID_RoadRightLeftDown2	"graphic/16x16/road09.bmp" COMPRESS	
-BITMAP ID bitmapID_RoadRightLeftUp2		"graphic/16x16/road10.bmp" COMPRESS
-BITMAP ID bitmapID_RoadCross2			"graphic/16x16/road11.bmp" COMPRESS	
-BITMAP ID bitmapID_TreeBmp2				"graphic/16x16/tree.bmp" COMPRESS
-BITMAP ID bitmapID_WaterBmp2			"graphic/16x16/water.bmp" COMPRESS
+
+BITMAPFAMILY ID bitmapID_RoadLeftRight2         "graphic/16x16/road01.bmp" "" "" "graphic/16x16-color/road01.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_RoadUpDown2            "graphic/16x16/road02.bmp" "" "" "graphic/16x16-color/road02.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_RoadRightDown2         "graphic/16x16/road03.bmp" "" "" "graphic/16x16-color/road03.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_RoadLeftDown2          "graphic/16x16/road04.bmp" "" "" "graphic/16x16-color/road04.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_RoadLeftUp2            "graphic/16x16/road05.bmp" "" "" "graphic/16x16-color/road05.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_RoadRightUp2           "graphic/16x16/road06.bmp" "" "" "graphic/16x16-color/road06.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_RoadLeftUpDown2        "graphic/16x16/road07.bmp" "" "" "graphic/16x16-color/road07.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_RoadRightUpDown2       "graphic/16x16/road08.bmp" "" "" "graphic/16x16-color/road08.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_RoadRightLeftDown2     "graphic/16x16/road09.bmp" "" "" "graphic/16x16-color/road09.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_RoadRightLeftUp2       "graphic/16x16/road10.bmp" "" "" "graphic/16x16-color/road10.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_RoadCross2             "graphic/16x16/road11.bmp" "" "" "graphic/16x16-color/road11.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_TreeBmp2               "graphic/16x16/tree.bmp" "" "" "graphic/16x16-color/tree.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_WaterBmp2              "graphic/16x16/water.bmp" "" "" "graphic/16x16-color/water.bmp" COMPRESS
 
 BITMAP ID bitmapID_CommOne2				"graphic/16x16/c_01.bmp" COMPRESS
 BITMAP ID bitmapID_CommTwo2				"graphic/16x16/c_02.bmp" COMPRESS
