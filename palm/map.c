@@ -2,12 +2,12 @@
 #include <PalmOS.h>
 #include <Window.h>
 #include <Rect.h>
-#include "simcity.h"
-#include "simcity_resconsts.h"
-#include "../source/ui.h"
-#include "../source/globals.h"
-#include "../source/drawing.h"
-#include "resCompat.h"
+#include <simcity.h>
+#include <simcity_resconsts.h>
+#include <ui.h>
+#include <globals.h>
+#include <drawing.h>
+#include <resCompat.h>
 
 void DrawMap(void);
 Boolean hMap(EventPtr event);
@@ -154,7 +154,7 @@ void DrawMap(void)
                         *addr |= (unsigned char)(1U << shift);
                     }
                     shift++;
-                    if ((shift > 8)) {// || (x >= GetMapSize()))
+                    if ((shift > 8)) {/* || (x >= GetMapSize())) */
                         shift = 0;
                         addr++;
                     }

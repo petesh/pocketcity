@@ -41,7 +41,7 @@ void _FntSetFont(FontID font);
 
 #else
 
-// turn all the calls into collapsed constants
+/* turn all the calls into collapsed constants */
 #define sWidth 160
 #define sHeight 160
 #define SETWIDTH(x)

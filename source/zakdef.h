@@ -1,6 +1,8 @@
 #if !defined(_ZAKDEF_H_)
 #define _ZAKDEF_H_
 
+#include <appconfig.h>
+
 /*
  * how often the disasters are
  * updated - in seconds
@@ -254,6 +256,16 @@ typedef struct _vgame_struct {
     int                 cursor_ypos;        /* cursor ?? */
 
 } vGameStruct;
+
+/* Application Configuration ... not per-game settings */
+typedef struct _appConfig_01 {
+    int                 version;            /* version */
+    PlatformAppConfig   pc;
+} appConfig_01_t;
+
+typedef appConfig_01_t AppConfig_t;
+
+#define CONFIG_VERSION 1
 
 #define SAVEGAMEVERSION     "PC05"
 

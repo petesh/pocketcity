@@ -3,20 +3,20 @@
 #include <StringMgr.h>
 #include <KeyMgr.h>
 #include <StdIOPalm.h>
-#include "simcity.h"
-#include "savegame.h"
-#include "map.h"
-#include "budget.h"
-#include "../source/zakdef.h"
-#include "../source/ui.h"
-#include "../source/drawing.h"
-#include "../source/build.h"
-#include "../source/handler.h"
-#include "../source/globals.h"
-#include "../source/simulation.h"
-#include "../source/disaster.h"
-#include "resCompat.h"
-#include "simcity_resconsts.h"
+#include <simcity.h>
+#include <savegame.h>
+#include <map.h>
+#include <budget.h>
+#include <zakdef.h>
+#include <ui.h>
+#include <drawing.h>
+#include <build.h>
+#include <handler.h>
+#include <globals.h>
+#include <simulation.h>
+#include <disaster.h>
+#include <resCompat.h>
+#include <simcity_resconsts.h>
 
 #ifdef DEBUG
 #include <HostControl.h>
@@ -55,6 +55,7 @@ static Boolean hPocketCity(EventPtr event);
 static Boolean hQuickList(EventPtr event);
 static Boolean hExtraList(EventPtr event);
 static Boolean hOptions(EventPtr event);
+static Boolean hButtonConfig(EventPtr event);
 static void _PalmInit(void);
 static void _PalmFini(void);
 static void UIDoQuickList(void);
@@ -164,6 +165,9 @@ EventLoop(void)
            case formID_extraBuild:
                FrmSetEventHandler(form, hExtraList);
                break;
+           case formID_ButtonConfig:
+               FrmSetEventHandler(form, hButtonConfig);
+               break;
            }
        }
        else if (event.eType == winExitEvent) {
@@ -272,6 +276,7 @@ _PalmInit(void)
     BitmapPtr  bitmap;
     WinHandle  winHandle = NULL;
     WinHandle	privhandle;
+    UInt16      prefSize;
 
     timeStamp = TimGetSeconds();
     timeStampDisaster = timeStamp;
@@ -322,12 +327,21 @@ _PalmInit(void)
     if (winHandle) WinSetDrawWindow(winHandle);
 
     hookHoldSwitch(HoldHook);
+    /* load application configuration */
+    prefSize = sizeof(AppConfig_t);
+    err = PrefGetAppPreferences(GetCreatorID(), 0, &gameConfig, &prefSize, true);
+    if (err != noPreferenceFound) {
+    }
 }
 
 static void
 _PalmFini(void)
 {
     unhookHoldSwitch();
+    PrefSetAppPreferences(GetCreatorID(), 0, CONFIG_VERSION, &gameConfig, sizeof(AppConfig_t), true);
+#ifdef DEBUG
+    { char log[40]; StrPrintF(log, "saved: %ld\n", (long)sizeof(AppConfig_t)); UIWriteLog(log); }
+#endif
 
     /* clean up */
     WinDeleteWindow(winZones,0);
@@ -338,6 +352,33 @@ _PalmFini(void)
     restoreDepthRes();
     /* Close the forms */
     FrmCloseAllForms();
+}
+
+/* Do the command against the key passed */
+static int
+HardButtonEvent(ButtonKey key)
+{
+    switch(gameConfig.pc.keyOptions[key]) {
+    case BeIgnore:
+        break;
+    case BeUp:
+        ScrollMap(dtUp);
+        break;
+    case BeDown:
+        ScrollMap(dtDown);
+        break;
+    case BeLeft:
+        ScrollMap(dtLeft);
+        break;
+    case BeRight:
+        ScrollMap(dtRight);
+        break;
+    case BePassthrough:
+        return (0);
+    default:
+        break;
+    }
+    return (1);
 }
 
 static Boolean hPocketCity(EventPtr event)
@@ -467,6 +508,13 @@ static Boolean hPocketCity(EventPtr event)
 	    break;
 
 	    /* next menu ... build */
+	case menuitemID_Buttons:
+	    SaveSpeed();
+	    FrmGotoForm(formID_ButtonConfig);
+	    handled = 1;
+	    break;
+
+	    /* next menu ... build */
 
 	case mi_removeDefence:
 	    RemoveAllDefence();
@@ -542,24 +590,22 @@ static Boolean hPocketCity(EventPtr event)
             handled = 1;
             break;
         case pageUpChr:
-            /* scroll map up */
-            ScrollMap(dtUp);
-            handled = 1;
+            handled = HardButtonEvent(BkHardUp);
             break;
         case pageDownChr:
-            /* scroll map down */
-            ScrollMap(dtDown);
-            handled = 1;
+            handled = HardButtonEvent(BkHardDown);
+            break;
+        case vchrHard1:
+            handled = HardButtonEvent(BkCalendar);
             break;
         case vchrHard2:
-            /* scroll map left */
-            ScrollMap(dtLeft);
-            handled = 1;
+            handled = HardButtonEvent(BkAddress);
             break;
         case vchrHard3:
-            /* scroll map right */
-            ScrollMap(dtRight);
-            handled = 1;
+            handled = HardButtonEvent(BkToDo);
+            break;
+        case vchrHard4:
+            handled = HardButtonEvent(BkMemo);
             break;
 #ifdef SONY_CLIE
         case vchrJogUp:
@@ -868,6 +914,81 @@ static Boolean hOptions(EventPtr event)
     return (handled);
 }
 
+const char *bc_Choices[] = { "Ignore", "Up", "Down", "Left", "Right", "Default" };
+#define BC_CHOICELEN (sizeof(bc_Choices)/sizeof(bc_Choices[0]))
+const struct bc_chelts {
+    UInt16 popup;
+    UInt16 list;
+    UInt16 elt;
+} bc_elts[] = {
+    { List_Cal_Popup, List_Cal, BkCalendar },
+    { List_Addr_Popup, List_Addr, BkAddress },
+    { List_HrUp_Popup, List_HrUp, BkHardUp },
+    { List_HrDn_Popup, List_HrDn, BkHardDown },
+    { List_ToDo_Popup, List_ToDo, BkToDo },
+    { List_Memo_Popup, List_Memo, BkMemo }
+};
+
+/* Handle the button configuration menu */
+static Boolean hButtonConfig(EventPtr event)
+{
+    FormPtr form;
+    ButtonKey bk;
+    int handled = 0;
+    static char okHit = 0;
+
+    switch (event->eType) {
+    case frmOpenEvent:
+        form = FrmGetActiveForm();
+        FrmDrawForm(form);
+        okHit = 0;
+        /* do the buttons */
+        for (bk = BkCalendar; bk <= BkMemo; bk++) {
+            ListType *lp;
+            CtlSetLabel(FrmGetObjectPtr(form, FrmGetObjectIndex(form, bc_elts[bk].popup)),
+              bc_Choices[gameConfig.pc.keyOptions[bk]]);
+            lp = FrmGetObjectPtr(form, FrmGetObjectIndex(form, bc_elts[bk].list));
+            LstSetListChoices(lp, (Char **)bc_Choices, BC_CHOICELEN);
+            LstSetSelection(lp, gameConfig.pc.keyOptions[bk]);
+        }
+        handled = 1;
+        break;
+    case frmCloseEvent:
+        if (okHit) {
+            form = FrmGetActiveForm();
+            for (bk = BkCalendar; bk <= BkMemo; bk++) {
+                gameConfig.pc.keyOptions[bk] =
+                    LstGetSelection(FrmGetObjectPtr(form, FrmGetObjectIndex(form, bc_elts[bk].list)));
+            }
+        }
+        RestoreSpeed()
+        break;
+    case keyDownEvent:
+        switch (event->data.keyDown.chr) {
+        case vchrLaunch:
+            FrmGotoForm(formID_pocketCity);
+            handled = 1;
+            break;
+        }
+    case ctlSelectEvent:
+        switch (event->data.ctlEnter.controlID) {
+        case buttonID_OK:
+            okHit = 1;
+            handled = 1;
+            FrmGotoForm(formID_pocketCity);
+            break;
+        case buttonID_Cancel:
+            okHit = 0;
+            handled = 1;
+            FrmGotoForm(formID_pocketCity);
+            break;
+        }
+    default:
+        break;
+    }
+
+    return (handled);
+}
 
 unsigned char
 UIGetSelectedBuildItem(void)
@@ -1689,7 +1810,7 @@ UIWriteLog(char *s)
 {
     HostFILE * hf = NULL;
 
-    hf = HostFOpen("g:\\pcity.log", "a");
+    hf = HostFOpen("\\pcity.log", "a");
     if (hf) {
         HostFPrintF(hf, s);
         HostFClose(hf);

@@ -13,6 +13,7 @@ Version 0.15dev
   * bug # 636080 Exit Crash on Clie NR70
   * bug # 636081 Map Failure on Clie NR70
   * bug # 650955 residential zone water scale wrong
+  + buttons can now be configured.
 
 Version 0.14
   + Savegames are backed up with application data

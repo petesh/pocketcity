@@ -7,6 +7,7 @@
 #define formID_extraBuild                1006
 #define formID_options                   1007
 #define formID_DistribDetails            1008
+#define formID_ButtonConfig				 1009
 
 #define menu_pocketCity               	1000
 #define menu_budget                    	1001
@@ -20,9 +21,10 @@
 #define menuitemID_Funny                1005
 
 #define menuitemID_Configuration        1006
+#define menuitemID_Buttons              1007
 
 #define mi_removeDefence		1011
-#define mi_buildExtra                   1012 // pops up an extra list
+#define mi_buildExtra                   1012 /* pops up an extra list */
 
 #define mi_CauseFire			1013
 #define mi_CauseMeltDown		1014
@@ -62,9 +64,9 @@
 #define listID_shifter_popup             5000
 #define listID_shifter                   5001
 
-#define OFFSET_EXTRA                     15 // the extra for the offset
+#define OFFSET_EXTRA                     15 /* the extra for the offset */
 
-// notice how the IDs here are the same as the menuIDs (uptil the "extra")
+/* notice how the IDs here are the same as the menuIDs (uptil the "extra") */
 #define bitmapID_iconBulldoze            1100
 #define bitmapID_iconResidential         1101
 #define bitmapID_iconCommercial          1102
@@ -84,7 +86,7 @@
 #define bitmapID_iconDefPolice           1113
 #define bitmapID_iconDefMilitary         1114
 
-// anything after this isn't on the toolbar
+/* anything after this isn't on the toolbar */
 #define bitmapID_iconExtra               1115
 
 
@@ -103,14 +105,14 @@
 
 #define st_disasters			2000
 
-// the jumps in these defines makes coding easier
+/* the jumps in these defines makes coding easier */
 #define bitmapID_SpeedPaused            3000
 #define bitmapID_SpeedSlow              3015
 #define bitmapID_SpeedNormal            3010
 #define bitmapID_SpeedFast              3005
 #define bitmapID_SpeedUltra             3001
 
-// menu for budget
+/* menu for budget */
 #define menuitemID_BudgetBack           1300   
 #define labelID_budget_res              1310 
 #define labelID_budget_com              1311
@@ -126,27 +128,27 @@
 #define fieldID_budget_pow              1301
 #define fieldID_budget_def              1302
 
-// menu for map
+/* menu for map */
 #define menuitemID_MapBack              1340
 
-// controls for files
+/* controls for files */
 #define listID_FilesList                1360
 #define buttonID_FilesNew               1361
 #define buttonID_FilesLoad              1362
 #define buttonID_FilesDelete            1363
 
-// controls for files=>new
+/* controls for files=>new */
 #define fieldID_newGameName             1010
 #define buttonID_FilesNewCreate         1011
 #define buttonID_FilesNewCancel         1012
 
-// controls for options form
+/* controls for options form */
 #define buttonID_dis_off                1010
 #define buttonID_dis_one                1011
 #define buttonID_dis_two                1012
 #define buttonID_dis_three              1013
 
-// Controls for the DistribDetails Form
+/* Controls for the DistribDetails Form */
 #define pb_dd_overview                  1000
 #define pb_dd_power                     1001
 #define pb_dd_water                     1002
@@ -155,11 +157,11 @@
 #define la_dd_powersupplied		1004
 #define la_dd_bubbles			1005
 
-// ok and cancel
+/* ok and cancel */
 #define buttonID_OK                     1100
 #define buttonID_Cancel                 1101
 
-// controls for extra Build list
+/* controls for extra Build list */
 #define listID_extraBuildList           1013
 
 #define buttonID_extraBuildSelect       1014
@@ -185,3 +187,17 @@
 
 #define StrID_tips   1021
 #define StrID_build   1022
+
+#define List_Cal        2500
+#define List_Cal_Popup  2501
+#define List_Addr       2502
+#define List_Addr_Popup 2503
+#define List_HrUp       2504
+#define List_HrUp_Popup 2505
+#define List_HrDn       2506
+#define List_HrDn_Popup 2507
+#define List_ToDo       2508
+#define List_ToDo_Popup 2509
+#define List_Memo       2510
+#define List_Memo_Popup 2511
+

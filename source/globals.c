@@ -1,4 +1,4 @@
-#include "zakdef.h"
+#include <zakdef.h>
 #if defined(PALM)
 #include <StringMgr.h>
 #include <unix_stdio.h>
@@ -10,6 +10,12 @@
 GameStruct game;
 /* This is the volatile game structure (memoizing to reduce op/s) */
 vGameStruct vgame;
+
+/* This is the game configuration */
+AppConfig_t gameConfig = {
+    CONFIG_VERSION,
+    DEFAULT_APPCONFIG
+};
 
 int GetCiffer(int number, signed long value);
 

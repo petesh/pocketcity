@@ -5,6 +5,7 @@
 
 extern GameStruct game;
 extern vGameStruct vgame;
+extern AppConfig_t gameConfig;
 
 extern void LongToString(signed long value, char* out);
 extern char* GetDate(char * temp);

@@ -1,10 +1,10 @@
 #include <PalmOS.h>
 #include <unix_stdlib.h>
-#include "simcity.h"
-#include "simcity_resconsts.h"
-#include "../source/globals.h"
-#include "../source/ui.h"
-#include "../source/simulation.h"
+#include <simcity.h>
+#include <simcity_resconsts.h>
+#include <globals.h>
+#include <ui.h>
+#include <simulation.h>
 
 void BudgetInit(void);
 void BudgetFreeMem(void);

@@ -5,7 +5,7 @@
 #include <SystemMgr.h>
 
 #define _HIRESSOURCE_
-#include "resCompat.h"
+#include <resCompat.h>
 
 static UInt32 oWidth = 0;
 static UInt32 oHeight = 0;

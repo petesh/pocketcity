@@ -1,6 +1,6 @@
 VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 CC = m68k-palmos-gcc
-CFLAGS = -O2 -Wall -DPALM
+CFLAGS = -O2 -Wall -DPALM -I . -I ../source
 LDLIBS =
 OBJECTS = stack.o simcity.o handler.o drawing.o globals.o build.o \
 	simulation.o HiRes.o savegame.o disaster.o map.o budget.o
