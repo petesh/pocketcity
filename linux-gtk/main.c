@@ -15,6 +15,8 @@ GtkWidget *drawingarea;
 GtkWidget *window;
 GtkWidget *creditslabel;
 GtkWidget *poplabel;
+GtkWidget *timelabel;
+
 void * worldPtr;
 void * worldFlagsPtr;
 GdkPixmap *zones,*monsters,*units;
@@ -181,6 +183,7 @@ void SetUpMainWindow(void)
 
     creditslabel = gtk_label_new("Credits");
     poplabel = gtk_label_new("Population");
+    timelabel = gtk_label_new("Game Time");
 
     // the actual playfield is a GtkDrawingArea
     drawingarea = gtk_drawing_area_new();
@@ -190,8 +193,9 @@ void SetUpMainWindow(void)
     gtk_box_pack_start(GTK_BOX(box), fieldbox, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(fieldbox), headerbox, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(fieldbox), drawingarea, TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(headerbox), poplabel, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(fieldbox), poplabel, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(headerbox), creditslabel, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(headerbox), timelabel, TRUE, TRUE, 0);
 
     g_signal_connect(G_OBJECT(drawingarea),"expose_event",
             G_CALLBACK(drawing_exposed_callback), NULL);
@@ -249,6 +253,7 @@ void SetUpMainWindow(void)
 
     
     // show all the widgets
+    gtk_widget_show(timelabel);
     gtk_widget_show(poplabel);
     gtk_widget_show(creditslabel);
     gtk_widget_show(headerbox);
@@ -332,6 +337,8 @@ extern void UIDrawCredits(void)
     char temp[23];
     sprintf(temp, "$: %ld", game.credits);
     gtk_label_set_text((GtkLabel*)creditslabel, temp);
+    GetDate((char*)temp);
+    gtk_label_set_text((GtkLabel*)timelabel, temp);
 }
 
 extern void UIUpdateBuildIcon(void)
