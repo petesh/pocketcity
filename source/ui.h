@@ -16,27 +16,6 @@
 extern "C" {
 #endif
 
-#ifdef DEBUG
-/*!
- * \brief write output to the console
- * \param s the string for formatting
- */
-void WriteLog(char *s, ...);
-/*!
- * \brief write Xtended output to the console
- * \param s the string for formatting
- */
-void WriteLogX(char *s, ...);
-#else
-#if defined(__cplusplus) || defined(_MSVC)
-static void WriteLog(char *s, ...) {}
-static void WriteLogX(char *s, ...) {}
-#else
-#define	WriteLog(...)
-#define WriteLogX(...)
-#endif
-#endif
-
 void UIDisasterNotify(disaster_t disaster);
 void UIProblemNotify(problem_t problem);
 
@@ -180,32 +159,6 @@ void UIPaintMapStatus(UInt16 xpos, UInt16 ypos, welem_t world, selem_t status);
  * \return true if the point on the map is clipped, and therefore not visible
  */
 Int8 UIClipped(UInt16 xpos, UInt16 ypos);
-
-/*! \brief the zones to lock/unlock */
-typedef enum {
-	lz_world = 0, /*!< lock the world zone */
-	lz_flags , /*!< lock the world flags */
-	lz_growable, /*!< lock the growable memory zone */
-	lz_end /*!< the end/guard entry for the memory zones */
-} lockZone;
-
-/*!
- * \brief lock the zone specified for writing
- * \param zone the zone to lock
- */
-void LockZone(lockZone zone);
-
-/*!
- * \brief unlock the zone specified. don't write to it anymore
- * \param zone the zone to unlock
- */
-void UnlockZone(lockZone zone);
-
-/*!
- * \brief release the memory allocated to this zone
- * \param zone the zone to release
- */
-void ReleaseZone(lockZone zone);
 
 /*!
  * \brief map being resized, do UI related elements

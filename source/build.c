@@ -21,6 +21,8 @@
 #include <build.h>
 #include <globals.h>
 #include <ui.h>
+#include <logging.h>
+#include <locking.h>
 #include <drawing.h>
 #include <simulation.h>
 #include <sections.h>

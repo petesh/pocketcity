@@ -4,6 +4,7 @@
  * This module contains all the routines that are used to
  * paint and place items on the display
  */
+#include <locking.h>
 #include <ui.h>
 #include <zakdef.h>
 #include <globals.h>

@@ -30,6 +30,8 @@
 #include <mem_compat.h>
 #include <minimap.h>
 #include <beam.h>
+#include <logging.h>
+#include <locking.h>
 
 #ifdef DEBUG
 #include <HostControl.h>
@@ -140,7 +142,7 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 		break;
 	case sysAppLaunchCmdExgReceiveData:
 		running = launchFlags & sysAppLaunchFlagSubCall;
-		if (running) {
+		if (running && GameInProgress()) {
 			/* Save current game */
 			UISaveMyCity();
 			SetGameNotInProgress();
@@ -154,7 +156,7 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 				DmSearchStateType state;
 
 				if (errNone == DmGetNextDatabaseByTypeCreator(
-				    true, &state, 'APPL', GetCreatorID(),
+				    true, &state, 'appl', GetCreatorID(),
 				    true, &card, &id)) {
 					SysUIAppSwitch(card, id,
 					    sysAppLaunchCmdNormalLaunch,
@@ -2787,6 +2789,7 @@ HoldHook(UInt32 held)
 #ifdef DEBUG
 
 #include <unix_stdarg.h>
+
 
 void
 WriteLog(char *s, ...)

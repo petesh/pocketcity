@@ -16,7 +16,7 @@
 #define TBMP	'Tbmp'
 #define TVER	'tver'
 #define TSTR	'tSTR'
-#define	SGNAME  "PCitySave"
+#define	SGNAME  "Pocket City Saves"
 
 extern MemPtr worldPtr;
 

@@ -15,6 +15,8 @@
 #include <stdio.h>
 #endif
 #include <mem_compat.h>
+#include <logging.h>
+#include <locking.h>
 #include <ui.h>
 #include <stack.h>
 #include <globals.h>

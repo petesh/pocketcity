@@ -18,6 +18,7 @@
 #include <appconfig.h>
 #include <beam.h>
 #include <savegame_be.h>
+#include <logging.h>
 
 int
 BeamSend(UInt8 *map_ptr)
@@ -28,10 +29,10 @@ BeamSend(UInt8 *map_ptr)
 	UInt32 toSend;
 	GameStruct *gs = (GameStruct *)map_ptr;
 
-	char beamName[28]; /* city name length + .cty + "?: " */
+	char beamName[50]; /* city name length + .cty + "?: " */
 
 	gMemSet((void *)&exs, (Int32)sizeof (exs), 0);
-	StrPrintF(beamName, "?:%s.cty", gs->cityname);
+	StrPrintF(beamName, "?_send:%s.cty", gs->cityname);
 	exs.target = GetCreatorID();
 	exs.count = 1;
 	exs.length = saveGameSize(gs);
@@ -39,13 +40,17 @@ BeamSend(UInt8 *map_ptr)
 	exs.name = beamName;
 	exs.length += StrLen(exs.description);
 
+	WriteLog("pre-exgput\n");
 	rv = ExgPut(&exs);
 	if (rv != errNone) {
 		return (-1);
 	}
+	WriteLog("post-exgput\n");
 	toSend = saveGameSize(gs);
+	WriteLog("pre all send\n");
 	while (toSend != 0) {
 		sent = ExgSend(&exs, map_ptr, toSend, &rv);
+		WriteLog("send bits\n");
 		toSend -= sent;
 		map_ptr += sent;
 		if (rv != errNone) {
@@ -53,7 +58,9 @@ BeamSend(UInt8 *map_ptr)
 			return (-1);
 		}
 	}
+	WriteLog("Post all send (%d)\n", rv);
 	ExgDisconnect(&exs, rv);
+	WriteLog("Post Disconnect\n");
 	return (0);
 }
 
