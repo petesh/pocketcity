@@ -40,18 +40,18 @@ extern void BuildSomething(int xpos, int ypos)
             updatePowerGrid = 1;
             break;
         case BUILD_POWER_PLANT:
-            Build_Generic(xpos, ypos, BUILD_COST_POWER_PLANT, 60);
+            Build_Generic(xpos, ypos, BUILD_COST_POWER_PLANT, TYPE_POWER_PLANT);
             updatePowerGrid = 1;
             break;
         case BUILD_NUCLEAR_PLANT:
-            Build_Generic(xpos, ypos, BUILD_COST_NUCLEAR_PLANT, 61);
+            Build_Generic(xpos, ypos, BUILD_COST_NUCLEAR_PLANT, TYPE_NUCLEAR_PLANT);
             updatePowerGrid = 1;
             break;
         case BUILD_WATER:
-            Build_Generic(xpos, ypos, BUILD_COST_WATER, 22);
+            Build_Generic(xpos, ypos, BUILD_COST_WATER, TYPE_WATER);
             break;
         case BUILD_TREE:
-            Build_Generic(xpos, ypos, BUILD_COST_TREE, 21);
+            Build_Generic(xpos, ypos, BUILD_COST_TREE, TYPE_TREE);
             break;
     }
 }
@@ -100,22 +100,22 @@ void Build_Destroy(int xpos, int ypos)
 void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nType)
 {
     LockWorld();
-    if (GetWorld(WORLDPOS(xpos, ypos)) == 0)
-    {
-        if (SpendMoney(nCost))
-        {
+    if (GetWorld(WORLDPOS(xpos, ypos)) == 0) {
+
+        if (SpendMoney(nCost)) {
             SetWorld(WORLDPOS(xpos,ypos),nType);
             DrawCross(xpos, ypos);
 
             //  update counter
             BuildCount[COUNT_ROADS] += IsRoad(nType);
-            BuildCount[COUNT_TREES] += (nType == 21);
-            BuildCount[COUNT_WATER] += (nType == 22);
-            BuildCount[COUNT_POWERPLANTS] += (nType == 60);
-            BuildCount[COUNT_NUCLEARPLANTS] += (nType == 61);
+            BuildCount[COUNT_TREES] += (nType == TYPE_TREE);
+            BuildCount[COUNT_WATER] += (nType == TYPE_WATER);
+            BuildCount[COUNT_POWERPLANTS] += (nType == TYPE_POWER_PLANT);
+            BuildCount[COUNT_NUCLEARPLANTS] += (nType == TYPE_NUCLEAR_PLANT);
         } else {
             UIDisplayError(ERROR_OUT_OF_MONEY);
         }
+
     }
     UnlockWorld();
 }
@@ -227,8 +227,7 @@ void Build_PowerLine(int xpos, int ypos)
 
 int SpendMoney(unsigned long howMuch)
 {
-    if (howMuch > credits)
-    {
+    if (howMuch > credits) {
         return 0;
     }
 
