@@ -30,6 +30,7 @@ City development:
 * C will only grow if there are enough I (to produce goods)
 * There must be at most 3 squares to the nearest road for a zone
 * The population is calculated from the total R - I/C doesn't count
+* The water pump must be placed next to the river in the game to work
 
 Disasters:
 ==========
