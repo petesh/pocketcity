@@ -58,8 +58,13 @@ extern void BuildSomething(int xpos, int ypos)
 
 extern void Build_Bulldoze(int xpos, int ypos)
 {
+    int type;
     LockWorld();
-    if (GetWorld(WORLDPOS(xpos, ypos)) != 0)
+    type = GetWorld(WORLDPOS(xpos, ypos));
+    if (type != TYPE_DIRT &&
+        type != TYPE_FIRE1 &&
+        type != TYPE_FIRE2 &&
+        type != TYPE_FIRE3)
     {
         if (SpendMoney(BUILD_COST_BULLDOZER))
         {
