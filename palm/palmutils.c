@@ -12,6 +12,18 @@ static UInt32 oWidth = 0;
 static UInt32 oHeight = 0;
 static UInt32 oDepth = 0;
 static Boolean oUseColor = 0;
+/* included the TRG magic numbers :( */
+#define TRGSysFtrID             'TRG '
+#define TRGVgaFtrNum            2
+
+static Boolean
+isHandEra()
+{
+    UInt32 version;
+    if (FtrGet(TRGSysFtrID, TRGVgaFtrNum, &version) == 0)
+        if (sysGetROMVerMajor(version) >= 1) return (true);
+    return (false);
+}
 
 /* Return the depth in bits per pixel */
 UInt32
@@ -50,6 +62,7 @@ changeDepthRes(UInt32 ndepth)
     UInt32 cdep;
     UInt32 width;
     UInt32 height;
+    Err result;
 
     SETWIDTH(160);
     SETHEIGHT(160);
@@ -95,9 +108,14 @@ changeDepthRes(UInt32 ndepth)
 
     width = sWidth;
     height = sHeight;
+
+    if (isHandEra())
+        result = _WinScreenMode(winScreenModeSet, NULL, NULL, &depth, &enablecol);
+    else
+        result = _WinScreenMode(winScreenModeSet, &width, &height, &depth,
+          &enablecol);
     
-    return (_WinScreenMode(winScreenModeSet, &width, &height, &depth,
-          &enablecol));
+    return (result);
 }
 
 Err
