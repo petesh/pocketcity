@@ -255,7 +255,7 @@ CreateNewSaveGame(char *name)
 				if (rec) {
 					MemPtr mp = MemHandleLock(rec);
 					DmWrite(mp, 0, name, CITYNAMELEN);
-					MemHandleUnlock(mp);
+					MemHandleUnlock(rec);
 					DmReleaseRecord(db, index, true);
 				}
 			}
