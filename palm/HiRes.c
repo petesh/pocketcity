@@ -161,10 +161,6 @@ unloadHiRes(void)
     Err rv = 0;
     if (hires != 0) {
         rv = HRClose(hires);
-        if (rv == NULL) {
-            rv = SysLibRemove(hires);
-            ErrFatalDisplayIf(rv != 0, "Could not unload hires lib");
-        } else ErrFatalDisplay("Could not HRClose");
         hires = 0;
     }
     return (rv);
