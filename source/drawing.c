@@ -1,8 +1,8 @@
-#include "ui.h"
-#include "zakdef.h"
-#include "globals.h"
-#include "drawing.h"
-#include "simulation.h"
+#include <ui.h>
+#include <zakdef.h>
+#include <globals.h>
+#include <drawing.h>
+#include <simulation.h>
 
 unsigned char GetGraphicNumber(long unsigned int pos);
 

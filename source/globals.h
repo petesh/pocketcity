@@ -7,11 +7,19 @@ extern GameStruct game;
 extern vGameStruct vgame;
 extern AppConfig_t gameConfig;
 
-extern void LongToString(signed long value, char* out);
-extern char* GetDate(char * temp);
-extern void UIDrawPop(void);
-extern void UIDoTaxes(void);
-extern void *getIndexOf(char *ary, int addit, int key);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void LongToString(signed long value, char* out);
+char* GetDate(char * temp);
+void UIDrawPop(void);
+void UIDoTaxes(void);
+void *getIndexOf(char *ary, int addit, int key);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

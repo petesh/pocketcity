@@ -40,11 +40,19 @@ typedef enum {
 #define BUILD_COST_WATER_PIPES      20
 #define BUILD_COST_WATER_PUMP       3000
 
-extern void Build_Bulldoze(int xpos, int ypos, unsigned int _unused);
-extern void BuildSomething(int xpos, int ypos);
-extern void Build_Destroy(int xpos, int ypos);
-extern void CreateFullRiver(void);
-extern void CreateForests(void);
-extern void RemoveAllDefence(void);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void Build_Bulldoze(int xpos, int ypos, unsigned int _unused);
+void BuildSomething(int xpos, int ypos);
+void Build_Destroy(int xpos, int ypos);
+void CreateFullRiver(void);
+void CreateForests(void);
+void RemoveAllDefence(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BUILD_H_ */

@@ -3,6 +3,10 @@
 
 #include <zakdef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void SetUpGraphic(void);
 void RedrawAllFields(void);
 void ScrollMap(dirType direction);
@@ -18,5 +22,9 @@ int IsZone(unsigned char x, zoneType nType);
 int CarryPower(unsigned char x);
 int CarryWater(unsigned char x);
 int IsPowerLine(unsigned char x);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _DRAWING_H_ */

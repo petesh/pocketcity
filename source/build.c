@@ -1,15 +1,16 @@
 #ifdef PALM
 #include <PalmOS.h>
-#include "../palm/simcity.h"
+#include <simcity.h>
 #else
 #include <sys/types.h>
 #include <stddef.h>
 #include <assert.h>
 #endif
-#include "build.h"
-#include "globals.h"
-#include "ui.h"
-#include "drawing.h"
+#include <compilerpragmas.h>
+#include <build.h>
+#include <globals.h>
+#include <ui.h>
+#include <drawing.h>
 
 typedef void (*BuildF)(int xpos, int ypos, unsigned int type);
 
@@ -69,7 +70,7 @@ extern void BuildSomething(int xpos, int ypos)
     AddGridUpdate(be->gridsToUpdate);
 }
 
-void RemoveDefence(int xpos, int ypos)
+static void RemoveDefence(int xpos, int ypos)
 {
     int i;
     for (i=0; i<NUM_OF_UNITS; i++) {
@@ -493,7 +494,7 @@ CreateFullRiver(void)
  * creates some "spraypainted" (someone called them that)
  * forests throughout the `wilderness`
  */
-extern void
+void
 CreateForests(void)
 {
     int i,j,k;

@@ -1,12 +1,12 @@
-#include "handler.h"
-#include "drawing.h"
-#include "zakdef.h"
-#include "ui.h"
-#include "globals.h"
-#include "handler.h"
-#include "build.h"
-#include "disaster.h"
-#include "simulation.h"
+#include <handler.h>
+#include <drawing.h>
+#include <zakdef.h>
+#include <ui.h>
+#include <globals.h>
+#include <handler.h>
+#include <build.h>
+#include <disaster.h>
+#include <simulation.h>
 
 #if defined(PALM)
 #include <StringMgr.h>

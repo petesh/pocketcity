@@ -17,11 +17,19 @@ typedef enum {
 #define WATEREDBIT      ((unsigned char)0x02)
 #define SCRATCHBIT      ((unsigned char)0x80)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void Sim_Distribute(void);
 void Sim_Distribute_Specific(int type);
 int Sim_DoPhase(int nPhase);
 long int BudgetGetNumber(BudgetNumber type);
 void UpdateVolatiles(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #define GetScratch(i) (GetWorldFlags(i) & SCRATCHBIT)
 #define SetScratch(i) OrWorldFlags((i), SCRATCHBIT)

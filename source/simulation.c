@@ -1,12 +1,12 @@
-#include "handler.h"
-#include "drawing.h"
-#include "zakdef.h"
-#include "ui.h"
-#include "globals.h"
-#include "handler.h"
-#include "disaster.h"
-#include "simulation.h"
-#include "stack.h"
+#include <handler.h>
+#include <drawing.h>
+#include <zakdef.h>
+#include <ui.h>
+#include <globals.h>
+#include <handler.h>
+#include <disaster.h>
+#include <simulation.h>
+#include <stack.h>
 
 #if defined(PALM)
 #include <MemoryMgr.h>
@@ -19,6 +19,7 @@
 #include <string.h>
 #include <stdlib.h>
 #endif
+#include <compilerpragmas.h>
 
 void DoTaxes(void);
 void DoUpkeep(void);
