@@ -21,23 +21,23 @@ color:  bin-color.stm grcs.stm zones-color.stm game.stm
 	build-prc pcity-color.prc "Pocket City" PCit *.grc tempcolor/*.bin temp/*.bin
     
 bin.stm: simcity.rcp
-	pilrc simcity.rcp tempbw
+	pilrc -q simcity.rcp tempbw
 	echo touching>bin.stm
 
 bin-color.stm: simcity-color.rcp
-	pilrc simcity-color.rcp tempcolor
+	pilrc -q simcity-color.rcp tempcolor
 	echo touching>bin-color.stm
 
 zones.stm: zones.rcp
-	pilrc zones.rcp tempbw
+	pilrc -q zones.rcp tempbw
 	echo touching>zones.stm
 
 game.stm: game.rcp
-	pilrc game.rcp temp
+	pilrc -q game.rcp temp
 	echo touching>game.stm
 
 zones-color.stm: zones-color.rcp
-	pilrc zones-color.rcp tempcolor
+	pilrc -q zones-color.rcp tempcolor
 	echo touching>zones-color.stm
 
 grcs.stm: simcity
