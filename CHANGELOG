@@ -12,6 +12,8 @@ Version 0.07
 ============
 Kean Pedersen:
   + Powergrid is only updated when needed to save simulation time
+  + Simulation pauses while user builds (gives faster response time)
+  * Temporal fix for PalmOS 3.1 (powerloss icon is not shown on OS < 3.5)
   - Removed the 32x32 tiles, was too ugly/bit/unused
 
 Aaron Kill (new developer):
