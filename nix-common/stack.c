@@ -29,11 +29,10 @@ typedef struct tag_dsObj {
  * resize the stack based on the current size
  */
 static void
-StackResize(dsObj *sp)
+StackResize(dsObj *sp, Int32 newSize)
 {
 	ptrdiff_t sd = sp->sp - sp->bp;
-	if (sp->sl == 0) sp->sl = 128;
-	sp->sl <<= 1; /* Double the size every time */
+	sp->sl = newSize;
 	sp->bp = realloc(sp->bp, sp->sl * sizeof (Int32));
 	sp->se = sp->bp + (sp->sl - 1);
 	sp->sp = sp->bp + sd;
@@ -65,7 +64,7 @@ StackDelete(dsObj *sp)
 void
 StackPush(dsObj *sp, Int32 value)
 {
-	if (sp->sp >= sp->se) StackResize(sp);
+	if (sp->sp >= sp->se) StackResize(sp, sp->sl ? sp->sl << 1 : 64);
 	*(++sp->sp) = value;
 }
 
