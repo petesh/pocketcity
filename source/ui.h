@@ -61,6 +61,7 @@ void UICheckMoney(void);
 void UIScrollDisplay(dirType direction);
 void _UIDrawRect(Int16 nTop, Int16 nLeft, Int16 nHeight, Int16 nWidth);
 
+void UIDrawPlayArea(void);
 void UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic);
 void UIDrawSpecialObject(Int16 xpos, Int16 ypos, Int8 i);
 void UIDrawSpecialUnit(Int16 xpos, Int16 ypos, Int8 i);
