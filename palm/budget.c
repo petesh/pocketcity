@@ -12,7 +12,6 @@
 #define	MILLION 1000000
 
 static FormPtr budgetSetup(void) MAP_SECTION;
-static void budgetCleanup(void) MAP_SECTION;
 static void dealRepeats(EventPtr event) MAP_SECTION;
 static void dealFieldContentChange(UInt16 fieldID) MAP_SECTION;
 static const struct buttonmapping *getIndex(UInt16 buttonControl,
