@@ -152,3 +152,7 @@ extern void UIWriteLog(char * s);
 #define bitmapID_monsters   1601
 #define bitmapID_units      1602
 
+#define bitmapID_coin   1700
+#define bitmapID_popu   1701
+#define bitmapID_loca   1702
+

@@ -55,7 +55,7 @@ static void UIPopUpExtraBuildList(void);
 void UIDrawPop(void);
 static void CleanUpExtraBuildForm(void);
 static FieldType * UpdateDescription(int sel);
-
+static void initTextPositions(void);
 
 static void _UIGetFieldToBuildOn(int x, int y);
 static Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags);
@@ -288,6 +288,8 @@ void _PalmInit(void)
         // TODO: alert user, and quit program
         UIWriteLog("Offscreen window for units failed\n");
     }
+
+    initTextPositions();
     WinSetDrawWindow(winUnits); // note we don't save the old winhandle here
     _WinDrawBitmap(bitmap, 0, 0);
     MemHandleUnlock(bitmaphandle);
@@ -1041,86 +1043,147 @@ extern unsigned long GetRandomNumber(unsigned long max)
  * Layout (current|hires)
  */
 
-extern void UIDrawDate(void)
-{
-    char temp[23];
-    static UInt32 owidth = 0;
+#define HALF ~((Coord)0)
+#define END ~((Coord)1)
+#define DATELOC 0
+#define CREDITSLOC 1
+#define POPLOC 2
+#define POSITIONLOC 3
+
+struct StatusPositions {
     RectangleType rect;
+    PointType offset;
+    Coord lastwidth;
+};
 
-    if (DoDrawing == 0) { return; }
+// extent.x is filled in automatically
 
-    if (owidth) {
-        rect.topLeft.x = (sWidth - owidth) / 2;
-        rect.topLeft.y = 1;
-        rect.extent.x = owidth;
-        rect.extent.y = 11;
-        _WinEraseRectangle(&rect,0);
+#ifndef SONY_CLIE
+static struct StatusPositions positions[] = {
+    { { {HALF, 0}, {0, 0} }, { 0, 0 }, 0 },  // DATELOC
+    { { {0, END}, {0, 11} }, {0, 1}, 0 }, // CREDITSLOC
+    { { {HALF, END}, {0, 11} }, {0, 1}, 0 }, // POPLOC
+    { { {END, END}, {0, 11} }, {0, 1}, 0 }, // POSITIONLOC
+};
+
+#else
+static struct StatusPositions positions[] = {
+    { { {2, END}, {0, 11} }, { 0, 1 }, 0 },  // DATELOC
+    { { {80, END}, {0, 11} }, {0, 1}, 0 }, // CREDITSLOC
+    { { {160, END}, {0, 11} }, {0, 1}, 0 }, // POPLOC
+    { { {280, END}, {0, 11} }, {0, 1}, 0 }, // POSITIONLOC
+};
+#endif
+
+// only the topLeft.y location is a 'constant'
+void
+initTextPositions(void)
+{
+    int i;
+    for (i = 0; i < (sizeof (positions) / sizeof (positions[0])); i++) {
+        struct StatusPositions *pos = &(positions[i]);
+        if (pos->rect.topLeft.y == END)
+            pos->rect.topLeft.y = sHeight -
+                (pos->rect.extent.y + pos->offset.y);
+    }
+}
+
+void UIDrawItem(int location, char *text)
+{
+    struct StatusPositions *pos;
+    Int16 sl;
+    Coord wh;
+    ErrFatalDisplayIf((location < 0) ||
+      (location >= (sizeof (positions) / sizeof (positions[0]))),
+        "Location is too large");
+    pos = &positions[location];
+    wh = pos->rect.topLeft.x;
+    if (pos->lastwidth) {
+        pos->rect.extent.x = pos->lastwidth;
+        switch (wh) {
+        case HALF:
+            pos->rect.topLeft.x = (sWidth - pos->lastwidth) / 2 + pos->offset.x;
+            break;
+        case END:
+            pos->rect.topLeft.x = sWidth - pos->lastwidth - pos->offset.x;
+            break;
+        }
+        _WinEraseRectangle(&(pos->rect), 0);
     }
 
     if (isHires())
         _FntSetFont(boldFont);
-    GetDate((char*)temp);
-    owidth = FntCharsWidth(temp, StrLen(temp));
-    _WinDrawChars((char*)temp, StrLen(temp), (sWidth - owidth) / 2, 1);
+    sl = StrLen(text);
+    pos->lastwidth = FntCharsWidth(text, sl);
+    switch (wh) {
+    case HALF:
+        pos->rect.topLeft.x = (sWidth - pos->lastwidth) / 2 + pos->offset.x;
+        break;
+    case END:
+        pos->rect.topLeft.x = sWidth - pos->lastwidth - pos->offset.x;
+        break;
+    }
+    _WinDrawChars(text, sl, pos->rect.topLeft.x, pos->rect.topLeft.y);
+    pos->rect.topLeft.x = wh;
     if (isHires())
         _FntSetFont(stdFont);
+}
+
+extern void UIDrawDate(void)
+{
+    char temp[23];
+
+    if (DoDrawing == 0) { return; }
+
+    GetDate((char*)temp);
+    UIDrawItem(DATELOC, temp);
 }
 
 extern void UIDrawCredits(void)
 {
     char temp[23];
-    RectangleType rect;
-    static UInt32 owidth = 0;
+#ifdef SONY_CLIE
+    MemHandle bitmapHandle;
+    BitmapPtr bitmap;
+#endif
 
     if (DoDrawing == 0) { return; }
 
     StrPrintF(temp, "$: %ld", game.credits);
-
-    if (owidth) {
-        rect.topLeft.x = 0;
-        rect.topLeft.y = sHeight - 11;
-        rect.extent.x = owidth;
-        rect.extent.y = 11;
-
-        _WinEraseRectangle(&rect,0);
-    }
-
-    if (isHires())
-        _FntSetFont(boldFont);
-
-    owidth = FntCharsWidth(temp, StrLen(temp));
-    _WinDrawChars((char*)temp, StrLen(temp), 0, sHeight - 11);
-    if (isHires())
-        _FntSetFont(stdFont);
+    UIDrawItem(CREDITSLOC, temp);
+#ifdef SONY_CLIE
+    bitmapHandle = DmGet1Resource(TBMP, bitmapID_coin);
+    if (bitmapHandle == NULL) return;
+    bitmap = MemHandleLock(bitmapHandle);
+    _WinDrawBitmap(bitmap, 68, sHeight - 11);
+    MemPtrUnlock(bitmap);
+    DmReleaseResource(bitmapHandle);
+#endif
     UIDrawDate();
 }
 
 extern void UIDrawLoc(void)
 {
     char temp[25];
-    RectangleType rect;
-    static UInt32 owidth = 0;
+#ifdef SONY_CLIE
+    MemHandle bitmapHandle;
+    BitmapPtr bitmap;
+#endif
 
     if (DoDrawing == 0) { return; }
 
+#ifdef SONY_CLIE
+    StrPrintF(temp, "%02u,%02u", game.map_xpos, game.map_ypos);
+    bitmapHandle = DmGet1Resource(TBMP, bitmapID_loca);
+    if (bitmapHandle == NULL) return;
+    bitmap = MemHandleLock(bitmapHandle);
+    _WinDrawBitmap(bitmap, 270, sHeight - 11);
+    MemPtrUnlock(bitmap);
+    DmReleaseResource(bitmapHandle);
+#else
     StrPrintF(temp, "(%02u,%02u)", game.map_xpos, game.map_ypos);
-
-    if (owidth) {
-        rect.topLeft.x = sWidth - (owidth + 1);
-        rect.topLeft.y = sHeight - 12;
-        rect.extent.x = owidth;
-        rect.extent.y = 11;
-
-        _WinEraseRectangle(&rect,0);
-    }
-
-    if (isHires())
-        _FntSetFont(boldFont);
-    owidth = FntCharsWidth(temp, StrLen(temp));
-    _WinDrawChars((char*)temp,StrLen(temp), sWidth - (owidth + 1),
-      sHeight - 12);
-    if (isHires())
-        _FntSetFont(stdFont);
+#endif
+    UIDrawItem(POSITIONLOC, temp);
 }
 
 extern void UIUpdateBuildIcon(void)
@@ -1136,7 +1199,8 @@ extern void UIUpdateBuildIcon(void)
     if (bitmaphandle == NULL) { return; } // TODO: onscreen error? +save?
     bitmap = MemHandleLock(bitmaphandle);
     _WinDrawBitmap(bitmap, 2, 2);
-    MemHandleUnlock(bitmaphandle);
+    MemPtrUnlock(bitmap);
+    DmReleaseResource(bitmaphandle);
 }
 
 extern void UIDrawSpeed(void)
@@ -1149,36 +1213,33 @@ extern void UIDrawSpeed(void)
     if (bitmaphandle == NULL) { return; } // TODO: onscreen error? +save?
     bitmap = MemHandleLock(bitmaphandle);
     _WinDrawBitmap(bitmap, sWidth - 12, 2);
-    MemHandleUnlock(bitmaphandle);
+    MemPtrUnlock(bitmap);
+    DmReleaseResource(bitmaphandle);
 }
 
 extern void UIDrawPop(void)
 {
     char temp[25];
-    RectangleType rect;
-    static int owidth;
+#ifdef SONY_CLIE
+    MemHandle bitmapHandle;
+    BitmapPtr bitmap;
+#endif
 
     if (DoDrawing == 0) { return; }
 
     StrPrintF(temp, "Pop: %lu", game.BuildCount[COUNT_RESIDENTIAL] * 150);
-
-    if (owidth) {
-        rect.topLeft.x = (sWidth - owidth) / 2;
-        rect.topLeft.y = sHeight - 12;
-        rect.extent.x = owidth;
-        rect.extent.y = 11;
-        _WinEraseRectangle(&rect,0);
-    }
-
-    if (isHires())
-        _FntSetFont(boldFont);
-    owidth = FntCharsWidth(temp, StrLen(temp));
-    _WinDrawChars((char*)temp,StrLen(temp), (sWidth - owidth) / 2,
-      sHeight - 12);
-    if (isHires())
-        _FntSetFont(stdFont);
+    UIDrawItem(POPLOC, temp);
     UIDrawLoc();
     UIDrawSpeed();
+#ifdef SONY_CLIE
+    bitmapHandle = DmGet1Resource(TBMP, bitmapID_popu);
+    if (bitmapHandle == NULL) return;
+    bitmap = MemHandleLock(bitmapHandle);
+    _WinDrawBitmap(bitmap, 146, sHeight - 11);
+    MemPtrUnlock(bitmap);
+    DmReleaseResource(bitmapHandle);
+#else
+#endif
 }
 
 extern void UICheckMoney(void)
