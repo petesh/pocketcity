@@ -6,7 +6,7 @@ extern int map_ypos;
 extern int cursor_xpos;
 extern int cursor_ypos;
 extern long signed int credits;
-extern long unsigned int BuildCount[6];
+extern long unsigned int BuildCount[10];
 extern long unsigned int TimeElapsed;
 extern int tax;
 extern int TILE_SIZE;

@@ -12,7 +12,6 @@ void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nT
 
 int SpendMoney(unsigned long howMuch);
 
-
 extern void BuildSomething(int xpos, int ypos)
 {
 	switch (UIGetSelectedBuildItem())
@@ -88,6 +87,9 @@ void Build_Destroy(int xpos, int ypos)
 	BuildCount[COUNT_ROADS] -= IsRoad(type);
 	BuildCount[COUNT_TREES] -= (type == 21);
 	BuildCount[COUNT_WATER] -= (type == 22);
+	BuildCount[COUNT_POWERPLANTS] -= (type == 60);
+	BuildCount[COUNT_POWERPLANTS] -= (type == 61)*5;
+	BuildCount[COUNT_POWERLINES] -= ((type == 7) || (type == 6) || (type == 5));
 	
 	SetWorld(WORLDPOS(xpos,ypos),0);
 	UnlockWorld();
@@ -104,7 +106,20 @@ void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nT
 		{
 			SetWorld(WORLDPOS(xpos,ypos),nType);
 			DrawCross(xpos, ypos);
-
+			
+			if(nType == 60) {
+				BuildCount[COUNT_POWERPLANTS]++;
+			} else if(nType == 61) {
+				BuildCount[COUNT_POWERPLANTS]++;
+				BuildCount[COUNT_POWERPLANTS]++;
+				BuildCount[COUNT_POWERPLANTS]++;
+				BuildCount[COUNT_POWERPLANTS]++;
+				BuildCount[COUNT_POWERPLANTS]++;
+			} else if(nType == 2) {
+				BuildCount[COMMERCIAL_UNDEVEL]++;
+			} else if(nType == 3) {
+				BuildCount[INDUSTRIAL_UNDEVEL]++;
+			}
 			//  update counter
 			BuildCount[COUNT_ROADS] += IsRoad(nType);
 			BuildCount[COUNT_TREES] += (nType == 21);
@@ -133,6 +148,7 @@ void Build_Road(int xpos, int ypos)
                     {
                         SetWorld(WORLDPOS(xpos, ypos),6);
                         DrawCross(xpos, ypos);
+                        BuildCount[COUNT_ROADS]++;
                     } else {
                         UIDisplayError(ERROR_OUT_OF_MONEY);
                     }
@@ -142,6 +158,7 @@ void Build_Road(int xpos, int ypos)
                     {
                         SetWorld(WORLDPOS(xpos, ypos),7);
                         DrawCross(xpos, ypos);
+                        BuildCount[COUNT_ROADS]++;
                     } else {
 			            UIDisplayError(ERROR_OUT_OF_MONEY);
                     }
@@ -157,6 +174,7 @@ void Build_Road(int xpos, int ypos)
             {
                 SetWorld(WORLDPOS(xpos, ypos), 4);
                 DrawCross(xpos, ypos);
+                BuildCount[COUNT_ROADS]++;
             } else {
     			UIDisplayError(ERROR_OUT_OF_MONEY);
 	        }
@@ -183,6 +201,7 @@ void Build_PowerLine(int xpos, int ypos)
                     {
                         SetWorld(WORLDPOS(xpos, ypos),7);
                         DrawCross(xpos, ypos);
+                        BuildCount[COUNT_POWERLINES]++;
                     } else {
 	        			UIDisplayError(ERROR_OUT_OF_MONEY);
 			        }
@@ -193,6 +212,7 @@ void Build_PowerLine(int xpos, int ypos)
                     {
                         SetWorld(WORLDPOS(xpos, ypos),6);
                         DrawCross(xpos, ypos);
+                        BuildCount[COUNT_POWERLINES]++;
                     } else {
     	    			UIDisplayError(ERROR_OUT_OF_MONEY);
 		            }
@@ -206,6 +226,7 @@ void Build_PowerLine(int xpos, int ypos)
             {
                 SetWorld(WORLDPOS(xpos, ypos),5);
                 DrawCross(xpos, ypos);
+                BuildCount[COUNT_POWERLINES]++;
             } else {
 			    UIDisplayError(ERROR_OUT_OF_MONEY);
     		}
