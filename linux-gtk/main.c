@@ -723,14 +723,9 @@ UIInitGraphic(void)
 
 	for (i = 0; image_pixmaps[i].filename != NULL; i++) {
 		ipm = image_pixmaps + i;
-<<<<<<< main.c
-		strncpy(image_path, ipm->filename, max_path - 1);
-		if (searchForFile(image_path, max_path, PATHSEARCH)) {
-=======
 		strncpy((char *)image_path, ipm->filename,
 		    max_path - 1);
 		if (searchForFile(image_path, max_path, pathsearch)) {
->>>>>>> 1.64
 			*ipm->pm = gdk_pixmap_create_from_xpm(
 			    mw.window->window, ipm->mask, NULL,
 			    (const char *)image_path);
@@ -747,13 +742,8 @@ UIInitGraphic(void)
 		}
 	}
 	/* load the icon */
-<<<<<<< main.c
-	strncpy(image_path, "pcityicon.png", max_path - 1);
-	if (searchForFile(image_path, max_path, PATHSEARCH)) {
-=======
 	strncpy((char *)image_path, "pcityicon.png", max_path - 1);
 	if (searchForFile(image_path, max_path, pathsearch)) {
->>>>>>> 1.64
 		gtk_window_set_icon_from_file(GTK_WINDOW(mw.window),
 		    (char const *)image_path, NULL);
 	}
