@@ -1,0 +1,4 @@
+#include "simcity.h"
+
+
+BITMAPGREY16 ID bitmapID_zones  "graphic/zones_16x16-grey.bmp" COMPRESS

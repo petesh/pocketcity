@@ -12,7 +12,10 @@
 CC = m68k-palmos-gcc
 CCFLAGS = -O2 -Wall -g -DDEBUG
 
-all: blackwhite color
+all: blackwhite color greyscale
+
+greyscale: bin-grey.stm grcs.stm zones-grey.stm game.stm
+	build-prc -o pcity-grey.prc -n "Pocket City" -c PCit pcity.def *.grc tempgrey/*.bin temp/*.bin
 
 blackwhite: bin.stm grcs.stm zones.stm game.stm
 	build-prc -o pcity.prc -n "Pocket City" -c PCit pcity.def *.grc tempbw/*.bin temp/*.bin
@@ -28,6 +31,10 @@ bin-color.stm: simcity-color.rcp
 	pilrc -q simcity-color.rcp tempcolor
 	echo touching>bin-color.stm
 
+bin-grey.stm: simcity-grey.rcp
+	pilrc -q simcity-grey.rcp tempgrey
+	echo touching>bin-grey.stm
+
 zones.stm: zones.rcp
 	pilrc -q zones.rcp tempbw
 	echo touching>zones.stm
@@ -39,6 +46,10 @@ game.stm: game.rcp
 zones-color.stm: zones-color.rcp
 	pilrc -q zones-color.rcp tempcolor
 	echo touching>zones-color.stm
+
+zones-grey.stm: zones-grey.rcp
+	pilrc -q zones-grey.rcp tempgrey
+	echo touching>zones-grey.stm
 
 grcs.stm: simcity
 	m68k-palmos-obj-res simcity
@@ -82,4 +93,4 @@ simulation.o: ../source/simulation.c
 
 
 clean:
-	rm -f *.bin *.o *.grc *.stm simcity tempbw/*.bin tempcolor/*.bin temp/*.bin
+	rm -f *.bin *.o *.grc *.stm simcity tempbw/*.bin tempcolor/*.bin temp/*.bin tempgrey/*.bin

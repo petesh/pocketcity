@@ -197,8 +197,12 @@ void _PalmInit(void)
     if (oldROM != 1) {  // must be v3.5+ for some functions in here
         WinScreenMode(winScreenModeGetSupportedDepths, 0, 0, &depth, 0);
         if ((depth & 0x80) != 0 ) {
-            // 8pps is supported
+            // 8bpp (color) is supported
             depth = 8;
+            WinScreenMode(winScreenModeSet,0,0,&depth,0);
+        } else if ((depth & 0x08) != 0) {
+            // 4bpp (greyscale) is supported
+            depth = 4;
             WinScreenMode(winScreenModeSet,0,0,&depth,0);
         }
     }
@@ -461,6 +465,9 @@ static Boolean hPocketCity(EventPtr event)
                 switch (event->data.menu.itemID)
                 {
                     case menuitemID_Funny:
+                        // change this to whatever testing you're doing ;)
+                        // just handy with a 'trigger' button for testing
+                        // ie. disaters
                         BurnField(5,5);
                         handled = 1;
                         break;
