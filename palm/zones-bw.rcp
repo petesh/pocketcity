@@ -1,0 +1,5 @@
+#include "simcity_resconsts.h"
+
+BITMAP ID bitmapID_zones  "graphic/zones_16x16-bw.bmp" 
+BITMAP ID bitmapID_monsters  "graphic/monsters_16x16-bw.bmp" 
+BITMAP ID bitmapID_units  "graphic/units_16x16-bw.bmp" 
