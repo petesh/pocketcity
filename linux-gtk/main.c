@@ -365,6 +365,7 @@ UIDisplayError1(char *error)
         error);
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(GTK_WIDGET(dialog));
+    return (0);
 }
 
 int
@@ -392,7 +393,7 @@ UIDisplayError(erdiType nError)
         strcpy(temp,"An unknown error/disaster?"); break;
     }
 	UIDisplayError1(temp);
-    return 0;
+    return (0);
 }
 
 void UIInitDrawing(void)
@@ -702,9 +703,12 @@ UIDrawPop(void)
 }
 
 #ifdef DEBUG
+
+#include <stdarg.h>
+
 void WriteLog(char *s, ...)
 {
-    va_args args;
+    va_list args;
     char mbuf[2048];
 
     va_start(s, args);
