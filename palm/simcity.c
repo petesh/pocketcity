@@ -22,6 +22,7 @@ MemHandle worldFlagsHandle;
 MemPtr worldPtr;
 MemPtr worldFlagsPtr;
 RectangleType rPlayGround;
+WinHandle winZones;
 unsigned char nSelectedBuildItem = 0;
 unsigned char nPreviousBuildItem = 0;
 short int game_in_progress = 0;
@@ -160,6 +161,11 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 void _PalmInit(void)
 {
     UInt32 depth;
+    UInt16 err;
+    MemHandle  bitmaphandle;
+    BitmapPtr  bitmap;
+    WinHandle  winHandle;
+    
     timeStamp = TimGetSeconds();
 
     rPlayGround.topLeft.x = 0;
@@ -177,7 +183,25 @@ void _PalmInit(void)
         }
     }
 
+    // create an offscreen window, and copy the zones.bmp
+    // to be used later
+    bitmaphandle = DmGet1Resource( TBMP , bitmapID_zones);
+    bitmap = MemHandleLock(bitmaphandle);
+    winZones = WinCreateOffscreenWindow(1024, 32, genericFormat,&err); //space for 64*2=128 zones
+    if (err != errNone) {
+        // TODO: alert user, and quit program
+        UIWriteLog("Offscreen window failed\n");
+        if (err == sysErrNoFreeResource) {
+            UIWriteLog("^- no free resources\n");
+        }
+    }
+    winHandle = WinSetDrawWindow(winZones);
+    // draw the bitmap into the offscreen window
+    WinDrawBitmap(bitmap, 0, 0);
 
+    // clean up 
+    MemHandleUnlock(bitmaphandle);
+    WinSetDrawWindow(winHandle);
 }
 
 
@@ -655,54 +679,56 @@ extern void UIDrawCursor(int xpos, int ypos)
 
 extern void UIDrawPowerLoss(int xpos, int ypos)
 {
-    MemHandle  bitmaphandle;
-    BitmapPtr  bitmap;
-    int overlayID = bitmapID_PowerLossOverlay;
-    int powerID = bitmapID_PowerLoss;
+    RectangleType rect;
 
     if (DoDrawing == 0) { return; }
-    if (oldROM == 1) { return; } // must be v3.5+ for some functions in here
-
-    WinPushDrawState();
-
-
-    //	if (TILE_SIZE == 32) { overlayID = bitmapID_PowerLossOverlay; powerID = bitmapID_PowerLoss; };
-    if (TILE_SIZE == 16) { overlayID = bitmapID_PowerLossOverlay2; powerID = bitmapID_PowerLoss2; };
-
+    
+    rect.topLeft.x = 144;
+    rect.topLeft.y = 0;
+    rect.extent.x = TILE_SIZE;
+    rect.extent.y = TILE_SIZE;
+    
+    // copy/paste the graphic from the offscreen image
     // first draw the overlay
-    WinSetDrawMode(winErase);
-    bitmaphandle = DmGet1Resource( TBMP, overlayID);
-    bitmap = MemHandleLock(bitmaphandle);
-    WinPaintBitmap(bitmap, xpos*TILE_SIZE+XOFFSET, ypos*TILE_SIZE+YOFFSET);
-    MemHandleUnlock(bitmaphandle);
-
-    // now draw the 's'
-    WinSetDrawMode(winOverlay);
-    bitmaphandle = DmGet1Resource( TBMP , powerID);
-    bitmap = MemHandleLock(bitmaphandle);
-    WinPaintBitmap(bitmap, xpos*TILE_SIZE+XOFFSET, ypos*TILE_SIZE+YOFFSET);
-    MemHandleUnlock(bitmaphandle);
-
-
-    WinPopDrawState();
+    WinCopyRectangle(
+            winZones,
+            WinGetActiveWindow(),
+            &rect,
+            xpos*TILE_SIZE+XOFFSET,
+            ypos*TILE_SIZE+YOFFSET,
+            winErase);
+    // now draw the powerloss icon
+    rect.topLeft.x = 128;
+    WinCopyRectangle(
+            winZones,
+            WinGetActiveWindow(),
+            &rect,
+            xpos*TILE_SIZE+XOFFSET,
+            ypos*TILE_SIZE+YOFFSET,
+            winOverlay);
 }
 
 
 extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
 {
-    MemHandle  bitmaphandle;
-    BitmapPtr  bitmap;
-    int startID = 0;
-
+    RectangleType rect;
+    
     if (DoDrawing == 0) { return; }
 
-    //	if (TILE_SIZE == 32) { startID = bitmapID_DirtBmp; };
-    if (TILE_SIZE == 16) { startID = bitmapID_DirtBmp2; };
+    rect.topLeft.x = (nGraphic%64)*TILE_SIZE;
+    rect.topLeft.y = (nGraphic/64)*TILE_SIZE;
+    rect.extent.x = TILE_SIZE;
+    rect.extent.y = TILE_SIZE;
+    
+    // copy/paste the graphic from the offscreen image
+    WinCopyRectangle(
+            winZones,
+            WinGetActiveWindow(),
+            &rect,
+            xpos*TILE_SIZE+XOFFSET,
+            ypos*TILE_SIZE+YOFFSET,
+            winPaint);
 
-    bitmaphandle = DmGet1Resource( TBMP , nGraphic + startID);
-    bitmap = MemHandleLock(bitmaphandle);
-    WinDrawBitmap(bitmap, xpos*TILE_SIZE+XOFFSET, ypos*TILE_SIZE+YOFFSET);
-    MemHandleUnlock(bitmaphandle);
 }
 
 
