@@ -222,11 +222,16 @@ static Boolean hPocketCity(EventPtr event)
                          handled = 1;
                          break;
                     case menuitemID_loadGame:
-                         FrmAlert(alertID_loadGame);
+                         if (FrmAlert(alertID_loadGame) == 0) {
+                             UILoadGame();
+			     DrawGame(1);
+                         }
                          handled = 1;
                          break;
                     case menuitemID_saveGame:
-                         FrmAlert(alertID_saveGame);
+                         if (FrmAlert(alertID_saveGame) == 0) {
+                             UISaveGame();
+                         }
                          handled = 1;
                          break;
                     case menuID_SlowSpeed:
@@ -254,6 +259,7 @@ static Boolean hPocketCity(EventPtr event)
                         UIDrawPop();
                         handled = 1;
                         break;
+
                 }
             }
             break;

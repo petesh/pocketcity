@@ -84,7 +84,7 @@ ALERT ID alertID_newGame
 CONFIRMATION
 BEGIN
   TITLE "New Game"
-  MESSAGE "Are you sure you want to start a new game?\nOld game will be lost"
+  MESSAGE "Are you sure you want to start a new city?\nThis city will be lost!"
   BUTTONS "Yes" "No"
 END
 
@@ -92,16 +92,16 @@ ALERT ID alertID_loadGame
 ERROR
 BEGIN
   TITLE "Load"
-  MESSAGE "Function not working"
-  BUTTONS "Ok"
+  MESSAGE "Are you sure you want to load your saved city? This city will be lost!"
+  BUTTONS "Yes" "No"
 END
 
 ALERT ID alertID_saveGame
 ERROR
 BEGIN
   TITLE "Save"
-  MESSAGE "Function not working"
-  BUTTONS "Ok"
+  MESSAGE "Saving this city will overwrite your last save. Are you sure you want to do this?"
+  BUTTONS "Yes" "No"
 END
 
 ALERT ID alertID_about
