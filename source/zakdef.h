@@ -147,10 +147,10 @@ typedef enum {
 /* must be at least 3 */
 #define OBJ_CHANCE_OF_TURNING   5
 typedef struct _moveable_object {
-        unsigned short x;
-        unsigned short y;
-        unsigned short dir;
-        unsigned short active;
+        UInt16 x;
+        UInt16 y;
+        UInt16 dir;
+        UInt16 active;
 } MoveableObject;
 
 enum Objects {
@@ -179,10 +179,10 @@ enum Objects {
 #define GRID_ALL                (GRID_POWER|GRID_WATER)
 
 typedef struct _defence_unit {
-        unsigned short x;
-        unsigned short y;
-        unsigned short active;
-        unsigned short type;
+        UInt16 x;
+        UInt16 y;
+        UInt16 active;
+        UInt16 type;
 } DefenceUnit;
 
 enum DefenceUnitTypes {
@@ -196,44 +196,45 @@ enum DefenceUnitTypes {
  */
 
 typedef struct _game_struct05 {
-    char            version[4];
-    char            mapsize;            /* The size of each axis of the map */
-    int             _visible_x;         /* deprecated */
-    int             _visible_y;         /* deprecated */
-    int             map_xpos;           /* start visible x axis */
-    int             map_ypos;           /* start visible y axis */
-    int             _cursor_xpos;       /* Deprecated */
-    int             _cursor_ypos;       /* Deprecated */
-    long signed     credits;            /* Show me the money */
-    long unsigned   _BuildCount[20];    /* Deprecated... calculated on reload */
-    long unsigned   TimeElapsed;        /* Number of months past 00 */
-    unsigned char   tax;                /* Tax rate */
-    unsigned char   _tileSize;          /* Deprecated */
-    unsigned short  gameLoopSeconds;    /* Speed */
-    char            cityname[20];       /* Name of city */
-    unsigned char   upkeep[3];          /* upkeep %ages for bits */
-    unsigned char   disaster_level;     /* rate of disasters */
+    Int8            version[4];
+    Int8            mapsize;            /* The size of each axis of the map */
+    Int16           _visible_x;         /* deprecated */
+    Int16           _visible_y;         /* deprecated */
+    Int16           map_xpos;           /* start visible x axis */
+    Int16           map_ypos;           /* start visible y axis */
+    Int16           _cursor_xpos;       /* Deprecated */
+    Int16           _cursor_ypos;       /* Deprecated */
+    Int32           credits;            /* Show me the money */
+    UInt32          _BuildCount[20];    /* Deprecated... calculated on reload */
+    UInt32          TimeElapsed;        /* Number of months past 00 */
+    UInt8           tax;                /* Tax rate */
+    UInt8           _tileSize;          /* Deprecated */
+    UInt16          gameLoopSeconds;    /* Speed */
+    Int8            cityname[20];       /* Name of city */
+    UInt8           upkeep[3];          /* upkeep %ages for bits */
+    UInt8           disaster_level;     /* rate of disasters */
     DefenceUnit     units[10];          /* Defence Units */
     MoveableObject  objects[10];        /* Special objects */
 } GameStruct05;
 
 /* Desired new version */
 typedef struct _game_struct06 {
-    char                version[4];
-    char                mapsize;
-    char                bigendian;
-    char                map_xpos;
-    char                map_ypos;
-    long signed         credits;
-    long unsigned       TimeElapsed;
-    unsigned char       tax;
-    unsigned char       gameLoopSeconds;
-    char                cityname[20];
-    unsigned char       disaster_level;
-    unsigned int        defenceUnitCount;
-    DefenceUnit        *units;
-    unsigned int        moveableObjectCount;
-    MoveableObject     *objects;
+    Int8                version[4];
+    Int8                mapsize;
+    Int8                bigendian;
+    Int8                map_xpos;
+    Int8                map_ypos;
+    Int32               credits;
+    UInt32              TimeElapsed;
+    UInt8               tax;
+    UInt8               gameLoopSeconds;
+    Int8                cityname[20];
+    UInt8               disaster_level;
+    /* howsat ? */
+    UInt16              defenceUnitCount;
+    UInt16              moveableObjectCount;
+    /* DefenceUnit        *units; */
+    /* MoveableObject     *objects; */
 } GameStruct06;
 
 typedef GameStruct05 GameStruct;
@@ -241,7 +242,6 @@ typedef GameStruct05 GameStruct;
 typedef struct _psuCount {
     struct _psuCount *next;
     int gridType;
-    
 } psuCount;
 
 typedef struct _vgame_struct {
