@@ -58,4 +58,4 @@ simulation.o: ../source/simulation.c
 
 
 clean:
-	rm *.bin *.o *.grc *.stm simcity
+	rm -f *.bin *.o *.grc *.stm simcity
