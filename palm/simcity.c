@@ -602,6 +602,16 @@ static Boolean hExtraList(EventPtr event)
                                 FrmGetObjectIndex(FrmGetActiveForm(),buttonID_extraBuildCancel)));
                     handled = 1;
                     break;
+                case pageUpChr:
+                    LstScrollList(FrmGetObjectPtr(FrmGetActiveForm(),
+                                FrmGetObjectIndex(FrmGetActiveForm(),listID_extraBuildList)),winUp,4);
+                    handled = 1;
+                    break;
+                case pageDownChr:
+                    LstScrollList(FrmGetObjectPtr(FrmGetActiveForm(),
+                                FrmGetObjectIndex(FrmGetActiveForm(),listID_extraBuildList)),winDown,4);
+                    handled = 1;
+                    break;
             }
         default:
             break;
