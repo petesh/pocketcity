@@ -82,13 +82,13 @@
 // Here comes the tiles for 16x16
 
 
-BITMAPFAMILY ID bitmapID_DirtBmp2                     "graphic/16x16/dirt.bmp" "" "" "graphic/16x16-color/dirt.bmp" COMPRESS
-BITMAP ID bitmapID_CommZone2			"graphic/16x16/c_00.bmp" COMPRESS
-BITMAP ID bitmapID_ResZone2				"graphic/16x16/r_00.bmp" COMPRESS
-BITMAP ID bitmapID_IndZone2				"graphic/16x16/i_00.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_DirtBmp2               "graphic/16x16/dirt.bmp" "" "" "graphic/16x16-color/dirt.bmp" COMPRESS
+BITMAP ID bitmapID_CommZone2                    "graphic/16x16/c_00.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_ResZone2               "graphic/16x16/r_00.bmp" "" "" "graphic/16x16-color/r_00.bmp" COMPRESS
+BITMAP ID bitmapID_IndZone2                     "graphic/16x16/i_00.bmp" COMPRESS
 	
-BITMAP ID bitmapID_PowerRoadUpDown2		"graphic/16x16/powerroad1.bmp" COMPRESS
-BITMAP ID bitmapID_PowerRoadLeftRight2	"graphic/16x16/powerroad2.bmp" COMPRESS	
+BITMAPFAMILY ID bitmapID_PowerRoadUpDown2       "graphic/16x16/powerroad1.bmp" "" "" "graphic/16x16-color/powerroad1.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_PowerRoadLeftRight2    "graphic/16x16/powerroad2.bmp" "" "" "graphic/16x16-color/powerroad2.bmp" COMPRESS	
 BITMAP ID bitmapID_PowerLoss2			"graphic/16x16/powerloss.bmp" COMPRESS
 BITMAP ID bitmapID_PowerLossOverlay2	"graphic/16x16/powerloss2.bmp" COMPRESS
 //BITMAP ID bitmapID_CursorBmp2			"graphic/16x16/something.bmp" COMPRESS	
@@ -116,17 +116,17 @@ BITMAP ID bitmapID_CommSix2				"graphic/16x16/c_06.bmp" COMPRESS
 BITMAP ID bitmapID_CommSeven2			"graphic/16x16/c_07.bmp" COMPRESS	
 BITMAP ID bitmapID_CommEight2			"graphic/16x16/c_08.bmp" COMPRESS	
 BITMAP ID bitmapID_CommNine2			"graphic/16x16/c_09.bmp" COMPRESS
-BITMAP ID bitmapID_CommTen2				"graphic/16x16/c_10.bmp" COMPRESS
-BITMAP ID bitmapID_ResOne2				"graphic/16x16/r_01.bmp" COMPRESS	
-BITMAP ID bitmapID_ResTwo2				"graphic/16x16/r_02.bmp" COMPRESS	
-BITMAP ID bitmapID_ResThree2			"graphic/16x16/r_03.bmp" COMPRESS
-BITMAP ID bitmapID_ResFour2				"graphic/16x16/r_04.bmp" COMPRESS
-BITMAP ID bitmapID_ResFive2				"graphic/16x16/r_05.bmp" COMPRESS
-BITMAP ID bitmapID_ResSix2				"graphic/16x16/r_06.bmp" COMPRESS	
-BITMAP ID bitmapID_ResSeven2			"graphic/16x16/r_07.bmp" COMPRESS
-BITMAP ID bitmapID_ResEight2			"graphic/16x16/r_08.bmp" COMPRESS
-BITMAP ID bitmapID_ResNine2				"graphic/16x16/r_09.bmp" COMPRESS
-BITMAP ID bitmapID_ResTen2				"graphic/16x16/r_10.bmp" COMPRESS	
+BITMAP ID bitmapID_CommTen2		                "graphic/16x16/c_10.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_ResOne2                "graphic/16x16/r_01.bmp" "" "" "graphic/16x16-color/r_01.bmp" COMPRESS	
+BITMAPFAMILY ID bitmapID_ResTwo2                "graphic/16x16/r_02.bmp" "" "" "graphic/16x16-color/r_02.bmp" COMPRESS	
+BITMAPFAMILY ID bitmapID_ResThree2              "graphic/16x16/r_03.bmp" "" "" "graphic/16x16-color/r_03.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_ResFour2               "graphic/16x16/r_04.bmp" "" "" "graphic/16x16-color/r_04.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_ResFive2               "graphic/16x16/r_05.bmp" "" "" "graphic/16x16-color/r_05.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_ResSix2                "graphic/16x16/r_06.bmp" "" "" "graphic/16x16-color/r_06.bmp" COMPRESS	
+BITMAPFAMILY ID bitmapID_ResSeven2              "graphic/16x16/r_07.bmp" "" "" "graphic/16x16-color/r_07.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_ResEight2              "graphic/16x16/r_08.bmp" "" "" "graphic/16x16-color/r_08.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_ResNine2               "graphic/16x16/r_09.bmp" "" "" "graphic/16x16-color/r_09.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_ResTen2                "graphic/16x16/r_10.bmp" "" "" "graphic/16x16-color/r_10.bmp" COMPRESS	
 BITMAP ID bitmapID_IndOne2				"graphic/16x16/i_01.bmp" COMPRESS	
 BITMAP ID bitmapID_IndTwo2				"graphic/16x16/i_02.bmp" COMPRESS	
 BITMAP ID bitmapID_IndThree2			"graphic/16x16/i_03.bmp" COMPRESS
@@ -137,8 +137,8 @@ BITMAP ID bitmapID_IndSeven2			"graphic/16x16/i_07.bmp" COMPRESS
 BITMAP ID bitmapID_IndEight2			"graphic/16x16/i_08.bmp" COMPRESS
 BITMAP ID bitmapID_IndNine2				"graphic/16x16/i_09.bmp" COMPRESS
 BITMAP ID bitmapID_IndTen2				"graphic/16x16/i_10.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerPlant2			"graphic/16x16/powerplant.bmp" COMPRESS	
-BITMAP ID bitmapID_NulearPlant2			"graphic/16x16/nuclear.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_PowerPlant2            "graphic/16x16/powerplant.bmp" "" "" "graphic/16x16-color/powerplant.bmp" COMPRESS	
+BITMAPFAMILY ID bitmapID_NulearPlant2           "graphic/16x16/nuclear.bmp" "" "" "graphic/16x16-color/nuclear.bmp" COMPRESS
 
 BITMAP ID bitmapID_PowerLeftRight2		"graphic/16x16/power01.bmp" COMPRESS	
 BITMAP ID bitmapID_PowerUpDown2			"graphic/16x16/power02.bmp" COMPRESS
