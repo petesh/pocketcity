@@ -50,11 +50,17 @@ extern "C" {
 
 #else
 
+#if defined(__MWERKS__)
+#define __attribute__(X)
+#define EXPORT
+#else
+
 /* It's probably going to be the following, but you need to make sure */
 #warning "Please add compiler details to compilerpragmas.h"
 #define __attribute__(X)
 #define EXPORT
 
+#endif
 #endif
 #endif
 #endif

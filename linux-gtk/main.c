@@ -1241,8 +1241,8 @@ UIMapResize(void)
 }
 
 Int8
-UIClipped(Int16 xpos __attribute__((unused)),
-    Int16 ypos __attribute__((unused)))
+UIClipped(UInt16 xpos __attribute__((unused)),
+    UInt16 ypos __attribute__((unused)))
 {
 	return (FALSE);
 }

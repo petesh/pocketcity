@@ -81,12 +81,14 @@ setupOptions(void)
 	FormPtr form = FrmGetActiveForm();
 	UInt8 tval = getDisasterLevel();
 
-	tval = (tval > 3) ? 3 : tval;
-	CtlSetValue((ControlPtr)GetObjectPtr(form, buttonID_dis_off + tval), 1);
+	tval = (UInt8)((tval > 3) ? 3 : tval);
+	CtlSetValue((ControlPtr)GetObjectPtr(form, 
+		(UInt16)(buttonID_dis_off + tval)), 1);
 
 	tval = getDifficultyLevel();
-	tval = (tval > 2) ? 2 : tval;
-	CtlSetValue((ControlPtr)GetObjectPtr(form, buttonID_Easy + tval), 1);
+	tval = (UInt8)((tval > 2) ? 2 : tval);
+	CtlSetValue((ControlPtr)GetObjectPtr(form, 
+	    (UInt16)(buttonID_Easy + tval)), 1);
 
 	CtlSetValue((ControlPtr)GetObjectPtr(form, checkboxID_autobulldoze),
 	    getAutoBulldoze() ? 1 : 0);
@@ -103,7 +105,7 @@ static void
 saveOptions(void)
 {
 	FormPtr form = FrmGetActiveForm();
-	int level = 0;
+	UInt8 level = 0;
 	if (CtlGetValue((ControlPtr)GetObjectPtr(form, buttonID_dis_off))) {
 		level = 0;
 	} else if (CtlGetValue((ControlPtr)GetObjectPtr(form,
@@ -129,7 +131,7 @@ saveOptions(void)
 		level = 2;
 	}
 	setDifficultyLevel(level);
-	setAutoBulldoze(CtlGetValue((ControlPtr)GetObjectPtr(form,
+	setAutoBulldoze(UInt8)(CtlGetValue((ControlPtr)GetObjectPtr(form,
 	    checkboxID_autobulldoze)));
 }
 
@@ -241,8 +243,8 @@ setupButtonConfig(void)
 		CtlSetLabel((ControlPtr)GetObjectPtr(form, bc_elts[bk].popup),
 		    Popups[ko]);
 		lp = (ListPtr)GetObjectPtr(form, bc_elts[bk].list);
-		LstSetListChoices(lp, (Char **)Popups, poplen);
-		LstSetSelection(lp, ko);
+		LstSetListChoices(lp, (Char **)Popups, (Int16)poplen);
+		LstSetSelection(lp, (Int16)ko);
 	}
 	return (form);
 }

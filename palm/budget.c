@@ -26,7 +26,7 @@ static void updateBudgetValue(FormPtr form, UInt16 label, const Char *format,
     long value) BUDGET_SECTION;
 static void updateBudgetNumber(BudgetNumber bn) BUDGET_SECTION;
 static void post_fieldhandler(UInt16 field, buttonmapping_t *map,
-    UInt32 newValue) BUDGET_SECTION;
+    Int32 newValue) BUDGET_SECTION;
 
 /*! \brief button mapping for the spinners */
 static buttonmapping_t budget_map[] = {
@@ -49,7 +49,7 @@ static buttonmapping_t budget_map[] = {
  */
 static void
 post_fieldhandler(UInt16 field __attribute__((unused)), buttonmapping_t *map,
-    UInt32 newValue)
+    Int32 newValue)
 {
 	((UInt8 *)(&game))[map->special2] = (UInt8)newValue;
 	if ((BudgetNumber)map->special1 != bnChange)
@@ -168,7 +168,7 @@ hBudget(EventPtr event)
 static const struct updateentity {
 	const BudgetNumber	item; /*!< the budget item */
 	const char		*formatstr; /*!< string for formatting */
-	const UInt32		label; /*!< ID of label to alter */
+	const UInt16		label; /*!< ID of label to alter */
 } entity[] = {
 	{ bnIncome, "%lu%c", labelID_budget_inc },
 	{ bnTraffic, "%lu%c", labelID_budget_tra },
@@ -199,7 +199,7 @@ updateBudgetValue(FormPtr form, UInt16 label, const Char *format, long value)
 	Char scale;
 
 	*temp='$';
-	value = scaleNumber(value, &scale);
+	value = (Int32)scaleNumber((UInt32)value, &scale);
 
 	StrPrintF(temp+1, format, value, scale);
 	FrmCopyLabel(form, label, temp);
@@ -264,7 +264,7 @@ budgetSetup(FormPtr form)
 		StrPrintF((char *)text, "%u", game.upkeep[i]);
 		MemHandleUnlock(texthandle);
 		FldSetTextHandle((FieldPtr)GetObjectPtr(form,
-		    fieldID_budget_tra + i), texthandle);
+		    (UInt16)(fieldID_budget_tra + i)), texthandle);
 	}
 	texthandle = MemHandleNew(5);
 	text = MemHandleLock(texthandle);

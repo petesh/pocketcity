@@ -47,7 +47,7 @@ EXPORT Int16 UpdateDisasters(void) DISASTER_SECTION;
  * \param forceit force the field to burn
  * \return true if field was burned.
  */
-EXPORT Int16 BurnField(Int16 x, Int16 y, Int16 forceit) DISASTER_SECTION;
+EXPORT Int16 BurnField(UInt16 x, UInt16 y, Int16 forceit) DISASTER_SECTION;
 
 /*!
  * \brief Create a 'zilla at the location specified.
@@ -55,7 +55,7 @@ EXPORT Int16 BurnField(Int16 x, Int16 y, Int16 forceit) DISASTER_SECTION;
  * \param y position on vertical of map to spread fire
  * \return true if monster was created
  */
-EXPORT Int16 CreateMonster(Int16 x, Int16 y) DISASTER_SECTION;
+EXPORT Int16 CreateMonster(UInt16 x, UInt16 y) DISASTER_SECTION;
 
 /*!
  * \brief Create a dragon at the location.
@@ -63,7 +63,7 @@ EXPORT Int16 CreateMonster(Int16 x, Int16 y) DISASTER_SECTION;
  * \param y position on vertical of map to spread fire
  * \return true if dragon was created
  */
-EXPORT Int16 CreateDragon(Int16 x, Int16 y) DISASTER_SECTION;
+EXPORT Int16 CreateDragon(UInt16 x, UInt16 y) DISASTER_SECTION;
 
 /*! \brief Move all the moveable elements around the screen.  */
 EXPORT void MoveAllObjects(void) DISASTER_SECTION;
@@ -74,7 +74,7 @@ EXPORT void MoveAllObjects(void) DISASTER_SECTION;
  * \param y vertical position
  * \return always happens (true)
  */
-EXPORT Int16 MeteorDisaster(Int16 x, Int16 y) DISASTER_SECTION;
+EXPORT Int16 MeteorDisaster(UInt16 x, UInt16 y) DISASTER_SECTION;
 
 #if defined(__cplusplus)
 }

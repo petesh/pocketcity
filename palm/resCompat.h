@@ -16,8 +16,8 @@
 #include <sony_support.h>
 #include <sections.h>
 
-#define	BASEWIDTH ((Int32)160)
-#define	BASEHEIGHT ((Int32)160)
+#define	BASEWIDTH ((Coord)160)
+#define	BASEHEIGHT ((Coord)160)
 
 #if defined(SONY_CLIE) || defined(PALM_HIGH)
 

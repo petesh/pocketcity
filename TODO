@@ -1,26 +1,27 @@
 Things left to implement:
-	Scrollbars
-		- Need to actually work
-		- skipped for time being. I'm going to use a 'mini map'
-		  instead.
-
 	Demand Indicators
 		- Residential / commercial / Industrial
+
 	Status Indicators
+		- short on power / water ?
+
+	Minimap
+		- detailed version for faster machines
 
 	Variable types of maps
 		- pollution
 		- population density
 		- police efficacy
 		- fire efficacy
+
 	Performance graphs
 		- pop growth over time
+
 	Evaluation
+
 	query tool
 		- Partially implemented.
-	Little Bits?
-
-	Greyscale brightness problems.
+		- missing code for other properties.
 
 Save games on external media
 

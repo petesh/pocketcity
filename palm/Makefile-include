@@ -1,5 +1,4 @@
 
-PLATFORM = PALM
 HW = m68k
 
 CC = $(HW)-palmos-gcc
@@ -8,12 +7,12 @@ MULTIGEN = $(HW)-palmos-multigen
 BUILDPRC = build-prc
 RC = pilrc
 
-RCFLAGS = -q
+RCFLAGS = -q -ro
 
 OPTFLAGS = -O2
 WARNFLAGS = -W -Wall -Werror -Wno-multichar
 INCLUDES = -I . -I ../source -I ../graphic
-DEFINES = -D$(PLATFORM)
+DEFINES =
 
 CFLAGS = $(OPTFLAGS) $(WARNFLAGS) $(DEFINES) $(INCLUDES)
 LDLIBS =

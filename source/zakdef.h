@@ -153,11 +153,13 @@
 /*! \brief index in object array that military units end at */
 #define	DEF_MILITARY_END	9
 
+
+
 /* Update codes for grids */
 /*! \brief code to say to update the power grid */
-#define	GRID_POWER		1
+#define	GRID_POWER		(UInt8)1
 /*! \brief code to say to update the water grid */
-#define	GRID_WATER		2
+#define	GRID_WATER		(UInt8)2
 /*! \brief code to say to update both water and power grids */
 #define	GRID_ALL		(GRID_POWER|GRID_WATER)
 
@@ -176,14 +178,6 @@
 
 /*! \brief get the map height */
 #define getMapHeight() (GG.mapy)
-/*!
- * \brief set the map size
- *
- * Does not allocate any extra memory.
- * \param X the new map X size
- * \param Y the new map Y size
- */
-void setMapSize(Int16 X, Int16 y);
 
 /*!
  * \brief set the map variables for the vgame structure
@@ -193,8 +187,8 @@ void setMapSize(Int16 X, Int16 y);
 #define setMapVariables(X, Y)	{ \
 	GG.mapx = X; \
 	GG.mapy = Y; \
-	vgame.mapmul = GG.mapx * GG.mapy; \
-	vgame.world_size = vgame.mapmul << 1; \
+	vgame.mapmul = (UInt16)GG.mapx * GG.mapy; \
+	vgame.world_size = (UInt32)vgame.mapmul << 1; \
 }
 
 
@@ -208,18 +202,18 @@ void setMapSize(Int16 X, Int16 y);
  * \brief add a grid to be updated
  * \param T the grid to add
  */
-#define	AddGridUpdate(T)		(GG.gridsToUpdate |= T)
+#define	AddGridUpdate(T)		(GG.gridsToUpdate |= (T))
 /*!
  * \brief Check if a grid need updating
  * \param T the grid to check
  * \return whether the grid need updating
  */
-#define	NeedsUpdate(T)		  (GG.gridsToUpdate & T)
+#define	NeedsUpdate(T)		  (GG.gridsToUpdate & (T))
 /*!
  * \brief Clear the need to update a sertain grid.
  * \param T the grid to clear
  */
-#define	ClearUpdate(T)		  (GG.gridsToUpdate &= ~T)
+#define	ClearUpdate(T)		  (GG.gridsToUpdate &= (UInt8)(~(UInt8)(T)))
 
 /*!
  * \brief get the position of a map location in the world array
@@ -258,7 +252,7 @@ void setMapSize(Int16 X, Int16 y);
 #define getStatistics(K)	(&(GG.statistics[K]))
 #define setTimeElapsed(X)	GG.TimeElapsed = (X)
 #define incrementTimeElapsed(X)	GG.TimeElapsed += (X)
-#define setGameVersion(V)	strncpy(GG.version, V, 4)
+#define setGameVersion(V)	strncpy((char *)GG.version, (char *)V, 4)
 #define	setTax(T)	GG.tax = (T)
 #define	getTax()	(GG.tax)
 #define setAutoBulldoze(V)	GG.auto_bulldoze = (V)
@@ -277,7 +271,7 @@ typedef UInt8	selem_t;
  *
  * Make sure they don't intersect as the overlap in the warning dialogs.
  */
-typedef enum disaster_enumeration {
+typedef enum {
 	diSTART = 0, /*!< starting disaster guard */
 	diFireOutbreak, /*!< a fire disaster */
 	diPlantExplosion, /*!< a power plant explosion */
@@ -287,11 +281,11 @@ typedef enum disaster_enumeration {
 	diEND /*!< ending guard for disasters */
 } disaster_t;
 
-typedef enum system_error_enumeration {
+typedef enum {
 	seOutOfMemory = 1 /*!< out of memory error */
 } syserror_t;
 
-typedef enum problem_enumeration {
+typedef enum {
 	peSTART = 0, /*!< starting guard for errors */
 	peFineOnMoney, /*!< money status is OK */
 	peLowOnMoney, /*!< low on money */
@@ -418,14 +412,14 @@ typedef enum {
 } Objects;
 
 /*! \brief The type of a defence unit */
-typedef enum DefenceUnitTypes {
+typedef enum {
 	DuFireman = 0, DuPolice, DuMilitary
 } DefenceUnitTypes;
 
 /*! \brief a defence unit structure */
 typedef struct _defence_unit {
-	Int16	x;	/*!< x position of the defence unit */
-	Int16	y;	/*!< y position of the defence unit */
+	UInt16	x;	/*!< x position of the defence unit */
+	UInt16	y;	/*!< y position of the defence unit */
 	UInt16	active; /*!< flag indicating this unit is active */
 	DefenceUnitTypes type; /*!< the defence unit type */
 } DefenceUnit;
@@ -526,20 +520,20 @@ typedef GameStruct06	GameStruct;
  * for persistence.
  */
 typedef struct _vgame_struct {
-	UInt16		mapmul;	/*!< x*y */
-	UInt32		prior_credit; /*!< last month's credit value */
-	long unsigned	BuildCount[bc_tail]; /*!< count of elements */
-	long unsigned	world_size;	/*!< size of world pointer */
-	unsigned short	oldLoopSeconds;	/*!< last selected speed - for pause */
+	UInt16	mapmul;	/*!< x*y */
+	UInt32	prior_credit; /*!< last month's credit value */
+	Int16	BuildCount[bc_tail]; /*!< count of elements */
+	UInt32	world_size;	/*!< size of world pointer */
+	UInt16	oldLoopSeconds;	/*!< last selected speed - for pause */
 } vGameStruct;
 
 typedef struct _visual_tag {
-	unsigned char	TileSize;	/*!< size of a tile */
-	unsigned char	MapTileSize;	/*!< size of a tile on the map */
-	int		visible_x;	/*!< visible tiles on the X */
-	int		visible_y;	/*!< visible tiles on the y */
-	int		cursor_xpos;	/*!< cursor ?? */
-	int		cursor_ypos;	/*!< cursor ?? */
+	UInt8	TileSize;	/*!< size of a tile */
+	UInt8	MapTileSize;	/*!< size of a tile on the map */
+	UInt16	visible_x;	/*!< visible tiles on the X */
+	UInt16	visible_y;	/*!< visible tiles on the y */
+	UInt16	cursor_xpos;	/*!< cursor ?? */
+	UInt16	cursor_ypos;	/*!< cursor ?? */
 } vGameVisuals;
 
 
@@ -547,6 +541,8 @@ typedef struct _visual_tag {
 #define setMapTileSize(X)	visuals.MapTileSize = (X)
 #define gameTileSize()	(visuals.TileSize)
 #define setGameTileSize(X)	visuals.TileSize = (X)
+
+#define inGameTiles(X)	((X) / visuals.TileSize)
 
 #define getVisibleX()	(visuals.visible_x)
 #define getVisibleY()	(visuals.visible_y)

@@ -22,7 +22,7 @@ typedef struct buttonmapping_tag {
 
 /*! \brief handler for post change operation */
 typedef void (*bmPostHandler)(UInt16 button, buttonmapping_t *mapping,
-    UInt32 newValue);
+    Int32 newValue);
 
 /*!
  * \brief get a spinner field index

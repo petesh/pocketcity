@@ -54,9 +54,6 @@ void UIUnlockScreen(void);
 /*! \brief lock the screen, pause any painting operations to happen */
 void UILockScreen(void);
 
-/*! \brief Draw the border around the playing area */
-void UIDrawBorder(void);
-
 /*! \brief UI post load game handler */
 void UIPostLoadGame(void);
 
@@ -65,27 +62,33 @@ void UIPostLoadGame(void);
  * \todo fix this routine.
  */
 void UIInitGraphic(void);
-/*! \brief Draw the amount of credits on screen. */
-void UIDrawCredits(void);
 void UIGotoForm(Int16);
+
+/*! \brief Draw the amount of credits on screen. */
+void UIPaintCredits(void);
 /*! \brief Draw the population on screen. */
-void UIDrawPop(void);
+void UIPaintPopulation(void);
 /*! \brief Draw the date on screen.  */
-void UIDrawDate(void);
+void UIPaintDate(void);
 /*! \brief Draw the map position on screen */
-void UIDrawLoc(void);
+void UIPaintLoc(void);
 /*! \brief Update the build icon on screen */
-void UIDrawBuildIcon(void);
+void UIPaintBuildIcon(void);
 /*! \brief Draw the speed icon on screen */
-void UIDrawSpeed(void);
+void UIPaintSpeed(void);
+
+/*! \brief Paint the desires on the display */
 void UIPaintDesires(void);
+
+/*! \brief draw the play area */
+void UIPaintPlayArea(void);
+
+/*! \brief Setup the graphics */
+void UISetUpGraphic(void);
 
 void UICheckMoney(void);
 void UIScrollDisplay(dirType direction);
 void _UIDrawRect(Int16 nTop, Int16 nLeft, Int16 nHeight, Int16 nWidth);
-
-/*! \brief draw the play area */
-void UIDrawPlayArea(void);
 
 /*!
  * \brief draw a field
@@ -93,7 +96,7 @@ void UIDrawPlayArea(void);
  * \param ypos the vertical position
  * \param nGraphic the item to paint
  */
-void UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic);
+void UIPaintField(UInt16 xpos, UInt16 ypos, welem_t nGraphic);
 
 /*!
  * \brief Draw a special object
@@ -101,7 +104,7 @@ void UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic);
  * \param ypos the vertical position
  * \param i the item to draw
  */
-void UIDrawSpecialObject(Int16 xpos, Int16 ypos, Int8 i);
+void UIPaintSpecialObject(UInt16 xpos, UInt16 ypos, Int8 i);
 
 /*!
  * \brief draw a special unit on the screen
@@ -109,28 +112,28 @@ void UIDrawSpecialObject(Int16 xpos, Int16 ypos, Int8 i);
  * \param ypos the vertical location on screen
  * \param i the unit do draw
  */
-void UIDrawSpecialUnit(Int16 xpos, Int16 ypos, Int8 i);
+void UIPaintSpecialUnit(UInt16 xpos, UInt16 ypos, Int8 i);
 
 /*!
  * \brief draw a cursor at the location specified
  * \param xpos the xposition
  * \param ypos the y position
  */
-void UIDrawCursor(Int16 xpos, Int16 ypos);
+void UIPaintCursor(UInt16 xpos, UInt16 ypos);
 
 /*!
  * \brief Draw a power loss overlay on the screen at the specified location
  * \param xpos the xposition
  * \param ypos the y position
  */
-void UIDrawPowerLoss(Int16 xpos, Int16 ypos);
+void UIPaintPowerLoss(UInt16 xpos, UInt16 ypos);
 
 /*!
  * \brief Draw a water loss overlay on the screen at the specified location
  * \param xpos the x position
  * \param ypos the y position
  */
-void UIDrawWaterLoss(Int16 xpos, Int16 ypos);
+void UIPaintWaterLoss(UInt16 xpos, UInt16 ypos);
 
 /*!
  * \brief get the selected item to build
@@ -159,7 +162,7 @@ UInt32 GetRandomNumber(UInt32 max);
  * \param ypos the y position
  * \param elem the item to paint on the map
  */
-void UIDrawMapField(UInt16 xpos, UInt16 ypos, welem_t elem);
+void UIPaintMapField(UInt16 xpos, UInt16 ypos, welem_t elem);
 
 /*!
  * \brief update a map status position
@@ -168,7 +171,7 @@ void UIDrawMapField(UInt16 xpos, UInt16 ypos, welem_t elem);
  * \param world the world pointer
  * \param status the status of the zone
  */
-void UIDrawMapStatus(UInt16 xpos, UInt16 ypos, welem_t world, selem_t status);
+void UIPaintMapStatus(UInt16 xpos, UInt16 ypos, welem_t world, selem_t status);
 
 /*!
  * \brief check if the map location is being clipped by the game
@@ -176,7 +179,7 @@ void UIDrawMapStatus(UInt16 xpos, UInt16 ypos, welem_t world, selem_t status);
  * \param ypos the y position on the map
  * \return true if the point on the map is clipped, and therefore not visible
  */
-Int8 UIClipped(Int16 xpos, Int16 ypos);
+Int8 UIClipped(UInt16 xpos, UInt16 ypos);
 
 /*! \brief the zones to lock/unlock */
 typedef enum {
@@ -207,6 +210,15 @@ void ReleaseZone(lockZone zone);
  * \brief map being resized, do UI related elements
  */
 void UIMapResize(void);
+
+/*!
+ * \brief update a map location
+ *
+ * Caused when the content on the map changes
+ * \param xpos the xposition on the map that changed
+ * \param ypos the y position on the map that changed
+ */
+void UIUpdateMap(UInt16 xpos, UInt16 ypos);
 
 #if defined(__cplusplus)
 }

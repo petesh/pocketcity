@@ -24,8 +24,8 @@ PRCTARGETS = $(LANGUAGES:%=$(BINARY)-%.prc)
 LANGDIRS = $(LANGUAGES:%=(OBJDIR)/%)
 
 .PHONY: all debug clean cheat hires dhires
-.PRECIOUS: %.stm $(OBJDIR)/%-lang $(OBJDIR)/%-lang/game.stm \
-		$(OBJDIR) .temp .temp-%
+.PRECIOUS: %.ro $(OBJDIR)/%-lang $(OBJDIR)/%-lang/game.ro \
+		$(OBJDIR) .temp-%
 
 TEMPENDS=$(LANGUAGES)
 TEMPDIRS:=$(TEMPENDS:%=.temp-%)
@@ -65,9 +65,9 @@ sony dsony: SONY=1
 CFLAGS += $(AXCFLAGS) $(BXCFLAGS) $(CXCFLAGS)
 
 # the different language versions
-$(BINARY)-%.prc: $(OBJDIR) $(OBJDIR)/pcity $(OBJDIR)/%-lang/game.stm
+$(BINARY)-%.prc: $(OBJDIR) $(OBJDIR)/pcity $(OBJDIR)/%-game.ro
 	$(BUILDPRC) -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
-		$(OBJDIR)/pcity $(OBJDIR)/$*-lang/*.bin .temp/*.bin
+		$(OBJDIR)/pcity $(OBJDIR)/$*-game.ro version.ro touch.ro
 
 $(OBJDIR)/pcity-sections.o: $(OBJDIR)/pcity-sections.s
 	$(CC) -c $< -o $@
@@ -76,17 +76,16 @@ $(OBJDIR)/pcity-sections.s $(OBJDIR)/pcity-sections.ld: pcity.def
 	$(MULTIGEN) -b $(OBJDIR)/pcity-sections pcity.def
 
 # Language
-$(OBJDIR)/%-lang/game.stm: $(OBJDIR) $(OBJDIR)/%-lang \
+$(OBJDIR)/%-game.ro: $(OBJDIR) game.rcp langs.rcp \
 		game.rcp langs.rcp simcity_resconsts.h graphic/pcity.bmp \
-		graphic/pcity-hd.bmp graphic/pcity-color.bmp graphic/pcity-color-hd.bmp \
+		graphic/pcity-hd.bmp graphic/pcity-color.bmp \
+		graphic/pcity-color-hd.bmp \
 		graphic/pcitysmall.bmp graphic/pcitysmall-hd.bmp \
 		graphic/pcitysmall-color.bmp graphic/pcitysmall-color-hd.bmp
 	@$(AWK) -v DEBUG=$(DEBUG) -v HIRES=$(HIRES) \
 		-v SONY=$(SONY) -f filter.awk \
-		game.rcp > $(OBJDIR)/$*-lang/ngame.rcp
-	$(RC.rcp) -L $* $(OBJDIR)/$*-lang/ngame.rcp $(OBJDIR)/$*-lang
-	@cat $(OBJDIR)/$*-lang/ngame.rcp > $@ && \
-		rm -f $(OBJDIR)/$*-lang/ngame.rcp
+		game.rcp > $(OBJDIR)/$*-ngame.rcp
+	$(RC.rcp) -L $* $(OBJDIR)/$*-ngame.rcp $(OBJDIR)/$*-game.ro
 
 $(OBJDIR)/%-lang:
 	mkdir -p $@

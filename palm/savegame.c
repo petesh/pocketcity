@@ -70,7 +70,7 @@ UIClearAutoSaveSlot(void)
 void
 UISaveMyCity(void)
 {
-	SaveGameByName(game.cityname);
+	SaveGameByName((char *)game.cityname);
 }
 
 /*!
@@ -79,7 +79,7 @@ UISaveMyCity(void)
 void
 UISaveAutoGame(void)
 {
-	SetAutoSave(game.cityname);
+	SetAutoSave((char *)game.cityname);
 	UISaveMyCity();
 }
 
@@ -209,7 +209,7 @@ cnCreateButtonPressed(void)
 {
 	char *pGameName;
 	FormPtr form;
-	Int8 level = 0;
+	UInt8 level = 0;
 	UInt8 width;
 	UInt8 height;
 	FieldPtr fp;
@@ -259,8 +259,8 @@ cnCreateButtonPressed(void)
 	if (pGameName != NULL) {
 		MemSet(game.cityname, CITYNAMELEN, '\0');
 		StrNCopy((char *)game.cityname, pGameName, CITYNAMELEN);
-		while (GameExists(game.cityname)) {
-			int slen = StrLen(game.cityname);
+		while (GameExists((char *)game.cityname)) {
+			UInt16 slen = StrLen((char *)game.cityname);
 			if (slen < CITYNAMELEN-1) {
 				game.cityname[slen-1] = '0' - 1;
 				game.cityname[slen] = '\0';
@@ -268,9 +268,9 @@ cnCreateButtonPressed(void)
 			}
 			game.cityname[slen - 1]++;
 		}
-		CreateNewSaveGame(game.cityname);
+		CreateNewSaveGame((char *)game.cityname);
 		CleanSaveGameList();
-		if (LoadGameByName(game.cityname) != -1) {
+		if (LoadGameByName((char *)game.cityname) != -1) {
 			FrmEraseForm(form);
 			form = FrmGetFormPtr(formID_files);
 			if (form != NULL) {
@@ -309,7 +309,7 @@ cityNewSetup(FormPtr form)
 		StrPrintF((char *)pText, "%u", 100);
 		MemHandleUnlock(hText);
 		FldSetTextHandle((FieldPtr)GetObjectPtr(form,
-		    fieldID_width + i), hText);
+		    (UInt16)(fieldID_width + i)), hText);
 	}
 
 	return (form);

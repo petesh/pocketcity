@@ -25,6 +25,15 @@ EXPORT void InitGameStruct(void);
 EXPORT void DrawGame(Int8 full);
 EXPORT void PostLoadGame(void);
 
+/*!
+ * \brief set the map size
+ *
+ * Does not allocate any extra memory.
+ * \param X the new map X size
+ * \param Y the new map Y size
+ */
+EXPORT void setMapSize(UInt8 X, UInt8 y);
+
 #if defined(__cplusplus)
 }
 #endif

@@ -351,7 +351,7 @@ typedef Int16 (*carryfnarg_t)(welem_t, void *);
  * \param dirs the directions to check
  * \return true if the direction passed is of the correct type
  */
-EXPORT UInt8 CheckNextTo(Int32 pos, UInt8 dirs, carryfn_t checkfn);
+EXPORT UInt8 CheckNextTo(UInt32 pos, UInt8 dirs, carryfn_t checkfn);
 
 /*!
  * \brief check if one of the zones around it is of a certain type.
@@ -361,7 +361,7 @@ EXPORT UInt8 CheckNextTo(Int32 pos, UInt8 dirs, carryfn_t checkfn);
  * \param cfarg argument for the check function
  * \return the directions that match using the check function.
  */
-EXPORT UInt8 CheckNextTo1(Int32 pos, UInt8 dirs, carryfnarg_t checkfn,
+EXPORT UInt8 CheckNextTo1(UInt32 pos, UInt8 dirs, carryfnarg_t checkfn,
     void *cfarg);
 
 /*!
@@ -391,8 +391,8 @@ void endSimulation(void);
 #define	setScratch(i) orWorldFlags((i), SCRATCHBIT)
 #define	unsetScratch(i) andWorldFlags((i), (selem_t)~SCRATCHBIT)
 #define	clearScratch() { \
-	long i = 0; \
-	for (; i < MapMul(); i++) unsetScratch(i); \
+	UInt32 XXX = 0; \
+	for (; XXX < MapMul(); XXX++) unsetScratch(XXX); \
 }
 
 #endif /* _SIMULATION_H_ */

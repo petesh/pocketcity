@@ -99,8 +99,8 @@ hMap(EventPtr event)
 		    event->screenX <= (getMapWidth() + StartX) &&
 		    event->screenY >= StartY &&
 		    event->screenY <= (getMapHeight() + StartY)) {
-			Int16 x = event->screenX - StartX;
-			Int16 y = event->screenY - StartY;
+			UInt16 x = (UInt16)(event->screenX - StartX);
+			UInt16 y = (UInt16)(event->screenY - StartY);
 			Goto(x, y, true);
 			FrmGotoForm(formID_pocketCity);
 			handled = true;
@@ -211,7 +211,7 @@ RenderMaps(void)
 	WinHandle wh;
 	WinHandle swh;
 	Err e;
-	char *addr = NULL;
+	UInt8 *addr = NULL;
 	int shift = 0;
 	UInt32 depth;
 	char mapRenderString[80];
@@ -221,9 +221,9 @@ RenderMaps(void)
 
 	ResGetString(si_maprender, mapRenderString, 79);
 
-	WinPaintChars(mapRenderString, StrLen(mapRenderString), 20, 20);
+	WinPaintChars(mapRenderString, (Int16)StrLen(mapRenderString), 20, 20);
 	StrPrintF(perc, "%d%%", 0);
-	WinPaintChars(perc, StrLen(perc), 20, 40);
+	WinPaintChars(perc, (Int16)StrLen(perc), 20, 40);
 
 	wh = WinCreateOffscreenWindow(getMapWidth(), getMapHeight(),
 	    screenFormat, &e);
@@ -240,7 +240,7 @@ RenderMaps(void)
 
 	if (!IsNewROM()) {
 		/* Draw On The Bitmap Using direct write */
-		addr = (char *)wh->displayAddrV20;
+		addr = (UInt8 *)wh->displayAddrV20;
 	}
 	depth = getDepth();
 
@@ -275,7 +275,7 @@ RenderMaps(void)
 			int prc = (int)(( (long)posits.y * 100 ) /
 			    getMapHeight());
 			StrPrintF(perc, "%d%%", prc);
-			WinPaintChars(perc, StrLen(perc), 20, 40);
+			WinPaintChars(perc, (Int16)StrLen(perc), 20, 40);
 		}
 		for (posits.x = 0; posits.x < getMapWidth(); posits.x++) {
 			int wt = getWorld(WORLDPOS(posits.x, posits.y));
@@ -308,12 +308,10 @@ RenderMaps(void)
 				case 1:
 					if (wt == Z_DIRT) {
 						*addr &=
-						    (unsigned char)
-						    ~(1U << shift);
+						    (UInt8)~(1U << shift);
 					} else {
 						*addr |=
-						    (unsigned char)
-						    (1U << shift);
+						    (UInt8)(1U << shift);
 					}
 					shift++;
 					if ((shift > 8)) {
@@ -323,16 +321,16 @@ RenderMaps(void)
 					break;
 				case 4:
 					if (posits.x & 0x1) { /* Low nibble */
-						*addr &= (unsigned char)0xf0;
+						*addr &= (UInt8)0xf0;
 						*addr |= cc;
 						addr++;
 					} else { /* high nibble */
-						*addr &= (unsigned char)0x0f;
-						*addr |= cc << 4;
+						*addr &= (UInt8)0x0f;
+						*addr |= (UInt8)(cc << 4);
 					}
 					break;
 				default:
-					*addr++ = cc;
+					*addr++ = (UInt8)cc;
 					break;
 				}
 			} else {
@@ -362,7 +360,7 @@ UIMapResize(void)
 }
 
 void
-UIDrawMapStatus(UInt16 xpos __attribute__((unused)),
+UIPaintMapStatus(UInt16 xpos __attribute__((unused)),
     UInt16 ypos __attribute__((unused)),
     welem_t world __attribute__((unused)),
     selem_t status __attribute__((unused)))
@@ -371,7 +369,7 @@ UIDrawMapStatus(UInt16 xpos __attribute__((unused)),
 }
 
 void
-UIDrawMapField(UInt16 xpos __attribute__((unused)),
+UIPaintMapField(UInt16 xpos __attribute__((unused)),
     UInt16 ypos __attribute__((unused)),
     welem_t world __attribute__((unused)))
 {

@@ -6,15 +6,17 @@
  * the items that can be built.
  */
 
+#include <config.h>
+
 #ifdef PALM
 #include <PalmOS.h>
 #include <simcity.h>
-#include <zakdef.h>
 #else
 #include <sys/types.h>
 #include <stddef.h>
 #include <assert.h>
 #endif
+#include <zakdef.h>
 #include <compilerpragmas.h>
 #include <build.h>
 #include <globals.h>
@@ -24,21 +26,21 @@
 #include <sections.h>
 
 /*! \brief Defines the build function pointer type */
-typedef int (*BuildF)(Int16 xpos, Int16 ypos, welem_t type);
+typedef int (*BuildF)(UInt16 xpos, UInt16 ypos, welem_t type);
 
-static int Build_Road(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
-static int Build_Rail(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
-static int Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
-static int Build_WaterPipe(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
-static int Build_Generic(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
-static int Build_Generic4(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
-static int Build_Defence(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
+static int Build_Road(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
+static int Build_Rail(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
+static int Build_PowerLine(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
+static int Build_WaterPipe(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
+static int Build_Generic(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
+static int Build_Generic4(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
+static int Build_Defence(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
 
-static void CreateForest(UInt32 pos, Int16 size) BUILD_SECTION;
-static void RemoveDefence(Int16 xpos, Int16 ypos) BUILD_SECTION;
+static void CreateForest(UInt32 pos, UInt16 size) BUILD_SECTION;
+static void RemoveDefence(UInt16 xpos, UInt16 ypos) BUILD_SECTION;
 static int CantBulldoze(welem_t type) BUILD_SECTION;
 static UInt16 blockSize(welem_t type) BUILD_SECTION;
-static void Doff(welem_t base, welem_t node, Int16 *x, Int16 *y) BUILD_SECTION;
+static void Doff(welem_t base, welem_t node, UInt16 *x, UInt16 *y) BUILD_SECTION;
 static Int16 IsBulldozable(welem_t zone) BUILD_SECTION;
 
 static Int16 SpendMoney(UInt32 howMuch);
@@ -54,7 +56,7 @@ static const struct _bldStruct {
 	BuildCode bt;	/*!< The code of the item to be built. */
 	BuildF func;	/*!< Function to call. */
 	welem_t type;	/*!< Type of the item (for buildcounts) */
-	UInt16 gridsToUpdate; /*!< Grids to update as a result of adding
+	UInt8 gridsToUpdate; /*!< Grids to update as a result of adding
 				the item to the simulation */
 } buildStructure[] = {
 	{ Be_Bulldozer, Build_Bulldoze, 0, GRID_ALL },
@@ -86,7 +88,7 @@ static const struct _bldStruct {
  * location.
  */
 int
-BuildSomething(Int16 xpos, Int16 ypos)
+BuildSomething(UInt16 xpos, UInt16 ypos)
 {
 	UInt16 item = UIGetSelectedBuildItem();
 	struct _bldStruct *be;
@@ -105,8 +107,8 @@ BuildSomething(Int16 xpos, Int16 ypos)
 		elt = GetGraphicNumber(WORLDPOS(xpos, ypos));
 		UnlockZone(lz_world);
 		AddGridUpdate(be->gridsToUpdate);
-		UIDrawMapField(xpos, ypos, elt);
-		UIDrawMapStatus(xpos, ypos, elt, 0);
+		UIPaintMapField(xpos, ypos, elt);
+		UIPaintMapStatus(xpos, ypos, elt, 0);
 		return (1);
 	}
 	return (0);
@@ -120,7 +122,7 @@ BuildSomething(Int16 xpos, Int16 ypos)
  * \param ypos the Y position on the map
  */
 static void
-RemoveDefence(Int16 xpos, Int16 ypos)
+RemoveDefence(UInt16 xpos, UInt16 ypos)
 {
 	int i;
 
@@ -167,17 +169,17 @@ static const struct buildCounters {
  * \param type type of defence unit to build
  */
 static int
-Build_Defence(Int16 xpos, Int16 ypos, welem_t type)
+Build_Defence(UInt16 xpos, UInt16 ypos, welem_t type)
 {
-	int oldx;
-	int oldy;
+	UInt16 oldx;
+	UInt16 oldy;
 	UInt16 i;
-	int sel = -1;
-	int newactive = 1;
+	Int16 sel = -1;
+	UInt16 newactive = 1;
 	UInt16 start;
 	UInt16 end;
 	UInt16 max;
-	int nCounter;
+	UInt16 nCounter;
 	const struct buildCounters *cnt;
 	int rv = 0;
 
@@ -217,7 +219,7 @@ Build_Defence(Int16 xpos, Int16 ypos, welem_t type)
 	/* find an empty slot for the new defence unit */
 	for (i = start; i <= max; i++) {
 		if (game.units[i].active == 0) {
-			sel = i;
+			sel = (Int16)i;
 			break;
 		}
 	}
@@ -225,7 +227,7 @@ Build_Defence(Int16 xpos, Int16 ypos, welem_t type)
 		/* none found - start from the beginning */
 		for (i = start; i <= max; i++) {
 			if (game.units[i].active == 1) {
-				sel = i;
+				sel = (Int16)i;
 				newactive = 2;
 				break;
 			} else {
@@ -240,7 +242,7 @@ Build_Defence(Int16 xpos, Int16 ypos, welem_t type)
 				game.units[i].active = 1;
 			}
 		}
-		sel = start;
+		sel = (Int16)start;
 		newactive = 2;
 	}
 
@@ -287,7 +289,7 @@ blockSize(welem_t type)
  * \todo Prohibit the rezoning of Wasteland.
  */
 int
-Build_Bulldoze(Int16 xpos, Int16 ypos, welem_t _type __attribute__((unused)))
+Build_Bulldoze(UInt16 xpos, UInt16 ypos, welem_t _type __attribute__((unused)))
 {
 	int rv = 0;
 	welem_t type;
@@ -319,21 +321,21 @@ end:
  * \param y the y position
  */
 static void
-Doff(welem_t base, welem_t node, Int16 *x, Int16 *y)
+Doff(welem_t base, welem_t node, UInt16 *x, UInt16 *y)
 {
-	*x -= (node - base) % 2;
-	*y -= (node - base) / 2;
+	*x -= (UInt16)((node - base) % 2);
+	*y -= (UInt16)((node - base) / 2);
 }
 
 void
-Build_Destroy(Int16 xpos, Int16 ypos)
+Build_Destroy(UInt16 xpos, UInt16 ypos)
 {
 	welem_t type;
 	/* Destroy a 1x1 square area */
-	int x_destroy = 1;
-	int tx_destroy = 1;
-	int y_destroy = 1;
-	int ty_destroy = 1;
+	UInt16 x_destroy = 1;
+	UInt16 tx_destroy = 1;
+	UInt16 y_destroy = 1;
+	UInt16 ty_destroy = 1;
 
 	type = getWorld(WORLDPOS(xpos, ypos));
 	RemoveDefence(xpos, ypos);
@@ -526,12 +528,12 @@ IsBulldozable(welem_t zone)
  * \param type type of item to be built
  */
 static int
-Build_Generic4(Int16 xpos, Int16 ypos, welem_t type)
+Build_Generic4(UInt16 xpos, UInt16 ypos, welem_t type)
 {
 	unsigned char worldItem;
 	unsigned long toSpend = 0;
-	int loopx, loopy;
-	int canbuild = 1;
+	UInt16 loopx, loopy;
+	Int8 canbuild = 1;
 	int rv = 0;
 
 	struct _costMappings *cmi = (struct _costMappings *)getIndexOf(
@@ -591,10 +593,10 @@ Build_Generic4(Int16 xpos, Int16 ypos, welem_t type)
  * \param type type of item to be built
  */
 static int
-Build_Generic(Int16 xpos, Int16 ypos, welem_t type)
+Build_Generic(UInt16 xpos, UInt16 ypos, welem_t type)
 {
-	unsigned char worldItem;
-	unsigned long toSpend = 0;
+	welem_t worldItem;
+	UInt32 toSpend = 0;
 	int rv = 0;
 
 	struct _costMappings *cmi = (struct _costMappings *)getIndexOf(
@@ -650,10 +652,10 @@ Build_Generic(Int16 xpos, Int16 ypos, welem_t type)
  * \param type unused in this context
  */
 static int
-Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
+Build_Road(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 {
-	int old;
-	unsigned long toSpend = 0;
+	welem_t old;
+	UInt32 toSpend = 0;
 	int rv = 0;
 
 	LockZone(lz_world);
@@ -761,10 +763,10 @@ leaveme:
  * \param type unused in this context
  */
 static int
-Build_Rail(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
+Build_Rail(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 {
-	int old;
-	unsigned long toSpend = 0;
+	welem_t old;
+	UInt32 toSpend = 0;
 	int rv = 0;
 
 	LockZone(lz_world);
@@ -874,10 +876,10 @@ leaveme:
  * \param type unused for this function
  */
 static int
-Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
+Build_PowerLine(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 {
-	int old;
-	unsigned long toSpend = 0;
+	welem_t old;
+	UInt32 toSpend = 0;
 	int rv = 0;
 
 	LockZone(lz_world);
@@ -943,10 +945,10 @@ leaveme:
  * \param type unused for this function
  */
 static int
-Build_WaterPipe(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
+Build_WaterPipe(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 {
-	int old;
-	unsigned long toSpend = 0;
+	welem_t old;
+	UInt32 toSpend = 0;
 	welem_t elt = 0;
 	int rv = 0;
 
@@ -1016,12 +1018,10 @@ SpendMoney(UInt32 howMuch)
 		return (0);
 
 	WriteLog("Spend Money: %ld\n", howMuch);
-	decCredits(howMuch);
+	decCredits((Int32)howMuch);
 
 	/* now redraw the credits */
-	UIInitDrawing();
-	UIDrawCredits();
-	UIFinishDrawing();
+	addGraphicUpdate(gu_credits);
 	return (1);
 }
 
@@ -1031,22 +1031,22 @@ SpendMoney(UInt32 howMuch)
 void
 CreateFullRiver(void)
 {
-	int i, j, k, width;
+	UInt16 i, j, k, width;
 	int axis;
-	int kmax;
+	UInt16 kmax;
 
-	width = GetRandomNumber(5) + 5;
-	axis = GetRandomNumber(1);
+	width = (UInt16)(GetRandomNumber(5) + 5);
+	axis = (int)GetRandomNumber(1);
 	kmax = axis ? getMapWidth() : getMapHeight();
 
 	/* This is the start position of the center of the river */
-	j = GetRandomNumber(kmax);
+	j = (UInt16)GetRandomNumber(kmax);
 
 	LockZone(lz_world);
 
 	for (i = 0; i < kmax; i++) {
 		for (k = j; k < (width + j); k++) {
-			if ((k >= 0) && (k < kmax)) {
+			if (k < kmax) {
 				if (axis)
 					setWorldAndFlag(WORLDPOS(i, k),
 					    Z_REALWATER, 0);
@@ -1091,13 +1091,13 @@ CreateFullRiver(void)
 void
 CreateForests(void)
 {
-	int i, j, k;
-	unsigned long int pos;
+	UInt16 i, j, k;
+	UInt32 pos;
 
-	j = GetRandomNumber(6) + 7;
+	j = (UInt16)(GetRandomNumber(6) + 7);
 	for (i = 0; i < j; i++) {
-		k = GetRandomNumber(6) + 8;
-		pos = GetRandomNumber(MapMul());
+		k = (UInt16)(GetRandomNumber(6) + 8);
+		pos = (UInt16)GetRandomNumber(MapMul());
 		CreateForest(pos, k);
 	}
 }
@@ -1108,19 +1108,19 @@ CreateForests(void)
  * \param size Radius of the forest to paint.
  */
 static void
-CreateForest(UInt32 pos, Int16 size)
+CreateForest(UInt32 pos, UInt16 size)
 {
-	int x, y, i, j, s;
+	UInt16 x, y, i, j, s;
 
-	x = pos % getMapWidth();
-	y = pos / getMapWidth();
+	x = (UInt16)(pos % getMapWidth());
+	y = (UInt16)(pos / getMapWidth());
 	LockZone(lz_world);
-	i = x;
-	j = y;
+	i = x - size > 0 ? x - size : 0;
+	j = y - size > 0 ? y - size : 0;
 
-	for (i = x - size; i <= x + size; i++) {
+	for (; i <= x + size; i++) {
 		for (j = y - size; j <= y + size; j++) {
-			if (i < 0 || i >= getMapWidth() || j < 0 ||
+			if (i >= getMapWidth() ||
 			    j >= getMapHeight())
 				continue;
 			if (getWorld(WORLDPOS(i, j)) != Z_DIRT)
@@ -1133,6 +1133,7 @@ CreateForest(UInt32 pos, Int16 size)
 				vgame.BuildCount[bc_count_trees]++;
 			}
 		}
+		j = y - size > 0 ? y - size : 0;
 	}
 	UnlockZone(lz_world);
 }

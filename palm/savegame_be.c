@@ -106,8 +106,8 @@ void
 ResetViewable(void)
 {
 	WriteLog("Reset viewable\n");
-	setVisibleX(sWidth / gameTileSize());
-	setVisibleY((sHeight / gameTileSize()) - 2);
+	setVisibleX((UInt16)(sWidth / gameTileSize()));
+	setVisibleY((UInt16)((sHeight / gameTileSize()) - 2));
 }
 
 /*!
@@ -133,7 +133,7 @@ ReadCityRecord(MemHandle rec, GameStruct *gs, MemPtr *wp)
 		MemMove((void *)gs, ptemp, sizeof (GameStruct));
 		size = gs->mapx * gs->mapy * 2;
 		*wp = gRealloc(*wp, size);
-		MemMove(*wp, ptemp + sizeof (GameStruct), size);
+		MemMove(*wp, ptemp + sizeof (GameStruct), (Int32)size);
 		rv = 0;
 	} else {
 		FrmAlert(alertID_invalidSaveVersion);
@@ -203,7 +203,7 @@ SaveGameByIndex(UInt16 index)
 	    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 	DmCloseDatabase(db);
-	return (index);
+	return ((int)index);
 }
 
 int
@@ -506,7 +506,7 @@ CopyCity(Char *name)
 			mhp = DmNewRecord(db, &reci, len);
 			pmhp = MemHandleLock(mhp);
 			*newCity = '\0';
-			StrNCat(newCity, pRec->cityname, CITYNAMELEN);
+			StrNCat(newCity, (char *)pRec->cityname, CITYNAMELEN);
 			StrNCat(newCity, " Copy", CITYNAMELEN);
 			DmWrite(pmhp, 0, pRec, len);
 			DmStrCopy(pmhp, offsetof(GameStruct, cityname),
@@ -578,7 +578,7 @@ CityNames(int *count)
 		}
 	}
 	cities[nsIndex] = NULL;
-	*count = nsIndex;
+	*count = (int)nsIndex;
 	if (nsIndex > 10)
 	SysQSort(cities, nsIndex, sizeof (*cities),
 		comparator, CITYNAMELEN);

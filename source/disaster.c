@@ -4,6 +4,9 @@
  * This module contains functions that are used to create disasters in the
  * simulation.
  */
+
+#include <config.h>
+
 #include <handler.h>
 #include <drawing.h>
 #include <zakdef.h>
@@ -21,19 +24,19 @@
 #include <stdio.h>
 #endif
 
-static void FireSpread(Int16 x, Int16 y) DISASTER_SECTION;
-static void CreateWaste(Int16 x, Int16 y) DISASTER_SECTION;
-static UInt16 GetDefenceValue(Int16 xpos, Int16 ypos) DISASTER_SECTION;
-static UInt16 ContainsDefence(Int16 x, Int16 y) DISASTER_SECTION;
-static void MonsterCheckSurrounded(Int16 i) DISASTER_SECTION;
-static void CreateMeteor(Int16 x, Int16 y, Int16 size) DISASTER_SECTION;
+static void FireSpread(UInt16 x, UInt16 y) DISASTER_SECTION;
+static void CreateWaste(UInt16 x, UInt16 y) DISASTER_SECTION;
+static UInt16 GetDefenceValue(UInt16 xpos, UInt16 ypos) DISASTER_SECTION;
+static UInt16 ContainsDefence(UInt16 x, UInt16 y) DISASTER_SECTION;
+static void MonsterCheckSurrounded(UInt16 i) DISASTER_SECTION;
+static void CreateMeteor(UInt16 x, UInt16 y, Int16 size) DISASTER_SECTION;
 
 void
 DoNastyStuffTo(welem_t type, UInt16 probability)
 {
 	/* nasty stuff means: turn it into wasteland */
-	long unsigned int randomTile;
-	int i, x, y;
+	UInt32 randomTile;
+	UInt16 i, x, y;
 
 	if (GetRandomNumber(probability) != 0)
 		return;
@@ -43,8 +46,8 @@ DoNastyStuffTo(welem_t type, UInt16 probability)
 		randomTile = GetRandomNumber(MapMul());
 		if (getWorld(randomTile) == type) {
 			/* wee, let's destroy something */
-			x = randomTile % getMapWidth();
-			y = randomTile / getMapWidth();
+			x = (UInt16)(randomTile % getMapWidth());
+			y = (UInt16)(randomTile / getMapWidth());
 			CreateWaste(x, y);
 			break;
 		}
@@ -55,9 +58,9 @@ DoNastyStuffTo(welem_t type, UInt16 probability)
 void
 DoRandomDisaster(void)
 {
-	unsigned long randomTile;
-	int i, x, y, type, random;
-	int disaster_level;
+	UInt32 randomTile;
+	Int16 i, x, y, type, random;
+	UInt8 disaster_level;
 
 	disaster_level = getDisasterLevel();
 	/* for those who can't handle the game (truth?) */
@@ -72,10 +75,10 @@ DoRandomDisaster(void)
 		if (type != Z_DIRT &&
 			type != Z_REALWATER &&
 			type != Z_CRATER) {
-			x = randomTile % getMapWidth();
-			y = randomTile / getMapHeight();
+			x = (Int16)(randomTile % getMapWidth());
+			y = (Int16)(randomTile / getMapHeight());
 			/* TODO: should depend on difficulty */
-			random = GetRandomNumber(1000 / disaster_level);
+			random = (Int16)GetRandomNumber(1000 / disaster_level);
 			WriteLog("Random Disaster: %d\n", (int)random);
 			if (random < 10 && vgame.BuildCount[bc_fire] == 0) {
 				DoSpecificDisaster(diFireOutbreak);
@@ -98,19 +101,19 @@ DoRandomDisaster(void)
 void
 DoSpecificDisaster(disaster_t disaster)
 {
-	unsigned long randomTile;
-	unsigned int x, y;
-	int ce = 0;
-	int i = 0;
+	UInt32 randomTile;
+	UInt16 x, y;
+	Int16 ce = 0;
+	Int16 i = 0;
 
 	while (i++ < 400 && ce == 0) {
 		randomTile = GetRandomNumber(MapMul());
-		x = randomTile % getMapWidth();
-		y = randomTile / getMapHeight();
+		x = (UInt16)(randomTile % getMapWidth());
+		y = (UInt16)(randomTile / getMapHeight());
 
 		switch (disaster) {
 		case diFireOutbreak:
-			ce = BurnField(x, y, 0);
+			ce = BurnField(x, y, (UInt16)0);
 			break;
 		case diPlantExplosion:
 			ce = 0;
@@ -138,7 +141,8 @@ Int16
 UpdateDisasters(void)
 {
 	/* return false if no disasters are found */
-	int i, j, type;
+	UInt16 i, j;
+	welem_t type;
 	int retval = 0;
 
 	LockZone(lz_world);
@@ -181,20 +185,20 @@ UpdateDisasters(void)
  * \param y position on vertical of map to spread fire
  */
 static void
-FireSpread(Int16 x, Int16 y)
+FireSpread(UInt16 x, UInt16 y)
 {
 	if (x > 0)
-		BurnField(x - 1, y, 0);
-	if (x < getMapWidth() - 1)
-		BurnField(x + 1, y, 0);
+		BurnField((UInt16)(x - 1), (UInt16)y, 0);
+	if (x < (UInt16)(getMapWidth() - 1))
+		BurnField((UInt16)(x + 1), (UInt16)y, 0);
 	if (y > 0)
-		BurnField(x, y - 1, 0);
-	if (y < getMapHeight() - 1)
-		BurnField(x, y + 1, 0);
+		BurnField((UInt16)x, (UInt16)(y - 1), 0);
+	if (y < (UInt16)(getMapHeight() - 1))
+		BurnField((UInt16)x, (UInt16)(y + 1), 0);
 }
 
 Int16
-BurnField(Int16 x, Int16 y, Int16 forceit)
+BurnField(UInt16 x, UInt16 y, Int16 forceit)
 {
 	welem_t node;
 	int rv = 0;
@@ -225,7 +229,7 @@ BurnField(Int16 x, Int16 y, Int16 forceit)
 }
 
 Int16
-CreateMonster(Int16 x, Int16 y)
+CreateMonster(UInt16 x, UInt16 y)
 {
 	welem_t node;
 	int rv = 0;
@@ -235,7 +239,7 @@ CreateMonster(Int16 x, Int16 y)
 	if (node != Z_REALWATER && node != Z_CRATER) {
 		game.objects[obj_monster].x = x;
 		game.objects[obj_monster].y = y;
-		game.objects[obj_monster].dir = GetRandomNumber(8);
+		game.objects[obj_monster].dir = (UInt16)GetRandomNumber(8);
 		game.objects[obj_monster].active = 1;
 		DrawField(x, y);
 		rv = 1;
@@ -245,7 +249,7 @@ CreateMonster(Int16 x, Int16 y)
 }
 
 Int16
-CreateDragon(Int16 x, Int16 y)
+CreateDragon(UInt16 x, UInt16 y)
 {
 	welem_t node;
 	int rv = 0;
@@ -255,7 +259,7 @@ CreateDragon(Int16 x, Int16 y)
 	if (node != Z_REALWATER && node != Z_CRATER) {
 		game.objects[obj_dragon].x = x;
 		game.objects[obj_dragon].y = y;
-		game.objects[obj_dragon].dir = GetRandomNumber(8);
+		game.objects[obj_dragon].dir = (UInt16)GetRandomNumber(8);
 		game.objects[obj_dragon].active = 1;
 		DrawField(x, y);
 		rv = 1;
@@ -269,7 +273,7 @@ CreateDragon(Int16 x, Int16 y)
  * \param i index of monster to check.
  */
 static void
-MonsterCheckSurrounded(Int16 i)
+MonsterCheckSurrounded(UInt16 i)
 {
 	if (GetDefenceValue(game.objects[i].x, game.objects[i].y) >= 11 ||
 		GetRandomNumber(50) < 2) {
@@ -285,7 +289,7 @@ MonsterCheckSurrounded(Int16 i)
  * \return the 'level' of the defence surrounding the position.
  */
 static UInt16
-GetDefenceValue(Int16 xpos, Int16 ypos)
+GetDefenceValue(UInt16 xpos, UInt16 ypos)
 {
 	/* police = 2 */
 	/* firemen = 3 */
@@ -311,7 +315,7 @@ GetDefenceValue(Int16 xpos, Int16 ypos)
  * \return the level of defence that this node provides.
  */
 static UInt16
-ContainsDefence(Int16 x, Int16 y)
+ContainsDefence(UInt16 x, UInt16 y)
 {
 	int i;
 
@@ -337,7 +341,7 @@ ContainsDefence(Int16 x, Int16 y)
 void
 MoveAllObjects(void)
 {
-	int i, x, y;
+	UInt16 i, x, y;
 
 	for (i = 0; i < NUM_OF_OBJECTS; i++) {
 		if (game.objects[i].active != 0) {
@@ -426,11 +430,11 @@ MoveAllObjects(void)
 }
 
 Int16
-MeteorDisaster(Int16 x, Int16 y)
+MeteorDisaster(UInt16 x, UInt16 y)
 {
-	int k;
+	Int16 k;
 
-	k = GetRandomNumber(3) + 1;
+	k = (Int16)GetRandomNumber(3) + 1;
 	CreateMeteor(x, y, k);
 	return (1);
 }
@@ -442,15 +446,17 @@ MeteorDisaster(Int16 x, Int16 y)
  * \param size size of the meteor
  */
 static void
-CreateMeteor(Int16 x, Int16 y, Int16 size)
+CreateMeteor(UInt16 x, UInt16 y, Int16 size)
 {
-	int i, j;
+	UInt16 j;
+	UInt16 i =  (Int16)(x - size) < 0 ? 0 : (UInt16)(x - size);
 
 	LockZone(lz_world);
 	UILockScreen();
-	for (i = x - size; i <= x + size; i++) {
-		for (j = y - size; j <= y + size; j++) {
-			if (i >= 0 && i < getMapWidth() && j >= 0 &&
+	for (; i <= x + size; i++) {
+		j = (Int16)(y - size) < 0 ? 0 : (UInt16)(y - size);
+		for (; j <= y + size; j++) {
+			if (i < getMapWidth() &&
 			    j < getMapHeight()) {
 				if (GetRandomNumber(5) < 2) {
 					if (getWorld(WORLDPOS(i, j)) !=
@@ -481,7 +487,7 @@ CreateMeteor(Int16 x, Int16 y, Int16 size)
  * \param y y position to affect
  */
 static void
-CreateWaste(Int16 x, Int16 y)
+CreateWaste(UInt16 x, UInt16 y)
 {
 	welem_t node;
 

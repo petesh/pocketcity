@@ -60,7 +60,7 @@ $(TARGETS) $(DTARGETS): VER $(COLORTARGETS)
 		OBJDIR=.out-$(TDIR) BINPRE=$(TDIR) $@
 
 clean: clean-graphic
-	rm -rf .temp-* $(BIN)-*.rcp *.pdb *.prc
+	rm -rf *.ro $(BIN)-*.rcp *.pdb *.prc
 	$(MAKE) -f Makefile-dowork BINARY=$(BINNAME) \
 		OBJDIR=.out-$(TDIR) $@
 
@@ -69,21 +69,20 @@ clean-%:
 	
 # Build Stamping
 
-VER: version.stm touch.stm
+VER: version.ro touch.ro
 
 .temp:
 	@mkdir -p .temp
 
-version.stm: .temp ../CHANGELOG
+version.ro: ../CHANGELOG
 	@echo "VERSION 1 \"$(VERSION)\"" > version.rcp
-	$(RC.rcp) version.rcp .temp
+	$(RC.rcp) version.rcp 
 	@rm -f version.rcp
-	@echo touching $(VERSION)>$@
 
-touch.stm: .temp
+touch.ro: FRC
 	@echo "#include \"simcity_resconsts.h\"" > touch.rcp
 	@printf "STRING ID StrID_build \"$(DSTAMP)\"" >> touch.rcp
-	$(RC.rcp) touch.rcp .temp
+	$(RC.rcp) touch.rcp
 	@rm -f touch.rcp
 
 # Building zip/gz files
@@ -106,11 +105,11 @@ dist nearlylive: all-nextdir $(NDTARGETS)
 # the files must be called this:
 #	*-?-?.rcp => .temp-?
 #
-%.stm: %.rcp
+%.ro: %.rcp
 	@cols=$(word 2, $(subst -, ,$*)); \
 	dens=$(word 3, $(subst -, ,$*)); \
-	echo $(RC.rcp) $(@:%.stm=%.rcp) .temp-$$cols-$$dens; \
-	$(RC.rcp) $(@:%.stm=%.rcp) .temp-$$cols-$$dens
+	echo $(RC.rcp) $(@:%.ro=%.rcp) $$cols-$$dens.ro; \
+	$(RC.rcp) $(@:%.ro=%.rcp) $$cols-$$dens.ro
 
 %.rcp: $(STUBS)
 	@cols=$(word 2, $(subst -, ,$*)); \
@@ -121,10 +120,9 @@ dist nearlylive: all-nextdir $(NDTARGETS)
 	./generatercp.sh -c $$cols -d $$dens $(STUBS) $@
 
 # The tile databases
-pcity-%.pdb: pcity-%.stm
+pcity-%.pdb: pcity-%.ro
 	$(BUILDPRC) --no-check-resources --bundle -o $@ -n $(DBNAME) \
-		-c $(PROGTOKEN) -t $(COLORDBTOKEN) .temp-$*/*.bin
-
+		-c $(PROGTOKEN) -t $(COLORDBTOKEN) $*.ro
 
 %-nextdir:
 	cd graphic && $(MAKE) $(@:%-nextdir=%)

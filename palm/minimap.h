@@ -49,3 +49,11 @@ void minimapPaint(void);
  */
 Int8
 minimapIsTapped(PointType *point, PointType *percentage);
+
+/*!
+ * \brief get the intersection of the other rectangle and the dest rectangle
+ * \param other the other rectangle (usually the play area)
+ * \param dest the overlap rectangle
+ */
+void
+minimapIntersect(const RectangleType *other, RectangleType *dest);

@@ -22,7 +22,7 @@ MemPtr palm_malloc(UInt32 size);
 #define gCalloc palm_calloc
 #define gMemSet(P,L,C) MemSet(P,L,C)
 
-#define QSort(a,b,c,d)	SysQSort(a, b, c, d, 1)
+#define QSort(a,b,c,d)	SysQSort(a, (UInt16)b, (Int16)c, d, (Int32)1)
 
 #if defined(MEM_DEBUG)
 #define MemHandleResize(M,S) _MemHandleResize(M, S, __FILE__, __LINE__)

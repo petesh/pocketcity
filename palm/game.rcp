@@ -140,6 +140,7 @@ BEGIN
     LABEL "------------" labelID_budget_tot AT (110 PrevTop)
     LABEL "NEXTMONTHBAL" AUTOID AT (RIGHT@108 PrevBottom)
     LABEL "------------" labelID_budget_bal AT (110 PrevTop)
+    GRAFFITISTATEINDICATOR AT (155 155)
 END
 
 MENU ID menu_budget

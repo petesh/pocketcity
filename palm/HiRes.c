@@ -10,6 +10,10 @@
 #include <ErrorBase.h>
 #include <ErrorMgr.h>
 #include <SystemMgr.h>
+/*
+ * Pen Input Manager needs Palmos 5 SDK release 3
+ * which includes support for Dynamic Input Areas (DIA)
+ */
 #include <PenInputMgr.h>
 #include <NotifyMgr.h>
 #include <SysEvtMgr.h>

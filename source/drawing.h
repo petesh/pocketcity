@@ -41,7 +41,7 @@ EXPORT void MoveCursor(dirType direction);
  * \param xpos horizontal position
  * \param ypos vertical position
  */
-EXPORT void DrawField(Int16 xpos, Int16 ypos);
+EXPORT void DrawField(UInt16 xpos, UInt16 ypos);
 
 /*!
  * \brief Draw all zones around the point that is being painted.
@@ -50,7 +50,7 @@ EXPORT void DrawField(Int16 xpos, Int16 ypos);
  * \param xsize the size on the x-axis
  * \param ysize the size on the y-axis
  */
-EXPORT void DrawCross(Int16 xpos, Int16 ypos, Int16 xsize, Int16 ysize);
+EXPORT void DrawCross(UInt16 xpos, UInt16 ypos, UInt16 xsize, UInt16 ysize);
 
 /*!
  * \brief Get the graphic to use for the position in question.
@@ -79,7 +79,7 @@ EXPORT welem_t GetSpecialGraphicNumber(UInt32 pos);
  * \param xpos horizontal position
  * \param ypos vertical position
  */
-EXPORT void DrawFieldWithoutInit(Int16 xpos, Int16 ypos);
+EXPORT void DrawFieldWithoutInit(UInt16 xpos, UInt16 ypos);
 
 /*! \brief codes for goto function */
 typedef enum { goto_plain = 0, goto_center } goto_code;
@@ -93,7 +93,7 @@ typedef enum { goto_plain = 0, goto_center } goto_code;
  * \param y vertical position
  * \param center should I center on this location?
  */
-EXPORT void Goto(Int16 x, Int16 y, goto_code center);
+EXPORT void Goto(UInt16 x, UInt16 y, goto_code center);
 
 #if defined(__cplusplus)
 }

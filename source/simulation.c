@@ -109,9 +109,8 @@ Sim_Distribute_Specific(Int16 gridonly)
 		DoDistribute(GRID_WATER);
 		ClearUpdate(GRID_WATER);
 	}
-	LockZone(lz_world);
-	UIDrawPlayArea();
-	UnlockZone(lz_world);
+	addGraphicUpdate(gu_playarea);
+	addGraphicUpdate(gu_desires);
 }
 
 /*!
@@ -176,7 +175,7 @@ SetSupplied(distrib_t *distrib, UInt32 point)
  * \param status status of node (powered/watered)
  * \return whether node was supplied
  */
-Int16
+static Int16
 SupplyIfPlant(distrib_t *distrib, UInt32 pos, welem_t point, selem_t status)
 {
 	Int16 pt;
@@ -192,7 +191,7 @@ SupplyIfPlant(distrib_t *distrib, UInt32 pos, welem_t point, selem_t status)
 	if (!StackIsEmpty(distrib->needSourceList)) {
 		while (distrib->SourceLeft &&
 		    !StackIsEmpty(distrib->needSourceList)) {
-			pos = StackPop(distrib->needSourceList);
+			pos = (UInt32)StackPop(distrib->needSourceList);
 			distrib->SourceLeft--;
 			SetSupplied(distrib, pos);
 		}
@@ -208,8 +207,8 @@ static void
 DoDistribute(Int16 grid)
 {
 	/* type == GRID_POWER | GRID_POWER */
-	Int32 i, j;
-	Int8 gw;
+	UInt32 i;
+	welem_t gw;
 	distrib_t *distrib = gMalloc(sizeof (distrib_t));
 
 	distrib->SourceLeft = 0;
@@ -234,10 +233,11 @@ DoDistribute(Int16 grid)
 	}
 
 	LockZone(lz_world); /* this lock locks for ALL power subs */
-	for (j = 0; j < MapMul(); j++) {
-		if (distrib->doescarry(getWorld(j)))
-			andWorldFlags(j,
-			    ~(distrib->flagToSet | SCRATCHBIT | PAINTEDBIT));
+	for (i = 0; i < MapMul(); i++) {
+		if (distrib->doescarry(getWorld(i)))
+			andWorldFlags(i,
+			    (selem_t)~(distrib->flagToSet |
+			        SCRATCHBIT | PAINTEDBIT));
 	}
 	for (i = 0; i < MapMul(); i++) {
 		gw = getWorld(i);
@@ -288,7 +288,7 @@ DistributeUnvisited(distrib_t *distrib)
 	UInt8 flag;
 
 	while (!StackIsEmpty(distrib->unvisitedNodes)) {
-		pos = StackPop(distrib->unvisitedNodes);
+		pos = (UInt32)StackPop(distrib->unvisitedNodes);
 		flag = getWorldFlags(pos);
 		if (SupplyIfPlant(distrib, pos, getWorld(pos), flag)) {
 			goto nextneighbor;
@@ -304,7 +304,7 @@ DistributeUnvisited(distrib_t *distrib)
 
 		/* do we have more power left? */
 		if (distrib->SourceLeft <= 0)
-			StackPush(distrib->needSourceList, pos);
+			StackPush(distrib->needSourceList, (Int32)pos);
 		else
 			SetSupplied(distrib, pos);
 
@@ -325,7 +325,7 @@ nextneighbor:
 static void
 AddNeighbors(distrib_t *distrib, UInt32 pos)
 {
-	char cross = DistributeNumberOfSquaresAround(distrib, pos);
+	Int16 cross = DistributeNumberOfSquaresAround(distrib, pos);
 
 	/* if there's "no way out", return */
 	if ((cross & 0x0f) == 0)
@@ -334,16 +334,19 @@ AddNeighbors(distrib_t *distrib, UInt32 pos)
 	distrib->NodesTotal += cross & 0x0f;
 
 	if ((cross & 0x10) == 0x10) {
-		StackPush(distrib->unvisitedNodes, pos-getMapWidth());
+		StackPush(distrib->unvisitedNodes,
+		    (Int32)(pos - getMapWidth()));
 	}
 	if ((cross & 0x20) == 0x20) {
-		StackPush(distrib->unvisitedNodes, pos+1);
+		StackPush(distrib->unvisitedNodes,
+		    (Int32)(pos + 1));
 	}
 	if ((cross & 0x40) == 0x40) {
-		StackPush(distrib->unvisitedNodes, pos+getMapWidth());
+		StackPush(distrib->unvisitedNodes,
+		    (Int32)(pos + getMapWidth()));
 	}
 	if ((cross & 0x80) == 0x80) {
-		StackPush(distrib->unvisitedNodes, pos-1);
+		StackPush(distrib->unvisitedNodes, (Int32)(pos - 1));
 	}
 }
 
@@ -506,7 +509,7 @@ FindZonesForUpgrading(void)
 
 	if (ran_zone == NULL) {
 		max_list = (getMapWidth() < getMapHeight() ? getMapHeight() :
-		    getMapWidth()) * 3;
+		    (UInt16)(getMapWidth())) * 3;
 		ran_zone = (ZoneScore *)gCalloc(max_list, sizeof (ZoneScore));
 	}
 
@@ -535,20 +538,20 @@ FindZonesForUpgrading(void)
 Int16
 FindScoreForZones(void)
 {
-	Int16 i;
+	Int32 i;
 	Int32 score;
 
 	counter += 20;
 
 	LockZone(lz_world);
 
-	for (i = counter - 20; i < (signed)counter; i++) {
+	for (i = counter - 20; i < (Int16)counter; i++) {
 		if (i >= at_pos) {
 			counter = 0;
 			UnlockZone(lz_world);
 			return (0);
 		}
-		score = GetZoneScore(ran_zone[i].pos);
+		score = GetZoneScore((UInt32)ran_zone[i].pos);
 		if (score != -1) {
 			ran_zone[i].score = score;
 		} else {
@@ -556,7 +559,7 @@ FindScoreForZones(void)
 			WriteLog("Instadowngrade (%d,%d)\n",
 			    (int)(ran_zone[i].pos % getMapWidth()),
 			    (int)(ran_zone[i].pos / getMapWidth()));
-			DowngradeZone(ran_zone[i].pos);
+			DowngradeZone((UInt32)ran_zone[i].pos);
 			ran_zone[i].pos = -1;
 		}
 	}
@@ -592,7 +595,7 @@ zoneCmpFn(void *a, void *b, Int32 other __attribute__((unused)))
 void
 reGradeZones(void)
 {
-	Int16 i;
+	Int32 i;
 	Int16 downCount = 10;
 	Int16 upCount = 12;
 
@@ -603,7 +606,7 @@ reGradeZones(void)
 		if (ran_zone[i].pos == -1) continue;
 
 		/* upgrade him/her/it/whatever */
-		UpgradeZone(ran_zone[i].pos);
+		UpgradeZone((UInt32)ran_zone[i].pos);
 		WriteLog("Upgrade (%d, %d)(%ld)\n",
 		    (int)(ran_zone[i].pos % getMapWidth()),
 		    (int)(ran_zone[i].pos / getMapWidth()),
@@ -616,7 +619,7 @@ reGradeZones(void)
 		/* downgrade him/her/it/whatever */
 		if (ran_zone[i].pos == -1) continue;
 		if (ran_zone[i].score > 0) continue;
-		DowngradeZone(ran_zone[i].pos);
+		DowngradeZone((UInt32)ran_zone[i].pos);
 		WriteLog("Downgrade (%d, %d)(%ld)\n",
 		    (int)(ran_zone[i].pos % getMapWidth()),
 		    (int)(ran_zone[i].pos / getMapWidth()),
@@ -635,27 +638,27 @@ DowngradeZone(UInt32 pos)
 {
 	welem_t type;
 	welem_t ntype;
-	Int16 xpos = pos % getMapWidth();
-	Int16 ypos = pos / getMapWidth();
+	UInt16 xpos = (UInt16)(pos % getMapWidth());
+	UInt16 ypos = (UInt16)(pos / getMapWidth());
 
 	LockZone(lz_world);
 	type = getWorld(pos);
 	ntype = type;
 	if (IsCommercial(type) && type != Z_COMMERCIAL_SLUM) {
 		ntype = (type == Z_COMMERCIAL_MIN) ?
-		    Z_COMMERCIAL_SLUM : type - 1;
+		    Z_COMMERCIAL_SLUM : (welem_t)(type - 1);
 		vgame.BuildCount[bc_value_commercial]--;
 		if (ntype == Z_COMMERCIAL_SLUM)
 			vgame.BuildCount[bc_count_commercial]--;
 	} else if (IsResidential(type) && type != Z_RESIDENTIAL_SLUM) {
 		ntype = (type == Z_RESIDENTIAL_MIN) ?
-		    Z_RESIDENTIAL_SLUM : type - 1;
+		    Z_RESIDENTIAL_SLUM : (welem_t)(type - 1);
 		vgame.BuildCount[bc_value_residential]--;
 		if (ntype == Z_RESIDENTIAL_SLUM)
 			vgame.BuildCount[bc_count_residential]--;
 	} else if (IsIndustrial(type) && type != Z_INDUSTRIAL_SLUM) {
 		ntype = (type == Z_INDUSTRIAL_MIN) ?
-		    Z_INDUSTRIAL_SLUM : type - 1;
+		    Z_INDUSTRIAL_SLUM : (welem_t)(type - 1);
 		vgame.BuildCount[bc_value_industrial]--;
 		if (ntype == Z_INDUSTRIAL_SLUM)
 			vgame.BuildCount[bc_count_industrial]--;
@@ -677,27 +680,27 @@ static void
 UpgradeZone(UInt32 pos)
 {
 	welem_t type, ntype;
-	Int16 xpos = pos % getMapWidth();
-	Int16 ypos = pos / getMapWidth();
+	UInt16 xpos = (UInt16)(pos % getMapWidth());
+	UInt16 ypos = (UInt16)(pos / getMapWidth());
 
 	LockZone(lz_world);
 	type = getWorld(pos);
 	ntype = type;
 	if (IsCommercial(type) && type < Z_COMMERCIAL_MAX) {
 		ntype = (type == Z_COMMERCIAL_SLUM) ?
-		    Z_COMMERCIAL_MIN : type + 1;
+		    Z_COMMERCIAL_MIN : (welem_t)(type + 1);
 		vgame.BuildCount[bc_value_commercial]++;
 		if (type == Z_COMMERCIAL_SLUM)
 			vgame.BuildCount[bc_count_commercial]++;
 	} else if (IsResidential(type) && type < Z_RESIDENTIAL_MAX) {
 		ntype = (type == Z_RESIDENTIAL_SLUM) ?
-		    Z_RESIDENTIAL_MIN : type + 1;
+		    Z_RESIDENTIAL_MIN : (welem_t)(type + 1);
 		vgame.BuildCount[bc_value_residential]++;
 		if (type == Z_RESIDENTIAL_SLUM)
 			vgame.BuildCount[bc_count_residential]++;
 	} else if (IsIndustrial(type) && type < Z_INDUSTRIAL_MAX) {
 		ntype = (type == Z_INDUSTRIAL_SLUM) ?
-		    Z_INDUSTRIAL_MIN : type + 1;
+		    Z_INDUSTRIAL_MIN : (welem_t)(type + 1);
 		vgame.BuildCount[bc_value_industrial]++;
 		if (type == Z_RESIDENTIAL_SLUM)
 			vgame.BuildCount[bc_count_industrial]++;
@@ -732,8 +735,8 @@ long
 GetZoneScore(UInt32 pos)
 {
 	long score = -1; /* Will downgrade to begin with */
-	int x = pos % getMapWidth();
-	int y = pos / getMapWidth();
+	Int16 x = (Int16)(pos % getMapWidth());
+	Int16 y = (Int16)(pos / getMapWidth());
 	int ax, ay;
 	int maxx, maxy;
 	int bRoad = 0;
@@ -763,9 +766,9 @@ GetZoneScore(UInt32 pos)
 		 * to support a new zone of ind or com
 		 */
 
-		long availPop = (vgame.BuildCount[bc_value_residential]*25)
+		Int32 availPop = (Int32)((vgame.BuildCount[bc_value_residential]*25)
 		    - (vgame.BuildCount[bc_value_commercial]*25
-		    + vgame.BuildCount[bc_value_industrial]*25);
+		    + vgame.BuildCount[bc_value_industrial]*25));
 		/* pop is too low */
 		if (availPop <= 0) {
 			WriteLog("Pop too low to promote ind || comm\n");
@@ -779,8 +782,8 @@ GetZoneScore(UInt32 pos)
 		 * connections to the surrounding world - this would
 		 * bring more potential residents into our little city
 		 */
-		long availPop = ((getMonthsElapsed() * getMonthsElapsed()) /
-		    35) + 30 - vgame.BuildCount[bc_value_residential];
+		Int32 availPop = (Int32)(((getMonthsElapsed() * getMonthsElapsed()) /
+		    35) + 30 - vgame.BuildCount[bc_value_residential]);
 		/* hmm - need more children */
 		if (availPop <= 0) {
 			WriteLog("No People\n");
@@ -794,8 +797,8 @@ GetZoneScore(UInt32 pos)
 		 * enough industrial zones before commercial zones kick in.
 		 */
 
-		long int availGoods = (vgame.BuildCount[bc_value_industrial] /
-		    3 * 2) - (vgame.BuildCount[bc_value_commercial]);
+		Int32 availGoods =(Int32)((vgame.BuildCount[bc_value_industrial] /
+		    3 * 2) - (vgame.BuildCount[bc_value_commercial]));
 		/* darn, nothing to sell here */
 		if (availGoods <= 0) {
 			WriteLog("No Goods\n");
@@ -913,7 +916,7 @@ GetRandomZone(void)
 		type = getWorld(pos);
 		if (IsGrowable(type)) {
 			UnlockZone(lz_world);
-			return (pos);
+			return ((Int32)pos);
 		}
 	}
 
@@ -957,7 +960,7 @@ costIt(BuildCode item)
 	UInt16 i;
 	for (i = 0; i < CCSIZE; i++)
 		if (countCosts[i].count == item)
-			return (vgame.BuildCount[item] * countCosts[i].cost);
+			return ((Int32)(vgame.BuildCount[item] * countCosts[i].cost));
 	WriteLog("Fell off the end of costIt here (%d)\n", item);
 	return (0);
 }
@@ -1030,12 +1033,12 @@ DoUpkeep(void)
 {
 	UInt32 upkeep;
 
-	upkeep = BudgetGetNumber(bnTraffic) + BudgetGetNumber(bnPower) +
-	    BudgetGetNumber(bnDefence);
+	upkeep = (UInt32)(BudgetGetNumber(bnTraffic) + BudgetGetNumber(bnPower) +
+	    BudgetGetNumber(bnDefence));
 
 	if (upkeep <= (UInt32)getCredits()) {
 		WriteLog("Upkeep: %lu\n", (unsigned long)upkeep);
-		decCredits(upkeep);
+		decCredits((Int32)upkeep);
 		return;
 	} else {
 		WriteLog("*** Negative Cashflow\n");
@@ -1090,12 +1093,14 @@ Sim_DoPhase(Int16 nPhase)
 	case 5:
 		WriteLog("Simulation phase 5 - Regrade Zones\n");
 		reGradeZones();
+		addGraphicUpdate(gu_desires);
 		nPhase = 6;
 		break;
 	case 6:
 		WriteLog("Simulation phase 6 - Update disasters\n");
 		/* UpdateDisasters(); */
 		DoRandomDisaster();
+		addGraphicUpdate(gu_desires);
 		nPhase = 7;
 		break;
 	case 7:
@@ -1103,12 +1108,11 @@ Sim_DoPhase(Int16 nPhase)
 		DoTaxes();
 		incrementTimeElapsed(4);
 		nPhase = 0;
-		UIInitDrawing();
-		UIDrawCredits();
-		UIDrawPop();
+		addGraphicUpdate(gu_credits);
+		addGraphicUpdate(gu_population);
+		addGraphicUpdate(gu_desires);
 		UICheckMoney();
 		DoUpkeep();
-		UIFinishDrawing();
 		break;
 	}
 
@@ -1216,17 +1220,17 @@ UpdateCounters(void)
 {
 	/* cashflow: */
 	if (vgame.prior_credit == 0) {
-		vgame.prior_credit = getCredits();
+		vgame.prior_credit = (UInt32)getCredits();
 	}
 	/*
 	 * Don't worry about the overflow on the last bit, the upper 16 bits
 	 * of this value will be stripped automatically. What we end up doing
 	 * is adding even more to this (possibly negative) value.
 	 */
-	vgame.BuildCount[bc_cashflow] = (OFFSET_FOR_CASHFLOW_BC -
-	    vgame.prior_credit) + getCredits();
+	vgame.BuildCount[bc_cashflow] = (Int16)((OFFSET_FOR_CASHFLOW_BC -
+	    vgame.prior_credit) + getCredits());
 	/* Update the prior_credit field */
-	vgame.prior_credit = getCredits();
+	vgame.prior_credit = (UInt32)getCredits();
 	/*! \note
 	 * How we calculate the pollution:
 	 *   Pollution is based on the density of a zone. The higher the
@@ -1261,7 +1265,7 @@ RecordStatistics(void)
 	
 	for (item = st_cashflow; item < st_tail; item++) {
 		offset = statvalues[item].offset;
-		stat_value = vgame.BuildCount[offset];
+		stat_value = (UInt16)vgame.BuildCount[offset];
 		stat = getStatistics(offset);
 		
 		tmpval = (UInt32)stat->last_ten[0] * 3 + stat_value;
@@ -1270,7 +1274,7 @@ RecordStatistics(void)
 		if (tmpval > (UInt16)MAX_UINT16) {
 			stat->last_ten[0] = MAX_UINT16;
 		} else {
-			stat->last_ten[0] = tmpval;
+			stat->last_ten[0] = (UInt16)tmpval;
 		}
 		/* XXX: fixme! */
 		/* shuffle the statistics every month */
@@ -1443,41 +1447,41 @@ IsOccupied(welem_t x)
 }
 
 UInt8
-CheckNextTo(Int32 pos, UInt8 dirs, Int16 (*checkfn)(welem_t))
+CheckNextTo(UInt32 pos, UInt8 dirs, Int16 (*checkfn)(welem_t))
 {
 	UInt8 rv = 0;
 
 	if ((dirs & DIR_UP) && (pos > getMapWidth()) &&
-	    checkfn(getWorld(pos - getMapWidth())))
+	    checkfn(getWorld((UInt32)(pos - getMapWidth()))))
 		rv |= DIR_UP;
-	if ((dirs & DIR_DOWN) && (pos < (MapMul() - getMapWidth())) &&
-	    checkfn(getWorld(pos + getMapWidth())))
+	if ((dirs & DIR_DOWN) && ((Int32)pos < (MapMul() - getMapWidth())) &&
+	    checkfn(getWorld((UInt32)(pos + getMapWidth()))))
 		rv |= DIR_DOWN;
 	if ((dirs & DIR_LEFT) && (pos % getMapWidth()) && 
-	    checkfn(getWorld(pos - 1)))
+	    checkfn(getWorld((UInt32)(pos - 1))))
 		rv |= DIR_LEFT;
 	if ((dirs & DIR_RIGHT) && (((pos % getMapWidth()) + 1) < getMapWidth())
-		&& checkfn(getWorld(pos + 1)))
+		&& checkfn(getWorld((UInt32)(pos + 1))))
 		rv |= DIR_RIGHT;
 	return (rv);
 }
 
 UInt8
-CheckNextTo1(Int32 pos, UInt8 dirs, carryfnarg_t checkfn, void *cfarg)
+CheckNextTo1(UInt32 pos, UInt8 dirs, carryfnarg_t checkfn, void *cfarg)
 {
 	UInt8 rv = 0;
 
 	if ((dirs & DIR_UP) && (pos > getMapWidth()) &&
-	    checkfn(getWorld(pos - getMapWidth()), cfarg))
+	    checkfn(getWorld((UInt32)(pos - getMapWidth())), cfarg))
 		rv |= DIR_UP;
-	if ((dirs & DIR_DOWN) && (pos < (MapMul() - getMapWidth())) &&
-	    checkfn(getWorld(pos + getMapWidth()), cfarg))
+	if ((dirs & DIR_DOWN) && ((Int32)pos < (MapMul() - getMapWidth())) &&
+	    checkfn(getWorld((UInt32)(pos + getMapWidth())), cfarg))
 		rv |= DIR_DOWN;
 	if ((dirs & DIR_LEFT) && (pos % getMapWidth()) && 
-	    checkfn(getWorld(pos - 1), cfarg))
+	    checkfn(getWorld((UInt32)(pos - 1)), cfarg))
 		rv |= DIR_LEFT;
 	if ((dirs & DIR_RIGHT) && (((pos % getMapWidth()) + 1) < getMapWidth())
-		&& checkfn(getWorld(pos + 1), cfarg))
+		&& checkfn(getWorld((UInt32)(pos + 1)), cfarg))
 		rv |= DIR_RIGHT;
 	return (rv);
 }

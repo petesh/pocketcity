@@ -20,48 +20,33 @@ InitGraphic(void)
  * \todo should only do visuals and location.
  */
 void
-Goto(Int16 x, Int16 y, goto_code center)
+Goto(UInt16 x, UInt16 y, goto_code center)
 {
-	Int16 nx = x;
-	Int16 ny = y;
+	Int16 nx = (Int16)x;
+	Int16 ny = (Int16)y;
 
 	if (center) {
-		nx -= (getVisibleX() / 2);
-		ny -= (getVisibleY() / 2);
+		nx -= (Int16)(getVisibleX() / 2);
+		ny -= (Int16)(getVisibleY() / 2);
 	}
 
 	if (nx < 0)
 		nx = 0;
-	if (nx > (getMapWidth() - getVisibleX()))
-		nx = getMapWidth() - getVisibleX();
+	if (nx > (Int16)(getMapWidth() - getVisibleX()))
+		nx = (Int16)(getMapWidth() - getVisibleX());
 	if (ny < 0)
 		ny = 0;
-	if (ny > (getMapHeight() - getVisibleY()))
-		ny = getMapHeight() - getVisibleY();
-	setMapXPos(nx);
-	setMapYPos(ny);
+	if (ny > (Int16)(getMapHeight() - getVisibleY()))
+		ny = (Int16)(getMapHeight() - getVisibleY());
+	setMapXPos((Int8)nx);
+	setMapYPos((Int8)ny);
 	RedrawAllFields();
 }
 
 void
 RedrawAllFields(void)
 {
-	UIInitDrawing();
-	UILockScreen();
-
-	LockZone(lz_world);
-	UIDrawPlayArea();
-	UnlockZone(lz_world);
-
-	UIDrawDate();
-	UIDrawCredits();
-	UIDrawPop();
-	UIDrawLoc();
-	UIDrawBuildIcon();
-	UIDrawSpeed();
-
-	UIUnlockScreen();
-	UIFinishDrawing();
+	addGraphicUpdate(gu_all);
 }
 
 void
@@ -72,25 +57,27 @@ ScrollDisplay(dirType direction)
 	switch (direction) {
 	case dtUp:
 		if (getMapYPos() > 0)
-			setMapYPos(getMapYPos() - 1);
+			setMapYPos((Int8)(getMapYPos() - 1));
 		else
 			moved = 0;
 		break;
 	case dtRight:
-		if (getMapXPos() <= (getMapWidth() - 1 - getVisibleX()))
-			setMapXPos(getMapXPos() + 1);
+		if (getMapXPos() <=
+		    (Int16)(getMapWidth() - 1 - getVisibleX()))
+			setMapXPos((Int8)(getMapXPos() + 1));
 		else
 			moved = 0;
 		break;
 	case dtDown:
-		if (getMapYPos() <= (getMapHeight() - 1 - getVisibleY()))
-			setMapYPos(getMapYPos() + 1);
+		if (getMapYPos() <=
+		    (Int16)(getMapHeight() - 1 - getVisibleY()))
+			setMapYPos((Int8)(getMapYPos() + 1));
 		else
 			moved = 0;
 		break;
 	case dtLeft:
 		if (getMapXPos() > 0)
-			setMapXPos(getMapXPos() - 1);
+			setMapXPos((Int8)(getMapXPos() - 1));
 		else
 			moved = 0;
 		break;
@@ -104,8 +91,8 @@ ScrollDisplay(dirType direction)
 void
 MoveCursor(dirType direction)
 {
-	int old_x = getCursorX();
-	int old_y = getCursorY();
+	UInt16 old_x = getCursorX();
+	UInt16 old_y = getCursorY();
 
 	LockZone(lz_world);
 
@@ -113,18 +100,19 @@ MoveCursor(dirType direction)
 	case dtUp:
 		if (getCursorY() > 0)
 			getCursorY()--;
-		if (getCursorY() < getMapYPos())
+		if ((Int16)getCursorY() < getMapYPos())
 			ScrollDisplay(direction);
 		break;
 	case dtRight:
-		if (getCursorX() < (getMapWidth() - 1))
+		if ((Int16)getCursorX() < (getMapWidth() - 1))
 			getCursorX()++;
-		if ((getCursorX() > getMapXPos() + getVisibleX()-1) &&
+		if (((Int16)getCursorX() >
+		    (Int16)(getMapXPos() + getVisibleX()-1)) &&
 			getCursorX() < getMapWidth())
 			ScrollDisplay(direction);
 		break;
 	case dtDown:
-		if (getCursorY() < (getMapHeight() - 1))
+		if ((Int16)getCursorY() < (Int16)(getMapHeight() - 1))
 			getCursorY()++;
 		if ((getCursorY() > getMapYPos() + getVisibleY()-1) &&
 			getCursorY() < getMapHeight())
@@ -133,7 +121,7 @@ MoveCursor(dirType direction)
 	case dtLeft:
 		if (getCursorX() > 0)
 			getCursorX()--;
-		if ((getCursorX() < getMapXPos()))
+		if ((Int16)getCursorX() < getMapXPos())
 			ScrollDisplay(direction);
 		break;
 	}
@@ -145,7 +133,7 @@ MoveCursor(dirType direction)
 }
 
 void
-DrawField(Int16 xpos, Int16 ypos)
+DrawField(UInt16 xpos, UInt16 ypos)
 {
 	UIInitDrawing();
 
@@ -155,9 +143,9 @@ DrawField(Int16 xpos, Int16 ypos)
 }
 
 void
-DrawCross(Int16 xpos, Int16 ypos, Int16 xsize, Int16 ysize)
+DrawCross(UInt16 xpos, UInt16 ypos, UInt16 xsize, UInt16 ysize)
 {
-	Int16 tx, ty;
+	UInt16 tx, ty;
 	tx = xpos;
 	ty = ypos;
 	xpos -= 1;
@@ -170,8 +158,8 @@ DrawCross(Int16 xpos, Int16 ypos, Int16 xsize, Int16 ysize)
 			    ((ypos == ty + ysize) && (xpos == tx - 1)) ||
 			    ((ypos == ty + ysize) && (xpos == tx + xsize)))
 				goto next;
-			if ((xpos >= 0) && (ypos >= 0) && \
-			    (xpos < getMapWidth()) && (ypos < getMapHeight())) {
+			if ((xpos < getMapWidth()) &&
+			    (ypos < getMapHeight())) {
 				DrawFieldWithoutInit(xpos, ypos);
 			}
 next:
@@ -183,14 +171,14 @@ next:
 }
 
 void
-DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
+DrawFieldWithoutInit(UInt16 xpos, UInt16 ypos)
 {
 	UInt16 i;
 	selem_t flag;
 	welem_t content, special;
 	UInt32 worldpos;
 
-	if (xpos < 0 || ypos < 0 || xpos >= getMapWidth() ||
+	if (xpos >= getMapWidth() ||
 	    ypos >= getMapHeight() || UIClipped(xpos, ypos))
 		return;
 
@@ -200,20 +188,20 @@ DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 
 	orWorldFlags(worldpos, PAINTEDBIT);
 
-	UIDrawField(xpos, ypos, special);
-	UIDrawMapField(xpos, ypos, special);
-	UIDrawMapStatus(xpos, ypos, special, flag);
+	UIPaintField(xpos, ypos, special);
+	UIPaintMapField(xpos, ypos, special);
+	UIPaintMapStatus(xpos, ypos, special, flag);
 
 	if ((flag & POWEREDBIT) == 0 && CarryPower(content)) {
-		UIDrawPowerLoss(xpos, ypos);
+		UIPaintPowerLoss(xpos, ypos);
 	}
 
 	if ((flag & WATEREDBIT) == 0 && CarryWater(content)) {
-		UIDrawWaterLoss(xpos, ypos);
+		UIPaintWaterLoss(xpos, ypos);
 	}
 
 	if (xpos == getCursorX() && ypos == getCursorY()) {
-		UIDrawCursor(getCursorX(), getCursorY());
+		UIPaintCursor(getCursorX(), getCursorY());
 	}
 
 	/* draw monster */
@@ -221,7 +209,7 @@ DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 		if ((UInt16)xpos == game.objects[i].x &&
 			(UInt16)ypos == game.objects[i].y &&
 			game.objects[i].active != 0) {
-			UIDrawSpecialObject(xpos, ypos, i);
+			UIPaintSpecialObject(xpos, ypos, (Int8)i);
 		}
 	}
 	/* draw extra units */
@@ -229,7 +217,7 @@ DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 		if (xpos == game.units[i].x &&
 			ypos == game.units[i].y &&
 			game.units[i].active != 0) {
-			UIDrawSpecialUnit(xpos, ypos, i);
+			UIPaintSpecialUnit(xpos, ypos, (Int8)i);
 		}
 	}
 }
@@ -259,7 +247,7 @@ GetSpecialGraphicNumber(UInt32 pos)
 	int b = 0; /* To the left of me */
 	int c = 0; /* Below me */
 	int d = 0; /* to the right of me */
-	int nAddMe = 0;
+	welem_t nAddMe = 0;
 	welem_t elt = 0;
 	welem_t wpe = getWorld(pos);
 
@@ -328,25 +316,25 @@ GetSpecialGraphicNumber(UInt32 pos)
 	}
 
 	if ((a && b && c && d) == 1)
-		return (10 + nAddMe);
+		return ((UInt8)(10 + nAddMe));
 	if ((a && b && d) == 1)
-		return (9 + nAddMe);
+		return ((UInt8)(9 + nAddMe));
 	if ((b && c && d) == 1)
-		return (8 + nAddMe);
+		return ((UInt8)(8 + nAddMe));
 	if ((a && b && c) == 1)
-		return (7 + nAddMe);
+		return ((UInt8)(7 + nAddMe));
 	if ((a && c && d) == 1)
-		return (6 + nAddMe);
+		return ((UInt8)(6 + nAddMe));
 	if ((a && b) == 1)
-		return (5 + nAddMe);
+		return ((UInt8)(5 + nAddMe));
 	if ((a && d) == 1)
-		return (4 + nAddMe);
+		return ((UInt8)(4 + nAddMe));
 	if ((c && d) == 1)
-		return (3 + nAddMe);
+		return ((UInt8)(3 + nAddMe));
 	if ((c && b) == 1)
-		return (2 + nAddMe);
+		return ((UInt8)(2 + nAddMe));
 	if ((a || c) == 1)
-		return (1 + nAddMe);
+		return ((UInt8)(1 + nAddMe));
 
 	return (nAddMe);
 }

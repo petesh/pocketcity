@@ -165,7 +165,7 @@ querySetup(void)
 	FieldPtr fld;
 	welem_t element;
 	selem_t status;
-	UInt8 valdens;
+	Int16 valdens;
 
 	LockZone(lz_world);
 	getWorldAndFlag(GetPositionClicked(), &element, &status);
@@ -180,12 +180,12 @@ querySetup(void)
 
 	temp = (Char *)MemPtrNew(255);
 	valdens = ZoneValue(element);
-	SysStringByIndex(strID_values, valdens % 4, temp, 255);
+	SysStringByIndex(strID_values, (UInt16)(valdens % 4), temp, 255);
 	ctl = (ControlPtr)GetObjectPtr(form, labelID_zonevalue);
 	CtlSetLabel(ctl, temp);
 
 	temp = (Char *)MemPtrNew(255);
-	SysStringByIndex(strID_densities, valdens / 4, temp, 255);
+	SysStringByIndex(strID_densities, (UInt16)(valdens / 4), temp, 255);
 	ctl = (ControlPtr)GetObjectPtr(form, labelID_zonedensity);
 	CtlSetLabel(ctl, temp);
 

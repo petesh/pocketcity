@@ -64,9 +64,9 @@ StackResize(dsObj *sp, Int32 newsize)
 	Int32 sd = sp->sp - sp->ss;
 	Int32 sn;
 	sp->sl = newsize;
-	sn = sp->sl * sizeof (Int32);
+	sn = (Int32)(sp->sl * sizeof (Int32));
 	MemHandleUnlock(sp->sh);
-	if (errNone != MemHandleResize(sp->sh, sn)) {
+	if (errNone != MemHandleResize(sp->sh, (UInt32)sn)) {
 		ErrFatalDisplayIf(1, "Resize of myStack Chunk Failed");
 	}
 	sp->ss = (Int32 *)MemHandleLock(sp->sh);
@@ -98,7 +98,7 @@ StackPush(dsObj *sp, Int32 elt)
 Int8
 StackIsEmpty(dsObj *sp)
 {
-	return (sp->sp < sp->ss);
+	return ((Int8)(sp->sp < sp->ss));
 }
 
 void

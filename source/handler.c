@@ -4,6 +4,9 @@
  * These routines are intended to multiplex the individual steps in the
  * game.
  */
+
+#include <config.h>
+
 #include <handler.h>
 #include <drawing.h>
 #include <zakdef.h>
@@ -33,7 +36,7 @@ PCityMain(void)
 }
 
 void
-setMapSize(Int16 X, Int16 Y)
+setMapSize(UInt8 X, UInt8 Y)
 {
 	setMapVariables(X, Y);
 
@@ -70,7 +73,7 @@ InitGameStruct(void)
 	setUpkeep(0, 100);
 	setUpkeep(1, 100);
 	setUpkeep(2, 100);
-	setMapSize(100, 100);
+	setMapSize((Int16)100, (Int16)100);
 	setTax(8);
 	setLoopSeconds(SPEED_PAUSED);
 	setAutoBulldoze(1);
@@ -111,12 +114,7 @@ ConfigureNewGame(void)
 void
 DrawGame(Int8 full __attribute__((unused)))
 {
-	UIInitDrawing();
-
-	UIDrawBorder();
 	RedrawAllFields();
-
-	UIFinishDrawing();
 }
 
 /*!

@@ -112,7 +112,7 @@ palm_calloc(UInt32 size, UInt32 count)
 	if (mh == NULL)
 		return (mh);
 	mp = MemHandleLock(mh);
-	MemSet(mp, size * count, 0);
+	MemSet(mp, (Int32)(size * count), 0);
 	return (mp);
 }
 

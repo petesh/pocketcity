@@ -4,6 +4,9 @@
  * This contains routines for working on the difficulty, disaster level
  * of the simulation, as well as displaying the date.
  */
+
+#include <config.h>
+
 #include <zakdef.h>
 #if defined(PALM)
 #include <StringMgr.h>
@@ -14,6 +17,7 @@
 #include <mem_compat.h>
 #include <ui.h>
 #include <stack.h>
+#include <globals.h>
 
 #define	MILLION 1000000
 
@@ -46,11 +50,69 @@ vGameVisuals visuals;
 /*! \brief the world pointer */
 void *worldPtr;
 
+/*! \bref the growable pointer */
+void *growablePtr;
+
 /*! \brief This is the game configuration */
 AppConfig_t gameConfig = {
 	CONFIG_VERSION,
 	DEFAULT_APPCONFIG
 };
+
+static UInt16 needchange;
+
+/*!
+ * \brief add an item that needs updating in the display
+ * \param entity the entity to be updated.
+ */
+void
+addGraphicUpdate(graphicupdate_t entity)
+{
+	if (entity != gu_all)
+		needchange |= (UInt16)entity;
+	else
+		needchange = ~(UInt16)0;
+}
+
+/*!
+ * \brief remove and item that needs updating in the display
+ * \param entity the entity that needs removal
+ */
+void
+removeGraphicUpdate(graphicupdate_t entity)
+{
+	needchange &= ~((UInt16)entity);
+}
+
+/*!
+ * \brief check that a graphic entity needs changing
+ * \param entity the entity to check
+ * \return whether the entity needs changing
+ */
+UInt8
+checkGraphicUpdate(graphicupdate_t entity)
+{
+	return ((UInt8)(needchange & entity ? 1 : 0));
+}
+
+/*!
+ * \brief check that any graphic item needs repainting
+ * \return true if any of the entities need repainting
+ */
+UInt8
+checkAnyGraphicUpdate(void)
+{
+	return ((UInt8)(needchange ? 1 : 0));
+}
+
+/*!
+ * \brief clear the need update fields in their entirety
+ */
+void
+clearGraphicUpdate(void)
+{
+	needchange = 0;
+}
 
 /*!
  * \brief Get the date in the game
@@ -63,8 +125,10 @@ getDate(char *temp)
 {
 	char month[10];
 
-	sprintf(temp, "%s %ld", getMonthString(getMonthsElapsed() % 12,
-	    month, 9), (long)(getMonthsElapsed() / 12) + 2000);
+	sprintf(temp, "%s %ld", getMonthString(
+	    (UInt16)(getMonthsElapsed() % 12),
+	    month, (UInt16)9),
+	    (long)((getMonthsElapsed() / 12) + 2000));
 	return ((char *)temp);
 }
 
@@ -96,7 +160,7 @@ getIndexOf(char *ary, Int16 addit, Int16 key)
 UInt8
 getDisasterLevel(void)
 {
-	return (GG.diff_disaster & 0xF);
+	return ((UInt8)(GG.diff_disaster & 0xF));
 }
 
 /*!
@@ -107,7 +171,7 @@ void
 setDisasterLevel(UInt8 value)
 {
 	GG.diff_disaster &= 0xf0;
-	GG.diff_disaster |= (value & 0x0f);
+	GG.diff_disaster |= (UInt8)(value & 0x0f);
 }
 
 /*!
@@ -117,7 +181,7 @@ setDisasterLevel(UInt8 value)
 UInt8
 getDifficultyLevel(void)
 {
-	return ((GG.diff_disaster >> 4) & 0x0f);
+	return ((UInt8)((GG.diff_disaster >> 4) & 0x0f));
 }
 
 /*!
@@ -127,8 +191,8 @@ getDifficultyLevel(void)
 void
 setDifficultyLevel(UInt8 value)
 {
-	GG.diff_disaster &= 0x0f;
-	GG.diff_disaster |= ((value & 0x0f) << 4);
+	GG.diff_disaster &= (UInt8)0x0f;
+	GG.diff_disaster |= (UInt8)((value & 0x0f) << 4);
 }
 
 /*!
@@ -152,7 +216,7 @@ ResizeWorld(UInt32 size)
 		return (0);
 	}
 
-	gMemSet(worldPtr, size, 0);
+	gMemSet(worldPtr, (Int32)size, 0);
 	UnlockZone(lz_world);
 	return (1);
 }
@@ -182,7 +246,7 @@ getWorld(UInt32 pos)
 		
 	val = ((UInt16 *)worldPtr)[pos];
 	/* mask against the inverse of my own flags */
-	return (val & FLAGS_ANDMASK);
+	return ((welem_t)(val & FLAGS_ANDMASK));
 }
 
 /*!
@@ -216,7 +280,8 @@ setWorldAndFlag(UInt32 pos, welem_t value, selem_t status)
 	if (pos > MapMul())
 		return;
 
-	((UInt16 *)(worldPtr))[pos] = (status << FLAGS_SHIFTVALUE) | value;
+	((UInt16 *)(worldPtr))[pos] =
+	    (UInt16)((status << FLAGS_SHIFTVALUE) | value);
 }
 
 /*!
@@ -233,7 +298,7 @@ getWorldFlags(UInt32 pos)
 		return (0);
 	val = ((UInt16 *)worldPtr)[pos];
 	/* Use WORLD_ANDMASK for getting clean value */
-	return ((val & WORLD_ANDMASK) >> FLAGS_SHIFTVALUE);
+	return ((selem_t)((val & WORLD_ANDMASK) >> FLAGS_SHIFTVALUE));
 }
 
 /*!
@@ -249,8 +314,8 @@ setWorldFlags(UInt32 pos, selem_t value)
 	if (pos > MapMul())
 		return;
 	ptr = ((UInt16 *)worldPtr) + pos;
-	*ptr &= FLAGS_ANDMASK;
-	*ptr |= (value << FLAGS_SHIFTVALUE);
+	*ptr &= (UInt16)FLAGS_ANDMASK;
+	*ptr |= (UInt16)(value << FLAGS_SHIFTVALUE);
 }
 
 /*!
@@ -267,7 +332,8 @@ andWorldFlags(UInt32 pos, selem_t value)
 		return;
 	ptr = ((UInt16 *)worldPtr) + pos;
 	
-	*ptr &= (WORLD_ANDMASK & (value << FLAGS_SHIFTVALUE)) | FLAGS_ANDMASK;
+	*ptr &= (UInt16)((WORLD_ANDMASK &
+	    (value << FLAGS_SHIFTVALUE)) | FLAGS_ANDMASK);
 }
 
 /*!
@@ -285,7 +351,7 @@ orWorldFlags(UInt32 pos, selem_t value)
 	
 	ptr = ((UInt16 *)worldPtr) + pos;
 	/* use WORLD_ANDMASK as it is the inversion of FLAGS_ANDMASK */
-	*ptr |= (WORLD_ANDMASK & (value << FLAGS_SHIFTVALUE));
+	*ptr |= (UInt16)(WORLD_ANDMASK & (value << FLAGS_SHIFTVALUE));
 }
 
 void
@@ -297,8 +363,8 @@ getWorldAndFlag(UInt32 pos, welem_t *world, selem_t *flag)
 		return;
 
 	val = ((UInt16 *)worldPtr)[pos];
-	*world = val & FLAGS_ANDMASK;
-	*flag = ((val & WORLD_ANDMASK) >> FLAGS_SHIFTVALUE);
+	*world = (welem_t)(val & FLAGS_ANDMASK);
+	*flag = (selem_t)((val & WORLD_ANDMASK) >> FLAGS_SHIFTVALUE);
 }
 
 /*!
@@ -318,7 +384,7 @@ PurgeWorld()
  * \param scale (out) the scale i.e. none, K, M, B ...
  * \return the scaled value (could be the original value)
  */
-Int32
+UInt32
 scaleNumber(UInt32 old_value, Char *scale)
 {
 	const char si_scale[] = " KMBTQ";

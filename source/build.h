@@ -9,7 +9,6 @@
 #define	_BUILD_H_
 
 #include <zakdef.h>
-#include <appconfig.h>
 #include <sections.h>
 #include <compilerpragmas.h>
 
@@ -23,7 +22,7 @@ extern "C" {
  * These items are aligned with the BUILD_* items in simcity.h to
  * ease the mapping of buttons to items to build.
  */
-typedef enum {
+typedef enum BuildCode {
 	Be_Bulldozer = 0,
 	Be_Zone_Residential,
 	Be_Zone_Commercial,
@@ -91,7 +90,7 @@ typedef enum {
  * \param ypos Y position on the map
  * \param _unused unused.
  */
-EXPORT int Build_Bulldoze(Int16 xpos, Int16 ypos, welem_t _unused) \
+EXPORT int Build_Bulldoze(UInt16 xpos, UInt16 ypos, welem_t _unused) \
     BUILD_SECTION;
 /*!
  * \brief Build something at the location specified.
@@ -99,7 +98,7 @@ EXPORT int Build_Bulldoze(Int16 xpos, Int16 ypos, welem_t _unused) \
  * \param xpos the X position on the map
  * \param ypos the Y position on the map
  */
-EXPORT int BuildSomething(Int16 xpos, Int16 ypos) BUILD_SECTION;
+EXPORT int BuildSomething(UInt16 xpos, UInt16 ypos) BUILD_SECTION;
 /*!
  * \brief Attempt to destroy the item at the position in question
  *
@@ -107,7 +106,7 @@ EXPORT int BuildSomething(Int16 xpos, Int16 ypos) BUILD_SECTION;
  * \param xpos the X position on the map
  * \param ypos the Y position on the map
  */
-EXPORT void Build_Destroy(Int16 xpos, Int16 ypos) BUILD_SECTION;
+EXPORT void Build_Destroy(UInt16 xpos, UInt16 ypos) BUILD_SECTION;
 /*! \brief Create a river on the map */
 EXPORT void CreateFullRiver(void) BUILD_SECTION;
 /*! \brief Create the forests on the map. */

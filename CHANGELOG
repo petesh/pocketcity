@@ -17,6 +17,8 @@ Version 0.17dev
   + Power lines and Water pipes can now overlap
   + Map is resizeable between 25x25 -> 120x120 (palmOS memory limitation)
   + Rail Lines
+  + Minimap for the Palm Platform (scrolling)
+  + Desires levels now displayed
   * Fix annoying winScreenLock issue
   * 818171 Hard Crash on Sony Clie SL10
   * 818172 Index out of range (0.16)
@@ -32,6 +34,7 @@ Version 0.17dev
   * 884099 Growth algorithm is messed up 0.17dev
   * 725967 Support for the hires palmos 5
   * 937555 Map coloring for 16 color displays is wrong
+  * 943160 Power consumption is high
 
 Version 0.16
   * bug # 655848 crash after money warning

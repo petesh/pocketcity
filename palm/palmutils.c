@@ -73,7 +73,7 @@ isZireOld(void)
 	static UInt16 rv = 3;
 
 	if (rv != 3)
-		return (rv == 1);
+		return ((Boolean)(rv == 1));
 	if ((FtrGet(sysFtrCreator, sysFtrNumOEMCompanyID, &vcl) == 0) &&
 	    (vcl == PalmOEMCompanyID) &&
 	    (FtrGet(sysFtrCreator, sysFtrNumOEMDeviceID, &vcl) == 0) &&
@@ -82,7 +82,7 @@ isZireOld(void)
 	} else {
 		rv = 0;
 	}
-	return (rv == 1);
+	return ((Boolean)(rv == 1));
 }
 
 UInt32
@@ -233,6 +233,8 @@ GetCreatorID(void)
 	return (nCreatorID);
 }
 
+#if defined(DEBUG)
+
 void
 DangerWillRobinson(char *information, char *file, int line)
 {
@@ -240,6 +242,8 @@ DangerWillRobinson(char *information, char *file, int line)
 	StrPrintF(buffer, "%s(%d)", file, line);
 	FrmCustomAlert(alertID_programmingNiggle, information, buffer, NULL);
 }
+
+#endif
 
 Char **
 FillStringList(UInt16 resID, UInt16 *length)
@@ -266,7 +270,7 @@ FillStringList(UInt16 resID, UInt16 *length)
 		UInt16 sli;
 		SysStringByIndex(resID, atitem, item, 200);
 		sli = StrLen(item);
-		StrNCopy(rv[atitem], item, sli);
+		StrNCopy(rv[atitem], item, (Int16)sli);
 		rv[atitem + 1] = rv[atitem] + (sli + 1);
 		atitem++;
 	}

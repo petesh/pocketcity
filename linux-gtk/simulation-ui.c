@@ -227,7 +227,7 @@ initMap(void)
 			worldpos = WORLDPOS(xpos, ypos);
 			getWorldAndFlag(worldpos, &content, &flag);
 			special = GetGraphicNumber(worldpos);
-			UIDrawMapZone(xpos, ypos, special,
+			UIPaintMapZone(xpos, ypos, special,
 			    GDK_DRAWABLE(pmh.allmap));
 			updatePower(xpos, ypos, checkCommon(content, flag,
 				    &CarryPower, POWEREDBIT));
@@ -375,17 +375,17 @@ showMap(void)
 }
 
 void
-UIDrawMapField(UInt16 xpos, UInt16 ypos, welem_t elem)
+UIPaintMapField(UInt16 xpos, UInt16 ypos, welem_t elem)
 {
 	if (pmh.allmap == NULL)
 		doPixPaint();
 
-	UIDrawMapZone(xpos, ypos, elem,
+	UIPaintMapZone(xpos, ypos, elem,
 	    GDK_DRAWABLE(pmh.allmap));
 }
 
 void
-UIDrawMapStatus(UInt16 xpos, UInt16 ypos, welem_t world, selem_t status)
+UIPaintMapStatus(UInt16 xpos, UInt16 ypos, welem_t world, selem_t status)
 {
 	updatePower(xpos, ypos, checkCommon(world, status, &CarryPower,
 		    POWEREDBIT));

@@ -52,8 +52,8 @@ BuildCode nPreviousBuildItem = Be_Bulldozer;
 UInt32 timeStamp = 0;
 UInt32 timeStampDisaster = 0;
 Int16 simState = 0;
-UInt16 XOFFSET = 0;
-UInt16 YOFFSET = 15;
+Coord XOFFSET = 0;
+Coord YOFFSET = 15;
 #ifdef SONY_CLIE
 UInt16 jog_lr = 0;
 #endif
@@ -79,6 +79,10 @@ static void DoAbout(void);
 static void CheckTextClick(Coord x, Coord y);
 static Int16 doButtonEvent(ButtonEvent key);
 static Int16 speedOffset(void);
+static void UISetSelectedBuildItem(BuildCode item);
+static void ClearScrolling(void);
+static void SetScrolling(void);
+static UInt16 IsScrolling(void);
 
 #if defined(SONY_CLIE)
 static void HoldHook(UInt32);
@@ -86,7 +90,7 @@ static void HoldHook(UInt32);
 
 #if defined(HRSUPPORT)
 static void toolBarCheck(Coord);
-static void UIDrawToolBar(void);
+static void UIPaintToolBar(void);
 static void freeToolbarBitmap(void);
 static void pcResizeDisplay(FormPtr form, Int16 hOff, Int16 vOff, Boolean draw);
 #else
@@ -102,7 +106,7 @@ static void SetDeferDrawing(void);
 static void SetDrawing(void);
 static UInt16 IsDeferDrawing(void);
 
-void UIDrawSpeed(void);
+static void performPaintDisplay(void);
 
 void
 ResGetString(UInt16 index, char *buffer, UInt16 length)
@@ -286,7 +290,7 @@ EventLoop(void)
 	UInt16 err;
 
 	for (;;) {
-		EvtGetEvent(&event, (Int32)100);
+		EvtGetEvent(&event, (Int32)1);
 		if (event.eType == appStopEvent) break;
 
 		if (event.eType == keyDownEvent)
@@ -311,6 +315,13 @@ EventLoop(void)
 			continue;
 
 		if (IsBuilding()) continue;
+
+		if (IsScrolling()) {
+			timeTemp = TimGetSeconds();
+			if (timeTemp > timeStamp)
+				ClearScrolling();
+			continue;
+		}
 
 		/* the almighty homemade >>"multithreader"<< */
 		if (getLoopSeconds() != SPEED_PAUSED) {
@@ -650,27 +661,27 @@ DoPCityMenuProcessing(UInt16 itemID)
 
 	case menuID_SlowSpeed:
 		setLoopSeconds(SPEED_SLOW);
-		UIDrawSpeed();
+		addGraphicUpdate(gu_speed);
 		handled = true;
 		break;
 	case menuID_MediumSpeed:
 		setLoopSeconds(SPEED_MEDIUM);
-		UIDrawSpeed();
+		addGraphicUpdate(gu_speed);
 		handled = true;
 		break;
 	case menuID_FastSpeed:
 		setLoopSeconds(SPEED_FAST);
-		UIDrawSpeed();
+		addGraphicUpdate(gu_speed);
 		handled = true;
 		break;
 	case menuID_TurboSpeed:
 		setLoopSeconds(SPEED_TURBO);
-		UIDrawSpeed();
+		addGraphicUpdate(gu_speed);
 		handled = true;
 		break;
 	case menuID_PauseSpeed:
 		setLoopSeconds(SPEED_PAUSED);
-		UIDrawSpeed();
+		addGraphicUpdate(gu_speed);
 		handled = true;
 		break;
 
@@ -747,7 +758,7 @@ hPocketCity(EventPtr event)
 		minimperc.y = event->screenY;
 
 		if (minimapIsTapped(&minimperc, &minimperc)) {
-			Goto(minimperc.x, minimperc.y, 1);
+			Goto((UInt16)minimperc.x, (UInt16)minimperc.y, 1);
 			handled = true;
 			break;
 		}
@@ -764,18 +775,18 @@ hPocketCity(EventPtr event)
 			if (event->screenX >= (GETWIDTH() - 12)) {
 				/* click was on change speed */
 				cycleSpeed();
-				UIDrawSpeed();
+				addGraphicUpdate(gu_speed);
 				break;
 			}
 			if (event->screenX < 12) {
 				/* click was on toggle production */
 				if (nSelectedBuildItem == Be_Bulldozer) {
-					nSelectedBuildItem = nPreviousBuildItem;
+					UISetSelectedBuildItem(nPreviousBuildItem);
 				} else {
 					nPreviousBuildItem = nSelectedBuildItem;
-					nSelectedBuildItem = Be_Bulldozer;
+					UISetSelectedBuildItem(Be_Bulldozer);
 				}
-				UIDrawBuildIcon();
+				addGraphicUpdate(gu_buildicon);
 				break;
 			}
 #if defined(HRSUPPORT)
@@ -809,8 +820,10 @@ hPocketCity(EventPtr event)
 		handled = DoPCityMenuProcessing(event->data.menu.itemID);
 
 	case keyDownEvent:
-		handled = vkDoEvent(event->data.keyDown.chr);
+		handled = (Boolean)vkDoEvent(event->data.keyDown.chr);
 		break;
+	case keyUpEvent:
+		handled = true;
 #if defined(HRSUPPORT)
 	case winDisplayChangedEvent:
 #if defined(SONY_CLIE)
@@ -826,6 +839,7 @@ hPocketCity(EventPtr event)
 	default:
 		break;
 	}
+	performPaintDisplay();
 
 	return (handled);
 }
@@ -903,7 +917,7 @@ UIPopUpExtraBuildList(void)
 	FrmSetEventHandler(form, hExtraList);
 	lp = FillStringList(strID_Items, &poplen);
 	LstSetListChoices((ListPtr)GetObjectPtr(form, listID_extraBuildList),
-	    lp, poplen);
+	    lp, (Int16)poplen);
 
 	UpdateDescription(0);
 	sfe = FrmDoDialog(form);
@@ -913,17 +927,17 @@ UIPopUpExtraBuildList(void)
 	switch (sfe) {
 	case buttonID_extraBuildSelect:
 		/* List entries must match entries in BuildCode 0 .. */
-		nSelectedBuildItem = (BuildCode)LstGetSelection(
-		    (ListPtr)GetObjectPtr(form, listID_extraBuildList));
+		UISetSelectedBuildItem((BuildCode)LstGetSelection(
+		    (ListPtr)GetObjectPtr(form, listID_extraBuildList)));
 		break;
 	case buttonID_extraBuildFireMen:
-		nSelectedBuildItem = Be_Defence_Fire;
+		UISetSelectedBuildItem(Be_Defence_Fire);
 		break;
 	case buttonID_extraBuildPolice:
-		nSelectedBuildItem = Be_Defence_Police;
+		UISetSelectedBuildItem(Be_Defence_Police);
 		break;
 	case buttonID_extraBuildMilitary:
-		nSelectedBuildItem = Be_Defence_Military;
+		UISetSelectedBuildItem(Be_Defence_Military);
 		break;
 	default:
 		break;
@@ -953,7 +967,7 @@ UpdateDescription(Int16 sel)
 	fp = FrmGetFormPtr(formID_extraBuild);
 	ctl = (FieldPtr)GetObjectPtr(fp, labelID_extraBuildDescription);
 
-	SysStringByIndex(strID_Descriptions, sel, temp, 256);
+	SysStringByIndex(strID_Descriptions, (UInt16)sel, temp, (UInt16)256);
 	FldSetTextPtr(ctl, temp);
 	FldRecalculateField(ctl, true);
 
@@ -1074,12 +1088,12 @@ UIDoQuickList(void)
 	if (IsNewROM()) {
 		ftList = FrmInitForm(formID_quickList);
 		FrmSetEventHandler(ftList, hQuickList);
-		nSelectedBuildItem = (BuildCode)(FrmDoDialog(ftList) -
-		    gi_buildBulldoze);
+		UISetSelectedBuildItem((BuildCode)(FrmDoDialog(ftList) -
+		    gi_buildBulldoze));
 
 		if (nSelectedBuildItem >= OFFSET_EXTRA)
 			UIPopUpExtraBuildList();
-		UIDrawBuildIcon();
+		addGraphicUpdate(gu_buildicon);
 		FrmDeleteForm(ftList);
 	} else {
 		/*
@@ -1161,7 +1175,7 @@ UIInitGraphic(void)
 /*
  * Save the selected build item.
  */
-void
+static void
 UISetSelectedBuildItem(BuildCode item)
 {
 	nSelectedBuildItem = item;
@@ -1181,17 +1195,17 @@ static UInt16 __state;
 VISIBILITY void \
 CLEARER(void) \
 { \
-	__state &= ~(1<<(BIT)); \
+	__state &= ~((UInt16)1<<(BIT)); \
 } \
 VISIBILITY void \
 SETTER(void) \
 { \
-	__state |= (1<<(BIT)); \
+	__state |= ((UInt16)1<<(BIT)); \
 } \
 VISIBILITY UInt16 \
 TESTER(void) \
 { \
-	return (__state & (1<<(BIT))); \
+	return (__state & ((UInt16)1<<(BIT))); \
 }
 
 #define	GLOBAL
@@ -1216,6 +1230,7 @@ BUILD_STATEBITACCESSOR(9, ClearNewROM, SetNewROM, IsNewROM, GLOBAL)
 BUILD_STATEBITACCESSOR(10, SetDrawing, SetDeferDrawing, IsDeferDrawing, static)
 BUILD_STATEBITACCESSOR(11, ClearDirectBmps, SetDirectBmps, IsDirectBmps, GLOBAL)
 BUILD_STATEBITACCESSOR(12, ClearScaleModes, SetScaleModes, IsScaleModes, GLOBAL)
+BUILD_STATEBITACCESSOR(13, ClearScrolling, SetScrolling, IsScrolling, static)
 
 /*!
  * \brief clear the low and out of power flags
@@ -1267,7 +1282,7 @@ GetPositionClicked()
  * Set the field value of the item clicked on the form.
  * Saves having to re-lookup the location in the WorldMap.
  */
-void
+static void
 SetPositionClicked(UInt32 item)
 {
 	__clicker = item;
@@ -1281,19 +1296,19 @@ void
 _UIGetFieldToBuildOn(Int16 x, Int16 y)
 {
 	RectangleType rect;
-	rect.extent.x = getVisibleX() * gameTileSize();
-	rect.extent.y = getVisibleY() * gameTileSize();
+	rect.extent.x = (Coord)(getVisibleX() * gameTileSize());
+	rect.extent.y = (Coord)(getVisibleY() * gameTileSize());
 	rect.topLeft.x = XOFFSET;
 	rect.topLeft.y = YOFFSET;
 
 	if (RctPtInRectangle(x, y, &rect)) {
-		UInt32 xpos = (x - XOFFSET) / gameTileSize() + getMapXPos();
-		UInt32 ypos = (y - YOFFSET) / gameTileSize() + getMapYPos();
+		Coord xpos = (x - XOFFSET) / gameTileSize() + getMapXPos();
+		Coord ypos = (y - YOFFSET) / gameTileSize() + getMapYPos();
 		LockZone(lz_world);
 		SetPositionClicked(WORLDPOS(xpos, ypos));
 		UnlockZone(lz_world);
 		if (UIGetSelectedBuildItem() != Be_Query)
-			BuildSomething(xpos, ypos);
+			BuildSomething((UInt16)xpos, (UInt16)ypos);
 		else
 			FrmGotoForm(formID_Query);
 	}
@@ -1303,7 +1318,7 @@ void
 UIDisasterNotify(disaster_t disaster)
 {
 	char string[512];
-	SysStringByIndex(st_disasters, disaster - diFireOutbreak, string, 511);
+	SysStringByIndex(st_disasters, (UInt16)(disaster - diFireOutbreak), string, (UInt16)511);
 	if (*string == '\0') StrPrintF(string, "generic disaster??");
 
 	FrmCustomAlert(alertID_generic_disaster, string, 0, 0);
@@ -1314,7 +1329,7 @@ static struct problemtable {
 	problem_t entry; /*!< the problem entry */
 	UInt16 (*test)(void); /*!< the testing function */
 	void (*set)(void); /*!< the setting function */
-	Int16 alert; /*!< the alert to display */
+	UInt16 alert; /*!< the alert to display */
 } problem_table[] = {
 	{ peFineOnMoney, NULL, ClearLowOutMoneyFlags, 0 },
 	{ peLowOnMoney, IsLowMoneyShown, SetLowMoneyShown, alertID_lowFunds },
@@ -1459,15 +1474,17 @@ _UIDrawRect(Int16 nTop, Int16 nLeft, Int16 nHeight, Int16 nWidth)
 /*
  * Draw the border around the play area
  */
-void
-UIDrawBorder()
+/*
+static void
+DrawBorder()
 {
 	if (IsDeferDrawing())
 		return;
 
-	_UIDrawRect(YOFFSET, XOFFSET, getVisibleY() * gameTileSize(),
-	    getVisibleX() * gameTileSize());
+	_UIDrawRect(YOFFSET, XOFFSET, (Int16)(getVisibleY() * gameTileSize()),
+	    (Int16)(getVisibleX() * gameTileSize()));
 }
+*/
 
 /*
  * Null Function.
@@ -1482,8 +1499,8 @@ UISetUpGraphic(void)
  * Would be the tracking cursor on the screen in a bigger environment
  */
 void
-UIDrawCursor(Int16 xpos __attribute__ ((unused)),
-    Int16 ypos __attribute__((unused)))
+UIPaintCursor(UInt16 xpos __attribute__ ((unused)),
+    UInt16 ypos __attribute__((unused)))
 {
 }
 
@@ -1497,8 +1514,8 @@ UIDrawCursor(Int16 xpos __attribute__ ((unused)),
  * \param ypos the y position on the area to paint
  * \param elem the element to use for the loss icon
  */
-void
-UIDrawLossIcon(Int16 xpos, Int16 ypos, welem_t elem)
+static void
+PaintLossIcon(UInt16 xpos, UInt16 ypos, welem_t elem)
 {
 	RectangleType rect;
 
@@ -1517,12 +1534,13 @@ UIDrawLossIcon(Int16 xpos, Int16 ypos, welem_t elem)
 	StartHiresDraw();
 	/* first draw the overlay */
 	_WinCopyRectangle(winZones, WinGetActiveWindow(), &rect,
-	    xpos * gameTileSize() + XOFFSET, ypos * gameTileSize() + YOFFSET,
+	    (Coord)(xpos * gameTileSize() + XOFFSET), (Coord)(ypos * gameTileSize() + YOFFSET),
 	    winErase);
 	/* now draw the powerloss icon */
 	rect.topLeft.x -= gameTileSize();
 	_WinCopyRectangle(winZones, WinGetActiveWindow(), &rect,
-	    xpos * gameTileSize() + XOFFSET, ypos * gameTileSize() + YOFFSET,
+	    (Coord)(xpos * gameTileSize() + XOFFSET),
+	    (Coord)(ypos * gameTileSize() + YOFFSET),
 	    winOverlay);
 	EndHiresDraw();
 }
@@ -1533,9 +1551,9 @@ UIDrawLossIcon(Int16 xpos, Int16 ypos, welem_t elem)
  * The Field has already been determined to not have water.
  */
 void
-UIDrawWaterLoss(Int16 xpos, Int16 ypos)
+UIPaintWaterLoss(UInt16 xpos, UInt16 ypos)
 {
-	UIDrawLossIcon(xpos, ypos, Z_WATER_OUT_MASK);
+	PaintLossIcon(xpos, ypos, Z_WATER_OUT_MASK);
 }
 
 /*!
@@ -1544,9 +1562,9 @@ UIDrawWaterLoss(Int16 xpos, Int16 ypos)
  * The field has already been determined to not have power
  */
 void
-UIDrawPowerLoss(Int16 xpos, Int16 ypos)
+UIPaintPowerLoss(UInt16 xpos, UInt16 ypos)
 {
-	UIDrawLossIcon(xpos, ypos, Z_POWER_OUT_MASK);
+	PaintLossIcon(xpos, ypos, Z_POWER_OUT_MASK);
 }
 
 /*!
@@ -1556,7 +1574,7 @@ UIDrawPowerLoss(Int16 xpos, Int16 ypos)
  * \param ypos the y position of the unit in tiles
  */
 void
-UIDrawSpecialUnit(Int16 xpos, Int16 ypos, Int8 i)
+UIPaintSpecialUnit(UInt16 xpos, UInt16 ypos, Int8 i)
 {
 	RectangleType rect;
 	if (IsDeferDrawing() || UIClipped(xpos, ypos))
@@ -1572,11 +1590,13 @@ UIDrawSpecialUnit(Int16 xpos, Int16 ypos, Int8 i)
 
 	StartHiresDraw();
 	_WinCopyRectangle(winUnits, WinGetActiveWindow(), &rect,
-	    xpos * gameTileSize() + XOFFSET, ypos * gameTileSize() + YOFFSET,
+	    (Coord)(xpos * gameTileSize() + XOFFSET),
+	    (Coord)(ypos * gameTileSize() + YOFFSET),
 	    winErase);
 	rect.topLeft.y = 0;
 	_WinCopyRectangle(winUnits, WinGetActiveWindow(), &rect,
-	    xpos * gameTileSize() + XOFFSET, ypos * gameTileSize() + YOFFSET,
+	    (Coord)(xpos * gameTileSize() + XOFFSET),
+	    (Coord)(ypos * gameTileSize() + YOFFSET),
 	    winOverlay);
 	EndHiresDraw();
 }
@@ -1586,7 +1606,7 @@ UIDrawSpecialUnit(Int16 xpos, Int16 ypos, Int8 i)
  * Mostly monsters, but it coud be a train, palin, chopper
  */
 void
-UIDrawSpecialObject(Int16 xpos, Int16 ypos, Int8 i)
+UIPaintSpecialObject(UInt16 xpos, UInt16 ypos, Int8 i)
 {
 	RectangleType rect;
 
@@ -1596,18 +1616,20 @@ UIDrawSpecialObject(Int16 xpos, Int16 ypos, Int8 i)
 	xpos -= getMapXPos();
 	ypos -= getMapYPos();
 
-	rect.topLeft.x = (game.objects[i].dir) * gameTileSize();
-	rect.topLeft.y = ((i * 2) + 1) * gameTileSize();
+	rect.topLeft.x = (Coord)(game.objects[i].dir * gameTileSize());
+	rect.topLeft.y = (Coord)(((i * 2) + 1) * gameTileSize());
 	rect.extent.x = gameTileSize();
 	rect.extent.y = gameTileSize();
 
 	StartHiresDraw();
 	_WinCopyRectangle(winMonsters, WinGetActiveWindow(), &rect,
-	    xpos * gameTileSize() + XOFFSET, ypos * gameTileSize() + YOFFSET,
+	    (Coord)(xpos * gameTileSize() + XOFFSET),
+	    (Coord)(ypos * gameTileSize() + YOFFSET),
 	    winErase);
 	rect.topLeft.y -= 16;
 	_WinCopyRectangle(winMonsters, WinGetActiveWindow(), &rect,
-	    xpos * gameTileSize() + XOFFSET, ypos * gameTileSize() + YOFFSET,
+	    (Coord)(xpos * gameTileSize() + XOFFSET),
+	    (Coord)(ypos * gameTileSize() + YOFFSET),
 	    winOverlay);
 	EndHiresDraw();
 }
@@ -1616,7 +1638,7 @@ UIDrawSpecialObject(Int16 xpos, Int16 ypos, Int8 i)
  * Paint the location on screen with the field.
  */
 void
-UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
+UIPaintField(UInt16 xpos, UInt16 ypos, welem_t nGraphic)
 {
 	RectangleType rect;
 
@@ -1634,31 +1656,75 @@ UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
 	/* copy/paste the graphic from the offscreen image */
 	StartHiresDraw();
 	_WinCopyRectangle(winZones, WinGetActiveWindow(), &rect,
-	    xpos * gameTileSize() + XOFFSET, ypos * gameTileSize() + YOFFSET,
+	    (Coord)(xpos * gameTileSize() + XOFFSET),
+	    (Coord)(ypos * gameTileSize() + YOFFSET),
 	    winPaint);
 	EndHiresDraw();
+}
+
+/*!
+ * \brief actually perform all the painting
+ * This will perform all the painting that has been asked for on the display.
+ * It allows us to pool all the painting in one point; which allows for more
+ * consistent painting of the display; rather than mandating the painting
+ * at a point that would make it inefficient.
+ */
+static void
+performPaintDisplay(void)
+{
+	UIInitDrawing();
+	if (checkGraphicUpdate(gu_playarea))
+		UIPaintPlayArea();
+	if (checkGraphicUpdate(gu_credits))
+		UIPaintCredits();
+	if (checkGraphicUpdate(gu_population))
+		UIPaintPopulation();
+	if (checkGraphicUpdate(gu_date))
+		UIPaintDate();
+	/*if (checkGraphicUpdate(gu_location))
+		UIPaintLocation();*/
+	if (checkGraphicUpdate(gu_buildicon))
+		UIPaintBuildIcon();
+	if (checkGraphicUpdate(gu_speed))
+		UIPaintSpeed();
+	if (checkGraphicUpdate(gu_desires))
+		UIPaintDesires();
+	clearGraphicUpdate();
+	UIFinishDrawing();
 }
 
 /*!
  * \brief Draw the play area
  */
 void
-UIDrawPlayArea()
+UIPaintPlayArea(void)
 {
-	Int16 x = getMapXPos();
-	Int16 y = getMapYPos();
+	UInt16 x = getMapXPos();
+	UInt16 y = getMapYPos();
 
-	Int16 maxx = x + getVisibleX() < getMapWidth() ? x + getVisibleX() :
+	UInt16 maxx = x + getVisibleX() < getMapWidth() ? x + getVisibleX() :
 	    getMapWidth();
-	Int16 maxy = y + getVisibleY() < getMapHeight() ? y + getVisibleY() :
+	UInt16 maxy = y + getVisibleY() < getMapHeight() ? y + getVisibleY() :
 	    getMapHeight();
 
+	LockZone(lz_world);
 	for (; x < maxx; x++) {
-		for (y = getMapYPos(); y < maxy; y++) {
+		for (; y < maxy; y++) {
 			DrawFieldWithoutInit(x, y);
 		}
+		y = getMapYPos();
 	}
 	minimapPaint();
+	UnlockZone(lz_world);
+}
+
+/*!
+ * \brief Paint the desires onto the screen
+ */
+void
+UIPaintDesires(void)
+{
+	return;
 }
 
 /*
@@ -1669,24 +1735,58 @@ UIScrollDisplay(dirType direction)
 {
 	WinHandle screen;
 	RectangleType rect;
-	int to_x, to_y, i;
-	Int16 mapx, mapy;
+	RectangleType overlap;
+
+	Int16 to_x, to_y;
+	UInt16 mapx, mapy;
+	UInt16 x, y;
+	UInt16 s_x, s_y, l_x, l_y, gs_m1;
 
 	if (IsDeferDrawing())
 		return;
 
+	mapx = getMapXPos();
+	mapy = getMapYPos();
+
+	WriteLog("Map(%d,%d)\n", mapx, mapy);
+
+	SetScrolling();
+	/* Repaint fhe area occluded by the minimap */
+	/* XXX: fix the repaint with XOFFSET, YOFFSET */
+	minimapIntersect(&rPlayGround, &overlap);
+	WriteLog("overlap == %d, %d -> %d, %d\n", overlap.topLeft.x,
+	    overlap.topLeft.y, overlap.extent.x, overlap.extent.y);
+	gs_m1 = gameTileSize() - 1;
+	s_x = mapx + inGameTiles(overlap.topLeft.x - XOFFSET + gs_m1);
+	s_y = mapy + inGameTiles(overlap.topLeft.y - YOFFSET + gs_m1);
+	l_x = s_x + inGameTiles(overlap.extent.x + gs_m1);
+	l_y = s_y + inGameTiles(overlap.extent.y + gs_m1);
+	WriteLog("paint (%d, %d) -> (%d, %d)\n", s_x, s_y, l_x, l_y);
+
+	for (x = s_x; x < l_x; x++) {
+		for(y = s_y; y < l_y; y++) {
+			DrawFieldWithoutInit(x, y);
+			WriteLog("minimap paintover@(%d, %d)\n", x, y);
+		}
+	}
+
 	rect.topLeft.x = XOFFSET + gameTileSize() * (direction == dtRight);
 	rect.topLeft.y = YOFFSET + gameTileSize() * (direction == dtDown);
-	rect.extent.x = (getVisibleX() -
-	    1 * (direction == dtRight || direction == dtLeft)) * gameTileSize();
-	rect.extent.y = (getVisibleY() -
-	    1 * (direction == dtUp || direction == dtDown)) * gameTileSize();
+	WriteLog("%d, %d\n", getVisibleX(), getVisibleY());
+	rect.extent.x = (Coord)((getVisibleX() -
+	    ((direction == dtRight || direction == dtLeft) ? 1 : 0)) *
+	    gameTileSize());
+	rect.extent.y = (Coord)((getVisibleY() -
+	    ((direction == dtUp || direction == dtDown) ? 1 : 0)) *
+	    gameTileSize());
 	to_x = XOFFSET + gameTileSize() * (direction == dtLeft);
 	to_y = YOFFSET + gameTileSize() * (direction == dtUp);
 
-
 	screen = WinGetActiveWindow();
 	StartHiresDraw();
+	WriteLog("Copy Rectangle (%d, %d, %d, %d) to %d, %d\n", 
+	    rect.topLeft.x, rect.topLeft.y,
+	    rect.extent.x, rect.extent.y, to_x, to_y);
 	_WinCopyRectangle(screen, screen, &rect, to_x, to_y, winPaint);
 	EndHiresDraw();
 
@@ -1694,24 +1794,22 @@ UIScrollDisplay(dirType direction)
 	LockZone(lz_world);
 	UIInitDrawing();
 
-	mapy = getMapYPos();
-	mapx = getMapXPos();
 	if (direction == dtRight || direction == dtLeft) {
-		for (i = mapy; i < getVisibleY() + mapy; i++) {
-			DrawFieldWithoutInit(mapx +
-			    (getVisibleX() - 1) * (direction == dtRight), i);
+		for (y = mapy; y < getVisibleY() + mapy; y++) {
+			DrawFieldWithoutInit((UInt16)(mapx +
+			    (getVisibleX() - 1) * (direction == dtRight)), y);
 		}
 	} else {
-		for (i = mapx; i < getVisibleX() + mapx; i++) {
-			DrawFieldWithoutInit(i, mapy +
-			    (getVisibleY() - 1) * (direction == dtDown));
+		for (x = mapx; x < getVisibleX() + mapx; x++) {
+			DrawFieldWithoutInit(x, (UInt16)(mapy +
+			    (getVisibleY() - 1) * (direction == dtDown)));
 		}
 	}
 
-	UIDrawCursor(getCursorX(), getCursorY());
-	UIDrawLoc();
-
+	UIPaintCursor(getCursorX(), getCursorY());
+	minimapPaint();
 	UIFinishDrawing();
+
 	UnlockZone(lz_world);
 }
 
@@ -1745,8 +1843,8 @@ GetRandomNumber(UInt32 max)
 typedef enum {
 	loc_date = 0,
 	loc_credits,
-	loc_population,
-	loc_position
+	loc_population
+	//loc_position
 } loc_screen;
 
 #define	MIDX	1
@@ -1766,7 +1864,7 @@ static RectangleType shapes[] = {
 	{ {0, 0}, {0, 10} },  /* loc_date */
 	{ {0, 0}, {0, 10} }, /* loc_credits */
 	{ {0, 0}, {0, 10} }, /* loc_population */
-	{ {0, 0}, {0, 10} } /* loc_position */
+	//{ {0, 0}, {0, 10} } /* loc_position */
 };
 
 /*! \brief the positions of the items on screen - low resolution */
@@ -1774,7 +1872,7 @@ static const struct StatusPositions lrpositions[] = {
 	{ {0, 0} , {0, 1}, MIDX },  /* loc_date */
 	{ {0, 0}, {0, 1}, ENDY }, /* loc_credits */
 	{ {0, 0}, {0, 1}, MIDX | ENDY }, /* loc_population */
-	{ {0, 0}, {0, 1}, ENDX | ENDY } /* loc_position */
+	//{ {0, 0}, {0, 1}, ENDX | ENDY } /* loc_position */
 };
 
 #ifdef HRSUPPORT
@@ -1783,8 +1881,8 @@ static const struct StatusPositions lrpositions[] = {
 static const struct StatusPositions hrpositions[] = {
 	{ {1, 0}, {0, 1}, ENDY },  /* loc_date */
 	{ {40, 0}, {0, 1}, ENDY }, /* loc_credits */
-	{ {80, 0}, {0, 1}, ENDY }, /* loc_population */
-	{ {140, 0}, {0, 1}, ENDY } /* loc_position */
+	{ {80, 0}, {0, 1}, ENDY } /* loc_population */
+	//{ {140, 0}, {0, 1}, ENDY } /* loc_position */
 };
 
 /*!
@@ -1822,7 +1920,7 @@ posAt(int pos)
  * \param text the text to display
  */
 static void
-UIDrawItem(loc_screen location, char *text)
+DrawItem(loc_screen location, char *text)
 {
 	const struct StatusPositions *pos;
 	Int16 sl;
@@ -1839,7 +1937,7 @@ UIDrawItem(loc_screen location, char *text)
 
 	if (isDoubleOrMoreResolution())
 		_FntSetFont(boldFont);
-	sl = StrLen(text);
+	sl = (Int16)StrLen(text);
 	tx = FntCharsWidth(text, sl);
 	switch (pos->extents & (MIDX | ENDX)) {
 	case MIDX:
@@ -1886,7 +1984,7 @@ UICheckOnClick(Coord x, Coord y)
 		    (x <= (rt->topLeft.x + rt->extent.x)) &&
 		    (y >= rt->topLeft.y) &&
 		    (y <= (rt->topLeft.y + rt->extent.y)))
-			return (i);
+			return ((Int16)i);
 	}
 	return (-1);
 }
@@ -1911,16 +2009,16 @@ CheckTextClick(Coord x, Coord y)
 	case loc_population:
 		doButtonEvent(BePopulation);
 		break;
-	case loc_position:
+	/*case loc_position:
 		doButtonEvent(BeMap);
-		break;
+		break;*/
 	default:
 		break;
 	}
 }
 
 void
-UIDrawDate(void)
+UIPaintDate(void)
 {
 	char temp[20];
 
@@ -1928,11 +2026,11 @@ UIDrawDate(void)
 		return;
 
 	getDate((char *)temp);
-	UIDrawItem(loc_date, temp);
+	DrawItem(loc_date, temp);
 }
 
 void
-UIDrawCredits(void)
+UIPaintCredits(void)
 {
 	char temp[20];
 	char scale;
@@ -1945,9 +2043,9 @@ UIDrawCredits(void)
 	if (IsDeferDrawing())
 		return;
 
-	credits = scaleNumber(getCredits(), &scale);
+	credits = scaleNumber((UInt32)getCredits(), &scale);
 	StrPrintF(temp, "$: %ld%c", credits, scale);
-	UIDrawItem(loc_credits, temp);
+	DrawItem(loc_credits, temp);
 #ifdef HRSUPPORT
 	if (isHires()) {
 		bitmapHandle = DmGetResource(TBMP, bitmapID_coin);
@@ -1965,8 +2063,9 @@ UIDrawCredits(void)
 }
 
 void
-UIDrawLoc(void)
+UIPaintLoc(void)
 {
+/*
 	char temp[20];
 #ifdef HRSUPPORT
 	MemHandle bitmapHandle;
@@ -1978,7 +2077,7 @@ UIDrawLoc(void)
 
 	StrPrintF(temp, "%02u,%02u", getMapXPos(), getMapYPos());
 
-	UIDrawItem(loc_position, temp);
+	DrawItem(loc_position, temp);
 #ifdef HRSUPPORT
 	if (isHires()) {
 		bitmapHandle = DmGetResource(TBMP, bitmapID_loca);
@@ -1993,10 +2092,11 @@ UIDrawLoc(void)
 		DmReleaseResource(bitmapHandle);
 	}
 #endif
+*/
 }
 
 void
-UIDrawBuildIcon(void)
+UIPaintBuildIcon(void)
 {
 	MemHandle bitmaphandle;
 	BitmapPtr bitmap;
@@ -2005,8 +2105,8 @@ UIDrawBuildIcon(void)
 		return;
 
 	bitmaphandle = DmGetResource(TBMP,
-	    bitmapID_iconBulldoze + (((nSelectedBuildItem <= Be_Extra)) ?
-	    nSelectedBuildItem : OFFSET_EXTRA));
+	    (UInt16)(bitmapID_iconBulldoze + (((nSelectedBuildItem <= Be_Extra)) ?
+	    nSelectedBuildItem : OFFSET_EXTRA)));
 
 	if (bitmaphandle == NULL)
 		/* TODO: onscreen error? +save? */
@@ -2019,20 +2119,22 @@ UIDrawBuildIcon(void)
 	DmReleaseResource(bitmaphandle);
 #if defined(HRSUPPORT)
 	if (isHires()) {
-		UIDrawToolBar();
+		UIPaintToolBar();
 	}
 #endif
 }
 
 Int8
-UIClipped(Int16 xpos, Int16 ypos)
+UIClipped(UInt16 xpos, UInt16 ypos)
 {
-	return (xpos < getMapXPos() || (xpos >= getMapXPos() + getVisibleX()) ||
-	    ypos < getMapYPos() || (ypos >= getMapYPos() + getVisibleY()));
+	return (xpos < (UInt16)getMapXPos() ||
+	    (xpos >= (UInt16)(getMapXPos() + getVisibleX())) ||
+	    ypos < (UInt16)getMapYPos() ||
+	    (ypos >= (UInt16)(getMapYPos() + getVisibleY())));
 }
 
 void
-UIDrawSpeed(void)
+UIPaintSpeed(void)
 {
 	RectangleType rect;
 #if defined(SONY_CLIE)
@@ -2070,7 +2172,7 @@ UIDrawSpeed(void)
 }
 
 void
-UIDrawPop(void)
+UIPaintPopulation(void)
 {
 	char temp[20];
 	Char scale;
@@ -2083,7 +2185,7 @@ UIDrawPop(void)
 	popul = scaleNumber(popul, &scale);
 
 	StrPrintF(temp, "Pop: %lu%c", popul, scale);
-	UIDrawItem(loc_population, temp);
+	DrawItem(loc_population, temp);
 #ifdef HRSUPPORT
 	if (isHires()) {
 		MemHandle bitmapHandle;
@@ -2183,7 +2285,7 @@ RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
 }
 
 /*! \brief list of speeds in game */
-static UInt32 speedslist[] = {
+static UInt8 speedslist[] = {
 	SPEED_PAUSED, SPEED_SLOW, SPEED_MEDIUM, SPEED_FAST, SPEED_TURBO
 };
 /*! \brief maximum speed */
@@ -2203,7 +2305,7 @@ speedOffset(void)
 
 	for (i = 0; i < MAX_SPEED; i++)
 		if (getLoopSeconds() == speedslist[i])
-			return (i);
+			return ((Int16)i);
 	return (0);
 }
 
@@ -2287,7 +2389,7 @@ doButtonEvent(ButtonEvent event)
 		if (!IsDrawWindowMostOfScreen())
 			return (0);
 		jog_lr = 1 - jog_lr;
-		UIDrawSpeed();
+		addGraphicUpdate(gu_location);
 		break;
 #endif
 	default:
@@ -2493,7 +2595,7 @@ static Coord bWidth;
 
 /*! \brief draw the toolbar on the screen */
 static void
-UIDrawToolBar(void)
+UIPaintToolBar(void)
 {
 	WinHandle wh = NULL;
 	WinHandle owh = NULL;
@@ -2567,9 +2669,9 @@ toolBarCheck(Coord xpos)
 	if (id == (bitmapID_iconExtra - bitmapID_iconBulldoze)) {
 		UIPopUpExtraBuildList();
 	} else {
-		nSelectedBuildItem = id;
+		UISetSelectedBuildItem(id);
 	}
-	UIDrawBuildIcon();
+	addGraphicUpdate(gu_buildicon);
 }
 
 /*!
@@ -2614,7 +2716,7 @@ pcResizeDisplay(FormPtr form, Int16 hOff, Int16 vOff, Boolean draw)
 
 	WriteLog("new wh = (%d, %d)\n", (int)GETWIDTH(), (int)GETHEIGHT());
 
-	/* XXX: Resize the gadgets */
+	/* XXX: Resize the gadgets - coordinates are natural */
 	rPlayGround.extent.x = normalizeCoord(GETWIDTH());
 	rPlayGround.extent.y = normalizeCoord(GETHEIGHT()) - 2 * 10;
 
@@ -2643,7 +2745,7 @@ static void
 HoldHook(UInt32 held)
 {
 	if (held) game.gameLoopSeconds = SPEED_PAUSED;
-	UIDrawSpeed();
+	addGraphicUpdate(gu_speed);
 }
 
 #endif

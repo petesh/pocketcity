@@ -58,18 +58,25 @@ minimapPlace(RectangleType *pos)
 }
 
 void
+minimapIntersect(const RectangleType *other, RectangleType *dest)
+{
+	RctGetIntersection(&minimap.rect, other, dest);
+}
+
+
+void
 minimapPaint(void)
 {
 	if (!minimap.showing) return;
 
 	WinEraseRectangle(&minimap.rect, 0);
-	minimap.rout.topLeft.x = minimap.rect.topLeft.x +
-	    (Int32)getMapXPos() * minimap.rect.extent.x / getMapWidth();
-	minimap.rout.topLeft.y = minimap.rect.topLeft.y +
-	    (Int32)getMapYPos() * minimap.rect.extent.y / getMapHeight();
-	WriteLog("Minimap rect = (%d,%d) -> (%d,%d)\n", minimap.rout.topLeft.x,
-	    minimap.rout.topLeft.y, minimap.rout.extent.x,
-	    minimap.rout.extent.y);
+	minimap.rout.topLeft.x = (Coord)(minimap.rect.topLeft.x +
+	    (Int32)getMapXPos() * minimap.rect.extent.x / getMapWidth());
+	minimap.rout.topLeft.y = (Coord)(minimap.rect.topLeft.y +
+	    (Int32)getMapYPos() * minimap.rect.extent.y / getMapHeight());
+	WriteLog("Minimap rect = (%d,%d) -> (%d,%d)\n",
+	    (int)minimap.rout.topLeft.x, (int)minimap.rout.topLeft.y,
+	    (int)minimap.rout.extent.x, (int)minimap.rout.extent.y);
 	WinDrawRectangle(&minimap.rout, 0);
 }
 
