@@ -249,7 +249,7 @@ RenderMaps(void)
 	 */
 	if (inited == 0) {
 		inited++;
-		if (depth > 4) {
+		if (depth >= 4) {
 			/* water */
 			RGBColorType rg = { 0, 0, 0, 255 };
 			entries[0] = WinRGBToIndex(&rg);
