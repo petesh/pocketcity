@@ -9,6 +9,11 @@ Legend:
  '*' = fix/modification
  '-' = removed feature
 
+Version 0.17dev
+  + Support for Palm OS 5 High Resolution API
+  + Query Tool Improved
+  * Fix annoying winScreenLock issue
+
 Version 0.16
   * bug # 655848 crash after money warning
   * bug # 655365 crash after some time of interacting
