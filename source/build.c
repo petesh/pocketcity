@@ -35,7 +35,6 @@ static void Build_Defence(Int16 xpos, Int16 ypos, welem_t type) BUILD_SECTION;
 
 static void CreateForest(UInt32 pos, Int16 size) BUILD_SECTION;
 static void RemoveDefence(Int16 xpos, Int16 ypos) BUILD_SECTION;
-void RemoveAllDefence(void) BUILD_SECTION;
 static int CantBulldoze(welem_t type) BUILD_SECTION;
 static UInt16 blockSize(welem_t type) BUILD_SECTION;
 static void Doff(welem_t base, welem_t node, Int16 *x, Int16 *y) BUILD_SECTION;
@@ -134,9 +133,12 @@ void
 RemoveAllDefence(void)
 {
 	int i;
+
 	for (i = 0; i < NUM_OF_UNITS; i++) {
-		game.units[i].active = 0;
-		DrawCross(game.units[i].x, game.units[i].y, 1, 1);
+		if (game.units[i].active != 0) {
+			game.units[i].active = 0;
+			DrawCross(game.units[i].x, game.units[i].y, 1, 1);
+		}
 	}
 }
 
@@ -653,8 +655,8 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 		UInt8 check_rd;
 		UInt8 check_br;
 		UInt32 wp = WORLDPOS(xpos, ypos);
-		check_rd = CheckNextTo(wp, IsRoad, DIR_ALL);
-		check_br = CheckNextTo(wp, IsBridge, DIR_ALL);
+		check_rd = CheckNextTo(wp, DIR_ALL, IsRoad);
+		check_br = CheckNextTo(wp, DIR_ALL, IsBridge);
 
 		if ((check_rd == 0) && (check_br == 0))
 			goto leaveme;

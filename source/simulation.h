@@ -63,7 +63,11 @@ Int16 IsZone(welem_t x, zoneType nType);
 #define DIR_HOR		((DIR_LEFT) | (DIR_RIGHT))
 #define	DIR_ALL		((DIR_HOR) | (DIR_VER))
 
-UInt8 CheckNextTo(Int32 pos, Int16 (*checkfn)(welem_t), UInt8 dirs);
+typedef Int16 (*carryfn_t)(welem_t);
+typedef Int16 (*carryfnarg_t)(welem_t, void *);
+
+UInt8 CheckNextTo(Int32 pos, UInt8 dirs, carryfn_t checkfn);
+UInt8 CheckNextTo1(Int32 pos, UInt8 dirs, carryfnarg_t checkfn, void *cfarg);
 
 Int16 CarryPower(welem_t x);
 Int16 CarryWater(welem_t x);

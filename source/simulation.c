@@ -20,7 +20,7 @@
 
 /*! \brief Structure for performing distribution */
 typedef struct _distrib {
-	Int16 (*doescarry)(welem_t); /*!< Does the node carry the item */
+	carryfn_t	doescarry; /*!< Does the node carry the item */
 	/*! Is the node a supplier */
 	Int16 (*isplant)(welem_t, UInt32, selem_t);
 	void *needSourceList; /*!< list of nodes that need to be powered */
@@ -788,7 +788,7 @@ GetScoreFor(zoneType iamthis, welem_t what)
 	if (what == Z_NUCLEARPLANT) {
 		return (iamthis == ztCommercial) ? (-150) :
 			((iamthis == ztResidential) ? (-200) :
-			((iamthis == ztIndustrial) ? 15 : (0-175)));
+			((iamthis == ztIndustrial) ? 15 : (-175)));
 	}
 	if (what == Z_FAKETREE || what == Z_REALTREE) {
 		return (iamthis == ztCommercial) ? 50 :
@@ -1420,7 +1420,7 @@ IsRoadOrBridge(welem_t x)
  * \return true if the direction passed is of the correct type
  */
 UInt8
-CheckNextTo(Int32 pos, Int16 (*checkfn)(welem_t), UInt8 dirs)
+CheckNextTo(Int32 pos, UInt8 dirs, Int16 (*checkfn)(welem_t))
 {
 	UInt8 rv = 0;
 
@@ -1435,6 +1435,34 @@ CheckNextTo(Int32 pos, Int16 (*checkfn)(welem_t), UInt8 dirs)
 		rv |= DIR_LEFT;
 	if ((dirs & DIR_RIGHT) && (((pos % GetMapWidth()) + 1) < GetMapWidth())
 		&& checkfn(GetWorld(pos + 1)))
+		rv |= DIR_RIGHT;
+	return (rv);
+}
+
+/*!
+ * \brief check if one of the zones around it is of a certain type.
+ * \param pos starting position
+ * \param dirs the directions to check
+ * \param checkfn function to check with
+ * \param cfarg argument for the check function
+ * \return the directions that match using the check function.
+ */
+UInt8
+CheckNextTo1(Int32 pos, UInt8 dirs, carryfnarg_t checkfn, void *cfarg)
+{
+	UInt8 rv = 0;
+
+	if ((dirs & DIR_UP) && (pos > GetMapWidth()) &&
+	    checkfn(GetWorld(pos - GetMapWidth()), cfarg))
+		rv |= DIR_UP;
+	if ((dirs & DIR_DOWN) && (pos < (MapMul() - GetMapWidth())) &&
+	    checkfn(GetWorld(pos + GetMapWidth()), cfarg))
+		rv |= DIR_DOWN;
+	if ((dirs & DIR_LEFT) && (pos % GetMapWidth()) && 
+	    checkfn(GetWorld(pos - 1), cfarg))
+		rv |= DIR_LEFT;
+	if ((dirs & DIR_RIGHT) && (((pos % GetMapWidth()) + 1) < GetMapWidth())
+		&& checkfn(GetWorld(pos + 1), cfarg))
 		rv |= DIR_RIGHT;
 	return (rv);
 }

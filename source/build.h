@@ -76,12 +76,12 @@ typedef enum {
 extern "C" {
 #endif
 
-void Build_Bulldoze(Int16 xpos, Int16 ypos, welem_t _unused);
-void BuildSomething(Int16 xpos, Int16 ypos);
-void Build_Destroy(Int16 xpos, Int16 ypos);
-void CreateFullRiver(void);
-void CreateForests(void);
-void RemoveAllDefence(void);
+void Build_Bulldoze(Int16 xpos, Int16 ypos, welem_t _unused) BUILD_SECTION;
+void BuildSomething(Int16 xpos, Int16 ypos) BUILD_SECTION;
+void Build_Destroy(Int16 xpos, Int16 ypos) BUILD_SECTION;
+void CreateFullRiver(void) BUILD_SECTION;
+void CreateForests(void) BUILD_SECTION;
+void RemoveAllDefence(void) BUILD_SECTION;
 
 #ifdef __cplusplus
 }

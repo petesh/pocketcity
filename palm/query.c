@@ -137,6 +137,7 @@ querySetup(void)
 	Char *temp;
 	FormPtr form;
 	ControlPtr ctl;
+	FieldPtr fld;
 	welem_t element;
 	selem_t status;
 	UInt8 valdens;
@@ -149,8 +150,9 @@ querySetup(void)
 	form = FrmGetActiveForm();
 	temp = (Char *)MemPtrNew(255);
 	zonetoPtr(temp, element, 255);
-	ctl = (ControlPtr)GetObjectPtr(form, labelID_zonetype);
-	CtlSetLabel(ctl, temp);
+	fld = (FieldPtr)GetObjectPtr(form, labelID_zonetype);
+	FldSetTextPtr(fld, temp);
+	FldRecalculateField(fld, true);
 
 	temp = (Char *)MemPtrNew(255);
 	valdens = ZoneValue(element);
@@ -198,7 +200,7 @@ queryCleanup(void)
 
 	form = FrmGetActiveForm();
 
-	temp = (char *)CtlGetLabel((ControlPtr)GetObjectPtr(form,
+	temp = (char *)FldGetTextPtr((FieldPtr)GetObjectPtr(form,
 	    labelID_zonetype));
 	if (temp) MemPtrFree(temp);
 	temp = (char *)CtlGetLabel((ControlPtr)GetObjectPtr(form,
