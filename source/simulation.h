@@ -65,6 +65,15 @@ EXPORT Int16 IsOccupied(welem_t x);
 
 #define IsRealWater(X)	((X) == Z_REALWATER)
 #define IsPump(X) ((X) == Z_PUMP)
+#define IsCoalPlant(X)	(((X) >= Z_COALPLANT_START) && ((X) <= Z_COALPLANT_END))
+#define IsNukePlant(X)	(((X) >= Z_NUCLEARPLANT_START) && \
+    ((X) <= Z_NUCLEARPLANT_END))
+#define	IsRealTree(X)	((X) == Z_REALTREE)
+#define	IsFakeTree(X)	((X) == Z_FAKETREE)
+#define	IsTree(X)	(IsFakeTree(X) || IsRealTree(X))
+#define IsRealWater(X)	((X) == Z_REALWATER)
+#define IsFakeWater(X)	((X) == Z_FAKEWATER)
+#define IsWater(X)	(IsFakeWater(X) || IsRealWater(X))
 
 #define IsSlum(X) (((X) >= Z_COMMERCIAL_SLUM) && ((X) <= Z_INDUSTRIAL_SLUM))
 
