@@ -83,11 +83,11 @@ void DrawMap(void)
     WinHandle wh;
     WinHandle swh;
     Err e;
-    char *addr;
+    char *addr = NULL;
     int shift = 0;
     UInt32 depth;
 
-    wh = WinCreateOffscreenWindow(400, 400, screenFormat, &e);
+    wh = WinCreateOffscreenWindow(100, 100, screenFormat, &e);
     if (e != errNone) return;
 
     LockWorld();
@@ -96,10 +96,8 @@ void DrawMap(void)
     swh = WinSetDrawWindow(wh);
     WinDrawRectangleFrame(1, &rect);
 
-    if (!oldROM) {
-        /* get the bits */
-        addr = BmpGetBits(WinGetBitmap(wh));
-    } else {
+    if (oldROM) {
+        /* Draw On The Bitmap Using direct write */
         addr = wh->displayAddrV20;
     }
     depth = getDepth();
@@ -130,8 +128,11 @@ void DrawMap(void)
         }
     }
 
-    for(y = 0; y < GetMapSize(); y++) {
-        for(x = 0 ; x < GetMapSize(); x++) {
+    if (!oldROM) {
+        WinPushDrawState();
+    }
+    for (y = 0; y < GetMapSize(); y++) {
+        for (x = 0 ; x < GetMapSize(); x++) {
             int wt = GetWorld(WORLDPOS(x, y));
             if (inited >= 1) {
                 switch (wt) {
@@ -144,30 +145,42 @@ void DrawMap(void)
                 }
             }
             
-            if (depth == 1) {
-                if (wt == TYPE_DIRT) { /* it's dirt or other */
-                    *addr &= (unsigned char)~(1U << shift);
-                } else {
-                    *addr |= (unsigned char)(1U << shift);
-                }
-                shift++;
-                if ((shift > 8)) {// || (x >= GetMapSize())) {
-                    shift = 0;
-                    addr++;
-                }
-            } else if (depth == 4) {
-                if (x & 0x1) { /* Low nibble */
-                    *addr &= (unsigned char)0xf0;
-                    *addr |= cc;
-                    addr++;
-                } else { /* high nibble */
-                    *addr &= (unsigned char)0x0f;
-                    *addr |= cc << 4;
+            if (addr != NULL) {
+                switch(depth) {
+                case 1:
+                    if (wt == TYPE_DIRT) { /* it's dirt or other */
+                        *addr &= (unsigned char)~(1U << shift);
+                    } else {
+                        *addr |= (unsigned char)(1U << shift);
+                    }
+                    shift++;
+                    if ((shift > 8)) {// || (x >= GetMapSize()))
+                        shift = 0;
+                        addr++;
+                    }
+                    break;
+                case 4:
+                    if (x & 0x1) { /* Low nibble */
+                        *addr &= (unsigned char)0xf0;
+                        *addr |= cc;
+                        addr++;
+                    } else { /* high nibble */
+                        *addr &= (unsigned char)0x0f;
+                        *addr |= cc << 4;
+                    }
+                    break;
+                default:
+                    *addr++ = cc;
+                    break;
                 }
             } else {
-                *addr++ = cc;
+                WinSetForeColor(cc);
+                WinDrawPixel(x, y);
             }
         }
+    }
+    if (!oldROM) {
+        WinPopDrawState();
     }
     WinSetDrawWindow(swh);
     WinCopyRectangle(wh, swh, (RectangleType *)&rect, 2, 18, winPaint);
