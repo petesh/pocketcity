@@ -135,7 +135,7 @@ void _PalmInit(void)
     // set screen mode to colors if supported
     if (oldROM != 1) {  // must be v3.5+ for some functions in here
         WinScreenMode(winScreenModeGetSupportedDepths, 0, 0, &depth, 0);
-        if ((depth & 0x80) == 0x08 ) {
+        if ((depth & 0x80) != 0 ) {
             // 8pps is supported
             depth = 8;
             WinScreenMode(winScreenModeSet,0,0,&depth,0);

@@ -12,17 +12,29 @@
 CC = m68k-palmos-gcc
 CCFLAGS = -O2 -Wall -g
 
-pcity.prc:  bin.stm grcs.stm zones.stm
-	build-prc pcity.prc "Pocket City" PCit *.grc *.bin
+all: blackwhite color
 
+blackwhite: bin.stm grcs.stm zones.stm
+	build-prc pcity.prc "Pocket City" PCit *.grc tempbw/*.bin
+	
+color:  bin-color.stm grcs.stm zones-color.stm
+	build-prc pcity-color.prc "Pocket City" PCit *.grc tempcolor/*.bin
+    
 bin.stm: simcity.rcp
-	pilrc simcity.rcp
+	pilrc simcity.rcp tempbw
 	echo touching>bin.stm
 
+bin-color.stm: simcity-color.rcp
+	pilrc simcity-color.rcp tempcolor/
+	echo touching>bin-color.stm
+
 zones.stm: zones.rcp
-	pilrc zones.rcp
+	pilrc zones.rcp tempbw
 	echo touching>zones.stm
 
+zones-color.stm: zones-color.rcp
+	pilrc zones-color.rcp tempcolor/
+	echo touching>zones-color.stm
 
 grcs.stm: simcity
 	m68k-palmos-obj-res simcity
@@ -58,4 +70,4 @@ simulation.o: ../source/simulation.c
 
 
 clean:
-	rm -f *.bin *.o *.grc *.stm simcity
+	rm -f *.bin *.o *.grc *.stm simcity tempbw/* tempcolor/*
