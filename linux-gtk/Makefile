@@ -36,7 +36,7 @@ dist:
 	@mkdir -p $(DDIR)
 	@cp ../Changelog ../Copying ../Gamehints ../Readme pocketcity $(DDIR)
 	@mkdir -p $(DDIR)/graphic/icons
-	@cp graphic/*.xpm $(DDIR)/graphic
-	@cp graphic/icons/*.xpm $(DDIR)/graphic/icons
+	@cp graphic/*.png $(DDIR)/graphic
+	@cp graphic/icons/*.png $(DDIR)/graphic/icons
 	@tar cvzf $(DDIR).tar.gz $(DDIR)
 	@rm -rf $(DDIR)
