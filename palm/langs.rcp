@@ -34,6 +34,8 @@ BEGIN
     /* Budget Screen */
     "T_BUDGET"  = "Budget Sheet"
     "INCOME"    = "Income"
+    "GATHERED"	= "Tax Income"
+    "TAXRATE"   = "Tax Rate"
     "EXPENSES"  = "Expenses"
     "TRAFFIC"   = "Traffic"
     "POWER"     = "Power"
@@ -224,7 +226,7 @@ BEGIN
     "M_TILESMISSING" = "There is no tile database found on this device " \
         "Please add one of the .pdb files and try again"
 
-	"CASH_SCALE" = "\0KMBTQ"
+	"CASH_SCALE" = " KMBTQ"
 	"EMPTY_LAND" = "Empty Land"
 	"POWER_LINE" = "Power Line"
 	"ROAD"	= "Road"

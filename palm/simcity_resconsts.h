@@ -120,19 +120,23 @@
 
 /* menu for budget */
 #define	menuitemID_BudgetBack 1300
-#define	labelID_budget_res 1310
-#define	labelID_budget_com 1311
-#define	labelID_budget_ind 1312
+#define	labelID_budget_inc 1310
+
 #define	labelID_budget_tra 1313
 #define	labelID_budget_pow 1314
 #define	labelID_budget_def 1315
+
 #define	labelID_budget_now 1316
 #define	labelID_budget_tot 1317
 #define	labelID_budget_bal 1318
 
-#define	fieldID_budget_tra 1300
-#define	fieldID_budget_pow 1301
-#define	fieldID_budget_def 1302
+#define	fieldID_taxrate		1300
+#define	fieldID_budget_tra	1301
+#define	fieldID_budget_pow	1302
+#define	fieldID_budget_def	1303
+
+#define rbutton_taxdown	   1304
+#define rbutton_taxup	   1305
 
 /* menu for map */
 #define	menuitemID_MapBack 1340

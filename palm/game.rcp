@@ -80,16 +80,18 @@ BEGIN
         ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 2
 
     POPUPLIST ID listID_shifter_popup listID_shifter
-    LABEL "INCOME" AUTOID AT (CENTER 16)
-    LABEL "RESIDENTIAL" AUTOID AT (0 PrevBottom)
-    LABEL "------------" labelID_budget_res AT (115 PrevTop)
-    LABEL "COMMERCIAL" AUTOID AT (0 PrevBottom)
-    LABEL "------------" labelID_budget_com AT (115 PrevTop)
-    LABEL "INDUSTRIAL" AUTOID AT (0 PrevBottom)
-    LABEL "------------" labelID_budget_ind AT (115 PrevTop)
+    LABEL "INCOME" AUTOID AT (CENTER 16) FONT 1
+    LABEL "------------" labelID_budget_inc AT (81 PREVBOTTOM)
+    LABEL "GATHERED" AUTOID AT (RIGHT@PREVLEFT-1 PREVTOP)
+    LABEL "TAXRATE" AUTOID AT (RIGHT@PREVRIGHT PREVBOTTOM)
+    REPEATBUTTON "\002" rbutton_taxdown AT (PREVRIGHT+1 PREVTOP 12 12)
+	NOFRAME FONT 5
+    FIELD ID fieldID_taxrate AT (PREVRIGHT+1 PREVTOP 20 AUTO)
+	EDITABLE UNDERLINED MAXCHARS 3 NUMERIC RIGHTALIGN
+    LABEL "%" AUTOID AT (PREVRIGHT+1 PREVTOP)
+    REPEATBUTTON "\001" rbutton_taxup AT (PREVRIGHT+1 PREVTOP 12 12) NOFRAME FONT 5
 
-
-    LABEL "EXPENSES" AUTOID AT (CENTER PrevBottom)
+    LABEL "EXPENSES" AUTOID AT (CENTER PrevBottom) FONT 1
     
     LABEL "TRAFFIC" AUTOID AT (0 PrevBottom)
     FIELD ID fieldID_budget_tra AT (60 prevtop 20 auto) 
@@ -106,11 +108,11 @@ BEGIN
     LABEL "DEFENCE" AUTOID AT (0 PrevBottom)
     FIELD ID fieldID_budget_def AT (60 prevtop 20 auto) 
         EDITABLE UNDERLINED MAXCHARS 3 NUMERIC RIGHTALIGN
-    LABEL "%" AUTOID AT (prevright prevtop)
+    LABEL "%" AUTOID AT (PREVRIGHT PREVTOP)
     LABEL "------------" labelID_budget_def AT (115 PrevTop)
 
 
-    LABEL "TOTAL" AUTOID AT (CENTER PrevBottom)
+    LABEL "TOTAL" AUTOID AT (CENTER PrevBottom) FONT 1
     LABEL "CURRBAL" AUTOID AT (0 PrevBottom)
     LABEL "------------" labelID_budget_now AT (115 PrevTop)
     LABEL "BALDELTA" AUTOID AT (0 PrevBottom)
