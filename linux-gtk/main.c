@@ -169,6 +169,7 @@ drawing_realized_callback(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	PCityMain();
 	UINewGame(NULL, 0);
+	ResizeCheck(320, 240);
 	return (FALSE);
 }
 
