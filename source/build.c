@@ -209,12 +209,12 @@ Build_Destroy(int xpos, int ypos)
     vgame.BuildCount[COUNT_COMMERCIAL] -= (type >= (ZONE_COMMERCIAL*10+20) && type <= (ZONE_COMMERCIAL*10+29)) ? (type%10)+1 : 0;
     vgame.BuildCount[COUNT_RESIDENTIAL] -= (type >= (ZONE_RESIDENTIAL*10+20) && type <= (ZONE_RESIDENTIAL*10+29)) ? (type%10)+1 : 0;
     vgame.BuildCount[COUNT_INDUSTRIAL] -= (type >= (ZONE_INDUSTRIAL*10+20) && type <= (ZONE_INDUSTRIAL*10+29)) ? (type%10)+1 : 0;
-    vgame.BuildCount[COUNT_ROADS] -= IsRoad(type);
+    vgame.BuildCount[COUNT_ROADS] -= IsRoad(type) ? 1 : 0;
     vgame.BuildCount[COUNT_TREES] -= (type == TYPE_TREE) ? 1 : 0;
     vgame.BuildCount[COUNT_WATER] -= (type == TYPE_WATER) ? 1 : 0;
     vgame.BuildCount[COUNT_WASTE] -= (type == TYPE_WASTE) ? 1 : 0;
-    vgame.BuildCount[COUNT_POWERPLANTS] -= (type == TYPE_POWER_PLANT);
-    vgame.BuildCount[COUNT_NUCLEARPLANTS] -= (type == TYPE_NUCLEAR_PLANT);
+    vgame.BuildCount[COUNT_POWERPLANTS] -= (type == TYPE_POWER_PLANT) ? 1 : 0;
+    vgame.BuildCount[COUNT_NUCLEARPLANTS] -= (type == TYPE_NUCLEAR_PLANT) ? 1 : 0;
     vgame.BuildCount[COUNT_POWERLINES] -= ((type == TYPE_POWERROAD_2) || (type == TYPE_POWERROAD_1) || (type == TYPE_POWER_LINE)) ? 1 : 0;
     vgame.BuildCount[COUNT_FIRE] -= ((type == TYPE_FIRE1) || (type == TYPE_FIRE2) || (type == TYPE_FIRE3)) ? 1 : 0;
     vgame.BuildCount[COUNT_WATERPIPES] -= ((type == TYPE_WATER_PIPE) || (type == TYPE_WATERROAD_1) || (type == TYPE_WATERROAD_2)) ? 1 : 0;
@@ -242,8 +242,8 @@ static const struct _costMappings {
   { ZONE_RESIDENTIAL, BUILD_COST_ZONE, -1 },
   { ZONE_INDUSTRIAL, BUILD_COST_ZONE, -1 },
   { ZONE_COMMERCIAL, BUILD_COST_ZONE, -1 },
-  { TYPE_POWER_PLANT, BUILD_COST_POWER_PLANT, -1 },
-  { TYPE_NUCLEAR_PLANT, BUILD_COST_NUCLEAR_PLANT, COUNT_POWERPLANTS },
+  { TYPE_POWER_PLANT, BUILD_COST_POWER_PLANT, COUNT_POWERPLANTS },
+  { TYPE_NUCLEAR_PLANT, BUILD_COST_NUCLEAR_PLANT, COUNT_NUCLEARPLANTS },
   { TYPE_WATER, BUILD_COST_WATER, COUNT_WATER },
   { TYPE_TREE, BUILD_COST_TREE, COUNT_TREES },
   { TYPE_FIRE_STATION, BUILD_COST_FIRE_STATION, COUNT_FIRE_STATIONS },
