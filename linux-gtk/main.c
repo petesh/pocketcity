@@ -16,6 +16,7 @@ GtkWidget *window;
 GtkWidget *creditslabel;
 GtkWidget *poplabel;
 GtkWidget *timelabel;
+GtkObject *playscrollerh, *playscrollerv;
 
 void * worldPtr;
 void * worldFlagsPtr;
@@ -76,14 +77,13 @@ gint mainloop_callback(gpointer data)
 
 gint toolbox_callback(GtkWidget *widget, gpointer data)
 {
-    gint action = GPOINTER_TO_INT(data);
-    if (action >= 260) {
-        ScrollMap(action-260);
-    } else {
-        selectedBuildItem = action;
-    }
-
+    selectedBuildItem = GPOINTER_TO_INT(data);
     return FALSE;
+}
+
+void scrollbar(GtkAdjustment *adj)
+{
+    Goto(GTK_ADJUSTMENT(playscrollerh)->value, GTK_ADJUSTMENT(playscrollerv)->value);
 }
 
 gint delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
@@ -158,7 +158,8 @@ static gint motion_notify_event(GtkWidget *widget, GdkEventMotion *event)
 
 void SetUpMainWindow(void)
 {
-    GtkWidget *fieldbox,*box, *toolbox, *headerbox;
+    GtkWidget *fieldbox,*box, *toolbox, *headerbox, *playingbox;
+    GtkWidget *hscroll, *vscroll;    
     GtkWidget *button;
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -169,6 +170,7 @@ void SetUpMainWindow(void)
     fieldbox = gtk_vbox_new(FALSE,0);
     toolbox = gtk_table_new(10,3,TRUE);
     headerbox = gtk_hbox_new(FALSE, 0);
+    playingbox = gtk_table_new(2,2,FALSE);
     
     gtk_container_add(GTK_CONTAINER(window), box);
 
@@ -181,11 +183,23 @@ void SetUpMainWindow(void)
     // the actual playfield is a GtkDrawingArea
     drawingarea = gtk_drawing_area_new();
     gtk_drawing_area_size((GtkDrawingArea*)drawingarea,320,240);
+    // and some scrollbars for the drawingarea
+    playscrollerh = gtk_adjustment_new(60,10,110,1,10,20);
+    playscrollerv = gtk_adjustment_new(57,10,107,1,10,15);
+    hscroll = gtk_hscrollbar_new(GTK_ADJUSTMENT(playscrollerh));
+    vscroll = gtk_vscrollbar_new(GTK_ADJUSTMENT(playscrollerv));
+    g_signal_connect(G_OBJECT(playscrollerh), "value_changed", G_CALLBACK(scrollbar), NULL);
+    g_signal_connect(G_OBJECT(playscrollerv), "value_changed", G_CALLBACK(scrollbar), NULL);
+    
+    gtk_table_attach_defaults(GTK_TABLE(playingbox), drawingarea,0,1,0,1);
+    gtk_table_attach_defaults(GTK_TABLE(playingbox), hscroll,0,1,1,2);
+    gtk_table_attach_defaults(GTK_TABLE(playingbox), vscroll,1,2,0,1);
+    
     // arange in boxes 
     gtk_box_pack_start(GTK_BOX(box), toolbox, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(box), fieldbox, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(fieldbox), headerbox, TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(fieldbox), drawingarea, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(fieldbox), playingbox, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(fieldbox), poplabel, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(headerbox), creditslabel, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(headerbox), timelabel, TRUE, TRUE, 0);
@@ -218,9 +232,9 @@ void SetUpMainWindow(void)
                         "FS\0PS\0MB\0"
                         "  \0  \0  \0"
                         "DF\0DP\0DM\0"
-                        "  \0/\\\0  \0"
-                        "<-\0  \0->\0"
-                        "  \0\\/\0  \0";
+                        "  \0  \0  \0"
+                        "  \0  \0  \0"
+                        "  \0  \0  \0";
         int i;
         gint actions[] = { BUILD_BULLDOZER,BUILD_ROAD,BUILD_POWER_LINE,
                             BUILD_ZONE_RESIDENTIAL,BUILD_ZONE_COMMERCIAL,BUILD_ZONE_INDUSTRIAL,
@@ -229,9 +243,9 @@ void SetUpMainWindow(void)
                             BUILD_FIRE_STATION,BUILD_POLICE_STATION,BUILD_MILITARY_BASE,
                             -1,-1,-1,
                             BUILD_DEFENCE_FIRE,BUILD_DEFENCE_POLICE,BUILD_DEFENCE_MILITARY,
-                            -1,260,-1,
-                            263,-1,261,
-                            -1,262,-1 };
+                            -1,-1,-1,
+                            -1,-1,-1,
+                            -1,-1,-1 };
                             
         for (i=0; i<30; i++) {
             if (*(labels+i*3) == ' ') { continue; }
@@ -246,14 +260,7 @@ void SetUpMainWindow(void)
 
     
     // show all the widgets
-    gtk_widget_show(timelabel);
-    gtk_widget_show(poplabel);
-    gtk_widget_show(creditslabel);
-    gtk_widget_show(headerbox);
-    gtk_widget_show(drawingarea);
-    gtk_widget_show(fieldbox);
-    gtk_widget_show(toolbox);
-    gtk_widget_show(box);
+    gtk_widget_show_all(box);
     
     // finally, show the main window    
     gtk_widget_show(window);
@@ -549,6 +556,13 @@ extern unsigned long GetRandomNumber(unsigned long max)
     // se `man 3 rand` why I'm not using:
     // return (rand() % max)
     return (unsigned long)((float)max*rand()/(RAND_MAX+1.0));
+}
+
+extern void MapHasJumped(void)
+{
+    gtk_adjustment_set_value(GTK_ADJUSTMENT(playscrollerh), game.map_xpos+10);
+    gtk_adjustment_set_value(GTK_ADJUSTMENT(playscrollerv), game.map_ypos+7);
+
 }
 
 extern void UISetTileSize(int size)

@@ -1147,6 +1147,8 @@ extern int ResizeWorld(long unsigned size)
     return 1;
 }
 
+extern void MapHasJumped(void) { } 
+
 
 extern void LockWorld() { worldPtr = MemHandleLock(worldHandle); }
 extern void UnlockWorld() { MemHandleUnlock(worldHandle); }

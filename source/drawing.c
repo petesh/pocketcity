@@ -19,6 +19,7 @@ extern void Goto(int x, int y)
     if (game.map_xpos < 0) { game.map_xpos = 0; }
     if (game.map_xpos > game.mapsize-game.visible_x) { game.map_xpos = game.mapsize - game.visible_x; }
     RedrawAllFields();
+    MapHasJumped();
 }
 
 extern void RedrawAllFields(void)

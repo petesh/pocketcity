@@ -40,6 +40,7 @@ extern void LockWorldFlags(void);
 extern void UnlockWorldFlags(void);
 extern unsigned char GetWorldFlags(long unsigned int pos);
 extern void SetWorldFlags(long unsigned int pos, unsigned char value);
+extern void MapHasJumped(void);
 
 
 extern unsigned long GetRandomNumber(unsigned long max);
