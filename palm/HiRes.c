@@ -22,9 +22,9 @@
 #if defined(HRSUPPORT)
 
 /*! \brief screen width in native coordinates */
-Int32 sWidth;
+Coord sWidth;
 /*! \brief screen height in native coordinates */
-Int32 sHeight;
+Coord sHeight;
 /*! \brief high density feature check value; holds density value */
 static UInt32 hdfs = ~0UL;
 
@@ -229,9 +229,9 @@ scaleEvent(EventPtr event)
 Coord
 scaleCoord(Coord x)
 {
-	UInt32 mul = sonyHires() ? kDensityDouble :
+	Int32 mul = sonyHires() ? kDensityDouble :
 	    ( hdfs ? hdfs : kDensityLow );
-	return ((Coord)((UInt32)x * mul / kDensityLow));
+	return ((Coord)((Int32)x * mul / kDensityLow));
 }
 
 /*!
@@ -242,8 +242,8 @@ scaleCoord(Coord x)
 Coord
 normalizeCoord(Coord x)
 {
-	UInt32 mul = sonyHires() ? kDensityDouble : hdfs;
-	return ((Coord)((UInt32)x * kDensityLow / mul));
+	Int32 mul = sonyHires() ? kDensityDouble : hdfs;
+	return ((Coord)((Int32)x * kDensityLow / mul));
 }
 
 /*!

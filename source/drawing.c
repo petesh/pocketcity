@@ -20,10 +20,16 @@ InitGraphic(void)
  * \todo should only do visuals and location.
  */
 void
-Goto(Int16 x, Int16 y)
+Goto(Int16 x, Int16 y, goto_code center)
 {
-	Int16 nx = x - (getVisibleX() / 2);
-	Int16 ny = y - (getVisibleY() / 2);
+	Int16 nx = x;
+	Int16 ny = y;
+
+	if (center) {
+		nx -= (getVisibleX() / 2);
+		ny -= (getVisibleY() / 2);
+	}
+
 	if (nx < 0)
 		nx = 0;
 	if (nx > (getMapWidth() - getVisibleX()))

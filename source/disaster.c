@@ -129,7 +129,7 @@ DoSpecificDisaster(erdiType disaster)
 	}
 	if (ce) {
 		UIDisplayError(disaster);
-		Goto(x, y);
+		Goto(x, y, goto_center);
 		MapHasJumped();
 	}
 }

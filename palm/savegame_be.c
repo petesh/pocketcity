@@ -106,8 +106,8 @@ void
 ResetViewable(void)
 {
 	WriteLog("Reset viewable\n");
-	setVisibleX(sWidth / gameTileSize() - 1);
-	setVisibleY((sHeight / gameTileSize()) - 3);
+	setVisibleX(sWidth / gameTileSize());
+	setVisibleY((sHeight / gameTileSize()) - 2);
 }
 
 /*!

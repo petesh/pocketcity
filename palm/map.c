@@ -101,7 +101,7 @@ hMap(EventPtr event)
 		    event->screenY <= (getMapHeight() + StartY)) {
 			Int16 x = event->screenX - StartX;
 			Int16 y = event->screenY - StartY;
-			Goto(x, y);
+			Goto(x, y, true);
 			FrmGotoForm(formID_pocketCity);
 			handled = true;
 		}

@@ -21,9 +21,7 @@
 #define	menu_pocketCity 	1000
 #define	menu_budget 	1001
 #define	menu_map 	1002
-#define fpc_horScroll	1003
-#define fpc_verScroll	1004
-#define fpc_gadgetUI	1005
+#define fpc_gadgetUI	1003
 
 #define	menuitemID_loadGame 1001
 #define	menuitemID_saveGame 1002

@@ -87,10 +87,10 @@ static void HoldHook(UInt32);
 static void toolBarCheck(Coord);
 static void UIDrawToolBar(void);
 static void freeToolbarBitmap(void);
-static void pcResizeDisplay(Boolean draw);
+static void pcResizeDisplay(FormPtr form, Int16 hOff, Int16 vOff, Boolean draw);
 #else
 #define	freeToolbarBitmap()
-#define pcResizeDisplay(X)
+#define pcResizeDisplay(X,Y,A,B)
 #endif
 
 /* Collects what would otherwise be several variables */
@@ -452,10 +452,10 @@ _PalmInit(void)
 	}
 
 	/* The 'playground'... built by the size of the screen */
-	rPlayGround.topLeft.x = 0;
-	rPlayGround.topLeft.y = 15; /* Padding for the menubar */
-	rPlayGround.extent.x = sWidth;
-	rPlayGround.extent.y = sHeight - 2*16; /* Space on the bottom */
+	rPlayGround.topLeft.x = XOFFSET;
+	rPlayGround.topLeft.y = YOFFSET; /* Padding for the menubar */
+	rPlayGround.extent.x = GETWIDTH();
+	rPlayGround.extent.y = GETHEIGHT() - 2*16; /* Space on the bottom */
 
 	/* section (4) */
 
@@ -682,6 +682,25 @@ DoPCityMenuProcessing(UInt16 itemID)
 	return (handled);
 }
 
+static void
+doPocketCityOpen(FormPtr form)
+{
+#if defined(HRSUPPORT)
+	Int16 hOff, vOff;
+#endif
+
+	FrmDrawForm(form);
+	SetSilkResizable(form, true);
+
+	collapseMove(form, CM_DEFAULT, &hOff, &vOff);
+	pcResizeDisplay(form, hOff, vOff, false);
+	SetGameInProgress();
+	ResumeGame();
+	FrmDrawForm(form);
+	SetDrawing();
+	DrawGame(1);
+}
+
 /*
  * Handler for the main pocketCity form.
  * This form performs all the updates to the main game screen.
@@ -691,19 +710,15 @@ hPocketCity(EventPtr event)
 {
 	FormPtr form;
 	Boolean handled = false;
+#if defined(HRSUPPORT)
+	Boolean redraw;
+	Int16 hOff, vOff;
+#endif
 
 	switch (event->eType) {
 	case frmOpenEvent:
 		form = FrmGetActiveForm();
-		FrmDrawForm(form);
-		SetSilkResizable(form, true);
-		collapseMove(form, CM_DEFAULT, NULL, NULL);
-		pcResizeDisplay(false);
-		SetGameInProgress();
-		ResumeGame();
-		FrmDrawForm(form);
-		SetDrawing();
-		DrawGame(1);
+		doPocketCityOpen(form);
 		handled = true;
 		break;
 	case frmCloseEvent:
@@ -720,7 +735,7 @@ hPocketCity(EventPtr event)
 		}
 		if (event->screenY < 12) {
 			handled = true;
-			if (event->screenX >= (sWidth - 12)) {
+			if (event->screenX >= (GETWIDTH() - 12)) {
 				/* click was on change speed */
 				cycleSpeed();
 				UIDrawSpeed();
@@ -775,8 +790,9 @@ hPocketCity(EventPtr event)
 #if defined(SONY_CLIE)
 	case vchrSilkResize:
 #endif
-		pcResizeDisplay(collapseMove(FrmGetActiveForm(), CM_DEFAULT,
-		    NULL, NULL));
+		redraw = collapseMove(FrmGetActiveForm(), CM_DEFAULT,
+		    &hOff, &vOff);
+		pcResizeDisplay(FrmGetActiveForm(), hOff, vOff, redraw);
 		handled = true;
 		break;
 #endif
@@ -1620,10 +1636,12 @@ GetRandomNumber(UInt32 max)
  * The J is for 'jog' item it's either updn or ltrt
  */
 
-#define	DATELOC		0
-#define	CREDITSLOC	1
-#define	POPLOC		2
-#define	POSITIONLOC	3
+typedef enum {
+	loc_date = 0,
+	loc_credits,
+	loc_population,
+	loc_position
+} loc_screen;
 
 #define	MIDX	1
 #define	MIDY	2
@@ -1639,27 +1657,28 @@ struct StatusPositions {
 
 /*! \brief the default shape/size of the various locations */
 static RectangleType shapes[] = {
-	{ {0, 0}, {0, 10} },  /* DATELOC */
-	{ {0, 0}, {0, 10} }, /* CREDITSLOC */
-	{ {0, 0}, {0, 10} }, /* POPLOC */
-	{ {0, 0}, {0, 10} } /* POSITIONLOC */
+	{ {0, 0}, {0, 10} },  /* loc_date */
+	{ {0, 0}, {0, 10} }, /* loc_credits */
+	{ {0, 0}, {0, 10} }, /* loc_population */
+	{ {0, 0}, {0, 10} } /* loc_position */
 };
 
 /*! \brief the positions of the items on screen - low resolution */
 static const struct StatusPositions lrpositions[] = {
-	{ {0, 0} , {0, 1}, MIDX },  /* DATELOC */
-	{ {0, 0}, {0, 1}, ENDY }, /* CREDITSLOC */
-	{ {0, 0}, {0, 1}, MIDX | ENDY }, /* POPLOC */
-	{ {0, 0}, {0, 1}, ENDX | ENDY } /* POSITIONLOC */
+	{ {0, 0} , {0, 1}, MIDX },  /* loc_date */
+	{ {0, 0}, {0, 1}, ENDY }, /* loc_credits */
+	{ {0, 0}, {0, 1}, MIDX | ENDY }, /* loc_population */
+	{ {0, 0}, {0, 1}, ENDX | ENDY } /* loc_position */
 };
+
 #ifdef HRSUPPORT
 
 /*! \brief the positions of the items on screen - high resolution */
 static const struct StatusPositions hrpositions[] = {
-	{ {1, 0}, {0, 1}, ENDY },  /* DATELOC */
-	{ {40, 0}, {0, 1}, ENDY }, /* CREDITSLOC */
-	{ {80, 0}, {0, 1}, ENDY }, /* POPLOC */
-	{ {140, 0}, {0, 1}, ENDY }, /* POSITIONLOC */
+	{ {1, 0}, {0, 1}, ENDY },  /* loc_date */
+	{ {40, 0}, {0, 1}, ENDY }, /* loc_credits */
+	{ {80, 0}, {0, 1}, ENDY }, /* loc_population */
+	{ {140, 0}, {0, 1}, ENDY } /* loc_position */
 };
 
 /*!
@@ -1696,18 +1715,14 @@ posAt(int pos)
  * \param location the item to print
  * \param text the text to display
  */
-void
-UIDrawItem(Int16 location, char *text)
+static void
+UIDrawItem(loc_screen location, char *text)
 {
 	const struct StatusPositions *pos;
 	Int16 sl;
 	Coord tx;
 	RectangleType *rt;
 
-	if ((location < 0) || ((UInt16)location >= MAXLOC)) {
-		Warning("UIDrawitem request for item out of bounds");
-		return;
-	}
 	pos = posAt(location);
 	rt = shapes + location;
 	if (rt->extent.x && rt->extent.y) {
@@ -1722,16 +1737,17 @@ UIDrawItem(Int16 location, char *text)
 	tx = FntCharsWidth(text, sl);
 	switch (pos->extents & (MIDX | ENDX)) {
 	case MIDX:
-		rt->topLeft.x = (sWidth - tx) / 2 + pos->offset.x;
+		rt->topLeft.x = (GETWIDTH() - tx) / 2 + pos->offset.x;
 		break;
 	case ENDX:
-		rt->topLeft.x = sWidth - (tx + pos->offset.x);
+		rt->topLeft.x = GETWIDTH() - (tx + pos->offset.x);
 		break;
 	default:
-		rt->topLeft.x = sWidth * pos->point.x / BASEWIDTH;
+		rt->topLeft.x = (Coord)((Int32)GETWIDTH() * pos->point.x /
+		    BASEWIDTH);
 	}
 	if (pos->extents & ENDY) {
-		rt->topLeft.y = sHeight - (rt->extent.y + pos->offset.y);
+		rt->topLeft.y = GETHEIGHT() - (rt->extent.y + pos->offset.y);
 	}
 	rt->extent.x = tx;
 	if (highDensityFeatureSet()) {
@@ -1744,6 +1760,10 @@ UIDrawItem(Int16 location, char *text)
 	}
 	if (isDoubleOrMoreResolution())
 		_FntSetFont(stdFont);
+	if (location == loc_position) {
+		WriteLog("(%d, %d) -> (%d, %d)\n", rt->topLeft.x,
+		    rt->topLeft.y, rt->extent.x, rt->extent.y);
+	}
 }
 
 /*!
@@ -1781,15 +1801,15 @@ CheckTextClick(Coord x, Coord y)
 	if (t == -1)
 		return;
 	switch (t) {
-	case DATELOC:
+	case loc_date:
 		break;
-	case CREDITSLOC:
+	case loc_credits:
 		doButtonEvent(BeBudget);
 		break;
-	case POPLOC:
+	case loc_population:
 		doButtonEvent(BePopulation);
 		break;
-	case POSITIONLOC:
+	case loc_position:
 		doButtonEvent(BeMap);
 		break;
 	default:
@@ -1806,7 +1826,7 @@ UIDrawDate(void)
 		return;
 
 	getDate((char *)temp);
-	UIDrawItem(DATELOC, temp);
+	UIDrawItem(loc_date, temp);
 }
 
 void
@@ -1825,7 +1845,7 @@ UIDrawCredits(void)
 
 	credits = scaleNumber(getCredits(), &scale);
 	StrPrintF(temp, "$: %ld%c", credits, scale);
-	UIDrawItem(CREDITSLOC, temp);
+	UIDrawItem(loc_credits, temp);
 #ifdef HRSUPPORT
 	if (isHires()) {
 		bitmapHandle = DmGetResource(TBMP, bitmapID_coin);
@@ -1833,8 +1853,8 @@ UIDrawCredits(void)
 			return;
 		bitmap = MemHandleLock(bitmapHandle);
 		StartHiresDraw();
-		_WinDrawBitmap(bitmap, shapes[CREDITSLOC].topLeft.x - 11,
-		    shapes[CREDITSLOC].topLeft.y);
+		_WinDrawBitmap(bitmap, shapes[loc_credits].topLeft.x - 11,
+		    shapes[loc_credits].topLeft.y);
 		EndHiresDraw();
 		MemPtrUnlock(bitmap);
 		DmReleaseResource(bitmapHandle);
@@ -1856,7 +1876,7 @@ UIDrawLoc(void)
 
 	StrPrintF(temp, "%02u,%02u", getMapXPos(), getMapYPos());
 
-	UIDrawItem(POSITIONLOC, temp);
+	UIDrawItem(loc_position, temp);
 #ifdef HRSUPPORT
 	if (isHires()) {
 		bitmapHandle = DmGetResource(TBMP, bitmapID_loca);
@@ -1864,8 +1884,8 @@ UIDrawLoc(void)
 			return;
 		bitmap = MemHandleLock(bitmapHandle);
 		StartHiresDraw();
-		_WinDrawBitmap(bitmap, shapes[POSITIONLOC].topLeft.x - 11,
-		    shapes[POSITIONLOC].topLeft.y);
+		_WinDrawBitmap(bitmap, shapes[loc_position].topLeft.x - 11,
+		    shapes[loc_position].topLeft.y);
 		EndHiresDraw();
 		MemPtrUnlock(bitmap);
 		DmReleaseResource(bitmapHandle);
@@ -1924,7 +1944,7 @@ UIDrawSpeed(void)
 	rect.extent.y = 10;
 	StartHiresDraw();
 	_WinCopyRectangle(winSpeeds, WinGetActiveWindow(), &rect,
-	    sWidth - 12, 2, winPaint);
+	    GETWIDTH() - 12, 2, winPaint);
 	EndHiresDraw();
 
 #ifdef SONY_CLIE
@@ -1935,7 +1955,8 @@ UIDrawSpeed(void)
 			bitmap = MemHandleLock(bitmapHandle);
 			if (bitmap) {
 				StartHiresDraw();
-				_WinDrawBitmap(bitmap, sWidth - (12 + 8), 1);
+				_WinDrawBitmap(bitmap,
+				    GETWIDTH() - (12 + 8), 1);
 				EndHiresDraw();
 				MemPtrUnlock(bitmap);
 			}
@@ -1960,7 +1981,7 @@ UIDrawPop(void)
 	popul = scaleNumber(popul, &scale);
 
 	StrPrintF(temp, "Pop: %lu%c", popul, scale);
-	UIDrawItem(POPLOC, temp);
+	UIDrawItem(loc_population, temp);
 #ifdef HRSUPPORT
 	if (isHires()) {
 		MemHandle bitmapHandle;
@@ -1971,8 +1992,8 @@ UIDrawPop(void)
 			return;
 		bitmap = MemHandleLock(bitmapHandle);
 		StartHiresDraw();
-		_WinDrawBitmap(bitmap, shapes[POPLOC].topLeft.x - 11,
-		    shapes[POPLOC].topLeft.y);
+		_WinDrawBitmap(bitmap, shapes[loc_population].topLeft.x - 11,
+		    shapes[loc_population].topLeft.y);
 		EndHiresDraw();
 		MemPtrUnlock(bitmap);
 		DmReleaseResource(bitmapHandle);
@@ -2168,7 +2189,7 @@ doButtonEvent(ButtonEvent event)
 		if (!IsDrawWindowMostOfScreen())
 			return (0);
 		jog_lr = 1 - jog_lr;
-		UIDrawLoc();
+		UIDrawSpeed();
 		break;
 #endif
 	default:
@@ -2399,7 +2420,7 @@ UIDrawToolBar(void)
 			}
 		} else {
 			StartHiresDraw();
-			drawToolBitmaps(((sWidth - tbWidth) >> 1) + 2,
+			drawToolBitmaps(((GETWIDTH() - tbWidth) >> 1) + 2,
 			    2, bWidth);
 			EndHiresDraw();
 			return;
@@ -2408,9 +2429,9 @@ UIDrawToolBar(void)
 	if (pToolbarBitmap != NULL) {
 		StartHiresDraw();
 		WriteLog("Toolbar at: %ld (width=%ld) [ swidth=%ld ]\n",
-		    (long)((sWidth - tbWidth) >> 1), (long)tbWidth,
-		    (long)sWidth);
-		_WinDrawBitmap(pToolbarBitmap, (sWidth - tbWidth) >> 1, 2);
+		    (long)((GETWIDTH() - tbWidth) >> 1), (long)tbWidth,
+		    (long)GETWIDTH());
+		_WinDrawBitmap(pToolbarBitmap, (GETWIDTH() - tbWidth) >> 1, 2);
 		EndHiresDraw();
 	}
 }
@@ -2431,12 +2452,12 @@ toolBarCheck(Coord xpos)
 	int id;
 
 	/* We've already confirmed the y-axis. */
-	if ((xpos < ((sWidth - tbWidth) >> 1)) ||
-	    (xpos > ((sWidth + tbWidth) >> 1))) return;
+	if ((xpos < ((GETWIDTH() - tbWidth) >> 1)) ||
+	    (xpos > ((GETWIDTH() + tbWidth) >> 1))) return;
 
-	id = (xpos - ((sWidth - tbWidth) >> 1)) / bWidth;
+	id = (xpos - ((GETWIDTH() - tbWidth) >> 1)) / bWidth;
 	WriteLog("Xpos: %ld [ %ld / %ld ] %d %d \n", (long)xpos,
-	    (long)tbWidth, (long)sWidth, id, (int)bWidth);
+	    (long)tbWidth, (long)GETWIDTH(), id, (int)bWidth);
 	if (id == (bitmapID_iconExtra - bitmapID_iconBulldoze)) {
 		UIPopUpExtraBuildList();
 	} else {
@@ -2450,16 +2471,21 @@ toolBarCheck(Coord xpos)
  *
  * This can happen when the axis is reoriented, or the softsilk area is
  * removed.
+ * \param form the form
+ * \param hOff the horizontal change on the screen
+ * \param vOff the vertical offset of the screen
  * \param draw do I redraw the screen after the resize event.
  */
 static void
-pcResizeDisplay(Boolean draw)
+pcResizeDisplay(FormPtr form, Int16 hOff, Int16 vOff, Boolean draw)
 {
 	RectangleType disRect;
-	FormPtr fp = FrmGetActiveForm();
-	Coord nWidth;
-	Coord nHeight;
 	Int16 loc;
+	Int16 nWidth;
+	Int16 nHeight;
+
+	if (hOff == 0 && vOff == 0)
+		return;
 
 	WinGetDrawWindowBounds(&disRect);
 
@@ -2467,28 +2493,32 @@ pcResizeDisplay(Boolean draw)
 	    (int)disRect.topLeft.y, (int)disRect.extent.x,
 	    (int)disRect.extent.y);
 
-	nWidth = scaleCoord(disRect.extent.x);
-	nHeight = scaleCoord(disRect.extent.y);
+	nWidth = GETWIDTH() + scaleCoord(hOff);
+	nHeight = GETHEIGHT() + scaleCoord(vOff);
 
-	if (nWidth == sWidth && nHeight == sHeight)
-		return;
-
-	WriteLog("old wh = (%d, %d)\n", (int)sWidth, (int)sHeight);
+	WriteLog("old wh = (%d, %d)\n", (int)GETWIDTH(), (int)GETHEIGHT());
 
 	SETWIDTH(nWidth);
 	SETHEIGHT(nHeight);
+
 	ResetViewable();
+
 	for (loc = 0; loc < (Int16)MAXLOC; loc++)
 		shapes[loc].extent.x = 0;
 
-	WriteLog("new wh = (%d, %d)\n", (int)sWidth, (int)sHeight);
-	rPlayGround.extent.x = sWidth;
-	rPlayGround.extent.y = sHeight - 2 * 16;
+	WriteLog("new wh = (%d, %d)\n", (int)GETWIDTH(), (int)GETHEIGHT());
+
+	/* XXX: Resize the gadgets */
+	rPlayGround.extent.x = normalizeCoord(GETWIDTH());
+	rPlayGround.extent.y = normalizeCoord(GETHEIGHT()) - 2 * 10;
+
+	WriteLog("Playground: (%d, %d)\n", (int)rPlayGround.extent.x,
+    	    (int)rPlayGround.extent.y);
+
 	if (draw) {
-		collapsePreRedraw(fp);
-		FrmDrawForm(fp);
+		collapsePreRedraw(form);
+		FrmDrawForm(form);
 		DrawGame(1);
-		
 	}
 }
 

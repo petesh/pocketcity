@@ -81,14 +81,19 @@ EXPORT welem_t GetSpecialGraphicNumber(UInt32 pos);
  */
 EXPORT void DrawFieldWithoutInit(Int16 xpos, Int16 ypos);
 
+/*! \brief codes for goto function */
+typedef enum { goto_plain = 0, goto_center } goto_code;
 /*!
  * \brief Set the map position to that location.
  *
- * this function also repaints screen.
+ * this function also asks to repaint the screen.
+ * If the center flag is set, then it makes that point be the center of the
+ * screen.
  * \param x horizontal position
  * \param y vertical position
+ * \param center should I center on this location?
  */
-EXPORT void Goto(Int16 x, Int16 y);
+EXPORT void Goto(Int16 x, Int16 y, goto_code center);
 
 #if defined(__cplusplus)
 }

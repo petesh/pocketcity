@@ -28,11 +28,13 @@
 
 #define	HRSUPPORT
 
-extern Int32 sWidth;
-extern Int32 sHeight;
+extern Coord sWidth;
+extern Coord sHeight;
 
 #define	SETWIDTH(x)	sWidth = (x)
 #define	SETHEIGHT(y)	sHeight = (y)
+#define GETWIDTH()	(sWidth)
+#define GETHEIGHT()	(sHeight)
 
 Boolean isDoubleOrMoreResolution(void);
 void scaleEvent(EventPtr event);
@@ -64,6 +66,8 @@ void collapsePreRedraw(FormPtr form) HIRES_SECTION;
 
 #define	SETWIDTH(x)
 #define	SETHEIGHT(y)
+#define GETWIDTH()	(BASEWIDTH)
+#define GETHEIGHT()	(BASEHEIGHT)
 
 #define	isHires() (false)
 #define	canHires() (false)

@@ -245,7 +245,7 @@ void
 scrollbar(GtkAdjustment *adj __attribute__((unused)))
 {
 	Goto(GTK_ADJUSTMENT(mw.sc_hor)->value,
-	    GTK_ADJUSTMENT(mw.sc_vert)->value);
+	    GTK_ADJUSTMENT(mw.sc_vert)->value, goto_plain);
 }
 
 /*!
