@@ -10,12 +10,18 @@
 #include <palmutils.h>
 #include <sections.h>
 
+#define	LASTGAME	((UInt16)~0)
+
 /*! \brief Load the autosave city. */
 int LoadAutoSave(void) SAVE_SECTION;
 /*! \brief Clear the autosave name */
 void DeleteAutoSave(void) SAVE_SECTION;
-/*! \brief set the autosave name */
-void SetAutoSave(char *name) SAVE_SECTION;
+
+/*!
+ * \brief set the autosave name
+ * \param name the name for the auto save game
+ */
+void SetAutoSave(char *name);
 
 /*!
  * \brief save the city that is currently being used by the name passed
@@ -82,5 +88,33 @@ char **CityNames(int *count) SAVE_SECTION;
  * \param names the names of the cities
  */
 void FreeCityNames(char **names) SAVE_SECTION;
+
+/*
+ * \brief get the size of a city entry in bytes
+ * \return the size of the city
+ */
+UInt32 saveGameSize(GameStruct *gs) SAVE_SECTION;
+
+/*!
+ * \brief beam the city named
+ * \param name the name of the city to beam
+ * \return -1 if the city could not be beamed
+ */
+Int32 BeamCityByName(Char *cityName) SAVE_SECTION;
+
+/*!
+ * \brief Open up the savegame database.
+ * \return reference to the database or NULL.
+ *
+ * If it does not exist, then it tries to create it.
+ */
+DmOpenRef OpenMyDB(void);
+
+/*!
+ * \brief Find a savegame by the name passed
+ * \param name the name of the city
+ * \return the index, or LASTGAME if it's not there.
+ */
+UInt16 FindGameByName(char *name);
 
 #endif /* _SAVEGAME_BE_H */

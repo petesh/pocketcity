@@ -32,7 +32,28 @@ static void MonsterCheckSurrounded(UInt16 i) DISASTER_SECTION;
 static void CreateMeteor(UInt16 x, UInt16 y, Int16 size) DISASTER_SECTION;
 
 void
-DoNastyStuffTo(welem_t type, UInt16 probability)
+DoCommitmentNasties(void)
+{
+	int i;
+
+	for (i = 0; i < 60 - getTax(); i++) {
+		UInt32 loc = GetRandomNumber(MapMul());
+		welem_t world = getWorld(GetRandomNumber(MapMul()));
+		int x = loc % getMapWidth();
+		int y = loc % getMapHeight();
+
+		if ((IsTransport(world)) &&
+		    (GetRandomNumber(100) > getUpkeep(ue_traffic)))
+			Build_Destroy(x, y);
+		if ((IsWaterPipe(world) || IsPowerLine(world) ||
+			    IsPowerWater(world)) &&
+		    (GetRandomNumber(100) > getUpkeep(ue_power)))
+			Build_Destroy(x, y);
+	}
+}
+
+void
+DoNastyStuffTo(welem_t type, UInt16 probability, UInt8 purge)
 {
 	/* nasty stuff means: turn it into wasteland */
 	UInt32 randomTile;
@@ -49,7 +70,10 @@ DoNastyStuffTo(welem_t type, UInt16 probability)
 			/* wee, let's destroy something */
 			x = (UInt16)(randomTile % getMapWidth());
 			y = (UInt16)(randomTile / getMapWidth());
-			CreateWaste(x, y);
+			if (!purge)
+				CreateWaste(x, y);
+			else
+				Build_Destroy(x, y);
 			break;
 		}
 	}

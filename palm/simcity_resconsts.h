@@ -56,8 +56,9 @@
 #define	menuitemID_about 1019
 #define	menuitemID_tips 1020
 
-#define	menuitemID_Funny 1021
+#define menuitemID_Beam 1021
 
+#define	menuitemID_Funny 1022
 
 #define	gi_buildBulldoze 1100
 #define	gi_buildResidential 1101

@@ -3,7 +3,7 @@ include Makefile-include
 
 OBJECTS := stack.o simcity.o handler.o drawing.o globals.o build.o \
 	simulation.o HiRes.o disaster.o palmutils.o \
-	palm_locking.o \
+	palm_locking.o beam.o \
 	sony_support.o mem_compat.o pcity-sections.o \
 	options.o map.o budget.o query.o savegame.o repeathandler.o \
 	minimap.o \
@@ -63,7 +63,7 @@ palm5 dpalm5: HIRES=1
 sony dsony: CXCFLAGS = -DSONY_CLIE -DPALM_HIGH
 sony dsony: SONY=1
 
-CFLAGS += $(AXCFLAGS) $(BXCFLAGS) $(CXCFLAGS)
+CFLAGS += $(AXCFLAGS) $(BXCFLAGS) $(CXCFLAGS) -DPROGTOKEN="'$(PROGTOKEN)'"
 
 # the different language versions
 $(BINARY)-%.prc: $(OBJDIR) $(OBJDIR)/pcity $(OBJDIR)/%-game.ro

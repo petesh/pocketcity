@@ -9,6 +9,8 @@
 #define	_PALMUTILS_H_
 
 #include <PalmTypes.h>
+#include <Form.h>
+#include <sections.h>
 
 /*!
  * \brief can this device perform color operations at the depth requested
@@ -62,7 +64,7 @@ Boolean isHandEra(void);
  * \param length (out) the # of items in the list
  * \return the char array containing all the strings
  */
-Char **FillStringList(UInt16 resID, UInt16 *length);
+Char **FillStringList(UInt16 resID, UInt16 *length) LARD_SECTION;
 
 /*!
  * \brief free the contents of a string list
@@ -70,7 +72,7 @@ Char **FillStringList(UInt16 resID, UInt16 *length);
  * The list wil have been obtained from the FillStringList function
  * \param list the list to free
  */
-void FreeStringList(Char **list);
+void FreeStringList(Char **list) LARD_SECTION;
 
 /*!
  * \brief get an object pointer from an item index

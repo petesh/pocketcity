@@ -18,13 +18,11 @@
 #include <savegame_be.h>
 #include <mem_compat.h>
 #include <pack.h>
+#include <beam.h>
 
-#define	LASTGAME	((UInt16)~0)
 #define	MAXSAVEGAMECOUNT	50
 #define	DEAD	"PCNO"
 
-static DmOpenRef OpenMyDB(void) SAVE_SECTION;
-static UInt16 FindGameByName(char *name) SAVE_SECTION;
 static int ReadCityRecord(MemHandle rec, GameStruct *gs,
     MemPtr *wp, MemPtr *fp) SAVE_SECTION;
 static void WriteCityRecord(MemHandle rec, GameStruct *gs,
@@ -35,13 +33,7 @@ static void getAutoSaveName(char *name) SAVE_SECTION;
 static void DeleteGameByIndex(UInt16 index) SAVE_SECTION;
 static Int16 comparator(void *p1, void *p2, Int32 other) SAVE_SECTION;
 
-/*!
- * \brief Open up the savegame database.
- * \return reference to the database or NULL.
- *
- * If it does not exist, then it tries to create it.
- */
-static DmOpenRef
+DmOpenRef
 OpenMyDB(void)
 {
 	Err err = 0;
@@ -57,12 +49,7 @@ OpenMyDB(void)
 	return (db);
 }
 
-/*!
- * \brief Find a savegame by the name passed
- * \param name the name of the city
- * \return the index, or LASTGAME if it's not there.
- */
-static UInt16
+UInt16
 FindGameByName(char *name)
 {
 	DmOpenRef db = NULL;
@@ -112,12 +99,12 @@ ResetViewable(void)
 }
 
 UInt32
-saveGameSize(void)
+saveGameSize(GameStruct *gs)
 {
 
 	UInt32 size = (sizeof (GameStruct) +
-	    getMapWidth() * getMapHeight() +
-	    ((getMapWidth() * getMapHeight() + ( (8 / 2) - 1)) / ( 8 / 2 )));
+	    gs->mapx * gs->mapy +
+	    ((gs->mapx * gs->mapy + ( (8 / 2) - 1)) / ( 8 / 2 )));
 	WriteLog("Size=%ld\n", (long)size);
 	return (size);
 }
@@ -139,9 +126,9 @@ ReadCityRecord(MemHandle rec, GameStruct *gs, MemPtr *wp, MemPtr *fp)
 	ptemp = (char *)MemHandleLock(rec);
 	if (ptemp == NULL)
 		return (-1);
-	if (StrNCompare(DEAD, (char *)ptemp, 4) == 0)
+	if (MemCmp(DEAD, (char *)ptemp, 4) == 0)
 		goto leave_me;
-	if (StrNCompare(SAVEGAMEVERSION, (char *)ptemp, 4) == 0) {
+	if (MemCmp(SAVEGAMEVERSION, (char *)ptemp, 4) == 0) {
 		UInt32 size;
 		MemMove((void *)gs, ptemp, sizeof (GameStruct));
 		size = gs->mapx * gs->mapy;
@@ -210,11 +197,11 @@ SaveGameByIndex(UInt16 index)
 	if (db == NULL)
 		return (-1);
 	if (index <= DmNumRecords(db)) {
-		rec = DmResizeRecord(db, index, saveGameSize());
+		rec = DmResizeRecord(db, index, saveGameSize(&game));
 		rec = DmGetRecord(db, index);
 	} else {
 		index = DmNumRecords(db) + 1;
-		rec = DmNewRecord(db, &index, saveGameSize());
+		rec = DmNewRecord(db, &index, saveGameSize(&game));
 	}
 	if (rec) {
 		LockZone(lz_world);
@@ -280,7 +267,7 @@ CreateNewSaveGame(char *name)
 		}
 		index = dmMaxRecordIndex;
 		WriteLog("Newbie\n");
-		rec = DmNewRecord(db, &index, saveGameSize());
+		rec = DmNewRecord(db, &index, saveGameSize(&game));
 		if (rec) {
 			ResetViewable();
 			ResumeGame();
@@ -313,7 +300,7 @@ LoadGameByIndex(UInt16 index)
 		return (-1); /* no database */
 
 	if (index == LASTGAME)
-	index = DmNumRecords(db) - 1;
+		index = DmNumRecords(db) - 1;
 	rec = DmQueryRecord(db, index);
 	if (rec) {
 		LockZone(lz_world);
@@ -344,6 +331,36 @@ LoadGameByName(char *name)
 		return (LoadGameByIndex(gameindex));
 	else
 		return (-1);
+}
+
+Int32
+BeamCityByName(Char *cityName)
+{
+	UInt16 gameindex = FindGameByName(cityName);
+	MemHandle rec = NULL;
+	MemPtr rp = NULL;
+	DmOpenRef db = 0;
+	Int32 rv = -1;
+
+	if (gameindex == LASTGAME)
+		return (rv);
+
+	db = OpenMyDB();
+	if (!db)
+		goto exit_me;
+	rec = DmQueryRecord(db, gameindex);
+	if (rec == NULL)
+		goto exit_me;
+	rp = MemHandleLock(rec);
+	if (rp == NULL)
+		goto exit_me;
+	rv = BeamSend((UInt8 *)rp);
+exit_me:
+	if (rp)
+		MemHandleUnlock(rp);
+	if (db)
+		DmCloseDatabase(db);
+	return (rv);
 }
 
 /*!
@@ -611,11 +628,11 @@ CityNames(int *count)
 	cities[nsIndex] = NULL;
 	*count = (int)nsIndex;
 	if (nsIndex > 10)
-	SysQSort(cities, nsIndex, sizeof (*cities),
-		comparator, CITYNAMELEN);
+		SysQSort(cities, nsIndex, sizeof (*cities),
+    		    comparator, CITYNAMELEN);
 	else if (nsIndex >= 2)
-	SysInsertionSort(cities, nsIndex, sizeof (*cities),
-		comparator, CITYNAMELEN);
+		SysInsertionSort(cities, nsIndex, sizeof (*cities),
+    		    comparator, CITYNAMELEN);
 
 	DmCloseDatabase(db);
 

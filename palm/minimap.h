@@ -5,6 +5,7 @@
 
 #include <PalmTypes.h>
 #include <Rect.h>
+#include <sections.h>
 
 /*!
  * \brief is the minimap showing
@@ -16,7 +17,7 @@ Int8 minimapGetShowing(void);
  * \brief set whether the minimap is showing
  * \param show set whether it is showing or not
  */
-void minimapSetShowing(Int8 show);
+void minimapSetShowing(Int8 show) MINIMAP_SECTION;
 
 /*!
  * \brief get the detailed flag (fast devices can render details)
@@ -28,7 +29,7 @@ Int8 minimapGetDetailed(void);
  * \brief set detailed flag for minimap
  * \param detailed the new setting for the detailed map
  */
-void minimapSetDetailed(Int8 detailed);
+void minimapSetDetailed(Int8 detailed) MINIMAP_SECTION;
 
 /*!
  * \brief set the location of the minimap on the display

@@ -8,6 +8,7 @@ BEGIN
     "BUDGET"	= "Budget"
     "MAP"	= "Map"
     "TEST"	= "Test"
+    "BEAM"	= "Beam City"
     "SETTINGS"	= "Settings"
     "BUTTONS"   = "Buttons"
     "FORCERESUPPLY" = "Distribute"

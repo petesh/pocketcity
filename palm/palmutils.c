@@ -213,6 +213,7 @@ canColor(UInt16 nbits)
 	return (false);
 }
 
+/*
 UInt32
 GetCreatorID(void)
 {
@@ -231,6 +232,12 @@ GetCreatorID(void)
 	}
 
 	return (nCreatorID);
+}
+*/
+UInt32
+GetCreatorID(void)
+{
+	return (PROGTOKEN);
 }
 
 #if defined(DEBUG)

@@ -285,9 +285,6 @@ blockSize(welem_t type)
 	return (1);
 }
 
-/*!
- * \todo Prohibit the rezoning of Wasteland.
- */
 int
 Build_Bulldoze(UInt16 xpos, UInt16 ypos, welem_t _type __attribute__((unused)))
 {

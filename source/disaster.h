@@ -18,8 +18,13 @@ extern "C" {
  * turns a zone into wasteland based on the normalized probability.
  * \param type of zone that can be affected
  * \param probability the normalized probability of something bad happens
+ * \param purge remove a tile if it's found
  */
-EXPORT void DoNastyStuffTo(welem_t type, UInt16 probability) DISASTER_SECTION;
+EXPORT void DoNastyStuffTo(welem_t type, UInt16 probability, UInt8 purge)
+    DISASTER_SECTION;
+
+/*! \brief perform nasties to zones if they are not being completely funded */
+EXPORT void DoCommitmentNasties(void) DISASTER_SECTION;
 
 /*! \brief Do a random disaster. */
 EXPORT void DoRandomDisaster(void) DISASTER_SECTION;

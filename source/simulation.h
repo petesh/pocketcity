@@ -196,6 +196,15 @@ EXPORT Int16 IsZone(welem_t x, zoneType nType);
 EXPORT Int16 IsOccupied(welem_t x);
 
 /*!
+ * \brief Is this node a transportation node?
+ * \param x the noe to check
+ * \return if this is the case
+ *
+ * say if the node is road & rail or any overlapping combination thereof
+ */
+EXPORT Int16 IsTransport(welem_t x);
+
+/*!
  * \brief is this zone real water
  * \param X the zone to check
  * \return true if it is real water

@@ -29,6 +29,7 @@
 #include <simcity_resconsts.h>
 #include <mem_compat.h>
 #include <minimap.h>
+#include <beam.h>
 
 #ifdef DEBUG
 #include <HostControl.h>
@@ -77,7 +78,7 @@ static void _UIGetFieldToBuildOn(Int16 x, Int16 y);
 static Err RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags);
 static void EventLoop(void);
 static void cycleSpeed(void);
-static void DoAbout(void);
+static void DoAbout(void) LARD_SECTION;
 static void CheckTextClick(Coord x, Coord y);
 static Int16 doButtonEvent(ButtonEvent key);
 static Int16 speedOffset(void);
@@ -125,13 +126,42 @@ ResGetString(UInt16 index, char *buffer, UInt16 length)
  * Handles the auto-saving of the application at the end.
  */
 UInt32
-PilotMain(UInt16 cmd, MemPtr cmdPBP __attribute__((unused)), UInt16 launchFlags)
+PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 {
 	UInt16 error;
 	Int16 pir;
+	Boolean running;
 
 	switch (cmd) {
 	case sysAppLaunchCmdNormalLaunch:
+		break;
+	case sysAppLaunchCmdSyncNotify:
+		BeamRegister();
+		break;
+	case sysAppLaunchCmdExgReceiveData:
+		running = launchFlags & sysAppLaunchFlagSubCall;
+		if (running) {
+			/* Save current game */
+			UISaveMyCity();
+			SetGameNotInProgress();
+		}
+		if (errNone == BeamReceive((ExgSocketPtr)cmdPBP)) {
+			if (running) {
+				FrmGotoForm(formID_files);
+			} else {
+				LocalID id;
+				UInt16 card;
+				DmSearchStateType state;
+
+				if (errNone == DmGetNextDatabaseByTypeCreator(
+				    true, &state, 'APPL', GetCreatorID(),
+				    true, &card, &id)) {
+					SysUIAppSwitch(card, id,
+					    sysAppLaunchCmdNormalLaunch,
+					    NULL);
+				}
+			}
+		}
 		break;
 	default:
 		return (0);
@@ -677,6 +707,10 @@ DoPCityMenuProcessing(UInt16 itemID)
 	case menuitemID_tips:
 		FrmHelp(StrID_tips);
 		handled = true;
+		break;
+	case menuitemID_Beam:
+		UISaveMyCity();
+		BeamCityByName(game.cityname);
 		break;
 #if defined(CHEAT) || defined(DEBUG)
 	case menuitemID_Funny:

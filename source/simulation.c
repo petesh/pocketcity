@@ -983,13 +983,13 @@ BudgetGetNumber(BudgetNumber type)
 	Int32 ret = 0;
 	switch (type) {
 	case bnResidential:
-		ret = (Int32)costIt(bc_value_residential) * getTax()/100;
+		ret = (Int32)costIt(bc_value_residential) * getTax() / 100;
 		break;
 	case bnCommercial:
-		ret = (Int32)costIt(bc_value_commercial) * getTax()/100;
+		ret = (Int32)costIt(bc_value_commercial) * getTax() / 100;
 		break;
 	case bnIndustrial:
-		ret = (Int32)costIt(bc_value_industrial) * getTax()/100;
+		ret = (Int32)costIt(bc_value_industrial) * getTax() / 100;
 		break;
 	case bnIncome:
 		ret = ((costIt(bc_value_residential) + 
@@ -1045,27 +1045,27 @@ DoUpkeep(void)
 {
 	UInt32 upkeep;
 
-	upkeep = (UInt32)(BudgetGetNumber(bnTraffic) + BudgetGetNumber(bnPower) +
-	    BudgetGetNumber(bnDefence));
+	upkeep = (UInt32)(BudgetGetNumber(bnTraffic) +
+	    BudgetGetNumber(bnPower) + BudgetGetNumber(bnDefence));
 
+	WriteLog("Upkeep: %lu\n", (unsigned long)upkeep);
+
+	DoCommitmentNasties();
 	if (upkeep <= (UInt32)getCredits()) {
-		WriteLog("Upkeep: %lu\n", (unsigned long)upkeep);
 		decCredits((Int32)upkeep);
 		return;
-	} else {
-		WriteLog("*** Negative Cashflow\n");
-		WriteLog("Upkeep: %lu\n", (unsigned long)upkeep);
 	}
+	WriteLog("*** Negative Cashflow\n");
 	setCredits(0);
 
 	/* roads */
-	DoNastyStuffTo(Z_ROAD, 1);
-	DoNastyStuffTo(Z_POWERLINE, 5);
-	DoNastyStuffTo(Z_COALPLANT, 15);
-	DoNastyStuffTo(Z_NUCLEARPLANT, 50);
-	DoNastyStuffTo(Z_FIRESTATION, 10);
-	DoNastyStuffTo(Z_POLICEDEPT, 12);
-	DoNastyStuffTo(Z_ARMYBASE, 35);
+	DoNastyStuffTo(Z_ROAD, 1, 1);
+	DoNastyStuffTo(Z_POWERLINE, 5, 1);
+	DoNastyStuffTo(Z_COALPLANT, 15, 0);
+	DoNastyStuffTo(Z_NUCLEARPLANT, 50, 0);
+	DoNastyStuffTo(Z_FIRESTATION, 10, 1);
+	DoNastyStuffTo(Z_POLICEDEPT, 12, 1);
+	DoNastyStuffTo(Z_ARMYBASE, 35, 0);
 }
 
 /*!
@@ -1410,6 +1410,15 @@ IsZone(welem_t x, zoneType nType)
 	    (x <= (welem_t)(nType * 10 + Z_COMMERCIAL_MAX)))
 		return (1);
 	return (0);
+}
+
+Int16
+IsTransport(welem_t x)
+{
+	return (IsRoad(x) || IsRoadPipe(x) || IsRoadPower(x) ||
+	    IsRoadBridge(x) ||
+	    IsRail(x) || IsRailPipe(x) || IsRailPower(x) || IsRailTunnel(x) ||
+	    IsRailOvRoad(x));
 }
 
 Int16

@@ -10,7 +10,8 @@
 
 /* global vars from simcity.c */
 #define MK4(A,B,C,D)	(((A) << 12) | ((B) << 8) | ((C) << 4) | (D))
-#define	SGTYP   'DATA'
+#define	SGTYP   'PCsg'
+#define SGSTRING	"PCsg"
 #define	TILEDBTYPE 'tidb'
 #define TBMP	'Tbmp'
 #define TVER	'tver'
