@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include <glib/gthread.h>
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
@@ -28,6 +29,7 @@ gint mainloop_callback(gpointer data);
 int main(int argc, char *argv[])
 {
     gint timerID;
+    g_thread_init(NULL);
     gtk_init (&argc, &argv);
     srand(time(0));
     g_static_mutex_init(&drawingmutex);
@@ -97,9 +99,8 @@ gint delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 
 static gint drawing_exposed_callback(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-    g_print("exposed_callback - start\n");
     RedrawAllFields();
-    g_print("exposed_callback - end\n");
+
     return FALSE;
 }
 
@@ -298,12 +299,10 @@ extern int UIDisplayError(int nError)
 
 extern void UIInitDrawing(void)
 {
-    // not used for this platform
 }
 
 extern void UIFinishDrawing(void)
 {
-    // not used for this platform
 }
 
 extern void UIUnlockScreen(void)
@@ -359,6 +358,8 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
 {
     GdkGC *gc;
 
+    g_static_mutex_lock(&drawingmutex);
+
     gc = gdk_gc_new(drawingarea->window);
     gdk_draw_drawable(
             drawingarea->window,
@@ -370,6 +371,8 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
             ypos*game.tileSize,
             game.tileSize,
             game.tileSize);
+
+    g_static_mutex_unlock(&drawingmutex);
 }
 
 extern void UIDrawSpecialObject(int i, int xpos, int ypos)
