@@ -168,6 +168,23 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
                 timeTemp = TimGetSeconds();
                 if (timeTemp >= timeStampDisaster+SIM_GAME_LOOP_DISASTER) {
                     MoveAllObjects();
+#ifdef DEBUG
+{
+    // this will print the BuildCount array
+    // don't forget to keep an eye on it
+    // in the log - should be up-to-date
+    // AT ALL TIMES!
+    char temp[10];
+    int q;
+    for (q=0; q<20; q++) {
+        sprintf(temp,"%li",BuildCount[q]);
+        UIWriteLog(temp);
+        UIWriteLog(" ");
+    }
+    UIWriteLog("\n");
+
+}
+#endif
                     if (UpdateDisasters()) {
                         RedrawAllFields();
                     }
@@ -521,8 +538,7 @@ static Boolean hPocketCity(EventPtr event)
                         // change this to whatever testing you're doing ;)
                         // just handy with a 'trigger' button for testing
                         // ie. disaters
-                        BurnField(5,5,1);
-			MeteorDisaster();
+			            MeteorDisaster(20,20);
                         handled = 1;
                         break;
                     case menuitemID_removeDefence:

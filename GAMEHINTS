@@ -32,6 +32,8 @@ Disasters:
   police can also stop the fire, but only if they have two units next to it.
 * The monsters can be killed by 2 military units (place them next to it), or
   4 fire fighters.
+* The number of defence units depend on the number of fire stations, police
+  stations and military bases you have.
 
 
 Misc:

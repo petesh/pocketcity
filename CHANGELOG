@@ -25,6 +25,9 @@ Kean Pedersen:
   * Moved all graphic for the zones onto an offscreen windows
       This speeds up the drawing process.
 
+Aaron Krill:
+  + Meteor disaster
+
 Version 0.10
 ============
 Kean Pedersen:
@@ -57,7 +60,7 @@ Morten Brix Pedersen (new developer):
   * Code cleaning
 
 Aaron Krill:
-hanged population to be more realistic.
+  * Changed population to be more realistic.
   * Changed powerplant upkeep to be more realistic.
   + Save/Load on Save/Load menu options
   + Invalid savegame version number alert
@@ -71,7 +74,7 @@ Kean Pedersen:
   + Simulation pauses while user builds (gives faster response time)
   + Speed indicator (tap to pause)
   * Temporary fix for PalmOS 3.1 (powerloss icon is not shown on OS < 3.5)
-  - Removed the 32x32 tiles, was too ugly*big*unused
+  - Removed the 32x32 tiles, was too ugly/big/unused
 
 Aaron Krill (new developer):
   + Alert to notify when you don't have enough money to build an item

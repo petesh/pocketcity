@@ -13,6 +13,7 @@ void CreateWaste(int x, int y);
 unsigned short int GetDefenceValue(int xpos, int ypos);
 unsigned short int ContainsDefence(int x, int y);
 void MonsterCheckSurrounded(int i);
+void CreateMeteor(int x, int y, int size);
         
 
 
@@ -57,7 +58,7 @@ extern void DoRandomDisaster(void)
         type = GetWorld(randomTile);
         if (type != TYPE_DIRT &&
             type != TYPE_REAL_WATER &&
-	    type != TYPE_CRATER) {
+            type != TYPE_CRATER) {
             x = randomTile % mapsize;
             y = randomTile / mapsize;
             random = GetRandomNumber(500); // TODO: shuld depend on difficulty
@@ -80,10 +81,10 @@ extern void DoRandomDisaster(void)
                     UIDisplayError(ERROR_DRAGON);
                 }
             } else if (random < 19) {
-		if (MeteorDisaster()) {
-		    UIDisplayError(ERROR_METEOR);
-		}
-	    }	
+                if (MeteorDisaster(x,y)) {
+                    UIDisplayError(ERROR_METEOR);
+                }
+            }
             UnlockWorld();
             return; // only one chance for disaster per turn
         }
@@ -135,11 +136,13 @@ void CreateWaste(int x, int y)
     LockWorld();
     type = GetWorld(WORLDPOS(x,y));
     Build_Destroy(x,y);
-    if (!(type == TYPE_REAL_WATER || type == TYPE_BRIDGE)) {
-        SetWorld(WORLDPOS(x,y), TYPE_WASTE);
+    if (type == TYPE_REAL_WATER || type == TYPE_BRIDGE) {
+        UnlockWorld();
+        return;
     }
-    DrawCross(x,y);
+    SetWorld(WORLDPOS(x,y), TYPE_WASTE);
     BuildCount[COUNT_WASTE]++;
+    DrawCross(x,y);
     UnlockWorld();
     if (type == TYPE_POWER_PLANT || type == TYPE_NUCLEAR_PLANT)  {
         UIDisplayError(ERROR_PLANT_EXPLOSION);
@@ -171,8 +174,9 @@ extern int BurnField(int x, int y, int forceit)
         type != TYPE_WASTE &&
         type != TYPE_WATER &&
         type != TYPE_REAL_WATER &&
-	type != TYPE_CRATER &&
+        type != TYPE_CRATER &&
         ContainsDefence(x,y) == 0)) {
+
         Build_Destroy(x,y);
         SetWorld(WORLDPOS(x,y), TYPE_FIRE1);
         SetWorldFlags(WORLDPOS(x,y), GetWorldFlags(WORLDPOS(x,y)) | 0x02); // set used flag
@@ -353,44 +357,38 @@ extern void MoveAllObjects(void)
     }
 }
 
-int MeteorDisaster(void)
+extern int MeteorDisaster(int x, int y)
 {
     int k;
-    unsigned long int pos;
     k = GetRandomNumber(3)+1;
-    pos = GetRandomNumber(mapsize*mapsize);
-    CreateMeteor(pos, k);
+    CreateMeteor(x,y,k);
     return 1;
 }
 
-void CreateMeteor(long unsigned int pos, int size)
+void CreateMeteor(int x, int y, int size)
 {
-    int x,y,i,j,s;
+    int i,j;
     LockWorld();
-    x = pos % mapsize;
-    y = pos / mapsize;
-    i = x;
-    j = y;
+    UILockScreen();
     for (i=x-size; i<=x+size; i++) {
         for (j=y-size; j<=y+size; j++) {
             if (i >= 0 && i < mapsize && j >= 0 && j < mapsize) {
-                s = 5;
-                if (GetRandomNumber(s) < 2) {
-                    if(GetWorld(WORLDPOS(i,j)) != TYPE_REAL_WATER) {
-                        SetWorld(WORLDPOS(i,j), TYPE_WASTE);
-                        BuildCount[COUNT_WASTE]++;
+                if (GetRandomNumber(5) < 2) {
+                    if (GetWorld(WORLDPOS(i,j)) != TYPE_REAL_WATER) {
+                        CreateWaste(i,j);
                     }
-                } else if (GetRandomNumber(s) < 4) {
-                    if(GetWorld(WORLDPOS(i,j)) != TYPE_REAL_WATER && GetWorld(WORLDPOS(i,j)) != TYPE_WATER) {
-                            BurnField(i,j,1);
-                            BurnField(i,j,1);
+                } else if (GetRandomNumber(5) < 4) {
+                    if (GetWorld(WORLDPOS(i,j)) != TYPE_REAL_WATER && GetWorld(WORLDPOS(i,j)) != TYPE_WATER) {
+                        BurnField(i,j,1);
                     }
                 }
             }
         }
     }
-    UnlockWorld();
+    Build_Destroy(x,y);
     SetWorld(WORLDPOS(x,y), TYPE_CRATER);
+    UIUnlockScreen();            
+    UnlockWorld();
     RedrawAllFields();
 }
 
