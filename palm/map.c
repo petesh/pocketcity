@@ -19,9 +19,9 @@ extern Boolean hMap(EventPtr event)
     switch (event->eType)
     {
         case penDownEvent:
-            if (event->screenX >= 1  && event->screenX <= (game.mapsize + 1) &&
+            if (event->screenX >= 1  && event->screenX <= (GetMapSize() + 1) &&
                 event->screenY >= 17 &&
-                event->screenY <= (game.mapsize + 17) ) {
+                event->screenY <= (GetMapSize() + 17) ) {
                 Goto(event->screenX - 1, event->screenY - 17);
                 FrmGotoForm(formID_pocketCity);
                 handled = 1;
@@ -109,8 +109,8 @@ void DrawMap(void)
     }
 
     if (!oldROM) {
-        for(i = 0; i < game.mapsize; i++) {
-            for(j =0 ; j < game.mapsize; j++) {
+        for(i = 0; i < GetMapSize(); i++) {
+            for(j =0 ; j < GetMapSize(); j++) {
                 int wt = GetWorld(WORLDPOS(i,j));
                 if (wt == TYPE_DIRT)
                     continue;
