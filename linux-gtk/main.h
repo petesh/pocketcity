@@ -21,7 +21,7 @@ extern "C" {
  * \param nGraphic the item to paint
  * \param drawable the drawable surface to paint on
  */
-void UIDrawMapField(Int16 xpos, Int16 ypos, welem_t nGraphic,
+void UIDrawMapZone(Int16 xpos, Int16 ypos, welem_t nGraphic,
     GdkDrawable *drawable);
 
 /*!
@@ -48,7 +48,8 @@ void UIDrawMapSpecialUnit(Int16 xpos, Int16 ypos, Int16 i,
  * \brief get the widget corresponding to the main window
  * \return the widget (could be null)
  */
-GtkWidget *mainwindow_get(void);
+GtkWidget *window_main_get(void);
+GdkDrawable *drawable_main_get(void);
 
 #if defined(__cplusplus)
 }

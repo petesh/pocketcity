@@ -1,5 +1,6 @@
 Things left to implement:
 	Scrollbars
+		- Need to actually work
 	Demand Indicators
 		- Residential / commercial / Industrial
 	Status Indicators
@@ -12,7 +13,7 @@ Things left to implement:
 		- pop growth over time
 	Evaluation
 	query tool
-		- What's that ?
+		- Partially implemented.
 	Little Bits?
 
 Save games on external media

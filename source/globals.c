@@ -40,14 +40,11 @@ GameStruct game;
 /*! \brief  This is the volatile game structure (memoizing to reduce op/s) */
 vGameStruct vgame;
 
+/*! \brief the game 'visuals' - tilesize and the likes */
+vGameVisuals visuals;
+
 /*! \brief the world pointer */
 void *worldPtr;
-/*!
- * \brief the 'growable' pointer
- *
- * This pointer contains an entry for *every* growable position on the map.
- */
-dsObj *growable;
 
 /*! \brief This is the game configuration */
 AppConfig_t gameConfig = {
@@ -157,9 +154,6 @@ ResizeWorld(UInt32 size)
 
 	gMemSet(worldPtr, size, 0);
 	UnlockZone(lz_world);
-	if (growable != NULL)
-		ListDelete(growable);
-	growable = ListNew();
 	return (1);
 }
 
@@ -170,7 +164,7 @@ ResizeWorld(UInt32 size)
 Int16
 InitWorld(void)
 {
-	return (ResizeWorld(5));
+	return (1);
 }
 
 /*!
@@ -299,9 +293,6 @@ void
 PurgeWorld()
 {
 	ReleaseZone(lz_world);
-	if (growable != NULL)
-		ListDelete(growable);
-	growable = NULL;
 }
 
 /*!

@@ -354,3 +354,28 @@ UIUpdateMap(UInt16 xpos __attribute__((unused)),
     UInt16 ypos __attribute__((unused)))
 {
 }
+
+void
+UIMapResize(void)
+{
+	/* Unused on this platform */
+}
+
+void
+UIDrawMapStatus(UInt16 xpos __attribute__((unused)),
+    UInt16 ypos __attribute__((unused)),
+    welem_t world __attribute__((unused)),
+    selem_t status __attribute__((unused)))
+{
+	/* Unused on this platform */
+}
+
+void
+UIDrawMapField(UInt16 xpos __attribute__((unused)),
+    UInt16 ypos __attribute__((unused)),
+    welem_t world __attribute__((unused)))
+{
+	/* Unused on this platform */
+}
+
+

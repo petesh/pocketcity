@@ -12,7 +12,7 @@ files=bulldozer.bmp residential.bmp commercial.bmp industrial.bmp \
 	coin.bmp people.bmp location.bmp
 
 montage.bmp: $(files)
-	$(MONTAGE) -geometry 10x10+0+0 -tile 10x4 -adjoin $(files) $@
+	$(MONTAGE) -geometry 40x10+0+0 -tile 10x4 -adjoin $(files) $@
 
 clean:
 	rm -f montage.bmp

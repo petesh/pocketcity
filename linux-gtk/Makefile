@@ -1,11 +1,12 @@
 VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 CC = gcc
-GFLAGS := $(shell pkg-config --cflags gtk+-2.0) \
+GCPPFLAGS := $(shell pkg-config --cflags gtk+-2.0) \
 	-DGTK_DISABLE_COMPAT_H -DGDK_DISABLE_DEPRECATED
 GCCFLAGS = -W -Wall -Werror
 INCLUDEDIRS = -I . -I ../source -I ../nix-common -I ../graphic
 OPTFLAGS = -O2
-CFLAGS = $(GCCFLAGS) $(OPTFLAGS) -DLINUX $(GFLAGS) $(INCLUDEDIRS)
+CPPFLAGS=$(GCPPFLAGS) -DLINUX $(INCLUDEDIRS)
+CFLAGS = $(CPPFLAGS) $(OPTFLAGS) $(GCCFLAGS)
 GLFLAGS = $(shell pkg-config --libs gtk+-2.0) 
 LIBS = 
 LDLIBS = $(LIBS) $(GLFLAGS)
@@ -60,3 +61,6 @@ dist:
 	@cp graphic/icons/*.png $(DDIR)/graphic/icons
 	@tar cvzf $(DDIR).tar.gz $(DDIR)
 	@rm -rf $(DDIR)
+
+splint:
+	splint $(CPPFLAGS) *.c

@@ -55,10 +55,10 @@ void UILockScreen(void);
 void UIDrawBorder(void);
 
 /*!
- * \brief set up the graphics
+ * \brief initialize the graphics
  * \todo fix this routine.
  */
-void UISetUpGraphic(void);
+void UIInitGraphic(void);
 /*! \brief Draw the amount of credits on screen. */
 void UIDrawCredits(void);
 void UIGotoForm(Int16);
@@ -144,7 +144,33 @@ void MapHasJumped(void);
  */
 UInt32 GetRandomNumber(UInt32 max);
 
-void UIUpdateMap(UInt16 xpos, UInt16 ypos);
+/*!
+ * \brief update an individual position on the map
+ *
+ * this would consist of painting it's location, as well as the power and
+ * water items for that location. It is the map version of UIDrawField.
+ * \param xpos the x position
+ * \param ypos the y position
+ * \param elem the item to paint on the map
+ */
+void UIDrawMapField(UInt16 xpos, UInt16 ypos, welem_t elem);
+
+/*!
+ * \brief update a map status position
+ * \param xpos the x position on the map
+ * \param ypos the y position on the map
+ * \param world the world pointer
+ * \param status the status of the zone
+ */
+void UIDrawMapStatus(UInt16 xpos, UInt16 ypos, welem_t world, selem_t status);
+
+/*!
+ * \brief check if the map location is being clipped by the game
+ * \param xpos the x position on the map
+ * \param ypos the y position on the map
+ * \return true if the point on the map is clipped, and therefore not visible
+ */
+Int8 UIClipped(Int16 xpos, Int16 ypos);
 
 /*! \brief the zones to lock/unlock */
 typedef enum {
@@ -165,8 +191,16 @@ void LockZone(lockZone zone);
  */
 void UnlockZone(lockZone zone);
 
-/
+/*!
+ * \brief release the memory allocated to this zone
+ * \param zone the zone to release
+ */
 void ReleaseZone(lockZone zone);
+
+/*!
+ * \brief map being resized, do UI related elements
+ */
+void UIMapResize(void);
 
 #if defined(__cplusplus)
 }

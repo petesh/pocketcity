@@ -487,7 +487,6 @@ CreateWaste(Int16 x, Int16 y)
 	LockZone(lz_world);
 	node = getWorld(WORLDPOS(x, y));
 	Build_Destroy(x, y);
-	UIUpdateMap(x, y);
 	if (node == Z_REALWATER || IsRoadBridge(node)) {
 		UnlockZone(lz_world);
 		return;

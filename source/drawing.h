@@ -14,8 +14,8 @@ extern "C" {
 #include <sections.h>
 #include <compilerpragmas.h>
 
-/*! \brief Set up the graphics. */
-EXPORT void SetUpGraphic(void);
+/*! \brief initialize the graphics. */
+void InitGraphic(void);
 
 /*!
  * \brief Draw everything on the screen.
@@ -75,7 +75,7 @@ EXPORT welem_t GetSpecialGraphicNumber(UInt32 pos);
  * Also remember to call (Un)lockWorld (2 functions)
  *
  * This function will not try to draw outside the bounds of the
- * current city.
+ * current world, or the defined 'clipping region'
  * \param xpos horizontal position
  * \param ypos vertical position
  */

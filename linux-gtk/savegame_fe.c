@@ -34,17 +34,9 @@
 struct city_listselect {
 	GtkListStore *store; /*!< store of list for screen */
 	GtkWidget *list; /*!< list widget */
+	GtkWidget *dlg; /*!< dialog widget */
 	savegame_t *sg; /*!< savegame widget */
 };
-
-/*! \brief set the tile size */
-void
-UIResetViewable(void)
-{
-	/*! \todo set based on size of window/tiles */
-	vgame.TileSize = 16;
-	vgame.MapTileSize = 4;
-}
 
 /*!
  * \brief free the list selection strucure
@@ -58,6 +50,7 @@ free_listselect(struct city_listselect *sel)
 	if (sel->store != NULL) g_object_unref(sel->store);
 	free(sel);
 }
+
 /*!
  * \brief load one of the palm games from the pdb file
  *
@@ -83,19 +76,31 @@ ImportOneFromGame(GtkWidget *widget, gint response, gpointer data)
 			gtk_tree_model_get(model, &iter, 0, &city, -1);
 		}
 
-		if (-1 != savegame_getcity(sel->sg, city, &game,
-			    (char **)&worldPtr)) {
-			UIResetViewable();
-		}
+		savegame_getcity(sel->sg, city, &game, (char **)&worldPtr);
 		PostLoadGame();
 		DrawGame(1);
 		MapHasJumped();
 	}
 	free_listselect(sel);
 	gtk_widget_destroy(widget);
-	if (response == GTK_RESPONSE_OK) {
-		UIResetViewable();
-	}
+}
+
+/*!
+ * \brief row double clicked function
+ *
+ * happens when a row is double clicked. We emulate clicking the OK
+ * response in the dialog.
+ * \param widget the treeview (unused)
+ * \param path the treepath (unused)
+ * \param col the column (unused)
+ * \param data the struct city_listselect *
+ */
+static void
+lsrow_activated(gpointer data)
+{
+	struct city_listselect *sel = (struct city_listselect *)data;
+
+	ImportOneFromGame(sel->dlg, GTK_RESPONSE_OK, data);
 }
 
 /*!
@@ -108,7 +113,6 @@ loadCities(savegame_t *sg)
 	int i;
 	struct city_listselect *ls = malloc(sizeof (struct city_listselect));
 	GtkTreeIter iter;
-	GtkWidget *dlg;
 
 	ls->store = gtk_list_store_new(2, G_TYPE_UINT, G_TYPE_STRING);
 	ls->sg = sg;
@@ -120,8 +124,8 @@ loadCities(savegame_t *sg)
 		    1, savegame_getcityname(sg, i),
 		    -1);
 	}
-	dlg = gtk_dialog_new_with_buttons("Pick A City",
-	    GTK_WINDOW(mainwindow_get()), GTK_DIALOG_DESTROY_WITH_PARENT,
+	ls->dlg = gtk_dialog_new_with_buttons("Pick A City",
+	    GTK_WINDOW(window_main_get()), GTK_DIALOG_DESTROY_WITH_PARENT,
 	    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 	    GTK_STOCK_OK, GTK_RESPONSE_OK,
 	    NULL);
@@ -130,11 +134,13 @@ loadCities(savegame_t *sg)
 	gtk_tree_view_append_column(GTK_TREE_VIEW(ls->list),
 	    gtk_tree_view_column_new_with_attributes("Name",
 	    gtk_cell_renderer_text_new(), "text", 1, NULL));
-	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dlg)->vbox),
+	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(ls->dlg)->vbox),
 	    ls->list, TRUE, TRUE, 0);
-	g_signal_connect(GTK_OBJECT(dlg), "response",
+	g_signal_connect(GTK_OBJECT(ls->dlg), "response",
 	    G_CALLBACK(ImportOneFromGame), ls);
-	gtk_widget_show_all(dlg);
+	g_signal_connect_swapped(GTK_OBJECT(ls->list), "row-activated",
+	    G_CALLBACK(lsrow_activated), ls);
+	gtk_widget_show_all(ls->dlg);
 }
 
 /*!
@@ -162,9 +168,7 @@ doOpen(gchar *filename)
 	if (savegame_citycount(sg) > 1) {
 		loadCities(sg);
 	} else {
-		if (-1 != savegame_getcity(sg, 0, &game, (char **)&worldPtr)) {
-			UIResetViewable();
-		}
+		savegame_getcity(sg, 0, &game, (char **)&worldPtr);
 		PostLoadGame();
 		DrawGame(1);
 		MapHasJumped();
@@ -250,7 +254,6 @@ newgame_handler(void)
 	GtkWidget *label;
 
 	/* SetupNewGame(); */
-	/* UIResetViewable(); */
 	/* setLoopSeconds(SPEED_PAUSED); */
 	ng.form = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(ng.form), "Create New City");

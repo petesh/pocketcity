@@ -11,9 +11,9 @@
 #include <simulation.h>
 
 void
-SetUpGraphic(void)
+InitGraphic(void)
 {
-	UISetUpGraphic();
+	UIInitGraphic();
 }
 
 /*!
@@ -40,20 +40,12 @@ Goto(Int16 x, Int16 y)
 void
 RedrawAllFields(void)
 {
-	Int16 i, j;
-
-	LockZone(lz_world);
 	UIInitDrawing();
 	UILockScreen();
-	UIDrawPlayArea();
 
-	for (i = getMapXPos(); i < getVisibleX() + getMapXPos(); i++) {
-		for (j = getMapYPos();
-		    j < getVisibleY() + getMapYPos();
-		    j++) {
-			DrawFieldWithoutInit(i, j);
-		}
-	}
+	LockZone(lz_world);
+	UIDrawPlayArea();
+	UnlockZone(lz_world);
 
 	UIDrawDate();
 	UIDrawCredits();
@@ -64,7 +56,6 @@ RedrawAllFields(void)
 
 	UIUnlockScreen();
 	UIFinishDrawing();
-	UnlockZone(lz_world);
 }
 
 void
@@ -107,42 +98,42 @@ ScrollDisplay(dirType direction)
 void
 MoveCursor(dirType direction)
 {
-	int old_x = vgame.cursor_xpos;
-	int old_y = vgame.cursor_ypos;
+	int old_x = getCursorX();
+	int old_y = getCursorY();
 
 	LockZone(lz_world);
 
 	switch (direction) {
 	case dtUp:
-		if (vgame.cursor_ypos > 0)
-			vgame.cursor_ypos--;
-		if (vgame.cursor_ypos < getMapYPos())
+		if (getCursorY() > 0)
+			getCursorY()--;
+		if (getCursorY() < getMapYPos())
 			ScrollDisplay(direction);
 		break;
 	case dtRight:
-		if (vgame.cursor_xpos < (getMapWidth() - 1))
-			vgame.cursor_xpos++;
-		if ((vgame.cursor_xpos > getMapXPos() + getVisibleX()-1) &&
-			vgame.cursor_xpos < getMapWidth())
+		if (getCursorX() < (getMapWidth() - 1))
+			getCursorX()++;
+		if ((getCursorX() > getMapXPos() + getVisibleX()-1) &&
+			getCursorX() < getMapWidth())
 			ScrollDisplay(direction);
 		break;
 	case dtDown:
-		if (vgame.cursor_ypos < (getMapHeight() - 1))
-			vgame.cursor_ypos++;
-		if ((vgame.cursor_ypos > getMapYPos() + getVisibleY()-1) &&
-			vgame.cursor_ypos < getMapHeight())
+		if (getCursorY() < (getMapHeight() - 1))
+			getCursorY()++;
+		if ((getCursorY() > getMapYPos() + getVisibleY()-1) &&
+			getCursorY() < getMapHeight())
 			ScrollDisplay(direction);
 		break;
 	case dtLeft:
-		if (vgame.cursor_xpos > 0)
-			vgame.cursor_xpos--;
-		if ((vgame.cursor_xpos < getMapXPos()))
+		if (getCursorX() > 0)
+			getCursorX()--;
+		if ((getCursorX() < getMapXPos()))
 			ScrollDisplay(direction);
 		break;
 	}
 
 	DrawField(old_x, old_y);
-	DrawField(vgame.cursor_xpos, vgame.cursor_ypos);
+	DrawField(getCursorX(), getCursorY());
 
 	UnlockZone(lz_world);
 }
@@ -192,30 +183,29 @@ DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 	selem_t flag;
 	welem_t content, special;
 	UInt32 worldpos;
-	Int16 mapx = getMapXPos();
-	Int16 mapy = getMapYPos();
 
 	if (xpos < 0 || ypos < 0 || xpos >= getMapWidth() ||
-	    ypos >= getMapHeight())
+	    ypos >= getMapHeight() || UIClipped(xpos, ypos))
 		return;
 
 	worldpos = WORLDPOS(xpos, ypos);
 	getWorldAndFlag(worldpos, &content, &flag);
 	special = GetGraphicNumber(worldpos);
 
-	UIDrawField(xpos - mapx, ypos - mapy, special);
+	UIDrawField(xpos, ypos, special);
+	UIDrawMapField(xpos, ypos, special);
+	UIDrawMapStatus(xpos, ypos, special, flag);
 
 	if ((flag & POWEREDBIT) == 0 && CarryPower(content)) {
-		UIDrawPowerLoss(xpos - mapx, ypos - mapy);
+		UIDrawPowerLoss(xpos, ypos);
 	}
 
 	if ((flag & WATEREDBIT) == 0 && CarryWater(content)) {
-		UIDrawWaterLoss(xpos - mapx, ypos - mapy);
+		UIDrawWaterLoss(xpos, ypos);
 	}
 
-	if (xpos == vgame.cursor_xpos && ypos == vgame.cursor_ypos) {
-		UIDrawCursor(vgame.cursor_xpos - mapx,
-		    vgame.cursor_ypos - mapy);
+	if (xpos == getCursorX() && ypos == getCursorY()) {
+		UIDrawCursor(getCursorX(), getCursorY());
 	}
 
 	/* draw monster */
@@ -223,7 +213,7 @@ DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 		if ((UInt16)xpos == game.objects[i].x &&
 			(UInt16)ypos == game.objects[i].y &&
 			game.objects[i].active != 0) {
-			UIDrawSpecialObject(xpos - mapx, ypos - mapy, i);
+			UIDrawSpecialObject(xpos, ypos, i);
 		}
 	}
 	/* draw extra units */
@@ -231,7 +221,7 @@ DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 		if (xpos == game.units[i].x &&
 			ypos == game.units[i].y &&
 			game.units[i].active != 0) {
-			UIDrawSpecialUnit(xpos - mapx, ypos - mapy, i);
+			UIDrawSpecialUnit(xpos, ypos, i);
 		}
 	}
 }
@@ -287,7 +277,7 @@ GetSpecialGraphicNumber(UInt32 pos)
 			    IsRoadPower(elt) || IsRoadPipe(elt);
 		}
 		nAddMe = Z_ROAD_START;
-	} else if (IsPipe(wpe)) {
+	} else if (IsWaterPipe(wpe)) {
 		if (pos >= getMapWidth())
 			a = CarryWater(getWorld(pos - getMapWidth()));
 		if (pos < (unsigned long)(MapMul() - getMapWidth()))

@@ -14,6 +14,7 @@ extern "C" {
 
 EXPORT GameStruct game;
 EXPORT vGameStruct vgame;
+EXPORT vGameVisuals visuals;
 EXPORT AppConfig_t gameConfig;
 EXPORT void *worldPtr;
 EXPORT void *growablePtr;

@@ -160,6 +160,8 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP __attribute__((unused)), UInt16 launchFlags)
 		UISaveAutoGame();
 	}
 
+	PCityShutdown();
+
 	_PalmFini(pir);
 	return (0);
 }
@@ -1098,6 +1100,16 @@ UIGetSelectedBuildItem(void)
 }
 
 /*
+ * initialize graphics
+ */
+void
+UIInitGraphic(void)
+{
+	setGameTileSize(16);
+	setMapTileSize(4);
+}
+
+/*
  * Save the selected build item.
  */
 void
@@ -1369,8 +1381,11 @@ UIDrawLossIcon(Int16 xpos, Int16 ypos, welem_t elem)
 {
 	RectangleType rect;
 
-	if (IsDeferDrawing())
+	if (IsDeferDrawing() || UIClipped(xpos, ypos))
 		return;
+
+	xpos -= getMapXPos();
+	ypos -= getMapYPos();
 
 	rect.topLeft.x = (Coord)(elem % HORIZONTAL_TILESIZE) * gameTileSize();
 	rect.topLeft.y = (Coord)(elem / HORIZONTAL_TILESIZE) * gameTileSize();
@@ -1423,8 +1438,11 @@ void
 UIDrawSpecialUnit(Int16 xpos, Int16 ypos, Int8 i)
 {
 	RectangleType rect;
-	if (IsDeferDrawing())
+	if (IsDeferDrawing() || UIClipped(xpos, ypos))
 		return;
+
+	xpos -= getMapXPos();
+	ypos -= getMapYPos();
 
 	rect.topLeft.x = game.units[i].type * gameTileSize();
 	rect.topLeft.y = gameTileSize();
@@ -1450,8 +1468,12 @@ void
 UIDrawSpecialObject(Int16 xpos, Int16 ypos, Int8 i)
 {
 	RectangleType rect;
-	if (IsDeferDrawing())
+
+	if (IsDeferDrawing() || UIClipped(xpos, ypos))
 		return;
+
+	xpos -= getMapXPos();
+	ypos -= getMapYPos();
 
 	rect.topLeft.x = (game.objects[i].dir) * gameTileSize();
 	rect.topLeft.y = ((i * 2) + 1) * gameTileSize();
@@ -1477,8 +1499,11 @@ UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
 {
 	RectangleType rect;
 
-	if (IsDeferDrawing())
+	if (IsDeferDrawing() || UIClipped(xpos, ypos))
 		return;
+
+	xpos -= getMapXPos();
+	ypos -= getMapYPos();
 
 	rect.topLeft.x = (nGraphic % HORIZONTAL_TILESIZE) * gameTileSize();
 	rect.topLeft.y = (nGraphic / HORIZONTAL_TILESIZE) * gameTileSize();
@@ -1561,7 +1586,7 @@ UIScrollDisplay(dirType direction)
 		}
 	}
 
-	UIDrawCursor(vgame.cursor_xpos - mapx, vgame.cursor_ypos - mapy);
+	UIDrawCursor(getCursorX(), getCursorY());
 	UIDrawLoc();
 
 	UIFinishDrawing();
@@ -1614,10 +1639,10 @@ struct StatusPositions {
 
 /*! \brief the default shape/size of the various locations */
 static RectangleType shapes[] = {
-	{ {0, 0}, {0, 13} },  /* DATELOC */
-	{ {0, 0}, {0, 13} }, /* CREDITSLOC */
-	{ {0, 0}, {0, 13} }, /* POPLOC */
-	{ {0, 0}, {0, 13} } /* POSITIONLOC */
+	{ {0, 0}, {0, 10} },  /* DATELOC */
+	{ {0, 0}, {0, 10} }, /* CREDITSLOC */
+	{ {0, 0}, {0, 10} }, /* POPLOC */
+	{ {0, 0}, {0, 10} } /* POSITIONLOC */
 };
 
 /*! \brief the positions of the items on screen - low resolution */
@@ -1875,6 +1900,13 @@ UIDrawBuildIcon(void)
 		UIDrawToolBar();
 	}
 #endif
+}
+
+Int8
+UIClipped(Int16 xpos, Int16 ypos)
+{
+	return (xpos < getMapXPos() || (xpos >= getMapXPos() + getVisibleX()) ||
+	    ypos < getMapYPos() || (ypos >= getMapYPos() + getVisibleY()));
 }
 
 void

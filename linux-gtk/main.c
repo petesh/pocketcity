@@ -38,8 +38,11 @@ static struct main_window {
 	GtkWidget *l_pop; /*!< \brief population label */
 	GtkWidget *l_time; /*!< \brief simulation date label */
 
-	GtkObject *sc_hor; /*!< \brief horizontal scroll for map */
-	GtkObject *sc_vert; /*!< \brief vertical scroll for the map */
+	GtkObject *sc_hor; /*!< \brief horizontal scroll adjustment */
+	GtkObject *sc_vert; /*!< \brief vertical scroll adjustment */
+
+	GtkWidget *hscroll; /*!< \brief horizontal scroll bar */
+	GtkWidget *vscroll; /*!< \brief vertical scroll bar */
 
 	GdkPixmap *p_zones; /*!< \brief zone pixmap */
 	GdkPixmap *p_monsters; /*!< \brief monsters pixmap */
@@ -52,6 +55,8 @@ static struct main_window {
 	GdkPixmap *p_mapzones; /*!< \brief pixmap of the map zones */
 	GdkPixmap *p_mapspecials; /*!< \brief pixmap of specials for map */
 	GdkPixmap *p_mapunits; /*!< \brief pixmap for the units on map */
+
+	GdkPixmap *p_play; /*!< \brief the play area (full) */
 } mw;
 
 /*! \brief the execution directory of the program */
@@ -61,6 +66,9 @@ static void SetUpMainWindow(void);
 static gint mainloop_callback(gpointer data);
 static void QuitGame(void);
 static void SetSpeed(gpointer data, guint action, GtkWidget *w);
+static void cleanupPixmaps(void);
+static void ResetViewable(void);
+static void ShowMainWindow(void);
 
 /*! \brief the menu items for the main application */
 const GtkItemFactoryEntry menu_items[] = {
@@ -83,6 +91,7 @@ const GtkItemFactoryEntry menu_items[] = {
 	{ "/_Map", NULL, NULL, 0, "<Branch>", 0 },
 	{ "/Map/_Display", NULL, showMap, 0, NULL, 0 },
 };
+#define NMENU_ITEMS	(sizeof (menu_items) / sizeof (menu_items[0]))
 
 /*!
  * \brief the main routine
@@ -96,7 +105,7 @@ main(int argc, char **argv)
 {
 	gint timerID;
 	char *px;
-	
+
 	exec_dir = strdup(argv[0]);
 	px = strrchr(exec_dir, '/');
 	if (px != NULL) {
@@ -107,9 +116,17 @@ main(int argc, char **argv)
 	}
 
 	gtk_init(&argc, &argv);
-	srand(time(0));
+	srand(time(NULL));
 
+	ResetViewable();
 	SetUpMainWindow();
+
+	PCityMain();
+	InitGameStruct();
+	ConfigureNewGame();
+
+	ShowMainWindow();
+
 	/* start the timer */
 	timerID = g_timeout_add(1000, (mainloop_callback), 0);
 
@@ -118,14 +135,23 @@ main(int argc, char **argv)
 	g_source_remove(timerID);
 	PurgeWorld();
 	free(exec_dir);
-	
+	PCityShutdown();
+	cleanupMap();
+	cleanupPixmaps();
+
 	return (0);
 }
 
 GtkWidget *
-mainwindow_get(void)
+window_main_get(void)
 {
 	return (mw.window);
+}
+
+GdkDrawable *
+drawable_main_get(void)
+{
+	return (mw.window->window);
 }
 
 /* \brief the ticker */
@@ -200,6 +226,15 @@ toolbox_callback(GtkWidget *widget __attribute__((unused)), gpointer data)
 	return (FALSE);
 }
 
+/*! \brief set the tile size */
+static void
+ResetViewable(void)
+{
+	/*! \todo set based on size of window/tiles */
+	setGameTileSize(16);
+	setMapTileSize(4);
+}
+
 /*!
  * \brief slide the scrollbar
  *
@@ -225,10 +260,26 @@ scrollbar(GtkAdjustment *adj __attribute__((unused)))
 void
 ResizeCheck(int width, int height)
 {
-	vgame.TileSize = 16;
-	vgame.MapTileSize = 4;
-	getVisibleX() = width / gameTileSize();
-	getVisibleY() = height / gameTileSize();
+	GtkAdjustment *adjh = GTK_ADJUSTMENT(mw.sc_hor);
+	GtkAdjustment *adjv = GTK_ADJUSTMENT(mw.sc_vert);
+	setVisibleX(width / gameTileSize());
+	setVisibleY(height / gameTileSize());
+	adjh->lower = getVisibleX() / 2;
+	adjh->upper = getMapWidth() + adjh->lower;
+	adjv->lower = getVisibleY() / 2;
+	adjv->upper = getMapHeight() + adjh->lower;
+	if (adjh->value > adjh->upper) adjh->value = adjh->upper;
+	if (adjv->value > adjv->upper) adjv->value = adjh->upper;
+
+	WriteLog("visx = %d, visy = %d\n", getVisibleX(), getVisibleY());
+	WriteLog("hor: lower = %d, upper = %d\n", (int)adjh->lower,
+	    (int)adjh->upper);
+	WriteLog("ver: lower = %d, upper = %d\n", (int)adjv->lower,
+	    (int)adjv->upper);
+	gtk_adjustment_changed(adjh);
+	gtk_adjustment_changed(adjv);
+	gtk_adjustment_value_changed(adjh);
+	gtk_adjustment_value_changed(adjv);
 }
 
 /*!
@@ -241,11 +292,11 @@ ResizeCheck(int width, int height)
  * \param data extra data for the event.
  */
 void
-check_configure(GtkContainer *widget __attribute__((unused)), GdkEvent *event,
+check_configure(GtkContainer *widget __attribute__((unused)),
+    GdkEventConfigure *event,
     gpointer data __attribute__((unused)))
 {
-	GdkEventConfigure *gek = (GdkEventConfigure *)event;
-	ResizeCheck(gek->width, gek->height);
+	ResizeCheck(event->width, event->height);
 }
 
 /*!
@@ -275,16 +326,28 @@ delete_event(GtkWidget *widget __attribute__((unused)),
  * \param widget unused
  * \param event unused
  * \param data unused
- * \return FALSE, to make sure tnothing else tries to handle the signal
- * \todo repaint only the section of the screen that need painting.
+ * \return FALSE, to make sure nothing else tries to handle the signal
  */
 static gint
-drawing_exposed_callback(GtkWidget *widget __attribute__((unused)),
-    GdkEvent *event __attribute__((unused)),
+drawing_exposed_callback(GtkWidget *widget,
+    GdkEventExpose *event,
     gpointer data __attribute__((unused)))
 {
-	RedrawAllFields();
+	GdkGC *gc = gdk_gc_new(widget->window);
 
+	//WriteLog("drawing: (%d,%d)\n", event->area.width, event->area.height);
+
+	gdk_draw_drawable(
+	    widget->window,
+	    gc,
+	    mw.p_play,
+	    event->area.x + (getMapXPos() * gameTileSize()),
+	    event->area.y + (getMapYPos() * gameTileSize()),
+	    event->area.x,
+	    event->area.y,
+	    event->area.width,
+	    event->area.height);
+	g_object_unref(gc);
 	return (FALSE);
 }
 
@@ -304,10 +367,7 @@ drawing_realized_callback(GtkWidget *widget __attribute__((unused)),
     GdkEvent *event __attribute__((unused)),
     gpointer data __attribute__((unused)))
 {
-	PCityMain();
-	InitGameStruct();
-	ConfigureNewGame();
-	ResizeCheck(320, 240);
+	ResizeCheck(320, 320);
 	return (FALSE);
 }
 
@@ -357,14 +417,14 @@ motion_notify_event(GtkWidget *widget __attribute__((unused)),
 	}
 
 	if (state & GDK_BUTTON1_MASK &&
-	    x > 0 && x < getVisibleX()*gameTileSize() &&
-	    y > 0 && y < getVisibleY()*gameTileSize()) {
+	    x > 0 && x < getVisibleX() * gameTileSize() &&
+	    y > 0 && y < getVisibleY() * gameTileSize()) {
 		BuildSomething(
 		    (int)(x / gameTileSize()) + getMapXPos(),
 		    (int)(y / gameTileSize()) + getMapYPos());
 	} else if (state & GDK_BUTTON3_MASK &&
-	    x > 0 && x < getVisibleX()*gameTileSize() &&
-	    y > 0 && y < getVisibleY()*gameTileSize()) {
+	    x > 0 && x < getVisibleX() * gameTileSize() &&
+	    y > 0 && y < getVisibleY() * gameTileSize()) {
 		Build_Bulldoze(
 		    (int)(x / gameTileSize()) + getMapXPos(),
 		    (int)(y / gameTileSize()) + getMapYPos(), 1);
@@ -463,13 +523,12 @@ createMenu(GtkWidget *main_box)
 {
 	GtkItemFactory *item_factory;
 	GtkAccelGroup *accel_group;
-	gint nmenu_items = sizeof (menu_items) / sizeof (menu_items[0]);
 
 	accel_group = gtk_accel_group_new();
 	item_factory = gtk_item_factory_new(GTK_TYPE_MENU_BAR, "<main>",
 	    accel_group);
-	gtk_item_factory_create_items(item_factory, nmenu_items,
-	    menu_items, NULL);
+	gtk_item_factory_create_items(item_factory, NMENU_ITEMS,
+	    (GtkItemFactoryEntry *)menu_items, NULL);
 
 	gtk_box_pack_start(GTK_BOX(main_box),
 	    gtk_item_factory_get_widget(item_factory, "<main>"),
@@ -490,7 +549,6 @@ SetUpMainWindow(void)
 	GtkWidget *fieldbox, *box, *toolbox, *headerbox;
 	GtkWidget *playingbox, *main_box;
 	GtkAccelGroup *accel_group;
-	GtkWidget *hscroll, *vscroll;
 
 	mw.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(mw.window), "Pocket City");
@@ -512,12 +570,12 @@ SetUpMainWindow(void)
 
 	/* the actual playfield is a Gtkmw.drawing */
 	mw.drawing = gtk_drawing_area_new();
-	gtk_widget_set_size_request(mw.drawing, 320, 240);
+	gtk_widget_set_size_request(mw.drawing, 320, 320);
 	/* and some scrollbars for the mw.drawing */
-	mw.sc_hor = gtk_adjustment_new(60, 10, 110, 1, 10, 20);
-	mw.sc_vert = gtk_adjustment_new(57, 10, 107, 1, 10, 15);
-	hscroll = gtk_hscrollbar_new(GTK_ADJUSTMENT(mw.sc_hor));
-	vscroll = gtk_vscrollbar_new(GTK_ADJUSTMENT(mw.sc_vert));
+	mw.sc_hor = gtk_adjustment_new(50, 0, 100, 1, 10, 20);
+	mw.sc_vert = gtk_adjustment_new(50, 0, 100, 1, 10, 15);
+	mw.hscroll = gtk_hscrollbar_new(GTK_ADJUSTMENT(mw.sc_hor));
+	mw.vscroll = gtk_vscrollbar_new(GTK_ADJUSTMENT(mw.sc_vert));
 	g_signal_connect(G_OBJECT(mw.sc_hor), "value_changed",
 	    G_CALLBACK(scrollbar), NULL);
 	g_signal_connect(G_OBJECT(mw.sc_vert), "value_changed",
@@ -525,9 +583,9 @@ SetUpMainWindow(void)
 
 	gtk_table_attach(GTK_TABLE(playingbox), mw.drawing,
 	    0, 1, 0, 1, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 0, 0);
-	gtk_table_attach(GTK_TABLE(playingbox), hscroll, 0, 1, 1, 2,
+	gtk_table_attach(GTK_TABLE(playingbox), mw.hscroll, 0, 1, 1, 2,
 	    GTK_FILL, 0, 0, 0);
-	gtk_table_attach(GTK_TABLE(playingbox), vscroll, 1, 2, 0, 1,
+	gtk_table_attach(GTK_TABLE(playingbox), mw.vscroll, 1, 2, 0, 1,
 	    0, GTK_FILL, 0, 0);
 	g_signal_connect(G_OBJECT(mw.drawing), "configure_event",
 	    G_CALLBACK(check_configure), NULL);
@@ -568,6 +626,12 @@ SetUpMainWindow(void)
 	/* show all the widgets */
 	gtk_widget_show_all(main_box);
 
+	gtk_widget_realize(mw.window);
+}
+
+static void
+ShowMainWindow(void)
+{
 	/* finally, show the main window */
 	gtk_widget_show(mw.window);
 }
@@ -588,10 +652,30 @@ static struct image_pms {
 };
 
 /*!
+ * \brief clean up the pixmaps
+ */
+static void
+cleanupPixmaps(void)
+{
+	int elt;
+
+	if (mw.p_play != NULL) g_object_unref(G_OBJECT(mw.p_play));
+	for (elt = 0; image_pixmaps[elt].filename != NULL; elt++) {
+		if (image_pixmaps[elt].pm != NULL &&
+			*image_pixmaps[elt].pm != NULL)
+			g_object_unref(G_OBJECT(*image_pixmaps[elt].pm));
+		if (image_pixmaps[elt].mask != NULL &&
+			*image_pixmaps[elt].mask != NULL)
+			g_object_unref(G_OBJECT(*image_pixmaps[elt].mask));
+
+	}
+}
+
+/*!
  * \brief load and configure the pixmaps
  */
 void
-UISetUpGraphic(void)
+UIInitGraphic(void)
 {
 	char *image_path;
 	int i;
@@ -605,7 +689,7 @@ UISetUpGraphic(void)
 		strlcpy(image_path, ipm->filename, max_path);
 		if (searchForFile(image_path, max_path, PATHSEARCH)) {
 			*ipm->pm = gdk_pixmap_create_from_xpm(
-			    mw.drawing->window, ipm->mask, NULL, image_path);
+			    mw.window->window, ipm->mask, NULL, image_path);
 			if (*ipm->pm == NULL) {
 				WriteLog("Could not create pixmap from file %s",
 				    ipm->filename);
@@ -696,11 +780,10 @@ UIFinishDrawing(void)
 {
 }
 
-/*! unused */
 void
 UIUnlockScreen(void)
 {
-	/* not used for this platform */
+	gtk_widget_queue_draw(mw.drawing);
 }
 
 /*! unused */
@@ -817,6 +900,7 @@ void
 UIScrollDisplay(dirType direction __attribute__((unused)))
 {
 	RedrawAllFields();
+	gtk_widget_queue_draw(mw.drawing);
 }
 
 /*!
@@ -833,10 +917,10 @@ _UIDrawRect(Int16 nTop __attribute__((unused)),
 void
 UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
 {
-	GdkGC *gc = gdk_gc_new(mw.drawing->window);
+	GdkGC *gc = gdk_gc_new(mw.p_play);
 
 	gdk_draw_drawable(
-	    mw.drawing->window,
+	    GDK_DRAWABLE(mw.p_play),
 	    gc,
 	    mw.p_zones,
 	    (nGraphic % HORIZONTAL_TILESIZE) * gameTileSize(),
@@ -846,6 +930,7 @@ UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
 	    gameTileSize(),
 	    gameTileSize());
 	g_object_unref(gc);
+	gtk_widget_queue_draw(mw.drawing);
 }
 
 void
@@ -853,14 +938,14 @@ UIDrawSpecialObject(Int16 xpos, Int16 ypos, Int8 i)
 {
 	GdkGC *gc;
 
-	gc = gdk_gc_new(mw.drawing->window);
+	gc = gdk_gc_new(mw.p_play);
 	gdk_gc_set_clip_mask(gc, mw.p_monsters_m);
 	gdk_gc_set_clip_origin(gc,
 	    xpos * gameTileSize() - (GG.objects[i].dir * gameTileSize()),
 	    ypos * gameTileSize() - (i * gameTileSize()));
 
 	gdk_draw_drawable(
-	    mw.drawing->window,
+	    mw.p_play,
 	    gc,
 	    mw.p_monsters,
 	    GG.objects[i].dir * gameTileSize(),
@@ -870,6 +955,7 @@ UIDrawSpecialObject(Int16 xpos, Int16 ypos, Int8 i)
 	    gameTileSize(),
 	    gameTileSize());
 	g_object_unref(gc);
+	gtk_widget_queue_draw(mw.drawing);
 }
 
 void
@@ -877,14 +963,14 @@ UIDrawSpecialUnit(Int16 xpos, Int16 ypos, Int8 i)
 {
 	GdkGC *gc;
 
-	gc = gdk_gc_new(mw.drawing->window);
+	gc = gdk_gc_new(mw.p_play);
 	gdk_gc_set_clip_mask(gc, mw.p_units_m);
 	gdk_gc_set_clip_origin(gc,
 	    xpos * gameTileSize() - (GG.units[i].type * gameTileSize()),
 	    ypos * gameTileSize());
 
 	gdk_draw_drawable(
-	    mw.drawing->window,
+	    mw.p_play,
 	    gc,
 	    mw.p_units,
 	    GG.units[i].type * gameTileSize(),
@@ -894,10 +980,11 @@ UIDrawSpecialUnit(Int16 xpos, Int16 ypos, Int8 i)
 	    gameTileSize(),
 	    gameTileSize());
 	g_object_unref(gc);
+	gtk_widget_queue_draw(mw.drawing);
 }
 
 void
-UIDrawMapField(Int16 xpos, Int16 ypos, welem_t nGraphic, GdkDrawable *drawable)
+UIDrawMapZone(Int16 xpos, Int16 ypos, welem_t nGraphic, GdkDrawable *drawable)
 {
 	GdkGC *gc = gdk_gc_new(drawable);
 	gdk_draw_drawable(
@@ -937,7 +1024,7 @@ UIDrawMapSpecialUnit(Int16 xpos, Int16 ypos, Int16 i, GdkDrawable *drawable)
 	GdkGC *gc = gdk_gc_new(drawable);
 
 	gdk_draw_drawable(
-	    mw.drawing->window,
+	    drawable,
 	    gc,
 	    mw.p_units,
 	    i * mapTileSize(),
@@ -967,14 +1054,14 @@ DrawOverlay(Int16 xpos, Int16 ypos, welem_t offset)
 {
 	GdkGC *gc;
 
-	gc = gdk_gc_new(mw.drawing->window);
+	gc = gdk_gc_new(mw.p_play);
 	gdk_gc_set_clip_mask(gc, mw.p_zones_m);
 	gdk_gc_set_clip_origin(gc,
 	    (xpos - (offset % HORIZONTAL_TILESIZE)) * gameTileSize(),
 	    (ypos - (offset / HORIZONTAL_TILESIZE)) * gameTileSize());
 
 	gdk_draw_drawable(
-	    mw.drawing->window,
+	    mw.p_play,
 	    gc,
 	    mw.p_zones,
 	    (offset % HORIZONTAL_TILESIZE) * gameTileSize(),
@@ -1004,6 +1091,33 @@ UIGetSelectedBuildItem(void)
 	return (selectedBuildItem);
 }
 
+/*! \brief painted flag - for play area back-buffer */
+static int painted_flag;
+
+/*! \brief clear the painted flag */
+void
+clearPaintedFlag(void)
+{
+	painted_flag = 0;
+}
+
+/*! \brief set the painted flag */
+void
+setPaintedFlag(void)
+{
+	painted_flag = 1;
+}
+
+/*!
+ * \brief test painted flag
+ * \return the painted flag state
+ */
+int
+getPaintedFlag(void)
+{
+	return (painted_flag);
+}
+
 /*!
  * \todo render the entire play area into an offscreen pixmap, making this call
  * a non-op (the expose code for the drawing area will take care of it).
@@ -1013,16 +1127,46 @@ UIDrawPlayArea(void)
 {
 	Int16 x;
 	Int16 y;
-	Int16 maxx = x + getVisibleX() < getMapWidth() ? x + getVisibleX() :
-	    getMapWidth();
-	Int16 maxy = y + getVisibleY() < getMapHeight() ? y + getVisibleY() :
-	    getMapHeight();
+	Int16 maxx = getMapWidth();
+	Int16 maxy = getMapHeight();
 
-	for (x = getMapXPos(); x < maxx; x++) {
-		for (y = getMapYPos(); y < maxy; y++) {
+	if (getPaintedFlag()) {
+		gtk_widget_queue_draw(mw.drawing);
+		return;
+	}
+
+	for (x = 0; x < maxx; x++) {
+		for (y = 0; y < maxy; y++) {
 			DrawFieldWithoutInit(x, y);
 		}
 	}
+
+	WriteLog("(%d, %d)\n", maxx, maxy);
+
+	setPaintedFlag();
+	gtk_widget_queue_draw(mw.drawing);
+}
+
+/*!
+ * The resizing of the map corresponds to recreating the backing map area
+ * as well as the backing play area.
+ */
+void
+UIMapResize(void)
+{
+	if (mw.p_play != NULL) g_object_unref(G_OBJECT(mw.p_play));
+	mw.p_play = gdk_pixmap_new(drawable_main_get(),
+	    getMapWidth() * gameTileSize(),
+	    getMapHeight() * gameTileSize(), -1);
+	clearPaintedFlag();
+	resizeMap();
+}
+
+Int8
+UIClipped(Int16 xpos __attribute__((unused)),
+    Int16 ypos __attribute__((unused)))
+{
+	return (FALSE);
 }
 
 void
@@ -1059,10 +1203,11 @@ GetRandomNumber(UInt32 max)
 void
 MapHasJumped(void)
 {
-	GTK_ADJUSTMENT(mw.sc_hor)->value = getMapXPos()+10;
-	GTK_ADJUSTMENT(mw.sc_vert)->value = getMapYPos()+7;
+	GTK_ADJUSTMENT(mw.sc_hor)->value = getMapXPos();
+	GTK_ADJUSTMENT(mw.sc_vert)->value = getMapYPos();
 	gtk_adjustment_value_changed(GTK_ADJUSTMENT(mw.sc_hor));
 	gtk_adjustment_value_changed(GTK_ADJUSTMENT(mw.sc_vert));
+	gtk_widget_queue_draw(mw.drawing);
 }
 
 /*!

@@ -24,17 +24,29 @@
 #include <stdlib.h>
 #endif
 
-/*!
- * \brief Application level initialization routines
- */
 void
 PCityMain(void)
 {
 	InitWorld();
-	setMapSize(100,100);
-	ResizeWorld(WorldSize());
-	SetUpGraphic();
+	InitGraphic();
 	setLoopSeconds(SPEED_PAUSED);
+}
+
+void
+setMapSize(Int16 X, Int16 Y)
+{
+	setMapVariables(X, Y);
+
+	LockZone(lz_world);
+	ResizeWorld(WorldSize());
+	UnlockZone(lz_world);
+	UIMapResize();
+}
+
+void
+PCityShutdown(void)
+{
+	endSimulation();
 }
 
 /*!
@@ -87,9 +99,6 @@ ConfigureNewGame(void)
 		setCredits(10000);
 		break;
 	}
-	LockZone(lz_world);
-	ResizeWorld(WorldSize());
-	UnlockZone(lz_world);
 	CreateFullRiver();
 	CreateForests();
 	DrawGame(1);
@@ -117,6 +126,6 @@ void
 PostLoadGame(void)
 {
 	memset((void *)&vgame.BuildCount, 0, sizeof (vgame.BuildCount));
-	setMapSize(getMapWidth(), getMapHeight());
+	setMapVariables(getMapWidth(), getMapHeight());
 	UpdateVolatiles();
 }

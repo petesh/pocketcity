@@ -106,9 +106,8 @@ void
 ResetViewable(void)
 {
 	WriteLog("Reset viewable\n");
-	vgame.TileSize = 16;
-	setVisibleX(sWidth / gameTileSize());
-	setVisibleY((sHeight / gameTileSize()) - 2);
+	setVisibleX(sWidth / gameTileSize() - 1);
+	setVisibleY((sHeight / gameTileSize()) - 3);
 }
 
 /*!

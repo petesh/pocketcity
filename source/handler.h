@@ -11,7 +11,15 @@
 extern "C" {
 #endif
 
+/*!
+ * \brief Application level initialization routines
+ */
 EXPORT void PCityMain(void);
+
+/*
+ * \brief clean up any state that may be lying around
+ */
+EXPORT void PCityShutdown(void);
 EXPORT void ConfigureNewGame(void);
 EXPORT void InitGameStruct(void);
 EXPORT void DrawGame(Int8 full);

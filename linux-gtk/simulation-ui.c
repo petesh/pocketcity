@@ -19,6 +19,7 @@
 #include <drawing.h>
 #include <string.h>
 #include <strings.h>
+#include <assert.h>
 
 /*! \brief window handle */
 static GtkWidget *pw_win;
@@ -99,13 +100,18 @@ close_window(GtkWidget *wid __attribute__((unused)),
     gpointer data __attribute__((unused)))
 {
 	pw_win = NULL;
-	g_object_unref(G_OBJECT(pmh.allmap));
-	g_object_unref(G_OBJECT(pmh.power));
-	g_object_unref(G_OBJECT(pmh.water));
-	g_object_unref(G_OBJECT(pmh.power_mask));
-	g_object_unref(G_OBJECT(pmh.water_mask));
-	bzero(&pmh, sizeof (pmh));
 	return (FALSE);
+}
+
+void
+cleanupMap(void)
+{
+	if (pmh.allmap != NULL) g_object_unref(G_OBJECT(pmh.allmap));
+	if (pmh.power != NULL) g_object_unref(G_OBJECT(pmh.power));
+	if (pmh.water != NULL) g_object_unref(G_OBJECT(pmh.water));
+	if (pmh.power_mask != NULL) g_object_unref(G_OBJECT(pmh.power_mask));
+	if (pmh.water_mask != NULL) g_object_unref(G_OBJECT(pmh.water_mask));
+	bzero(&pmh, sizeof (pmh));
 }
 
 /*! \brief color need/desire table */
@@ -206,6 +212,7 @@ updateWater(Int16 xpos, Int16 ypos, ccr_t has_carry)
 /*!
  * \brief initialize the map
  */
+/*
 static void
 initMap(void)
 {
@@ -220,7 +227,7 @@ initMap(void)
 			worldpos = WORLDPOS(xpos, ypos);
 			getWorldAndFlag(worldpos, &content, &flag);
 			special = GetGraphicNumber(worldpos);
-			UIDrawMapField(xpos, ypos, special,
+			UIDrawMapZone(xpos, ypos, special,
 			    GDK_DRAWABLE(pmh.allmap));
 			updatePower(xpos, ypos, checkCommon(content, flag,
 				    &CarryPower, POWEREDBIT));
@@ -229,33 +236,39 @@ initMap(void)
 		}
 	}
 }
+*/
 
 /*! \brief initialize the painting structures */
 void
 doPixPaint(void)
 {
-	pmh.allmap = gdk_pixmap_new(dw_area->window,
+	GdkDrawable *dwa = drawable_main_get();
+
+	assert(mapTileSize());
+	assert(getMapWidth());
+	assert(getMapHeight());
+	pmh.allmap = gdk_pixmap_new(dwa,
 	    getMapWidth() * mapTileSize(),
 	    getMapHeight() * mapTileSize(), -1);
-	pmh.power = gdk_pixmap_new(dw_area->window,
+	pmh.power = gdk_pixmap_new(dwa,
 	    getMapWidth() * mapTileSize(),
 	    getMapHeight() * mapTileSize(), -1);
-	pmh.power_mask = gdk_pixmap_new(dw_area->window,
+	pmh.power_mask = gdk_pixmap_new(dwa,
 	    getMapWidth() * mapTileSize(),
 	    getMapHeight() * mapTileSize(), 1);
-	pmh.water = gdk_pixmap_new(dw_area->window,
+	pmh.water = gdk_pixmap_new(dwa,
 	    getMapWidth() * mapTileSize(),
 	    getMapHeight() * mapTileSize(), -1);
-	pmh.water_mask = gdk_pixmap_new(dw_area->window,
+	pmh.water_mask = gdk_pixmap_new(dwa,
 	    getMapWidth() * mapTileSize(),
 	    getMapHeight() * mapTileSize(), 1);
-	initMap();
+	//initMap();
 }
 
 /*!
  * \brief handle the window being exposed
  * \param area the widget area being exposed
- * \param event the expisure event
+ * \param event the exposure event
  * \param data unused
  * \return FALSE, let system also handle the event
  */
@@ -268,16 +281,13 @@ expose_pw(GtkWidget *area,
 	GdkPixmap *pm_ext = NULL;
 	GdkPixmap *pm_ovl = NULL;
 
-	if (pmh.allmap == NULL)
-		doPixPaint();
-
 	gdk_draw_drawable(
 	    area->window,
 	    gc,
 	    pmh.allmap,
 	    event->area.x,
 	    event->area.y,
-	    event->area.y,
+	    event->area.x,
 	    event->area.y,
 	    event->area.width,
 	    event->area.height);
@@ -357,19 +367,32 @@ showMap(void)
 	gtk_widget_show(pw_win);
 }
 
+void
+UIDrawMapField(UInt16 xpos, UInt16 ypos, welem_t elem)
+{
+	if (pmh.allmap == NULL)
+		doPixPaint();
+
+	UIDrawMapZone(xpos, ypos, elem,
+	    GDK_DRAWABLE(pmh.allmap));
+}
+
+void
+UIDrawMapStatus(UInt16 xpos, UInt16 ypos, welem_t world, selem_t status)
+{
+	updatePower(xpos, ypos, checkCommon(world, status, &CarryPower,
+		    POWEREDBIT));
+	updateWater(xpos, ypos, checkCommon(world, status, &CarryWater,
+		    WATEREDBIT));
+}
+
 /*!
- * \brief update the map
- * \param xpos the x position
- * \param ypos the y position
+ * \brief resize the map ... need to recreate all the elements
  */
 void
-UIUpdateMap(UInt16 xpos, UInt16 ypos)
+resizeMap(void)
 {
-	if (pw_win != NULL) {
-		UIDrawMapField(xpos, ypos,
-		    GetGraphicNumber(WORLDPOS(xpos, ypos)),
-		    GDK_DRAWABLE(pmh.allmap));
-		//updatePower();
-		//updateWater();
-	}
+	cleanupMap();
+	doPixPaint();
 }
+

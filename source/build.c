@@ -100,8 +100,10 @@ BuildSomething(Int16 xpos, Int16 ypos)
 	if (be->bt == Be_OOB) return (0);
 
 	if (be->func(xpos, ypos, be->type)) {
+		welem_t elt = GetGraphicNumber(WORLDPOS(xpos, ypos));
 		AddGridUpdate(be->gridsToUpdate);
-		UIUpdateMap(xpos, ypos);
+		UIDrawMapField(xpos, ypos, elt);
+		UIDrawMapStatus(xpos, ypos, elt, 0);
 		return (1);
 	}
 	return (0);
@@ -333,30 +335,30 @@ Build_Destroy(Int16 xpos, Int16 ypos)
 	type = getWorld(WORLDPOS(xpos, ypos));
 	RemoveDefence(xpos, ypos);
 
-	if ((type >= Z_COMMERCIAL_MIN) && (type <= Z_COMMERCIAL_MAX)) {
+	if (IsCommercial(type)) {
 		vgame.BuildCount[bc_count_commercial]--;
 		vgame.BuildCount[bc_value_commercial] -= ZoneValue(type);
 		goto finish;
 	}
-	if ((type >= Z_RESIDENTIAL_MIN) && (type <= Z_RESIDENTIAL_MAX)) {
+	if (IsResidential(type)) {
 		vgame.BuildCount[bc_count_residential]--;
 		vgame.BuildCount[bc_value_residential] -= ZoneValue(type);
 		goto finish;
 	}
-	if ((type >= Z_INDUSTRIAL_MIN) && (type <= Z_INDUSTRIAL_MAX)) {
+	if (IsIndustrial(type)) {
 		vgame.BuildCount[bc_count_industrial]--;
 		vgame.BuildCount[bc_value_industrial] -= ZoneValue(type);
 		goto finish;
 	}
-	if (type == Z_FAKETREE) {
+	if (IsFakeTree(type)) {
 		vgame.BuildCount[bc_count_trees]--;
 		goto finish;
 	}
-	if (type == Z_FAKEWATER) {
+	if (IsFakeWater(type)) {
 		vgame.BuildCount[bc_water]--;
 		goto finish;
 	}
-	if (type == Z_WASTE) {
+	if (IsWaste(type)) {
 		vgame.BuildCount[bc_waste]--;
 		goto finish;
 	}
@@ -365,46 +367,42 @@ Build_Destroy(Int16 xpos, Int16 ypos)
 		goto finish;
 	}
 	
-	if (type >= Z_COALPLANT_START && type <= Z_COALPLANT_END) {
+	if (IsCoalPlant(type)) {
 		vgame.BuildCount[bc_coalplants]--;
 		x_destroy = 2;
 		y_destroy = 2;
 		Doff(Z_COALPLANT_START, type, &xpos, &ypos);
 		goto finish;
 	}
-	if ((type >= Z_NUCLEARPLANT_START) && 
-	    (type <= Z_NUCLEARPLANT_END)) {
+	if (IsNukePlant(type)) {
 		vgame.BuildCount[bc_nuclearplants]--;
 		x_destroy = 2;
 		y_destroy = 2;
 		Doff(Z_NUCLEARPLANT_START, type, &xpos, &ypos);
 		goto finish;
 	}
-	if ((type >= Z_FIRESTATION_START) &&
-	    (type <= Z_FIRESTATION_END)) {
+	if (IsFireStation(type)) {
 		vgame.BuildCount[bc_fire_stations]--;
 		x_destroy = 2;
 		y_destroy = 2;
 		Doff(Z_FIRESTATION_START, type, &xpos, &ypos);
 		goto finish;
 	}
-	if (type >= Z_POLICEDEPT_START &&
-	    type <= Z_POLICEDEPT_END) {
+	if (IsPoliceDept(type)) {
 		vgame.BuildCount[bc_police_departments]--;
 		x_destroy = 2;
 		y_destroy = 2;
 		Doff(Z_POLICEDEPT_START, type, &xpos, &ypos);
 		goto finish;
 	}
-	if (type >= Z_ARMYBASE_START &&
-	    type <= Z_ARMYBASE_END) {
+	if (IsArmyBase(type)) {
 		vgame.BuildCount[bc_military_bases]--;
 		x_destroy = 2;
 		y_destroy = 2;
 		Doff(Z_ARMYBASE_START, type, &xpos, &ypos);
 		goto finish;
 	}
-	if (type == Z_PUMP) {
+	if (IsPump(type)) {
 		vgame.BuildCount[bc_waterpumps]--;
 		goto finish;
 	}
@@ -655,7 +653,7 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 	LockZone(lz_world);
 	old = getWorld(WORLDPOS(xpos, ypos));
 	toSpend = BUILD_COST_ROAD;
-	if (IsPowerLine(old) || IsPipe(old) || IsRail(old)) {
+	if (IsPowerLine(old) || IsWaterPipe(old) || IsRail(old)) {
 		welem_t tobuil = 0;
 		switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos))) {
 		case Z_POWERLINE: /* straight power line - Horizontal */
@@ -764,7 +762,7 @@ Build_Rail(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 	LockZone(lz_world);
 	old = getWorld(WORLDPOS(xpos, ypos));
 	toSpend = BUILD_COST_RAIL;
-	if (IsPowerLine(old) || IsPipe(old) || IsRoad(old)) {
+	if (IsPowerLine(old) || IsWaterPipe(old) || IsRoad(old)) {
 		welem_t tobuil = 0;
 		switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos))) {
 		case Z_POWERLINE: /* straight power line - Horizontal */
@@ -887,7 +885,7 @@ Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			UIDisplayError(enOutOfMoney);
 		}
 	}
-	if (IsRoad(old) || IsPipe(old) || IsRail(old)) {
+	if (IsRoad(old) || IsWaterPipe(old) || IsRail(old)) {
 		welem_t tobuil = 0;
 		switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos))) {
 		/* straight road - horizontal, vertical power line */

@@ -36,7 +36,7 @@ static void DoTaxes(void);
 static void DoUpkeep(void);
 static Int16 DistributeNumberOfSquaresAround(distrib_t *distrib, UInt32 pos);
 
-static void UpgradeZones(void);
+static void reGradeZones(void);
 static void UpgradeZone(UInt32 pos);
 static void DowngradeZone(UInt32 pos);
 static Int16 DoTheRoadTrip(UInt32 startPos);
@@ -84,11 +84,6 @@ static UInt8 ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what);
  */
 static void DoDistribute(Int16 grid);
 
-/*!
- * \brief Distribute to the grids.
- *
- * Does all the grids needed
- */
 void
 Sim_Distribute(void)
 {
@@ -102,10 +97,6 @@ Sim_Distribute(void)
 	}
 }
 
-/*!
- * \brief Do a grid distribution for the grid(s) specified
- * \param gridonly the grid to do
- */
 void
 Sim_Distribute_Specific(Int16 gridonly)
 {
@@ -468,37 +459,48 @@ typedef struct {
 	Int32 score; /*!< score of the node */
 } ZoneScore;
 
-/*! \brief zones to be upgraded/downgraded */
-static ZoneScore zones[256];
-static int used;
+/*! \brief random zone list */
+static ZoneScore *ran_zone;
 
-/*! \brief Find a bunch of zones and decide to upgrade/downgrade them */
-void
+/*! \brief Current position in list (either random or linear) */
+static Int32 at_pos;
+
+/*! \brief counter to ensure we don't spend too much time looping */
+static UInt16 counter;
+
+/*! \brief maximum size of the random list */
+static UInt16 max_list;
+
+/*!
+ * \brief Find a bunch of zones and decide to upgrade/downgrade them
+ *
+ * We use a list containing a number of random zones numbering
+ * three times the width or height of the map whichever is biggest.
+ */
+static void
 FindZonesForUpgrading(void)
 {
-	Int16 i;
+	UInt16 i;
 	Int32 randomZone;
 
-	Int16 max = getMapWidth() * 3;
-	used = 0;
-
-	if (max > 256) {
-		max = 256;
+	if (ran_zone == NULL) {
+		max_list = (getMapWidth() < getMapHeight() ? getMapHeight() :
+		    getMapWidth()) * 3;
+		ran_zone = (ZoneScore *)gCalloc(max_list, sizeof (ZoneScore));
 	}
 
+	at_pos = 0;
+
 	/* find some random zones */
-	for (i = 0; i < max; i++) {
-		zones[used].pos = -1;
+	for (i = 0; i < max_list; i++) {
+		ran_zone[at_pos].pos = -1;
 		randomZone = GetRandomZone();
 		if (randomZone != -1) { /* -1 means we didn't find a zone */
-			zones[used].pos = randomZone;
-			used++;
+			ran_zone[at_pos++].pos = randomZone;
 		}
 	}
 }
 
-/*! \brief counter to ensure we don't spend too much time looping */
-UInt16 counter = 0;
 
 /*!
  * \brief find the scores that apply to the scoring zones
@@ -514,28 +516,27 @@ FindScoreForZones(void)
 {
 	Int16 i;
 	Int32 score;
+
 	counter += 20;
 
 	LockZone(lz_world);
 
 	for (i = counter - 20; i < (signed)counter; i++) {
-		if (i >= 256 || i > used) {
+		if (i >= at_pos) {
 			counter = 0;
-			used = 0;
 			UnlockZone(lz_world);
 			return (0);
 		}
-		if (!IsOccupied(getWorld(zones[i].pos)))
-			continue;
-
-		score = GetZoneScore(zones[i].pos);
+		score = GetZoneScore(ran_zone[i].pos);
 		if (score != -1) {
-			zones[i].score = score;
+			ran_zone[i].score = score;
 		} else {
-			zones[i].score = -1;
-			WriteLog("Instadowngrade (%ld)\n", zones[i].pos);
-			DowngradeZone(zones[i].pos);
-			zones[i].pos = -1;
+			ran_zone[i].score = -1;
+			WriteLog("Instadowngrade (%d,%d)\n",
+			    (int)(ran_zone[i].pos % getMapWidth()),
+			    (int)(ran_zone[i].pos / getMapWidth()));
+			DowngradeZone(ran_zone[i].pos);
+			ran_zone[i].pos = -1;
 		}
 	}
 	UnlockZone(lz_world);
@@ -562,40 +563,45 @@ zoneCmpFn(void *a, void *b, Int32 other __attribute__((unused)))
 }
 
 /*!
- * \brief Upgrade the best zones
+ * \brief Regrade the zones
  * 
  * sort the zones by score. Upgrade the 12 highest scoring zones,
  * downgrade the 10 lowest scoring zones.
  */
 void
-UpgradeZones(void)
+reGradeZones(void)
 {
 	Int16 i;
 	Int16 downCount = 10;
 	Int16 upCount = 12;
 
-	QSort(zones, used, sizeof (ZoneScore), zoneCmpFn);
-	WriteLog("Used: %ld\n", used);
+	QSort(ran_zone, at_pos, sizeof (ZoneScore), zoneCmpFn);
+	WriteLog("Used: %ld\n", at_pos);
 	/* upgrade the upCount best */
-	for (i = used - 1; i >= 0 && i < (used - upCount); i--) {
-		if (zones[i].pos == -1) continue;
+	for (i = at_pos - 1; i >= 0 && i > (at_pos - upCount); i--) {
+		if (ran_zone[i].pos == -1) continue;
 
 		/* upgrade him/her/it/whatever */
-		UpgradeZone(zones[i].pos);
-		WriteLog("Upgrade %ld(%ld)\n", zones[i].pos,
-		    zones[i].score);
-		zones[i].pos = -1;
+		UpgradeZone(ran_zone[i].pos);
+		WriteLog("Upgrade (%d, %d)(%ld)\n",
+		    (int)(ran_zone[i].pos % getMapWidth()),
+		    (int)(ran_zone[i].pos / getMapWidth()),
+		    ran_zone[i].score);
+		ran_zone[i].pos = -1;
 	}
 
 	/* downgrade the downCount worst */
-	for (i = 0; i < downCount && i < (used - upCount); i++) {
+	for (i = 0; i < downCount && i < (at_pos - upCount); i++) {
 		/* downgrade him/her/it/whatever */
-		if (zones[i].pos == -1) continue;
-		DowngradeZone(zones[i].pos);
-		WriteLog("Downgrade %ld(%ld)\n", zones[i].pos,
-		    zones[i].score);
-		zones[i].pos = -1;
+		if (ran_zone[i].pos == -1) continue;
+		DowngradeZone(ran_zone[i].pos);
+		WriteLog("Downgrade (%d, %d)(%ld)\n",
+		    (int)(ran_zone[i].pos % getMapWidth()),
+		    (int)(ran_zone[i].pos / getMapWidth()),
+		    ran_zone[i].score);
+		ran_zone[i].pos = -1;
 	}
+	at_pos = 0;
 }
 
 /*!
@@ -607,32 +613,37 @@ DowngradeZone(UInt32 pos)
 {
 	welem_t type;
 	welem_t ntype;
+	Int16 xpos = pos % getMapWidth();
+	Int16 ypos = pos / getMapWidth();
 
 	LockZone(lz_world);
 	type = getWorld(pos);
-	if (type >= Z_COMMERCIAL_MIN && type <= Z_COMMERCIAL_MAX) {
+	ntype = type;
+	if (IsCommercial(type) && type != Z_COMMERCIAL_SLUM) {
 		ntype = (type == Z_COMMERCIAL_MIN) ?
 		    Z_COMMERCIAL_SLUM : type - 1;
-		setWorld(pos, ntype);
 		vgame.BuildCount[bc_value_commercial]--;
 		if (ntype == Z_COMMERCIAL_SLUM)
 			vgame.BuildCount[bc_count_commercial]--;
-	} else if (type >= Z_RESIDENTIAL_MIN &&
-	    type <= Z_RESIDENTIAL_MAX) {
+	} else if (IsResidential(type) && type != Z_RESIDENTIAL_SLUM) {
 		ntype = (type == Z_RESIDENTIAL_MIN) ?
 		    Z_RESIDENTIAL_SLUM : type - 1;
-		setWorld(pos, ntype);
 		vgame.BuildCount[bc_value_residential]--;
 		if (ntype == Z_RESIDENTIAL_SLUM)
 			vgame.BuildCount[bc_count_residential]--;
-	} else if (type >= Z_INDUSTRIAL_MIN && type <= Z_INDUSTRIAL_MAX) {
+	} else if (IsIndustrial(type) && type != Z_INDUSTRIAL_SLUM) {
 		ntype = (type == Z_INDUSTRIAL_MIN) ?
 		    Z_INDUSTRIAL_SLUM : type - 1;
-		setWorld(pos, ntype);
 		vgame.BuildCount[bc_value_industrial]--;
 		if (ntype == Z_INDUSTRIAL_SLUM)
 			vgame.BuildCount[bc_count_industrial]--;
 	}
+	if (ntype != type) {
+		setWorld(pos, ntype);
+
+		DrawFieldWithoutInit(xpos, ypos);
+	}
+
 	UnlockZone(lz_world);
 }
 
@@ -643,32 +654,38 @@ DowngradeZone(UInt32 pos)
 static void
 UpgradeZone(UInt32 pos)
 {
-	welem_t type;
+	welem_t type, ntype;
+	Int16 xpos = pos % getMapWidth();
+	Int16 ypos = pos / getMapWidth();
 
 	LockZone(lz_world);
 	type = getWorld(pos);
-	if (type == Z_COMMERCIAL_SLUM || (type >= Z_COMMERCIAL_MIN &&
-	    type <= (Z_COMMERCIAL_MAX - 1))) {
-		setWorld(pos, (type == Z_COMMERCIAL_SLUM) ?
-		    Z_COMMERCIAL_MIN : type + 1);
+	ntype = type;
+	if (IsCommercial(type) && type < Z_COMMERCIAL_MAX) {
+		ntype = (type == Z_COMMERCIAL_SLUM) ?
+		    Z_COMMERCIAL_MIN : type + 1;
 		vgame.BuildCount[bc_value_commercial]++;
 		if (type == Z_COMMERCIAL_SLUM)
 			vgame.BuildCount[bc_count_commercial]++;
-	} else if (type == Z_RESIDENTIAL_SLUM || (type >= Z_RESIDENTIAL_MIN &&
-	    type <= (Z_RESIDENTIAL_MAX - 1))) {
-		setWorld(pos, (type == Z_RESIDENTIAL_SLUM) ?
-		    Z_RESIDENTIAL_MIN : type + 1);
+	} else if (IsResidential(type) && type < Z_RESIDENTIAL_MAX) {
+		ntype = (type == Z_RESIDENTIAL_SLUM) ?
+		    Z_RESIDENTIAL_MIN : type + 1;
 		vgame.BuildCount[bc_value_residential]++;
 		if (type == Z_RESIDENTIAL_SLUM)
 			vgame.BuildCount[bc_count_residential]++;
-	} else if (type == Z_INDUSTRIAL_SLUM || (type >= Z_INDUSTRIAL_MIN &&
-	    type <= (Z_INDUSTRIAL_MAX - 1))) {
-		setWorld(pos, (type == Z_INDUSTRIAL_SLUM) ?
-		    Z_INDUSTRIAL_MIN : type + 1);
+	} else if (IsIndustrial(type) && type < Z_INDUSTRIAL_MAX) {
+		ntype = (type == Z_INDUSTRIAL_SLUM) ?
+		    Z_INDUSTRIAL_MIN : type + 1;
 		vgame.BuildCount[bc_value_industrial]++;
 		if (type == Z_RESIDENTIAL_SLUM)
 			vgame.BuildCount[bc_count_industrial]++;
 	}
+	if (ntype != type) {
+		setWorld(pos, ntype);
+
+		DrawFieldWithoutInit(xpos, ypos);
+	}
+
 	UnlockZone(lz_world);
 }
 
@@ -692,7 +709,7 @@ DoTheRoadTrip(UInt32 startPos __attribute__((unused)))
 long
 GetZoneScore(UInt32 pos)
 {
-	long score = -1; /* Neutral to begin with */
+	long score = -1; /* Will downgrade to begin with */
 	int x = pos % getMapWidth();
 	int y = pos / getMapWidth();
 	int ax, ay;
@@ -714,11 +731,11 @@ GetZoneScore(UInt32 pos)
 	}
 
 	if (IsSlum(zone)) {
-		score = 20;
+		score = 50;
 		goto unlock_ret;
 	}
 
-	if (type == ztIndustrial || type == ztCommercial)  {
+	if ((type == ztIndustrial) || (type == ztCommercial))  {
 		/*
 		 * see if there's actually enough residential population
 		 * to support a new zone of ind or com
@@ -923,10 +940,6 @@ costIt(BuildCode item)
 	return (0);
 }
 
-/*!
- * \brief Get a number for the budget.
- * \param type the item that we want to extract
- */
 Int32
 BudgetGetNumber(BudgetNumber type)
 {
@@ -1019,9 +1032,6 @@ DoUpkeep(void)
 }
 
 /*!
- * \brief Perform a phase of the simulation
- * \param nPhase the phase number to do
- * \return the next phase to go to
  * \todo break into separate functions and a jump table.
  */
 Int16
@@ -1056,8 +1066,8 @@ Sim_DoPhase(Int16 nPhase)
 			nPhase = 5;
 		break;
 	case 5:
-		WriteLog("Simulation phase 5 - Upgrade Zones\n");
-		UpgradeZones();
+		WriteLog("Simulation phase 5 - Regrade Zones\n");
+		reGradeZones();
 		nPhase = 6;
 		break;
 	case 6:
@@ -1083,11 +1093,6 @@ Sim_DoPhase(Int16 nPhase)
 	return (nPhase);
 }
 
-/*!
- * \brief update the vgame entries
- *
- * Updates the BuildCount array after a load game.
- */
 void
 UpdateVolatiles(void)
 {
@@ -1097,17 +1102,18 @@ UpdateVolatiles(void)
 
 	for (p = 0; p < MapMul(); p++) {
 		UInt8 elt = getWorld(p);
+
 		/* Gahd this is terrible. I need to fix it. */
-		if (elt >= Z_COMMERCIAL_MIN && elt <= Z_COMMERCIAL_MAX) {
+		if (IsCommercial(elt)) {
 			vgame.BuildCount[bc_count_commercial]++;
 			vgame.BuildCount[bc_value_commercial] += ZoneValue(elt);
 		}
-		if (elt >= Z_RESIDENTIAL_MIN && elt <= Z_RESIDENTIAL_MAX) {
+		if (IsResidential(elt)) {
 			vgame.BuildCount[bc_count_residential]++;
 			vgame.BuildCount[bc_value_residential] +=
 			    ZoneValue(elt);
 		}
-		if (elt >= Z_INDUSTRIAL_MIN && elt <= Z_INDUSTRIAL_MAX) {
+		if (IsIndustrial(elt)) {
 			vgame.BuildCount[bc_count_industrial]++;
 			vgame.BuildCount[bc_value_industrial] += ZoneValue(elt);
 		}
@@ -1115,10 +1121,10 @@ UpdateVolatiles(void)
 			vgame.BuildCount[bc_count_roads]++;
 			vgame.BuildCount[bc_value_roads] += ZoneValue(elt);
 		}
-		if (elt == Z_FAKETREE) {
+		if (IsFakeTree(elt)) {
 			vgame.BuildCount[bc_count_trees]++;
 		}
-		if (elt == Z_FAKEWATER) {
+		if (IsFakeWater(elt)) {
 			vgame.BuildCount[bc_water]++;
 		}
 		if (IsRoadPower(elt)) {
@@ -1133,7 +1139,7 @@ UpdateVolatiles(void)
 		if (elt == Z_NUCLEARPLANT)
 			vgame.BuildCount[bc_nuclearplants]++;
 		if (elt == Z_WASTE) vgame.BuildCount[bc_waste]++;
-		if (elt == Z_FIRE1 || elt == Z_FIRE2 || elt == Z_FIRE3)
+		if (elt >= Z_FIRE1 && elt <= Z_FIRE3)
 			vgame.BuildCount[bc_fire]++;
 		if (elt == Z_FIRESTATION)
 			vgame.BuildCount[bc_fire_stations]++;
@@ -1141,7 +1147,7 @@ UpdateVolatiles(void)
 			vgame.BuildCount[bc_police_departments]++;
 		if (elt == Z_ARMYBASE)
 			vgame.BuildCount[bc_military_bases]++;
-		if (IsPipe(elt))
+		if (IsWaterPipe(elt))
 			vgame.BuildCount[bc_waterpipes]++;
 		if (IsRoadPipe(elt)) {
 			vgame.BuildCount[bc_waterpipes]++;
@@ -1183,11 +1189,6 @@ ShuffleIndividualStatistic(UInt16 *ary, UInt16 load)
 	return (newvalue);
 }
 
-/*!
- * \brief Update the various counter entities for the statistics
- * 
- * This updates the various fields that are not recorded directly in the system
- */
 void
 UpdateCounters(void)
 {
@@ -1223,8 +1224,6 @@ UpdateCounters(void)
 }
 
 /*!
- * \brief record all the statistics for the month.
- * 
  * This involves compositing the month delta into the graph. This is done by
  * taking the old average; multiplying it by 3, adding the current month's
  * value and dividing by 4. We have to be careful of overflow.
@@ -1262,12 +1261,8 @@ RecordStatistics(void)
 	}
 }
 
-/*!
- * \brief get the population of the simulation
- * \return the population
- */
 UInt32
-getPopulation()
+getPopulation(void)
 {
 	return ((vgame.BuildCount[bc_value_residential] +
 		(vgame.BuildCount[bc_value_commercial] * 8) +
@@ -1275,11 +1270,7 @@ getPopulation()
 }
 
 /*!
- * \brief Can the node carry power.
- * 
  * This works this way because all the nodes that carry water are in sequence
- * \param x the node entry
- * \return true if this node carries power
  */
 Int16
 CarryPower(welem_t x)
@@ -1296,73 +1287,44 @@ CarryPower(welem_t x)
 }
 
 /*!
- * \brief can the node carry water.
- * 
  * This is slightly more complicated because the nodes that carry water are
  * not in the same order as the nodes that carry power.
  * 
  * This is the tradeoff that has to be made. One is faster at the expense of
  * the other.
- * \param x the node entry
- * \return true if this node carries water
  */
 Int16
 CarryWater(welem_t x)
 {
-	return (IsPump(x) || IsPipe(x) ||
+	return (IsPump(x) || IsWaterPipe(x) ||
 	    ((x >= Z_POWERWATER_START) && (x <= Z_INDUSTRIAL_MAX)) ||
 	    IsRoadPipe(x) || IsRailPipe(x) ? 1 : 0);
 }
 
-/*!
- * \brief Is this node a power line
- * \param x the node entry to query
- * \return true if it's a power line
- */
 Int16
 IsPowerLine(welem_t x)
 {
 	return ((((x >= Z_POWERLINE_START) && (x <= Z_POWERLINE_END))) ? 1 : 0);
 }
 
-/*!
- * \brief Is this node a road
- * \param x the node entry to query
- * \return true if it's road
- */
 Int16
 IsRoad(welem_t x)
 {
 	return (((x >= Z_ROAD_START) && (x <= Z_ROAD_END)) ? 1 : 0);
 }
 
-/*!
- * \brief is this node a bridge
- * \param x the node to query
- * \return true if we're a bridge (this is not the same as a road)
- */
 Int16
 IsRoadBridge(welem_t x)
 {
 	return (((x >= Z_BRIDGE_START) && (x <= Z_BRIDGE_END)) ? 1 : 0);
 }
  
-/*!
- * \brief is this node a water pipe
- * \param x the node to query
- * \return true if this is a pipe
- */
 Int16
 IsWaterPipe(welem_t x)
 {
 	return (((x >= Z_PIPE_START) && (x <= Z_PIPE_END)) ? 1 : 0);
 }
 
-/*!
- * \brief get the value of the zone
- * \param x the node to get the value of
- * \return the value of the node
- */
 Int16
 ZoneValue(welem_t x)
 {
@@ -1379,57 +1341,24 @@ ZoneValue(welem_t x)
 		return (0);
 }
  
-/*!
- * \brief is the node a pipe
- * \param x the node to query
- * \return true if the node is a pipe
- */
-Int16
-IsPipe(welem_t x)
-{
-	return (((x >= Z_PIPE_START) && (x <= Z_PIPE_END)) ? 1 : 0);
-}
-
-/*!
- * \brief is the node a road overlapping with power
- * \param x the node to query
- * \return true if the node is a road overlapping power line
- */
 Int16
 IsRoadPipe(welem_t x)
 {
 	return (((x >= Z_PIPEROAD_START) && (x <= Z_PIPEROAD_END)) ? 1 : 0);
 }
 
-/*!
- * \brief is the node a road overlapping with power
- * \param x the node to query
- * \return true if the node is a water overlapping with power
- */
 Int16
 IsRoadPower(welem_t x)
 {
 	return (((x >= Z_POWERROAD_START) && (x <= Z_POWERROAD_END)) ? 1 : 0);
 }
 
-/*!
- * \brief is the node a power overlapping with water pipe
- * \param x the node to query
- * \return true if the node is a water pipe overlapping with power
- */
 Int16
 IsPowerWater(welem_t x)
 {
 	return (((x >= Z_POWERWATER_START) && (x <= Z_POWERWATER_END)) ? 1 : 0);
 }
 
-/*!
- * \brief Is this node of the zone type passed in.
- * \param x node item to query
- * \param nType type of node.
- * \return zone value, or zero.
- * XXX: Magic numbers.
- */
 Int16
 IsZone(welem_t x, zoneType nType)
 {
@@ -1443,100 +1372,54 @@ IsZone(welem_t x, zoneType nType)
 	return (0);
 }
 
-/*!
- * \brief is the zone either a road or bridge
- * \param x the zone to test
- * \return true if the zone is either a bridge or road
- */
 Int16
 IsRoadOrBridge(welem_t x)
 {
 	return (IsRoad(x) || IsRoadBridge(x));
 }
 
-/*!
- * \brief is the node Rail
- * \param x the zone to test
- * \return true if the zone is rail
- */
 Int16
 IsRail(welem_t x)
 {
 	return (((x >= Z_RAIL_START) && (x <= Z_RAIL_END)) ? 1 : 0);
 }
 
-/*!
- * \brief is the node rail overlapping power
- * \param x the zone to test
- * \return true of the zone is a rail overlapping with power
- */
 Int16
 IsRailPower(welem_t x)
 {
 	return (((x >= Z_RAILPOWER_START) && (x <= Z_RAILPOWER_END)) ? 1 : 0);
 }
 
-/*!
- * \brief is the node rail overlapping with a pipe
- * \param x the node to test
- * \return true if the zone is a rail line overlapping with a pipe
- */
 Int16
 IsRailPipe(welem_t x)
 {
 	return (((x >= Z_RAILPIPE_START) && (x <= Z_RAILPIPE_END)) ? 1 : 0);
 }
 
-/*!
- * \brief is the node a rail tunnel
- * \param x the node to test
- * \return true if the zone is a rail tunnel
- */
 Int16
 IsRailTunnel(welem_t x)
 {
 	return (((x >= Z_RAILTUNNEL_START) && (x <= Z_RAILTUNNEL_END)) ? 1 : 0);
 }
 
-/*!
- * \brief is the node a rail line or a tunnel
- * \param x the node to test
- * \return true if the node is a rail line or a tunnel
- */
 Int16
 IsRailOrTunnel(welem_t x)
 {
 	return (IsRail(x) || IsRailTunnel(x));
 }
 
-/*!
- * \brief is the node a rail track overlapping with a road
- * \param x the node to test
- * \return true if the case is true
- */
 Int16
 IsRailOvRoad(welem_t x)
 {
 	return (((x >= Z_RAILOVROAD_START) && (x <= Z_RAILOVROAD_END)) ? 1 : 0);
 }
 
-/*!
- * \brief is this zone occupied
- * \param x the zone to test
- */
 Int16
 IsOccupied(welem_t x)
 {
 	return (!((x <= Z_REALWATER) || (x > Z_ENDMARKER)));
 }
 
-/*!
- * \brief Is one of the zones in the direction passed of the type passed
- * \param pos position to start from
- * \param checkfn function to assert or deny the test
- * \param dirs the directions to check
- * \return true if the direction passed is of the correct type
- */
 UInt8
 CheckNextTo(Int32 pos, UInt8 dirs, Int16 (*checkfn)(welem_t))
 {
@@ -1557,14 +1440,6 @@ CheckNextTo(Int32 pos, UInt8 dirs, Int16 (*checkfn)(welem_t))
 	return (rv);
 }
 
-/*!
- * \brief check if one of the zones around it is of a certain type.
- * \param pos starting position
- * \param dirs the directions to check
- * \param checkfn function to check with
- * \param cfarg argument for the check function
- * \return the directions that match using the check function.
- */
 UInt8
 CheckNextTo1(Int32 pos, UInt8 dirs, carryfnarg_t checkfn, void *cfarg)
 {
@@ -1583,4 +1458,13 @@ CheckNextTo1(Int32 pos, UInt8 dirs, carryfnarg_t checkfn, void *cfarg)
 		&& checkfn(getWorld(pos + 1), cfarg))
 		rv |= DIR_RIGHT;
 	return (rv);
+}
+
+void
+endSimulation(void)
+{
+	if (ran_zone != NULL) {
+		gFree(ran_zone);
+		ran_zone = NULL;
+	}
 }

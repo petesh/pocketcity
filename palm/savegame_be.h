@@ -63,8 +63,10 @@ int RenameCity(char *oldname, char *newname) SAVE_SECTION;
 /*!
  * \brief copy a city
  * \param name the name of the old city
- * \return 
+ * \return true if the city was copied
+ */
 int CopyCity(char *name) SAVE_SECTION;
+
 /*! \brief Reset the viewable elements of the volatile game configuration. */
 void ResetViewable(void) SAVE_SECTION;
 

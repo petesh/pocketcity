@@ -11,6 +11,8 @@ extern "C" {
 #endif
 
 void showMap(void);
+void resizeMap(void);
+void cleanupMap(void);
 
 #if defined(__cplusplus)
 }

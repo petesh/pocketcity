@@ -183,12 +183,20 @@
  * \param X the new map X size
  * \param Y the new map Y size
  */
-#define	setMapSize(X,Y) { \
-	GG.mapx = (X); \
-	GG.mapy = (Y); \
+void setMapSize(Int16 X, Int16 y);
+
+/*!
+ * \brief set the map variables for the vgame structure
+ * \param X the size on the X axis
+ * \param Y the size on the Y axis
+ */
+#define setMapVariables(X, Y)	{ \
+	GG.mapx = X; \
+	GG.mapy = Y; \
 	vgame.mapmul = GG.mapx * GG.mapy; \
 	vgame.world_size = vgame.mapmul << 1; \
 }
+
 
 /*! \brief get the map array size */
 #define	MapMul() (vgame.mapmul)
@@ -507,24 +515,34 @@ typedef struct _vgame_struct {
 	UInt16		mapmul;	/*!< x*y */
 	UInt32		prior_credit; /*!< last month's credit value */
 	long unsigned	BuildCount[bc_tail]; /*!< count of elements */
+	long unsigned	world_size;	/*!< size of world pointer */
+	unsigned short	oldLoopSeconds;	/*!< last selected speed - for pause */
+} vGameStruct;
+
+typedef struct _visual_tag {
 	unsigned char	TileSize;	/*!< size of a tile */
 	unsigned char	MapTileSize;	/*!< size of a tile on the map */
-	unsigned short	oldLoopSeconds;	/*!< last selected speed - for pause */
 	int		visible_x;	/*!< visible tiles on the X */
 	int		visible_y;	/*!< visible tiles on the y */
 	int		cursor_xpos;	/*!< cursor ?? */
 	int		cursor_ypos;	/*!< cursor ?? */
-	long unsigned	world_size;	/*!< size of world pointer */
-} vGameStruct;
+} vGameVisuals;
 
 
-#define mapTileSize()	(vgame.MapTileSize)
-#define gameTileSize()	(vgame.TileSize)
+#define mapTileSize()	(visuals.MapTileSize)
+#define setMapTileSize(X)	visuals.MapTileSize = (X)
+#define gameTileSize()	(visuals.TileSize)
+#define setGameTileSize(X)	visuals.TileSize = (X)
 
-#define getVisibleX()	(vgame.visible_x)
-#define getVisibleY()	(vgame.visible_y)
-#define setVisibleX(X)	vgame.visible_x = (X)
-#define setVisibleY(Y)	vgame.visible_y = (Y)
+#define getVisibleX()	(visuals.visible_x)
+#define getVisibleY()	(visuals.visible_y)
+#define setVisibleX(X)	visuals.visible_x = (X)
+#define setVisibleY(Y)	visuals.visible_y = (Y)
+
+#define getCursorX()	(visuals.cursor_xpos)
+#define setCursor(X)	visuals.cursor_xpos = (X)
+#define getCursorY()	(visuals.cursor_ypos)
+#define setCursorY(Y)	visuals.cursor_ypos = (Y)
 
 /*!
  * \brief appliation configuration.
