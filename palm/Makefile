@@ -2,7 +2,7 @@
 CC = m68k-palmos-gcc
 CFLAGS = -O2 -Wall -DPALM
 OBJECTS = simcity.o handler.o drawing.o globals.o build.o simulation.o \
-		  disaster.o savegame.o map.o budget.o
+	HiRes.o savegame.o disaster.o map.o budget.o
 PROGNAME = "Pocket City"
 PROGTOKEN = PCit
 PRCTARGETS = pcity pcity-grey pcity-color
@@ -27,18 +27,23 @@ cheat: debug
 debug: CFLAGS += -g -DDEBUG
 debug: all
 
+hires: CFLAGS += -DSONY_CLIE
+hires: all
+
+dhires: CFLAGS += -g -DSONY_CLIE -DDEBUG
+dhires: all
 
 #### the different versions
 pcity-%.prc: grcs.stm simcity-%.stm zones-%.stm game.stm
-	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def *.grc temp$*/*.bin temp/*.bin
+	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def *.grc \
+		temp$*/*.bin temp/*.bin
 
 pcity.prc: grcs.stm simcity.stm zones.stm game.stm
-	build-prc -o pcity.prc -n $(PROGNAME) -c $(PROGTOKEN) pcity.def *.grc tempbw/*.bin temp/*.bin
-    
+	build-prc -o pcity.prc -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
+		*.grc tempbw/*.bin temp/*.bin
+
 
 #### binary resources
-
-
 grcs.stm: simcity
 	m68k-palmos-obj-res simcity
 	echo touching>grcs.stm
@@ -61,7 +66,7 @@ game.stm: game.rcp
 	pilrc -q $< temp$(if $(findstring -,$*),$(word 2, $(subst -, ,$*)),bw)
 	echo touching>$*.stm
 ####################################
-	
+
 
 #### actual source
 
@@ -77,4 +82,5 @@ simcity.o: simcity.c simcity.h ../source/handler.h ../source/ui.h ../source/zakd
 ### make clean ###
 ##################
 clean:
-	rm -f *.bin *.o *.grc *.stm simcity tempbw/*.bin tempcolor/*.bin temp/*.bin tempgrey/*.bin
+	rm -f *.bin *.o *.grc *.stm simcity *.prc \
+		tempbw/*.bin tempcolor/*.bin temp/*.bin tempgrey/*.bin

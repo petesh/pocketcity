@@ -14,7 +14,7 @@
 #include "../source/build.h"
 #include "../source/handler.h"
 #include "../source/simulation.h"
-
+#include "resCompat.h"
 
 void _UIUpdateSaveGameList(void);
 void _UICreateNewSaveGame(void);
@@ -42,8 +42,10 @@ void _UIUpdateSaveGameList(void)
     db = DmOpenDatabaseByTypeCreator('DATA', 'PCit', dmModeReadOnly);
     if (!db) {
         form = FrmGetActiveForm();
-        LstSetListChoices(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)), NULL, 0);
-        LstDrawList(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)));
+        LstSetListChoices(FrmGetObjectPtr(form,
+              FrmGetObjectIndex(form, listID_FilesList)), NULL, 0);
+        LstDrawList(FrmGetObjectPtr(form,
+              FrmGetObjectIndex(form, listID_FilesList)));
         return; // no database
     }
     nRec = DmNumRecords(db);
@@ -62,8 +64,10 @@ void _UIUpdateSaveGameList(void)
 
     // update list
     form = FrmGetActiveForm();
-    LstSetListChoices(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)), pArray, nsIndex);
-    LstDrawList(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)));
+    LstSetListChoices(FrmGetObjectPtr(form,
+          FrmGetObjectIndex(form, listID_FilesList)), pArray, nsIndex);
+    LstDrawList(FrmGetObjectPtr(form,
+          FrmGetObjectIndex(form, listID_FilesList)));
 }
 
 
@@ -71,9 +75,11 @@ void _UICleanSaveGameList(void)
 {
     int i,n;
     FormPtr form = FrmGetActiveForm();
-    n = LstGetNumberOfItems(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)));
+    n = LstGetNumberOfItems(FrmGetObjectPtr(form,
+          FrmGetObjectIndex(form, listID_FilesList)));
     for (i=0; i<n;i++) {
-        MemPtrFree((void*)LstGetSelectionText(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)),i));
+        MemPtrFree((void*)LstGetSelectionText(FrmGetObjectPtr(form,
+                  FrmGetObjectIndex(form, listID_FilesList)), i));
     }
 
 }
@@ -108,20 +114,20 @@ void _UICreateNewSaveGame(void)
             if (DmNumRecords(db) == 0) {
                 // create an empty record in slot 0 if it's not there, this is
                 // used for autosaves
-                rec = DmNewRecord(db,&index, game.mapsize*game.mapsize+200);
+                rec = DmNewRecord(db, &index, game.mapsize*game.mapsize+200);
                 if (rec) {
                     DmReleaseRecord(db, index, true);
                 }
             }
             index = dmMaxRecordIndex;
-            rec = DmNewRecord(db,&index,game.mapsize*game.mapsize+200);
+            rec = DmNewRecord(db, &index, game.mapsize*game.mapsize+200);
             if (rec) {
                 pRec = MemHandleLock(rec);
                 // write the header and some globals
-                DmWrite(pRec,0,"PC00",4);
-                DmWrite(pRec,100,(char*)game.cityname,20);
+                DmWrite(pRec, 0, "PC00", 4);
+                DmWrite(pRec, 100, (char*)game.cityname,20);
                 MemHandleUnlock(rec);
-                DmReleaseRecord(db,index,true);
+                DmReleaseRecord(db, index, true);
             }
         }
         DmCloseDatabase(db);
@@ -132,8 +138,10 @@ int _UILoadNewestFromList(void)
 {
     int n;
     FormPtr form = FrmGetActiveForm();
-    n = LstGetNumberOfItems(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)));
-    LstSetSelection(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)),n - 1);
+    n = LstGetNumberOfItems(FrmGetObjectPtr(form,
+          FrmGetObjectIndex(form, listID_FilesList)));
+    LstSetSelection(FrmGetObjectPtr(form,
+          FrmGetObjectIndex(form, listID_FilesList)),n - 1);
 
     return _UILoadFromList(); 
 }
@@ -152,7 +160,8 @@ int _UILoadFromList(void)
 void _UIDeleteFromList(void)
 {
     FormPtr form = FrmGetActiveForm();
-    int index = LstGetSelection(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)));
+    int index = LstGetSelection(FrmGetObjectPtr(form,
+          FrmGetObjectIndex(form,listID_FilesList)));
     if (index != noListSelection) {
         return UIDeleteGame(index+1); // +1 is because the savegame in slot 0 isn't in the list
     }
@@ -173,22 +182,29 @@ extern void UIClearAutoSaveSlot(void)
     rec = DmGetRecord(db,0);
     if (rec) {
         pRec = MemHandleLock(rec);
-        DmWrite(pRec,0,"PCNO",4);
+        DmWrite(pRec, 0, "PCNO", 4);
         MemHandleUnlock(rec);
-        DmReleaseRecord(db,0,true);
+        DmReleaseRecord(db, 0, true);
     }
 
     DmCloseDatabase(db);
 }
 
-void UINewGame(void)
+void UIResetViewable(void)
 {
     /* The UI part is responsible for setting
      * the visible_x/y vars
      * and then call SetupNewGame()
+     * tile is 16 * 16
+     * we reserve nothing on the x axis, but 2 tiles on the y
      */
-    game.visible_x = 10;
-    game.visible_y = 8;
+    game.visible_x = sWidth / 16;
+    game.visible_y = (sHeight / 16) - 2;
+}
+
+void UINewGame(void)
+{
+    UIResetViewable();
     SetupNewGame();
     game_in_progress = 1;
 }
@@ -234,20 +250,25 @@ int UILoadGame(UInt16 index)
     rec = DmQueryRecord(db, index);
     if (rec) {
         pTemp = (unsigned char*)MemHandleLock(rec);
-        if (StrNCompare("PC00",(char*)pTemp,4) == 0) { // flagged to create new game
+        // flagged to create new game
+        if (StrNCompare("PC00",(char*)pTemp,4) == 0) {
             UINewGame();
             UISaveGame(index); // save the newly created map
             loaded = 2;
-        } else if (StrNCompare(SAVEGAMEVERSION,(char*)pTemp,4) == 0) { // version check
+        } else if (StrNCompare(SAVEGAMEVERSION, (char*)pTemp, 4) == 0) {
+            // version check
             LockWorld();
-            MemMove((void*)&game,pTemp,sizeof(GameStruct));
-            MemMove(worldPtr,pTemp+sizeof(GameStruct),game.mapsize*game.mapsize);
+            MemMove((void*)&game, pTemp, sizeof(GameStruct));
+            MemMove(worldPtr, pTemp+sizeof(GameStruct),
+              game.mapsize * game.mapsize);
+            UIResetViewable();
             UnlockWorld();
             // update the power and water grid:
             Sim_Distribute(0);
             Sim_Distribute(1);
             loaded = 1;
-        } else if (StrNCompare("PCNO",(char*)pTemp,4) == 0) { // flagged to be an empty save game
+        } else if (StrNCompare("PCNO", (char*)pTemp,4) == 0) {
+            // flagged to be an empty save game
             loaded = 0;
         } else {
             FrmAlert(alertID_invalidSaveVersion);

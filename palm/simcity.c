@@ -15,6 +15,7 @@
 #include "../source/globals.h"
 #include "../source/simulation.h"
 #include "../source/disaster.h"
+#include "resCompat.h"
 
 #ifdef DEBUG
 #include <HostControl.h>
@@ -41,22 +42,23 @@ UInt32 timeStamp = 0;
 UInt32 timeStampDisaster = 0;
 short simState = 0;
 short DoDrawing = 0;
-unsigned short XOFFSET =0;
-unsigned short YOFFSET =15;
+unsigned short XOFFSET = 0;
+unsigned short YOFFSET = 15;
 
 static Boolean hPocketCity(EventPtr event);
 static Boolean hQuickList(EventPtr event);
 static Boolean hExtraList(EventPtr event);
 static Boolean hOptions(EventPtr event);
-void _PalmInit(void);
-void UIDoQuickList(void);
-void UIPopUpExtraBuildList(void);
-void CleanUpExtraBuildForm(void);
-FieldType * UpdateDescription(int sel);
-    
+static void _PalmInit(void);
+static void UIDoQuickList(void);
+static void UIPopUpExtraBuildList(void);
+void UIDrawPop(void);
+static void CleanUpExtraBuildForm(void);
+static FieldType * UpdateDescription(int sel);
 
-void _UIGetFieldToBuildOn(int x, int y);
-Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags);
+
+static void _UIGetFieldToBuildOn(int x, int y);
+static Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags);
 
 UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 {
@@ -67,7 +69,8 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
     UInt32 timeTemp;
     UInt16 error;
 
-    error = RomVersionCompatible (0x03503000, launchFlags);
+    error = RomVersionCompatible (
+      sysMakeROMVersion(3, 5, 0, sysROMStageRelease, 0), launchFlags);
     if (error) return (error);
     UIWriteLog("Starting Pocket City\n");
 
@@ -79,7 +82,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
         } else {
             FrmGotoForm(formID_files);
         }
-        
+
         do {
             EvtGetEvent(&event, 1);
 
@@ -199,7 +202,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
                     // and do the RedrawAllFields() from above here
                 }
             }
-            
+
 
 
         } while (event.eType != appStopEvent);
@@ -213,6 +216,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
         WinDeleteWindow(winUnits,0);
         MemPtrFree(worldPtr);
         MemPtrFree(worldFlagsPtr);
+        restoreDepthRes();
     }
 
     return 0;
@@ -226,69 +230,69 @@ void _PalmInit(void)
     MemHandle  bitmaphandle;
     BitmapPtr  bitmap;
     WinHandle  winHandle;
-    
+
     timeStamp = TimGetSeconds();
     timeStampDisaster = timeStamp;
-
-    rPlayGround.topLeft.x = 0;
-    rPlayGround.topLeft.y = 15;
-    rPlayGround.extent.x = 16*10;
-    rPlayGround.extent.y = 16*8;
 
     // set screen mode to colors if supported
     if (oldROM != 1) {  // must be v3.5+ for some functions in here
         WinScreenMode(winScreenModeGetSupportedDepths, 0, 0, &depth, 0);
-        if ((depth & 0x80) != 0 ) {
+        if ((depth & (1 << (8-1))) != 0 ) {
             // 8bpp (color) is supported
-            depth = 8;
-            WinScreenMode(winScreenModeSet,0,0,&depth,0);
-        } else if ((depth & 0x08) != 0) {
+            changeDepthRes(8);
+        } else if ((depth & (1 << (4-1))) != 0) {
             // 4bpp (greyscale) is supported
-            depth = 4;
-            WinScreenMode(winScreenModeSet,0,0,&depth,0);
+            changeDepthRes(4);
         }
+        // falls through if you've no color
     }
+    // The 'playground'... built by the size of the screen
+    rPlayGround.topLeft.x = 0;
+    rPlayGround.topLeft.y = 15; // Padding for the menubar
+    rPlayGround.extent.x = sWidth;
+    rPlayGround.extent.y = sHeight - 2*16; // Space on the bottom
 
     // create an offscreen window, and copy the zones.bmp
     // to be used later
-    bitmaphandle = DmGet1Resource( TBMP , bitmapID_zones);
+    bitmaphandle = DmGet1Resource(TBMP , bitmapID_zones);
     bitmap = MemHandleLock(bitmaphandle);
-    winZones = WinCreateOffscreenWindow(1024, 32, genericFormat,&err); //space for 64*2=128 zones
+    //space for 64*2=128 zones
+    winZones = _WinCreateOffscreenWindow(1024, 32, genericFormat, &err);
     if (err != errNone) {
         // TODO: alert user, and quit program
         UIWriteLog("Offscreen window for zones failed\n");
     }
     winHandle = WinSetDrawWindow(winZones);
     // draw the bitmap into the offscreen window
-    WinDrawBitmap(bitmap, 0, 0);
+    _WinDrawBitmap(bitmap, 0, 0);
     MemHandleUnlock(bitmaphandle);
 
 
     // now, ditto for the monsters
-    bitmaphandle = DmGet1Resource( TBMP, bitmapID_monsters);
+    bitmaphandle = DmGet1Resource(TBMP, bitmapID_monsters);
     bitmap = MemHandleLock(bitmaphandle);
-    winMonsters = WinCreateOffscreenWindow(128,64,genericFormat,&err);
+    winMonsters = _WinCreateOffscreenWindow(128, 64, genericFormat, &err);
     if (err != errNone) {
         // TODO: alert user, and quit program
         UIWriteLog("Offscreen window for monsters failed\n");
     }
     WinSetDrawWindow(winMonsters); // note we don't save the old winhandle here
-    WinDrawBitmap(bitmap,0,0);
+    _WinDrawBitmap(bitmap, 0, 0);
     MemHandleUnlock(bitmaphandle);
-    
+
     // and, at last, the units
-    bitmaphandle = DmGet1Resource( TBMP, bitmapID_units);
+    bitmaphandle = DmGet1Resource(TBMP, bitmapID_units);
     bitmap = MemHandleLock(bitmaphandle);
-    winUnits = WinCreateOffscreenWindow(48,32,genericFormat,&err);
+    winUnits = _WinCreateOffscreenWindow(48, 32, genericFormat,&err);
     if (err != errNone) {
         // TODO: alert user, and quit program
         UIWriteLog("Offscreen window for units failed\n");
     }
     WinSetDrawWindow(winUnits); // note we don't save the old winhandle here
-    WinDrawBitmap(bitmap,0,0);
+    _WinDrawBitmap(bitmap, 0, 0);
     MemHandleUnlock(bitmaphandle);
-    
-    // clean up 
+
+    // clean up
     WinSetDrawWindow(winHandle);
 }
 
@@ -297,192 +301,202 @@ static Boolean hPocketCity(EventPtr event)
     FormPtr form;
     int handled = 0;
 
-    switch (event->eType)
-    {
-        case frmOpenEvent:
-            form = FrmGetActiveForm();
-            FrmDrawForm(form);
-            DrawGame(1);
+    switch (event->eType) {
+    case frmOpenEvent:
+        form = FrmGetActiveForm();
+        FrmDrawForm(form);
+        DrawGame(1);
+        handled = 1;
+        game_in_progress = 1;
+        break;
+    case frmCloseEvent:
+        break;
+    case penDownEvent:
+        scaleEvent(event);
+        if (RctPtInRectangle(event->screenX, event->screenY, &rPlayGround)) {
+            // click was on the playground
+            _UIGetFieldToBuildOn(event->screenX, event->screenY);
             handled = 1;
-            game_in_progress = 1;
             break;
-        case frmCloseEvent:
-            break;
-        case penDownEvent:
-            if (RctPtInRectangle(event->screenX, event->screenY, &rPlayGround)) {
-                // click was on the playground
-                _UIGetFieldToBuildOn(event->screenX, event->screenY);
-            } else if (event->screenX >= 150 && event->screenY >= 150) {
-                // click was on change speed
-                switch (game.gameLoopSeconds)
-                {
-                    case SPEED_PAUSED:
-                        game.gameLoopSeconds = SPEED_MEDIUM;
-                        break;
-                    default:
-                        game.gameLoopSeconds = SPEED_PAUSED;
-                        break;
-                }
-                UIDrawPop();
-            } else if (event->screenX >= 140 && event->screenY >= 150) {
-                // click was on change production
-                if (nSelectedBuildItem == BUILD_BULLDOZER) {
-                    nSelectedBuildItem = nPreviousBuildItem;
-                } else {
-                    nPreviousBuildItem = nSelectedBuildItem;
-                    nSelectedBuildItem = BUILD_BULLDOZER;
-                }
+        } else if ((event->screenX >= (sWidth - 12)) && (event->screenY < 12)) {
+            // click was on change speed
+            switch (game.gameLoopSeconds) {
+            case SPEED_PAUSED:
+                game.gameLoopSeconds = SPEED_MEDIUM;
+                break;
+            default:
+                game.gameLoopSeconds = SPEED_PAUSED;
+                break;
+            }
+            UIDrawPop();
+        } else if (event->screenX < 12 && event->screenY < 12) {
+            // click was on change production
+            if (nSelectedBuildItem == BUILD_BULLDOZER) {
+                nSelectedBuildItem = nPreviousBuildItem;
+            } else {
+                nPreviousBuildItem = nSelectedBuildItem;
+                nSelectedBuildItem = BUILD_BULLDOZER;
+            }
+            UIUpdateBuildIcon();
+        }
+        // check for other 'penclicks' here
+        break;
+    case penMoveEvent:
+        scaleEvent(event);
+        if (RctPtInRectangle(event->screenX, event->screenY, &rPlayGround)) {
+            _UIGetFieldToBuildOn(event->screenX, event->screenY);
+            handled = 1;
+            building = 1;
+        }
+        break;
+    case penUpEvent:
+        building = 0;
+        timeStamp = TimGetSeconds()-game.gameLoopSeconds+2;
+        // so the simulation routine won't kick in right away
+        timeStampDisaster = timeStamp-game.gameLoopSeconds+1; // ditto
+        handled = 1;
+        break;
+    case menuEvent:
+        if (event->data.menu.itemID >= menuitemID_buildBulldoze) {
+            if (event->data.menu.itemID == menuitemID_buildExtra) {
+                UIPopUpExtraBuildList();
+            } else {
+                nSelectedBuildItem = event->data.menu.itemID -
+                    menuitemID_buildBulldoze;
                 UIUpdateBuildIcon();
             }
-            // check for other 'penclicks' here
-            break;
-        case penMoveEvent:
-            if (RctPtInRectangle(event->screenX, event->screenY, &rPlayGround))
-            {
-                _UIGetFieldToBuildOn(event->screenX, event->screenY);
-                handled = 1;
-                building = 1;
-            }
-            break;
-        case penUpEvent:
-            building = 0;
-            timeStamp = TimGetSeconds()-game.gameLoopSeconds+2; 
-                    // so the simulation routine won't kick in right away
-            timeStampDisaster = timeStamp-game.gameLoopSeconds+1; // ditto
             handled = 1;
-            break;
-        case menuEvent:
-            if (event->data.menu.itemID >= menuitemID_buildBulldoze)
-            {
-                if (event->data.menu.itemID == menuitemID_buildExtra) {
-                    UIPopUpExtraBuildList();
-                } else {
-                    nSelectedBuildItem = event->data.menu.itemID - menuitemID_buildBulldoze;
-                    UIUpdateBuildIcon();
-                }
-                handled = 1;
-            } else {
-                switch (event->data.menu.itemID)
-                {
-                    case menuitemID_Funny:
-                        // change this to whatever testing you're doing ;)
-                        // just handy with a 'trigger' button for testing
-                        // ie. disaters
+        } else {
+            switch (event->data.menu.itemID) {
+            case menuitemID_Funny:
+                // change this to whatever testing you're doing ;)
+                // just handy with a 'trigger' button for testing
+                // ie. disaters
 #ifdef CHEAT
-                        game.credits += 100000;
+                game.credits += 100000;
 #endif
 #ifdef DEBUG
-			            MeteorDisaster(20,20);
+                MeteorDisaster(20,20);
 #endif
-                        handled = 1;
-                        break;
-                    case menuitemID_removeDefence:
-                        RemoveAllDefence();
-                        handled = 1;
-                        break;
-                    case menuitemID_Map:
-                        game.gameLoopSeconds = SPEED_PAUSED;
-                        FrmGotoForm(formID_map);
-                        handled = 1;
-                        break;
-                    case menuitemID_Budget:
-                        game.gameLoopSeconds = SPEED_PAUSED;
-                        FrmGotoForm(formID_budget);
-                        handled = 1;
-                        break;
-                    case menuitemID_about:
-                         FrmAlert(alertID_about);
-                         handled = 1;
-                         break;
-                    case menuitemID_loadGame:
-                         switch(FrmAlert(alertID_loadGame))
-                         {
-                             case 0: // save game
-                                 UISaveGameToIndex();
-                                 UIClearAutoSaveSlot();
-                                 FrmGotoForm(formID_files);
-                                 break;
-                             case 1: // don't save
-                                 UIClearAutoSaveSlot();
-                                 FrmGotoForm(formID_files);
-                                 break;
-                             case 2: // cancel
-                                 break;
-                         }
-                         handled = 1;
-                         break;
-                    case menuitemID_saveGame:
-                         if (FrmAlert(alertID_saveGame) == 0) {
-                             UISaveGameToIndex();
-                             FrmAlert(alertID_gameSaved);
-                         }
-                         handled = 1;
-                         break;
-                    case menuID_SlowSpeed:
-                        game.gameLoopSeconds = SPEED_SLOW;
-                        UIDrawPop();
-                        handled = 1;
-                        break;
-                    case menuID_MediumSpeed:
-                        game.gameLoopSeconds = SPEED_MEDIUM;
-                        UIDrawPop();
-                        handled = 1;
-                        break;
-                    case menuID_FastSpeed:
-                        game.gameLoopSeconds = SPEED_FAST;
-                        UIDrawPop();
-                        handled = 1;
-                        break;
-                    case menuID_TurboSpeed:
-                        game.gameLoopSeconds = SPEED_TURBO;
-                        UIDrawPop();
-                        handled = 1;
-                        break;
-                    case menuID_PauseSpeed:
-                        game.gameLoopSeconds = SPEED_PAUSED;
-                        UIDrawPop();
-                        handled = 1;
-                        break;
+                handled = 1;
+                break;
+            case menuitemID_removeDefence:
+                RemoveAllDefence();
+                handled = 1;
+                break;
+            case menuitemID_Map:
+                game.gameLoopSeconds = SPEED_PAUSED;
+                FrmGotoForm(formID_map);
+                handled = 1;
+                break;
+            case menuitemID_Budget:
+                game.gameLoopSeconds = SPEED_PAUSED;
+                FrmGotoForm(formID_budget);
+                handled = 1;
+                break;
+            case menuitemID_about:
+                {
+                    MemHandle mhp;
+                    MemPtr mp = NULL;
+
+                    mhp = DmGetResource('tver', 1);
+                    if (mhp != NULL) mp = MemHandleLock(mhp);
+                    if (mp == NULL) mp = "??";
+                    FrmCustomAlert(alertID_about, mp, NULL, NULL);
+                    if (mhp) {
+                        MemPtrUnlock(mp);
+                        DmReleaseResource(mhp);
+                    }
+                    handled = 1;
                 }
+                break;
+            case menuitemID_loadGame:
+                switch(FrmAlert(alertID_loadGame)) {
+                case 0: // save game
+                    UISaveGameToIndex();
+                    UIClearAutoSaveSlot();
+                    FrmGotoForm(formID_files);
+                    break;
+                case 1: // don't save
+                    UIClearAutoSaveSlot();
+                    FrmGotoForm(formID_files);
+                    break;
+                case 2: // cancel
+                    break;
+                }
+                handled = 1;
+                break;
+            case menuitemID_saveGame:
+                if (FrmAlert(alertID_saveGame) == 0) {
+                    UISaveGameToIndex();
+                    FrmAlert(alertID_gameSaved);
+                }
+                handled = 1;
+                break;
+            case menuID_SlowSpeed:
+                game.gameLoopSeconds = SPEED_SLOW;
+                UIDrawPop();
+                handled = 1;
+                break;
+            case menuID_MediumSpeed:
+                game.gameLoopSeconds = SPEED_MEDIUM;
+                UIDrawPop();
+                handled = 1;
+                break;
+            case menuID_FastSpeed:
+                game.gameLoopSeconds = SPEED_FAST;
+                UIDrawPop();
+                handled = 1;
+                break;
+            case menuID_TurboSpeed:
+                game.gameLoopSeconds = SPEED_TURBO;
+                UIDrawPop();
+                handled = 1;
+                break;
+            case menuID_PauseSpeed:
+                game.gameLoopSeconds = SPEED_PAUSED;
+                UIDrawPop();
+                handled = 1;
+                break;
             }
+        }
+        break;
+    case keyDownEvent:
+        switch (event->data.keyDown.chr) {
+        case vchrCalc:
+            /* popup a quicksheet */
+            UIDoQuickList();
+            handled = 1;
             break;
-        case keyDownEvent:
-            switch (event->data.keyDown.chr)
-            {
-                case vchrCalc:
-                    /* popup a quicksheet */
-                    UIDoQuickList();
-                    handled = 1;
-                    break;
-                case vchrFind:
-                    /* goto map */
-                    game.gameLoopSeconds = SPEED_PAUSED;
-                    FrmGotoForm(formID_map);
-                    handled = 1;
-                    break;
-                case pageUpChr:
-                    /* scroll map up */
-                    ScrollMap(0);
-                    handled = 1;
-                    break;
-                case pageDownChr:
-                    /* scroll map down */
-                    ScrollMap(2);
-                    handled = 1;
-                    break;
-                case vchrHard2:
-                    /* scroll map left */
-                    ScrollMap(3);
-                    handled = 1;
-                    break;
-                case vchrHard3:
-                    /* scroll map right */
-                    ScrollMap(1);
-                    handled = 1;
-                    break;
-            }
-        default:
+        case vchrFind:
+            /* goto map */
+            game.gameLoopSeconds = SPEED_PAUSED;
+            FrmGotoForm(formID_map);
+            handled = 1;
             break;
+        case pageUpChr:
+            /* scroll map up */
+            ScrollMap(0);
+            handled = 1;
+            break;
+        case pageDownChr:
+            /* scroll map down */
+            ScrollMap(2);
+            handled = 1;
+            break;
+        case vchrHard2:
+            /* scroll map left */
+            ScrollMap(3);
+            handled = 1;
+            break;
+        case vchrHard3:
+            /* scroll map right */
+            ScrollMap(1);
+            handled = 1;
+            break;
+        }
+    default:
+        break;
     }
 
     return handled;
@@ -491,19 +505,18 @@ static Boolean hPocketCity(EventPtr event)
 
 extern void UIGotoForm(int n)
 {
-    switch (n)
-    {
-        case 0:
-            FrmGotoForm(formID_budget);
-            break;
-        case 1:
-            FrmGotoForm(formID_map);
-            break;
-        case 2:
-            FrmGotoForm(formID_options);
-            break;
-        default:
-            break;
+    switch (n) {
+    case 0:
+        FrmGotoForm(formID_budget);
+        break;
+    case 1:
+        FrmGotoForm(formID_map);
+        break;
+    case 2:
+        FrmGotoForm(formID_options);
+        break;
+    default:
+        break;
     }
 }
 
@@ -514,10 +527,10 @@ void UIPopUpExtraBuildList(void)
     ftList = FrmInitForm(formID_extraBuild);
     FrmSetEventHandler(ftList, hExtraList);
     UpdateDescription(0);
-    switch (FrmDoDialog(ftList)) 
-    {
+    switch (FrmDoDialog(ftList)) {
     case buttonID_extraBuildSelect:
-        nSelectedBuildItem = LstGetSelection(FrmGetObjectPtr(ftList,FrmGetObjectIndex(ftList,listID_extraBuildList)));
+        nSelectedBuildItem = LstGetSelection(FrmGetObjectPtr(ftList,
+              FrmGetObjectIndex(ftList, listID_extraBuildList)));
         break;
     case buttonID_extraBuildFireMen:
         nSelectedBuildItem = 250;
@@ -529,7 +542,7 @@ void UIPopUpExtraBuildList(void)
         nSelectedBuildItem = 252;
         break;
     default:
-        break;        
+        break;
     }
     CleanUpExtraBuildForm();
     UIUpdateBuildIcon();
@@ -539,28 +552,23 @@ void UIPopUpExtraBuildList(void)
 FieldType * UpdateDescription(int sel)
 {
     char * temp = MemPtrNew(256);
-    UInt16 index = FrmGetObjectIndex(FrmGetFormPtr(formID_extraBuild),labelID_extraBuildDescription);
-    FieldType * ctl = FrmGetObjectPtr(FrmGetFormPtr(formID_extraBuild),index);
-    
-    SysStringByIndex(strID_Descriptions,
-            sel,
-            temp,
-            256);
+    UInt16 index = FrmGetObjectIndex(FrmGetFormPtr(formID_extraBuild),
+      labelID_extraBuildDescription);
+    FieldType * ctl = FrmGetObjectPtr(FrmGetFormPtr(formID_extraBuild), index);
 
+    SysStringByIndex(strID_Descriptions, sel, temp, 256);
     FldSetTextPtr(ctl, temp);
     FldRecalculateField(ctl, true);
     return ctl;
-
 }
 
 void CleanUpExtraBuildForm(void)
 {
     FormPtr form = FrmGetFormPtr(formID_extraBuild);
     void * ptr = (void*)FldGetTextPtr(FrmGetObjectPtr(
-                form,FrmGetObjectIndex(form,labelID_extraBuildDescription)));
-    if (ptr != 0) {
+                form, FrmGetObjectIndex(form, labelID_extraBuildDescription)));
+    if (ptr != 0)
         MemPtrFree(ptr);
-    }
 }
 
 
@@ -568,53 +576,53 @@ static Boolean hExtraList(EventPtr event)
 {
     FormPtr form;
     int handled = 0;
-        
-    switch (event->eType)
-    {       
-        case frmOpenEvent:
-            game_in_progress = 0;
-            form = FrmGetActiveForm();
-            UIWriteLog("open\n");
-            FrmDrawForm(form);
+
+    switch (event->eType) {
+    case frmOpenEvent:
+        game_in_progress = 0;
+        form = FrmGetActiveForm();
+        UIWriteLog("open\n");
+        FrmDrawForm(form);
+        handled = 1;
+        break;
+    case frmCloseEvent:
+        UIWriteLog("frmcloseeven\n");
+        break;
+    case lstSelectEvent:
+        if ((event->data.lstSelect.listID) == listID_extraBuildList) {
+            // clear old mem
+            FormPtr form = FrmGetActiveForm();
+            void * ptr = (void*)FldGetTextPtr(FrmGetObjectPtr(form,
+                  FrmGetObjectIndex(form, labelID_extraBuildDescription)));
+            FldDrawField(UpdateDescription(event->data.lstSelect.selection));
+            if (ptr != 0)
+                MemPtrFree(ptr);
             handled = 1;
-            break;      
-        case frmCloseEvent:
-            UIWriteLog("frmcloseeven\n");
-            break;      
-        case lstSelectEvent:
-            if ((event->data.lstSelect.listID) == listID_extraBuildList) {
-                // clear old mem
-                FormPtr form = FrmGetActiveForm();
-                void * ptr = (void*)FldGetTextPtr(FrmGetObjectPtr(
-                            form,FrmGetObjectIndex(form,labelID_extraBuildDescription)));
-                FldDrawField(UpdateDescription(event->data.lstSelect.selection));
-                if (ptr != 0) {
-                    MemPtrFree(ptr);
-                }
-                handled = 1;
-            }
+        }
+        break;
+    case keyDownEvent:
+        switch (event->data.keyDown.chr) {
+        case vchrCalc:
+            CtlHitControl(FrmGetObjectPtr(FrmGetActiveForm(),
+                  FrmGetObjectIndex(FrmGetActiveForm(),
+                      buttonID_extraBuildCancel)));
+            handled = 1;
             break;
-        case keyDownEvent:
-            switch (event->data.keyDown.chr)
-            {
-                case vchrCalc:
-                    CtlHitControl(FrmGetObjectPtr(FrmGetActiveForm(),
-                                FrmGetObjectIndex(FrmGetActiveForm(),buttonID_extraBuildCancel)));
-                    handled = 1;
-                    break;
-                case pageUpChr:
-                    LstScrollList(FrmGetObjectPtr(FrmGetActiveForm(),
-                                FrmGetObjectIndex(FrmGetActiveForm(),listID_extraBuildList)),winUp,4);
-                    handled = 1;
-                    break;
-                case pageDownChr:
-                    LstScrollList(FrmGetObjectPtr(FrmGetActiveForm(),
-                                FrmGetObjectIndex(FrmGetActiveForm(),listID_extraBuildList)),winDown,4);
-                    handled = 1;
-                    break;
-            }
-        default:
+        case pageUpChr:
+            LstScrollList(FrmGetObjectPtr(FrmGetActiveForm(),
+                  FrmGetObjectIndex(FrmGetActiveForm(),
+                      listID_extraBuildList)), winUp, 4);
+            handled = 1;
             break;
+        case pageDownChr:
+            LstScrollList(FrmGetObjectPtr(FrmGetActiveForm(),
+                  FrmGetObjectIndex(FrmGetActiveForm(),
+                      listID_extraBuildList)), winDown, 4);
+            handled = 1;
+            break;
+        }
+    default:
+        break;
     }
 
     return handled;
@@ -628,9 +636,8 @@ void UIDoQuickList(void)
         ftList = FrmInitForm(formID_quickList);
         FrmSetEventHandler(ftList, hQuickList);
         nSelectedBuildItem = FrmDoDialog(ftList) - menuitemID_buildBulldoze;
-        if (nSelectedBuildItem == 10) {
+        if (nSelectedBuildItem == 10)
             UIPopUpExtraBuildList();
-        }            
         UIUpdateBuildIcon();
         FrmDeleteForm(ftList);
     } else {
@@ -639,34 +646,35 @@ void UIDoQuickList(void)
         UIPopUpExtraBuildList();
     }
 }
-                            
+
 
 static Boolean hQuickList(EventPtr event)
 {
     FormPtr form;
     int handled = 0;
-        
-    switch (event->eType)
-    {       
-        case frmOpenEvent:
-            game_in_progress = 0;
-            form = FrmGetActiveForm();
-            FrmDrawForm(form);
+
+    switch (event->eType) {
+    case frmOpenEvent:
+        game_in_progress = 0;
+        form = FrmGetActiveForm();
+        FrmDrawForm(form);
+        handled = 1;
+        break;
+    case frmCloseEvent:
+        break;
+    case keyDownEvent:
+        UIWriteLog("Key down\n");
+        switch (event->data.keyDown.chr) {
+        case vchrCalc:
+            /* close the quicksheet - simulate we pushed the bulldozer */
+            CtlHitControl(FrmGetObjectPtr(FrmGetActiveForm(),
+                  FrmGetObjectIndex(FrmGetActiveForm(),
+                  menuitemID_buildBulldoze)));
             handled = 1;
-            break;      
-        case frmCloseEvent:
-            break;      
-        case keyDownEvent:
-            UIWriteLog("Key down\n");
-            switch (event->data.keyDown.chr) {
-                case vchrCalc:
-                    /* close the quicksheet - simulate we pushed the bulldozer */
-                    CtlHitControl(FrmGetObjectPtr(FrmGetActiveForm(),FrmGetObjectIndex(FrmGetActiveForm(),menuitemID_buildBulldoze)));
-                    handled = 1;
-                    break;
-            }
-        default:
             break;
+        }
+    default:
+        break;
     }
 
     return handled;
@@ -676,51 +684,57 @@ static Boolean hOptions(EventPtr event)
 {
     FormPtr form;
     int handled = 0;
-        
-    switch (event->eType) {       
-        case frmOpenEvent:
-            form = FrmGetActiveForm();
-            FrmDrawForm(form);
-            CtlSetValue(FrmGetObjectPtr(form,FrmGetObjectIndex(form, buttonID_dis_off+game.disaster_level)), 1);
+
+    switch (event->eType) {
+    case frmOpenEvent:
+        form = FrmGetActiveForm();
+        FrmDrawForm(form);
+        CtlSetValue(FrmGetObjectPtr(form, FrmGetObjectIndex(form,
+                  buttonID_dis_off+game.disaster_level)), 1);
+        handled = 1;
+        break;
+    case frmCloseEvent:
+        form = FrmGetActiveForm();
+        if (CtlGetValue(FrmGetObjectPtr(form,
+                  FrmGetObjectIndex(form, buttonID_dis_off)))) {
+            game.disaster_level = 0;
+        } else if (CtlGetValue(FrmGetObjectPtr(form,
+                  FrmGetObjectIndex(form, buttonID_dis_one)))) {
+            game.disaster_level = 1;
+        } else if (CtlGetValue(FrmGetObjectPtr(form,
+                  FrmGetObjectIndex(form, buttonID_dis_two)))) {
+            game.disaster_level = 2;
+        } else if (CtlGetValue(FrmGetObjectPtr(form,
+                  FrmGetObjectIndex(form, buttonID_dis_three)))) {
+            game.disaster_level = 3;
+        }
+        break;
+    case keyDownEvent:
+        UIWriteLog("Key down\n");
+        switch (event->data.keyDown.chr) {
+        case vchrLaunch:
+            FrmGotoForm(formID_pocketCity);
             handled = 1;
-            break;      
-        case frmCloseEvent:
-            form = FrmGetActiveForm();
-            if (CtlGetValue(FrmGetObjectPtr(form,FrmGetObjectIndex(form, buttonID_dis_off)))) {
-                game.disaster_level = 0;
-            } else if (CtlGetValue(FrmGetObjectPtr(form,FrmGetObjectIndex(form, buttonID_dis_one)))) {
-                game.disaster_level = 1;
-            } else if (CtlGetValue(FrmGetObjectPtr(form,FrmGetObjectIndex(form, buttonID_dis_two)))) {
-                game.disaster_level = 2;
-            } else if (CtlGetValue(FrmGetObjectPtr(form,FrmGetObjectIndex(form, buttonID_dis_three)))) {
-                game.disaster_level = 3;
-            }                  
-            break;      
-        case keyDownEvent:
-            UIWriteLog("Key down\n");
-            switch (event->data.keyDown.chr)
-            {
-                case vchrLaunch:
-                    FrmGotoForm(formID_pocketCity);
-                    handled = 1;
-                    break;
-            }
-        case popSelectEvent:
-            if (event->data.popSelect.controlID == listID_shifter_popup) {
-                UIGotoForm(event->data.popSelect.selection);
-                handled = 1;
-            }
             break;
-        default:
-            break;
+        }
+    case popSelectEvent:
+        if (event->data.popSelect.controlID == listID_shifter_popup) {
+            UIGotoForm(event->data.popSelect.selection);
+            handled = 1;
+        }
+        break;
+    default:
+        break;
     }
 
     return handled;
 }
 
 
-extern unsigned char UIGetSelectedBuildItem(void) { return nSelectedBuildItem; }
-
+extern unsigned char UIGetSelectedBuildItem(void)
+{
+    return nSelectedBuildItem;
+}
 
 void _UIGetFieldToBuildOn(int x, int y)
 {
@@ -729,15 +743,12 @@ void _UIGetFieldToBuildOn(int x, int y)
     rect.extent.x = game.tileSize;
     rect.extent.y = game.tileSize;
 
-    for (i=0; i<game.visible_x; i++)
-    {
-        for (j=0; j<game.visible_y; j++)
-        {
-            rect.topLeft.x = XOFFSET+i*game.tileSize;
-            rect.topLeft.y = YOFFSET+j*game.tileSize;
-            if (RctPtInRectangle(x,y,&rect))
-            {
-                BuildSomething(i+game.map_xpos,j+game.map_ypos);
+    for (i = 0; i < game.visible_x; i++) {
+        for (j = 0; j < game.visible_y; j++) {
+            rect.topLeft.x = XOFFSET + i * game.tileSize;
+            rect.topLeft.y = YOFFSET + j * game.tileSize;
+            if (RctPtInRectangle(x, y, &rect)) {
+                BuildSomething(i + game.map_xpos, j + game.map_ypos);
                 return;
             }
         }
@@ -751,8 +762,7 @@ void _UIGetFieldToBuildOn(int x, int y)
 extern int UIDisplayError(int nError)
 {
     // TODO: use FrmCustomAlert here for this stuff
-    switch (nError)
-    {
+    switch (nError) {
         case ERROR_OUT_OF_MEMORY: FrmAlert(alertID_errorOutOfMemory); break;
         case ERROR_OUT_OF_MONEY: FrmAlert(alertID_outMoney); break;
         case ERROR_FIRE_OUTBREAK: FrmAlert(alertID_fireOutBreak); break;
@@ -768,24 +778,28 @@ extern int UIDisplayError(int nError)
 extern void UIInitDrawing(void) {};
 extern void UIFinishDrawing(void) {};
 
+UInt8 *didLock = NULL;
+// The WinScreenLock is 'optional' depending on how much memory you have
+// the call may or may not succeed.
 // by using these two APIs we can get faster, flickerless allscreen updating
 extern void UILockScreen(void)
 {
-    if (oldROM != 1) {
-        WinScreenLock(winLockCopy); 
-    }
+    if ((oldROM != 1) && !didLock)
+        didLock = WinScreenLock(winLockCopy);
 }
 
 extern void UIUnlockScreen(void)
 {
-    if (oldROM != 1) {
+    if ((oldROM != 1) && didLock) {
         WinScreenUnlock();
+        didLock = 0;
     }
 }
 
-extern void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth)
+extern void _UIDrawRect(int nTop, int nLeft, int nHeight, int nWidth)
 {
-    // draws a rect on screen: note, the rect within the border will be exactly nHeight*nWidth pxls
+    // draws a rect on screen: note, the rect within the border will
+    // be exactly nHeight*nWidth pxls
     // the frame's left border will be at nTop-1 and so on
 
     RectangleType rect;
@@ -797,7 +811,7 @@ extern void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth)
     rect.extent.x = nWidth;
     rect.extent.y = nHeight;
 
-    WinDrawRectangleFrame(1, &rect);
+    _WinDrawRectangleFrame(1, &rect);
 }
 
 extern void UIDrawBorder()
@@ -805,7 +819,8 @@ extern void UIDrawBorder()
     if (DoDrawing == 0) return;
 
     // border
-    _UIDrawRect(YOFFSET,XOFFSET,game.visible_y*game.tileSize,game.visible_x*game.tileSize);
+    _UIDrawRect(YOFFSET, XOFFSET, game.visible_y * game.tileSize,
+      game.visible_x * game.tileSize);
 }
 
 
@@ -822,15 +837,15 @@ extern void UIDrawWaterLoss(int xpos, int ypos)
     RectangleType rect;
 
     if (DoDrawing == 0) { return; }
-    
+
     rect.topLeft.x = 80;
     rect.topLeft.y = 0;
     rect.extent.x = game.tileSize;
     rect.extent.y = game.tileSize;
-    
+
     // copy/paste the graphic from the offscreen image
     // first draw the overlay
-    WinCopyRectangle(
+    _WinCopyRectangle(
             winZones,
             WinGetActiveWindow(),
             &rect,
@@ -839,7 +854,7 @@ extern void UIDrawWaterLoss(int xpos, int ypos)
             winErase);
     // now draw the powerloss icon
     rect.topLeft.x = 64;
-    WinCopyRectangle(
+    _WinCopyRectangle(
             winZones,
             WinGetActiveWindow(),
             &rect,
@@ -853,15 +868,15 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
     RectangleType rect;
 
     if (DoDrawing == 0) { return; }
-    
+
     rect.topLeft.x = 144;
     rect.topLeft.y = 0;
     rect.extent.x = game.tileSize;
     rect.extent.y = game.tileSize;
-    
+
     // copy/paste the graphic from the offscreen image
     // first draw the overlay
-    WinCopyRectangle(
+    _WinCopyRectangle(
             winZones,
             WinGetActiveWindow(),
             &rect,
@@ -870,7 +885,7 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
             winErase);
     // now draw the powerloss icon
     rect.topLeft.x = 128;
-    WinCopyRectangle(
+    _WinCopyRectangle(
             winZones,
             WinGetActiveWindow(),
             &rect,
@@ -883,13 +898,13 @@ extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
 {
     RectangleType rect;
     if (DoDrawing == 0) { return; }
-    
+
     rect.topLeft.x = game.units[i].type*game.tileSize;
     rect.topLeft.y = game.tileSize;
     rect.extent.x = game.tileSize;
     rect.extent.y = game.tileSize;
 
-    WinCopyRectangle(
+    _WinCopyRectangle(
             winUnits,
             WinGetActiveWindow(),
             &rect,
@@ -897,7 +912,7 @@ extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
             ypos*game.tileSize+YOFFSET,
             winErase);
     rect.topLeft.y = 0;
-    WinCopyRectangle(
+    _WinCopyRectangle(
             winUnits,
             WinGetActiveWindow(),
             &rect,
@@ -911,13 +926,13 @@ extern void UIDrawSpecialObject(int i, int xpos, int ypos)
 {
     RectangleType rect;
     if (DoDrawing == 0) { return; }
-    
+
     rect.topLeft.x = (game.objects[i].dir)*game.tileSize;
     rect.topLeft.y = ((i*2)+1)*game.tileSize;
     rect.extent.x = game.tileSize;
     rect.extent.y = game.tileSize;
 
-    WinCopyRectangle(
+    _WinCopyRectangle(
             winMonsters,
             WinGetActiveWindow(),
             &rect,
@@ -925,7 +940,7 @@ extern void UIDrawSpecialObject(int i, int xpos, int ypos)
             ypos*game.tileSize+YOFFSET,
             winErase);
     rect.topLeft.y -= 16;
-    WinCopyRectangle(
+    _WinCopyRectangle(
             winMonsters,
             WinGetActiveWindow(),
             &rect,
@@ -938,16 +953,16 @@ extern void UIDrawSpecialObject(int i, int xpos, int ypos)
 extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
 {
     RectangleType rect;
-    
+
     if (DoDrawing == 0) { return; }
 
     rect.topLeft.x = (nGraphic%64)*game.tileSize;
     rect.topLeft.y = (nGraphic/64)*game.tileSize;
     rect.extent.x = game.tileSize;
     rect.extent.y = game.tileSize;
-    
+
     // copy/paste the graphic from the offscreen image
-    WinCopyRectangle(
+    _WinCopyRectangle(
             winZones,
             WinGetActiveWindow(),
             &rect,
@@ -962,38 +977,43 @@ extern void UIScrollMap(int direction)
     WinHandle screen;
     RectangleType rect;
     int to_x, to_y, i;
-    
+
     if (DoDrawing == 0) { return; }
 
     UILockScreen();
-    
-    rect.topLeft.x = XOFFSET + game.tileSize*(direction == 1);
-    rect.topLeft.y = YOFFSET + game.tileSize*(direction == 2);
-    rect.extent.x = (game.visible_x - 1*(direction == 1 || direction == 3 )) * game.tileSize;
-    rect.extent.y = (game.visible_y - 1*(direction == 0 || direction == 2 )) * game.tileSize;
+
+    rect.topLeft.x = XOFFSET + game.tileSize * (direction == 1);
+    rect.topLeft.y = YOFFSET + game.tileSize * (direction == 2);
+    rect.extent.x = (game.visible_x - 1 * (direction == 1 || direction == 3 ))
+        * game.tileSize;
+    rect.extent.y = (game.visible_y - 1 * (direction == 0 || direction == 2 ))
+        * game.tileSize;
     to_x = XOFFSET + game.tileSize*(direction == 3);
     to_y = YOFFSET + game.tileSize*(direction == 0);
-    
+
 
     screen = WinGetActiveWindow();
-    WinCopyRectangle(screen, screen, &rect,to_x, to_y, winPaint);
+    _WinCopyRectangle(screen, screen, &rect,to_x, to_y, winPaint);
 
     // and lastly, fill the gap
     LockWorld();
     LockWorldFlags();
     UIInitDrawing();
-    
+
     if (direction == 1 || direction == 3) {
-        for (i=game.map_ypos; i<game.visible_y+game.map_ypos; i++) {
-            DrawFieldWithoutInit(game.map_xpos+(game.visible_x-1)*(direction == 1),i);
+        for (i = game.map_ypos; i < game.visible_y + game.map_ypos; i++) {
+            DrawFieldWithoutInit(game.map_xpos + (game.visible_x - 1) *
+              (direction == 1), i);
         }
     } else {
-        for (i=game.map_xpos; i<game.visible_x+game.map_xpos; i++) {
-            DrawFieldWithoutInit(i,game.map_ypos+(game.visible_y-1)*(direction == 2));
+        for (i = game.map_xpos; i < game.visible_x + game.map_xpos; i++) {
+            DrawFieldWithoutInit(i, game.map_ypos + (game.visible_y - 1) *
+              (direction == 2));
         }
     }
 
-    UIDrawCursor(game.cursor_xpos-game.map_xpos, game.cursor_ypos-game.map_ypos);
+    UIDrawCursor(game.cursor_xpos - game.map_xpos,
+      game.cursor_ypos - game.map_ypos);
     UIDrawCredits();
     UIDrawPop();
 
@@ -1010,25 +1030,97 @@ extern unsigned long GetRandomNumber(unsigned long max)
     return (UInt16)SysRandom(0) % (UInt16)max;
 }
 
+/*
+ * Layout (current|lores)
+ * [Tool]             [date]            [Speed]
+ * [                                          ]
+ * [            Play Area                     ]
+ * [                                          ]
+ * [money]            [pop]               [loc]
+ *
+ * Layout (current|hires)
+ */
+
+extern void UIDrawDate(void)
+{
+    char temp[23];
+    static UInt32 owidth = 0;
+    RectangleType rect;
+
+    if (DoDrawing == 0) { return; }
+
+    if (owidth) {
+        rect.topLeft.x = (sWidth - owidth) / 2;
+        rect.topLeft.y = 1;
+        rect.extent.x = owidth;
+        rect.extent.y = 11;
+        _WinEraseRectangle(&rect,0);
+    }
+
+    if (isHires())
+        _FntSetFont(boldFont);
+    GetDate((char*)temp);
+    owidth = FntCharsWidth(temp, StrLen(temp));
+    _WinDrawChars((char*)temp, StrLen(temp), (sWidth - owidth) / 2, 1);
+    if (isHires())
+        _FntSetFont(stdFont);
+}
+
 extern void UIDrawCredits(void)
 {
     char temp[23];
     RectangleType rect;
+    static UInt32 owidth = 0;
 
     if (DoDrawing == 0) { return; }
 
     StrPrintF(temp, "$: %ld", game.credits);
 
-    rect.topLeft.x = 66;
-    rect.topLeft.y = 1;
-    rect.extent.x = 94;
-    rect.extent.y = 11;
+    if (owidth) {
+        rect.topLeft.x = 0;
+        rect.topLeft.y = sHeight - 11;
+        rect.extent.x = owidth;
+        rect.extent.y = 11;
 
-    WinEraseRectangle(&rect,0);
+        _WinEraseRectangle(&rect,0);
+    }
 
-    WinDrawChars((char*)temp,StrLen(temp),66,1);
-    GetDate((char*)temp);
-    WinDrawChars((char*)temp,StrLen(temp),120,1);
+    if (isHires())
+        _FntSetFont(boldFont);
+
+    owidth = FntCharsWidth(temp, StrLen(temp));
+    _WinDrawChars((char*)temp, StrLen(temp), 0, sHeight - 11);
+    if (isHires())
+        _FntSetFont(stdFont);
+    UIDrawDate();
+}
+
+extern void UIDrawLoc(void)
+{
+    char temp[25];
+    RectangleType rect;
+    static UInt32 owidth = 0;
+
+    if (DoDrawing == 0) { return; }
+
+    StrPrintF(temp, "(%02u,%02u)", game.map_xpos, game.map_ypos);
+
+    if (owidth) {
+        rect.topLeft.x = sWidth - (owidth + 1);
+        rect.topLeft.y = sHeight - 12;
+        rect.extent.x = owidth;
+        rect.extent.y = 11;
+
+        _WinEraseRectangle(&rect,0);
+    }
+
+    if (isHires())
+        _FntSetFont(boldFont);
+    owidth = FntCharsWidth(temp, StrLen(temp));
+    _WinDrawChars((char*)temp,StrLen(temp), sWidth - (owidth + 1),
+      sHeight - 12);
+    if (isHires())
+        _FntSetFont(stdFont);
 }
 
 extern void UIUpdateBuildIcon(void)
@@ -1037,57 +1129,68 @@ extern void UIUpdateBuildIcon(void)
     BitmapPtr bitmap;
     if (DoDrawing == 0) { return; }
 
-    bitmaphandle = DmGet1Resource(TBMP,bitmapID_iconBulldoze + 
-            ((nSelectedBuildItem<=9 || (nSelectedBuildItem>=250 && nSelectedBuildItem<=252))?nSelectedBuildItem:10));
+    bitmaphandle = DmGet1Resource(TBMP,bitmapID_iconBulldoze +
+            ((nSelectedBuildItem <= 9 ||
+              (nSelectedBuildItem >= 250 && nSelectedBuildItem <= 252)) ?
+             nSelectedBuildItem : 10));
     if (bitmaphandle == NULL) { return; } // TODO: onscreen error? +save?
     bitmap = MemHandleLock(bitmaphandle);
-    WinDrawBitmap(bitmap,140,150);
+    _WinDrawBitmap(bitmap, 2, 2);
     MemHandleUnlock(bitmaphandle);
 }
 
+extern void UIDrawSpeed(void)
+{
+    MemHandle  bitmaphandle;
+    BitmapPtr  bitmap;
+
+    bitmaphandle = DmGet1Resource(TBMP,
+      bitmapID_SpeedPaused + game.gameLoopSeconds);
+    if (bitmaphandle == NULL) { return; } // TODO: onscreen error? +save?
+    bitmap = MemHandleLock(bitmaphandle);
+    _WinDrawBitmap(bitmap, sWidth - 12, 2);
+    MemHandleUnlock(bitmaphandle);
+}
 
 extern void UIDrawPop(void)
 {
-    char temp[50];
-    MemHandle  bitmaphandle;
-    BitmapPtr  bitmap;
+    char temp[25];
     RectangleType rect;
+    static int owidth;
 
     if (DoDrawing == 0) { return; }
 
+    StrPrintF(temp, "Pop: %lu", game.BuildCount[COUNT_RESIDENTIAL] * 150);
 
-    StrPrintF(temp, "(%02u,%02u) Pop: %-9li",
-            game.map_xpos,
-            game.map_ypos,
-            (game.BuildCount[COUNT_RESIDENTIAL]*150));
+    if (owidth) {
+        rect.topLeft.x = (sWidth - owidth) / 2;
+        rect.topLeft.y = sHeight - 12;
+        rect.extent.x = owidth;
+        rect.extent.y = 11;
+        _WinEraseRectangle(&rect,0);
+    }
 
-
-    rect.topLeft.x = 3;
-    rect.topLeft.y = 148;
-    rect.extent.x = 137;
-    rect.extent.y = 11;
-
-    WinEraseRectangle(&rect,0);
-    WinDrawChars((char*)temp,StrLen(temp),3,148);
-
-
-    bitmaphandle = DmGet1Resource( TBMP, bitmapID_SpeedPaused + game.gameLoopSeconds);
-    if (bitmaphandle == NULL) { return; } // TODO: onscreen error? +save?
-    bitmap = MemHandleLock(bitmaphandle);
-    WinDrawBitmap(bitmap, 150,150);
-    MemHandleUnlock(bitmaphandle);
+    if (isHires())
+        _FntSetFont(boldFont);
+    owidth = FntCharsWidth(temp, StrLen(temp));
+    _WinDrawChars((char*)temp,StrLen(temp), (sWidth - owidth) / 2,
+      sHeight - 12);
+    if (isHires())
+        _FntSetFont(stdFont);
+    UIDrawLoc();
+    UIDrawSpeed();
 }
 
 extern void UICheckMoney(void)
 {
-    if(game.credits == 0) {
+    if (game.credits == 0) {
         if(noShown == 0) {
             FrmAlert(alertID_outMoney);
             noShown = 1;
         } else {
             return;
         }
-    } else if((game.credits <= 1000) || (game.credits == 1000)) {
+    } else if ((game.credits <= 1000) || (game.credits == 1000)) {
         if(lowShown==0) {
             FrmAlert(alertID_lowFunds);
             lowShown=1;
@@ -1096,10 +1199,6 @@ extern void UICheckMoney(void)
         }
     }
 }
-
-
-
-
 
 /*** memory handlers ***/
 extern int InitWorld(void)
@@ -1126,7 +1225,7 @@ extern int ResizeWorld(long unsigned size)
     UIWriteLog("Allocating bytes: ");
     UIWriteLog(temp);
 #endif
-    
+
 
     if (MemHandleResize(worldHandle, size) != 0 || MemHandleResize(worldFlagsHandle, size) != 0) {
         UIDisplayError(0);
@@ -1147,7 +1246,7 @@ extern int ResizeWorld(long unsigned size)
     return 1;
 }
 
-extern void MapHasJumped(void) { } 
+extern void MapHasJumped(void) { }
 
 
 extern void LockWorld() { worldPtr = MemHandleLock(worldHandle); }
@@ -1187,12 +1286,6 @@ extern void SetWorld(unsigned long pos, unsigned char value)
 
 /*** end ***/
 
-
-
-
-
-
-
 Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags)
 {
     UInt32 romVersion;
@@ -1209,32 +1302,29 @@ Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags)
     UIWriteLog("\n");
 #endif
 
-    if (romVersion < requiredVersion)
-    {
-        if ((launchFlags & (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp)) ==
-                (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp))
-        {
+    if (romVersion < requiredVersion) {
+        if ((launchFlags &
+              (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp)) ==
+                (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp)) {
             //if (FrmAlert (alertID_RomIncompatible) == 1)
-            if (romVersion > 0x03100000) {
+            if (romVersion > sysMakeROMVersion(3, 1, 0, 0, 0)) {
                 oldROM = 1;
                 return (0);
             }
 
-            // Pilot 1.0 will continuously relaunch this app unless we switch to 
+            // Pilot 1.0 will continuously relaunch this app unless we switch to
             // another safe one.
-            if (romVersion < 0x02000000)
-            {
-                AppLaunchWithCommand(sysFileCDefaultApp, sysAppLaunchCmdNormalLaunch, NULL);
+            if (romVersion < sysMakeROMVersion(2, 0, 0, 0, 0)) {
+                AppLaunchWithCommand(sysFileCDefaultApp,
+                  sysAppLaunchCmdNormalLaunch, NULL);
             }
         }
-
         return (sysErrRomIncompatible);
     }
-
     return (0);
 }
 
-extern void UIWriteLog(char * s) 
+extern void UIWriteLog(char * s)
 {
 #ifdef DEBUG
     HostFILE * hf = NULL;
