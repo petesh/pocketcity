@@ -63,7 +63,7 @@ extern void ScrollMap(int direction)
             return;
     }
 
-    RedrawAllFields();
+    UIScrollMap(direction);
 }
 
 

@@ -249,7 +249,7 @@ void BudgetFreeMem(void)
     MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_com))));
     MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_ind))));
     MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_tra))));
-//    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_pow))));
+    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_pow))));
 }
 
 static Boolean hPocketCity(EventPtr event)
@@ -547,6 +547,55 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
     WinDrawBitmap(bitmap, xpos*TILE_SIZE+XOFFSET, ypos*TILE_SIZE+YOFFSET);
     MemHandleUnlock(bitmaphandle);
 }
+
+
+extern void UIScrollMap(int direction)
+{
+    WinHandle screen;
+    RectangleType rect;
+    int to_x, to_y, i;
+
+    UILockScreen();
+
+    rect.topLeft.x = XOFFSET + TILE_SIZE*(direction == 1);
+    rect.topLeft.y = YOFFSET + TILE_SIZE*(direction == 2);
+    rect.extent.x = (visible_x - 1*(direction == 1 || direction == 3 )) * TILE_SIZE;
+    rect.extent.y = (visible_y - 1*(direction == 0 || direction == 2 )) * TILE_SIZE;
+    to_x = XOFFSET + TILE_SIZE*(direction == 3);
+    to_y = YOFFSET + TILE_SIZE*(direction == 0);
+    
+
+    screen = WinGetActiveWindow();
+    WinCopyRectangle(screen, screen, &rect,to_x, to_y, winPaint);
+
+    // and lastly, fill the gap
+    LockWorld();
+    LockWorldFlags();
+    UIInitDrawing();
+    
+    if (direction == 1 || direction == 3) {
+        for (i=map_ypos; i<visible_y+map_ypos; i++) {
+            DrawFieldWithoutInit(map_xpos+(visible_x-1)*(direction == 1),i);
+        }
+    } else {
+        for (i=map_xpos; i<visible_x+map_xpos; i++) {
+            DrawFieldWithoutInit(i,map_ypos+(visible_y-1)*(direction == 2));
+        }
+    }
+
+    UIDrawCursor(cursor_xpos-map_xpos, cursor_ypos-map_ypos);
+    UIDrawCredits();
+    UIDrawPop();
+
+    UIUnlockScreen();
+    UIFinishDrawing();
+    UnlockWorldFlags();
+    UnlockWorld();
+    
+
+    
+}
+
 
 extern unsigned long GetRandomNumber(unsigned long max)
 {

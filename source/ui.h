@@ -15,6 +15,7 @@ extern void UIDrawCredits(void);
 extern void UIUpdateBuildIcon(void);
 
 extern void UICheckMoney(void);
+extern void UIScrollMap(int direction);
 
 
 extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic);
