@@ -56,16 +56,16 @@ nearlylive: all-nextdir
 dist: all-nextdir
 
 $(TARGETS) $(DTARGETS): VER $(COLORTARGETS)
-	$(MAKE) $(MAKEFLAGS) -f Makefile-dowork BINARY=$(BINNAME) \
+	$(MAKE) -f Makefile-dowork BINARY=$(BINNAME) \
 		OBJDIR=.out-$(TDIR) BINPRE=$(TDIR) $@
 
 clean: clean-graphic
 	rm -rf .temp-* $(BIN)-*.rcp *.pdb *.prc
-	$(MAKE) $(MAKEFLAGS) -f Makefile-dowork BINARY=$(BINNAME) \
+	$(MAKE) -f Makefile-dowork BINARY=$(BINNAME) \
 		OBJDIR=.out-$(TDIR) $@
 
 clean-%:
-	cd $(@:clean-%=%) && $(MAKE) $(MAKEFLAGS) clean
+	cd $(@:clean-%=%) && $(MAKE) clean
 	
 # Build Stamping
 
@@ -127,6 +127,6 @@ pcity-%.pdb: pcity-%.stm
 
 
 %-nextdir:
-	cd graphic && $(MAKE) $(MAKEFLAGS) $(@:%-nextdir=%)
+	cd graphic && $(MAKE) $(@:%-nextdir=%)
 
 FRC:

@@ -16,16 +16,16 @@ all: $(ALLDIRS) $(TYPES)
 debug: $(DEBUGDIRS) $(TYPES)
 
 all-%:
-	cd $(@:all-%=%) && $(MAKE) $(MAKEFLAGS) all
+	cd $(@:all-%=%) && $(MAKE) all
 debug-%:
-	cd $(@:debug-%=%) && $(MAKE) $(MAKEFLAGS) debug
+	cd $(@:debug-%=%) && $(MAKE) debug
 clean-%:
-	cd $(@:clean-%=%) && $(MAKE) $(MAKEFLAGS) clean
+	cd $(@:clean-%=%) && $(MAKE) clean
 
 .PHONY: $(TYPES)
 
 $(TYPES):
-	$(MAKE) $(MAKEFLAGS) TARGET=$@ $(TARGETS:%=%-$@.bmp)
+	$(MAKE) TARGET=$@ $(TARGETS:%=%-$@.bmp)
 
 ALLTARGETS=$(TARGETS:%=%-$(TARGET).bmp)
 SPEEDFILES=paused slow normal fast ultra

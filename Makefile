@@ -11,12 +11,12 @@ stuff:
 all: all-graphic all-linux-gtk all-palm
 
 all-%:
-	cd $(@:all-%=%) && $(MAKE) $(MAKEFLAGS) all
+	cd $(@:all-%=%) && $(MAKE) all
 
 debug: debug-linux-gtk debug-palm
 
 debug-%:
-	cd $(@:debug-%=%) && $(MAKE) $(MAKEFLAGS) debug
+	cd $(@:debug-%=%) && $(MAKE) debug
 
 linux: all-linux
 
@@ -25,7 +25,7 @@ palm: all-palm
 clean: clean-graphic clean-linux-gtk clean-palm
 
 clean-%:
-	cd $(@:clean-%=%) && $(MAKE) $(MAKEFLAGS) clean
+	cd $(@:clean-%=%) && $(MAKE) clean
 
 SVFILE=pcity-source-$(VERSION)
 
