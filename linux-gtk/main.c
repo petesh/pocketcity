@@ -181,6 +181,7 @@ void SetUpMainWindow(void)
 
     // the actual playfield is a GtkDrawingArea
     drawingarea = gtk_drawing_area_new();
+    gtk_widget_set_double_buffered(drawingarea, FALSE);
     gtk_drawing_area_size((GtkDrawingArea*)drawingarea,320,240);
     // arange in boxes 
     gtk_box_pack_start(GTK_BOX(box), toolbox, TRUE, TRUE, 0);
