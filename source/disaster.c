@@ -51,7 +51,7 @@ extern void DoRandomDisaster(void)
             type != TYPE_REAL_WATER) {
             x = randomTile % mapsize;
             y = randomTile / mapsize;
-            switch(GetRandomNumber(5))
+            switch(GetRandomNumber(50))
             {
                 case 1:
                     if (BurnField(x,y)) {
