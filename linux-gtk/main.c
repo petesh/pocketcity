@@ -97,7 +97,9 @@ gint delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 
 static gint drawing_exposed_callback(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
+    g_print("exposed_callback - start\n");
     RedrawAllFields();
+    g_print("exposed_callback - end\n");
     return FALSE;
 }
 
