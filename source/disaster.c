@@ -61,7 +61,7 @@ extern void DoRandomDisaster(void)
             type != TYPE_CRATER) {
             x = randomTile % mapsize;
             y = randomTile / mapsize;
-            random = GetRandomNumber(500); // TODO: shuld depend on difficulty
+            random = GetRandomNumber(3000); // TODO: shuld depend on difficulty
 #ifdef DEBUG
             LongToString(random, temp);
             UIWriteLog("Random disaster: ");
