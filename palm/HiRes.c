@@ -15,8 +15,8 @@
 
 #else /* SONY_CLIE */
 /* Change Resolution */
-UInt32 sWidth;
-UInt32 sHeight;
+Int32 sWidth;
+Int32 sHeight;
 
 static UInt16 hires = 0;
 static void (*holdCB)(UInt32 held);

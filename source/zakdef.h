@@ -158,10 +158,10 @@ struct zoneTypeValue {
 /* must be at least 3 */
 #define	OBJ_CHANCE_OF_TURNING   5
 typedef struct _moveable_object {
-		UInt16 x;
-		UInt16 y;
-		UInt16 dir;
-		UInt16 active;
+	UInt16 x;
+	UInt16 y;
+	UInt16 dir;
+	UInt16 active;
 } MoveableObject;
 
 enum Objects {

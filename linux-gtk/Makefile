@@ -1,7 +1,7 @@
 VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 CC = gcc
 GFLAGS := $(shell pkg-config --cflags gtk+-2.0)
-OPTFLAGS = -O2 -Wall
+OPTFLAGS = -O2 -Wall -W
 CFLAGS = $(OPTFLAGS) -DLINUX $(GFLAGS) -I . -I ../source -I ../nix-common
 GLFLAGS = $(shell pkg-config --libs gtk+-2.0)
 LIBS =

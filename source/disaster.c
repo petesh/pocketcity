@@ -423,7 +423,8 @@ MoveAllObjects(void)
 			case 3: /* down-right */
 			case 4: /* down */
 			case 5: /* down-left */
-				if (game.objects[i].y < GetMapSize()-1) {
+				if (game.objects[i].y <
+				    (UInt16)(GetMapSize()-1)) {
 					game.objects[i].y++;
 				} else {
 					game.objects[i].dir = 0;
@@ -437,7 +438,8 @@ MoveAllObjects(void)
 			case 1: /* up-right */
 			case 2: /* right */
 			case 3: /* down-right */
-				if (game.objects[i].x < GetMapSize()-1) {
+				if (game.objects[i].x <
+				    (UInt16)(GetMapSize()-1)) {
 					game.objects[i].x++;
 				} else {
 					game.objects[i].dir = 6;

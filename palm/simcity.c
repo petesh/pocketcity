@@ -115,7 +115,8 @@ ResGetString(UInt16 index, char *buffer, UInt16 length)
  * Handles the auto-saving of the application at the end.
  */
 UInt32
-PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
+PilotMain(UInt16 cmd, MemPtr cmdPBP __attribute__ ((unused)),
+    UInt16 launchFlags)
 {
 	UInt16 error;
 	Int16 pir;
@@ -162,7 +163,7 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 static Boolean
 AppEvent(EventPtr event)
 {
-	static UInt16 oldFormID = -1;
+	static UInt16 oldFormID = ~((UInt16)0);
 	FormPtr form;
 	UInt16 formID;
 
@@ -255,7 +256,7 @@ EventLoop(void)
 
 		if (SysHandleEvent(&event)) continue;
 
-		if (MenuHandleEvent((void*)0, &event, &err)) continue;
+		if (MenuHandleEvent((MenuBarType *)0, &event, &err)) continue;
 
 		if (AppEvent(&event)) continue;
 
@@ -356,8 +357,8 @@ static Int16
 _PalmInit(void)
 {
 	UInt32		depth;
-	UInt16		err;
-	Int16		i;
+	Int16		err;
+	UInt16		i;
 	MemHandle	bitmaphandle;
 	BitmapPtr	bitmap;
 	WinHandle	winHandle = NULL;
@@ -418,7 +419,7 @@ _PalmInit(void)
 			if (winHandle) WinSetDrawWindow(winHandle);
 			return (5);
 		}
-		bitmap = MemHandleLock(bitmaphandle);
+		bitmap = (BitmapPtr)MemHandleLock(bitmaphandle);
 		if (bitmap == NULL) {
 			WriteLog("MemHandleLock Failed handle[%d:%ld]\n",
 			    (int)i, (long)handles[i].resourceID);
@@ -428,7 +429,7 @@ _PalmInit(void)
 		}
 
 		privhandle = _WinCreateOffscreenWindow(handles[i].width,
-		    handles[i].height, genericFormat, &err);
+		    handles[i].height, genericFormat, (UInt16 *)&err);
 		if (err != errNone) {
 			/* TODO: alert user, and quit program */
 			WriteLog("Offscreen window for zone[%d] failed\n",
@@ -470,7 +471,7 @@ returnWV:
 static void
 _PalmFini(Int16 reached)
 {
-	Int16 i;
+	UInt16 i;
 
 	unhookHoldSwitch();
 	clearToolbarBitmap();
@@ -584,7 +585,8 @@ DoPCityMenuProcessing(UInt16 itemID)
 	case mi_CauseMonster:
 	case mi_CauseDragon:
 	case mi_CauseMeteor:
-		DoSpecificDisaster(itemID - mi_CauseFire + diFireOutbreak);
+		DoSpecificDisaster((erdiType)(itemID - mi_CauseFire +
+			    diFireOutbreak));
 		handled = true;
 		break;
 
@@ -730,7 +732,7 @@ DoAbout(void)
 	MemPtr vs = NULL;
 	MemHandle bh;
 	MemPtr bs = NULL;
-	const UInt8 *qq = "??";
+	const UInt8 *qq = (const UInt8 *)"??";
 
 	vh = DmGetResource('tver', 1);
 	if (vh != NULL) vs = MemHandleLock(vh);
@@ -738,7 +740,7 @@ DoAbout(void)
 	bh = DmGetResource('tSTR', StrID_build);
 	if (bh != NULL) bs = MemHandleLock(bh);
 	if (bh == NULL) bs = (MemPtr)qq;
-	FrmCustomAlert(alertID_about, vs, bs, NULL);
+	FrmCustomAlert(alertID_about, (const Char *)vs, (const Char *)bs, NULL);
 	if (vh) {
 		MemPtrUnlock(vs);
 		DmReleaseResource(vh);
@@ -786,7 +788,7 @@ UIPopUpExtraBuildList(void)
 	form = FrmInitForm(formID_extraBuild);
 	FrmSetEventHandler(form, hExtraList);
 	lp = FillStringList(strID_Items, &poplen);
-	LstSetListChoices(GetObjectPtr(form, listID_extraBuildList),
+	LstSetListChoices((ListPtr)GetObjectPtr(form, listID_extraBuildList),
 	    lp, poplen);
 
 	UpdateDescription(0);
@@ -797,8 +799,8 @@ UIPopUpExtraBuildList(void)
 	switch (sfe) {
 	case buttonID_extraBuildSelect:
 		/* List entries must match entries in BuildCodes 0 .. */
-		nSelectedBuildItem = LstGetSelection(
-		    GetObjectPtr(form, listID_extraBuildList));
+		nSelectedBuildItem = (BuildCodes)LstGetSelection(
+		    (ListPtr)GetObjectPtr(form, listID_extraBuildList));
 		break;
 	case buttonID_extraBuildFireMen:
 		nSelectedBuildItem = Be_Defence_Fire;
@@ -824,18 +826,18 @@ UIPopUpExtraBuildList(void)
  * Update the description of the item in the extra build list.
  * XXX: Use MemHandles instead?
  */
-FieldType *
+FieldPtr
 UpdateDescription(Int16 sel)
 {
 	Int16 cost;
-	Int8 * temp = MemPtrNew(256);
+	Char *temp = (Char *)MemPtrNew(256);
 	Int16 *ch;
 	MemHandle mh;
 	FormType *fp;
-	FieldType * ctl;
+	FieldPtr ctl;
 
 	fp = FrmGetFormPtr(formID_extraBuild);
-	ctl = GetObjectPtr(fp, labelID_extraBuildDescription);
+	ctl = (FieldPtr)GetObjectPtr(fp, labelID_extraBuildDescription);
 
 	SysStringByIndex(strID_Descriptions, sel, temp, 256);
 	FldSetTextPtr(ctl, temp);
@@ -843,15 +845,15 @@ UpdateDescription(Int16 sel)
 
 	mh = DmGetResource('wrdl', wdlID_Costs);
 	if (mh != NULL) {
-		ch = MemHandleLock(mh);
+		ch = (Int16 *)MemHandleLock(mh);
 		cost = ch[sel+1];
 		MemHandleUnlock(mh);
 		DmReleaseResource(mh);
 	} else {
 		cost = -1;
 	}
-	temp = MemPtrNew(16);
-	ctl = GetObjectPtr(fp, labelID_extraBuildPrice);
+	temp = (Char *)MemPtrNew(16);
+	ctl = (FieldPtr)GetObjectPtr(fp, labelID_extraBuildPrice);
 	StrPrintF(temp, "%d", cost);
 	FldSetTextPtr(ctl, temp);
 	FldRecalculateField(ctl, true);
@@ -868,10 +870,11 @@ CleanUpExtraBuildForm(void)
 {
 	FormPtr form = FrmGetFormPtr(formID_extraBuild);
 	void * ptr = (void*)FldGetTextPtr(
-	    GetObjectPtr(form, labelID_extraBuildDescription));
+	    (FieldPtr)GetObjectPtr(form, labelID_extraBuildDescription));
 	if (ptr != 0)
 		MemPtrFree(ptr);
-	ptr = (void*)FldGetTextPtr(GetObjectPtr(form, labelID_extraBuildPrice));
+	ptr = (void*)FldGetTextPtr((FieldPtr)GetObjectPtr(form,
+		    labelID_extraBuildPrice));
 	if (ptr != 0)
 		MemPtrFree(ptr);
 }
@@ -904,10 +907,11 @@ hExtraList(EventPtr event)
 		if ((event->data.lstSelect.listID) == listID_extraBuildList) {
 			/* clear old mem */
 			FormPtr form = FrmGetActiveForm();
-			ptr = (void*)FldGetTextPtr(
-			    GetObjectPtr(form, labelID_extraBuildDescription));
-			ptr2 = (void*)FldGetTextPtr(
-			    GetObjectPtr(form, labelID_extraBuildPrice));
+			ptr = (void *)FldGetTextPtr((FieldPtr)GetObjectPtr(form,
+				    labelID_extraBuildDescription));
+			ptr2 = (void *)FldGetTextPtr(
+			    (FieldPtr)GetObjectPtr(form,
+				labelID_extraBuildPrice));
 			FldDrawField(
 			    UpdateDescription(event->data.lstSelect.selection));
 			if (ptr != 0)
@@ -920,17 +924,17 @@ hExtraList(EventPtr event)
 	case keyDownEvent:
 		switch (event->data.keyDown.chr) {
 		case vchrCalc:
-			CtlHitControl(GetObjectPtr(FrmGetActiveForm(),
-			    buttonID_extraBuildCancel));
+			CtlHitControl((ControlPtr)GetObjectPtr(
+			    FrmGetActiveForm(), buttonID_extraBuildCancel));
 			handled = true;
 			break;
 		case pageUpChr:
-			LstScrollList(GetObjectPtr(FrmGetActiveForm(),
+			LstScrollList((ListPtr)GetObjectPtr(FrmGetActiveForm(),
 			    listID_extraBuildList), winUp, 4);
 			handled = true;
 			break;
 		case pageDownChr:
-			LstScrollList(GetObjectPtr(FrmGetActiveForm(),
+			LstScrollList((ListPtr)GetObjectPtr(FrmGetActiveForm(),
 			    listID_extraBuildList), winDown, 4);
 			handled = true;
 			break;
@@ -956,7 +960,8 @@ UIDoQuickList(void)
 	if (IsNewROM()) {
 		ftList = FrmInitForm(formID_quickList);
 		FrmSetEventHandler(ftList, hQuickList);
-		nSelectedBuildItem = FrmDoDialog(ftList) - gi_buildBulldoze;
+		nSelectedBuildItem = (BuildCodes)(FrmDoDialog(ftList) -
+		    gi_buildBulldoze);
 
 		if (nSelectedBuildItem >= OFFSET_EXTRA)
 			UIPopUpExtraBuildList();
@@ -999,7 +1004,8 @@ hQuickList(EventPtr event)
 			 * simulate we pushed the bulldozer.
 			 */
 			form = FrmGetActiveForm();
-			CtlHitControl(GetObjectPtr(form, gi_buildBulldoze));
+			CtlHitControl((ControlPtr)GetObjectPtr(form,
+			    gi_buildBulldoze));
 			handled = true;
 			break;
 		}
@@ -1007,7 +1013,8 @@ hQuickList(EventPtr event)
 	case penUpEvent:
 		if (event->screenY < 0) {
 			form = FrmGetActiveForm();
-			CtlHitControl(GetObjectPtr(form, gi_buildBulldoze));
+			CtlHitControl((ControlPtr)GetObjectPtr(form,
+			    gi_buildBulldoze));
 			handled = true;
 		}
 		break;
@@ -1021,7 +1028,7 @@ hQuickList(EventPtr event)
 /*
  * Get the selected build item.
  */
-UInt8
+BuildCodes
 UIGetSelectedBuildItem(void)
 {
 	return (nSelectedBuildItem);
@@ -1031,7 +1038,7 @@ UIGetSelectedBuildItem(void)
  * Save the selected build item.
  */
 void
-UISetSelectedBuildItem(UInt8 item)
+UISetSelectedBuildItem(BuildCodes item)
 {
 	nSelectedBuildItem = item;
 }
@@ -1259,7 +1266,8 @@ UISetUpGraphic(void)
  * Would be the tracking cursr on the screen in a bigger environment
  */
 void
-UIDrawCursor(Int16 xpos, Int16 ypos)
+UIDrawCursor(Int16 xpos __attribute__ ((unused)),
+    Int16 ypos __attribute__((unused)))
 {
 }
 
@@ -1536,7 +1544,8 @@ posAt(int pos)
 void
 initTextPositions(void)
 {
-	int i;
+	UInt16 i;
+
 	for (i = 0; i < MAXLOC; i++) {
 		struct StatusPositions *pos = posAt(i);
 		if (pos->extents & ENDY)
@@ -1555,7 +1564,7 @@ UIDrawItem(Int16 location, char *text)
 	Int16 sl;
 	Coord tx;
 
-	if ((location < 0) || (location >= MAXLOC)) {
+	if ((location < 0) || ((UInt16)location >= MAXLOC)) {
 		Warning("UIDrawitem request for item out of bounds");
 		return;
 	}
@@ -1589,7 +1598,7 @@ UIDrawItem(Int16 location, char *text)
 static Int16
 UICheckOnClick(Coord x, Coord y)
 {
-	int i;
+	UInt16 i;
 	struct StatusPositions *pos;
 	for (i = 0; i < MAXLOC; i++) {
 		RectangleType *rt;
@@ -1740,7 +1749,7 @@ UIUpdateBuildIcon(void)
 	if (bitmaphandle == NULL)
 		/* TODO: onscreen error? +save? */
 		return;
-	bitmap = MemHandleLock(bitmaphandle);
+	bitmap = (BitmapPtr)MemHandleLock(bitmaphandle);
 	_WinDrawBitmap(bitmap, 2, 2);
 	MemPtrUnlock(bitmap);
 	DmReleaseResource(bitmaphandle);
@@ -1764,7 +1773,7 @@ UIDrawSpeed(void)
 	if (bitmaphandle == NULL)
 		/* TODO: onscreen error? +save? */
 		return;
-	bitmap = MemHandleLock(bitmaphandle);
+	bitmap = (BitmapPtr)MemHandleLock(bitmaphandle);
 	_WinDrawBitmap(bitmap, sWidth - 12, 2);
 	MemPtrUnlock(bitmap);
 	DmReleaseResource(bitmaphandle);
@@ -2034,7 +2043,7 @@ cycleSpeed(void)
 		{SPEED_TURBO, SPEED_PAUSED}
 	};
 
-	int i;
+	UInt16 i;
 	for (i = 0; i < (sizeof (ft) / sizeof (ft[0])); i++) {
 		if (ft[i].from == game.gameLoopSeconds) {
 			game.gameLoopSeconds = ft[i].to;
@@ -2128,7 +2137,7 @@ static struct _silkKeys {
 	{ vchrJogDown, BkJogDown },
 	{ vchrJogRelease, BkJogRelease },
 #endif
-	{ 0, 0 }
+	{ 0, BkEnd }
 };
 
 static void

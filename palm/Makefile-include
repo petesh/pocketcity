@@ -11,7 +11,7 @@ RC = pilrc
 RCFLAGS = -q
 
 OPTFLAGS = -O2
-WARNFLAGS = -Wall -Werror-implicit-function-declaration -fconserve-space
+WARNFLAGS = -W -Wall -fconserve-space
 INCLUDES = -I . -I ../source
 DEFINES = -D$(PLATFORM)
 

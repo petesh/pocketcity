@@ -29,7 +29,7 @@ UIResetViewable(void)
 }
 
 static void
-doOpen(GtkFileSelection *sel, gpointer data, int palm)
+doOpen(GtkFileSelection *sel __attribute__((unused)), gpointer data, int palm)
 {
 	savegamename = (gchar*)gtk_file_selection_get_filename(
 	    GTK_FILE_SELECTION(data));
@@ -54,7 +54,8 @@ open_platfilename(GtkFileSelection *sel, gpointer data)
 }
 
 void
-UIOpenGame(GtkWidget *w, gpointer data)
+UIOpenGame(GtkWidget *w __attribute__((unused)),
+    gpointer data __attribute__((unused)))
 {
 	GtkWidget *fileSel;
 
@@ -73,7 +74,8 @@ UIOpenGame(GtkWidget *w, gpointer data)
 }
 
 void
-UINewGame(GtkWidget *w, gpointer data)
+UINewGame(GtkWidget *w __attribute__((unused)),
+    gpointer data __attribute__((unused)))
 {
 	SetupNewGame();
 	UIResetViewable();
@@ -82,7 +84,7 @@ UINewGame(GtkWidget *w, gpointer data)
 
 
 void
-store_filename(GtkFileSelection *sel, gpointer data)
+store_filename(GtkFileSelection *sel __attribute__((unused)), gpointer data)
 {
 	savegamename = (gchar*)gtk_file_selection_get_filename(
 	    GTK_FILE_SELECTION(data));
@@ -91,7 +93,8 @@ store_filename(GtkFileSelection *sel, gpointer data)
 }
 
 void
-UISaveGameAs(GtkWidget *w, gpointer data)
+UISaveGameAs(GtkWidget *w __attribute__((unused)),
+    gpointer data __attribute__((unused)))
 {
 	GtkWidget *fileSel;
 
@@ -110,7 +113,8 @@ UISaveGameAs(GtkWidget *w, gpointer data)
 }
 
 void
-UISaveGame(GtkWidget *w, gpointer data)
+UISaveGame(GtkWidget *w __attribute__((unused)),
+    gpointer data __attribute__((unused)))
 {
 	if (savegamename == NULL) {
 		UISaveGameAs(NULL, 0);

@@ -25,12 +25,12 @@ typedef struct _stacky {
 void *
 StackNew(void)
 {
-	Stacky *s = MemPtrNew(sizeof (Stacky));
+	Stacky *s = (Stacky *)MemPtrNew(sizeof (Stacky));
 	if (s == NULL)
 		return (NULL);
 	s->sl = 128;
 	if ((NULL == (s->sh = MemHandleNew(s->sl * sizeof (long)))) ||
-	    (NULL == (s->ss = MemHandleLock(s->sh)))) {
+	    (NULL == (s->ss = (Int32 *)MemHandleLock(s->sh)))) {
 		if (s->sh) MemHandleFree(s->sh);
 		MemPtrFree(s);
 		return (NULL);
@@ -81,7 +81,7 @@ StackPush(Stacky *sp, Int32 elt)
 		if (errNone != MemHandleResize(sp->sh, sn)) {
 			ErrFatalDisplayIf(1, "Resize of myStack Chunk Failed");
 		}
-		sp->ss = MemHandleLock(sp->sh);
+		sp->ss = (Int32 *)MemHandleLock(sp->sh);
 		sp->se = sp->ss + (sp->sl - 1);
 		sp->sp = sp->ss + sd;
 	}

@@ -600,7 +600,7 @@ UpgradeZone(UInt32 pos)
  * XXX: actually do this
  */
 static Int16
-DoTheRoadTrip(UInt32 startPos)
+DoTheRoadTrip(UInt32 startPos __attribute__((unused)))
 {
 	return (1); /* for now */
 }

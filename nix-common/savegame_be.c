@@ -23,6 +23,12 @@ read_int8(int fd)
 	return (rv);
 }
 
+static void
+write_int8(int fd, Int8 value)
+{
+	write(fd, &value, 1);
+}
+
 static Int16
 read_int16(int fd)
 {
@@ -31,12 +37,26 @@ read_int16(int fd)
 	return (by[0] << 8 | by[1]);
 }
 
+static void
+write_int16(int fd, Int16 value)
+{
+	write_int8(fd, (value >> 8) & 0xff);
+	write_int8(fd, value & 0xff);
+}
+
 static Int32
 read_int32(int fd)
 {
 	Int8 by[4];
 	read(fd, by, 4);
 	return (by[0] << 24 | by[1] << 16 | by[2] << 8 | by[3]);
+}
+
+static void
+write_int32(int fd, Int32 value)
+{
+	write_int16(fd, (value >> 16) & 0xffff);
+	write_int16(fd, value & 0xffff);
 }
 
 static void
@@ -85,6 +105,50 @@ read_palmstructure(GameStruct *new, int fd)
 		new->objects[i].active = read_int16(fd);
 		i++;
 	}
+}
+
+static void
+write_palmstructure(GameStruct *new, int fd)
+{
+	int i;
+
+	write(fd, new->version, 4);
+	write_int8(fd, new->mapsize);
+	write_int8(fd, 0);
+	write_int32(fd, 0); /* visibles */
+	write_int16(fd, new->map_xpos);
+	write_int16(fd, new->map_ypos);
+	write_int32(fd, 0); /* cursor */
+	write_int32(fd, new->credits);
+	i = 0;
+	while(i++ < 20)
+		write_int32(fd, 0);
+	write_int32(fd, new->credits);
+	write_int8(fd, new->tax);
+	write_int8(fd, new->auto_bulldoze);
+	write_int16(fd, 0);
+	write(fd, new->cityname, CITYNAMELEN);
+	write_int8(fd, new->upkeep[0]);
+	write_int8(fd, new->upkeep[1]);
+	write_int8(fd, new->upkeep[2]);
+	write_int8(fd, new->diff_disaster);
+	i = 0;
+	while(i++ < 10) {
+		write_int16(fd, new->units[i].x);
+		write_int16(fd, new->units[i].y);
+		write_int16(fd, new->units[i].active);
+		write_int16(fd, new->units[i].type);
+		i++;
+	}
+	i = 0;
+	while (i++ < 10) {
+		write_int16(fd, new->objects[i].x);
+		write_int16(fd, new->objects[i].y);
+		write_int16(fd, new->objects[i].dir);
+		write_int16(fd, new->objects[i].active);
+		i++;
+	}
+
 }
 
 int
@@ -166,6 +230,10 @@ save_filename(char *sel, int palm)
 	}
 	/* God, I love to write all my vars at one time */
 	/* using a struct :D */
+	if (palm != 0) {
+		write_palmstructure(&game, fd);
+		return (0);
+	}
 	ret = write(fd, (void*)&game, sizeof (GameStruct));
 	if (ret == -1) {
 		perror("write game"); /* TODO: make this nicer */

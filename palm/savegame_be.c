@@ -174,10 +174,11 @@ SaveGameByIndex(UInt16 index)
 		rec = DmGetRecord(db, index);
 	} else {
 		index = DmNumRecords(db) + 1;
-	rec = DmNewRecord(db, &index, GetMapMul() + sizeof (GameStruct));
+		rec = DmNewRecord(db, &index,
+		    GetMapMul() + sizeof (GameStruct));
 	}
 	if (rec) {
-	WriteCityRecord(rec);
+		WriteCityRecord(rec);
 		DmReleaseRecord(db, index, true);
 	}
 
@@ -252,6 +253,9 @@ CreateNewSaveGame(char *name)
 				 */
 				rec = DmNewRecord(db, &index, CITYNAMELEN);
 				if (rec) {
+					MemPtr mp = MemHandleLock(rec);
+					DmWrite(mp, 0, name, CITYNAMELEN);
+					MemHandleUnlock(mp);
 					DmReleaseRecord(db, index, true);
 				}
 			}
@@ -259,8 +263,8 @@ CreateNewSaveGame(char *name)
 			rec = DmNewRecord(db, &index,
 			    GetMapMul() + sizeof (game));
 			if (rec) {
-		NewGame();
-		WriteCityRecord(rec);
+				NewGame();
+				WriteCityRecord(rec);
 				DmReleaseRecord(db, index, true);
 			}
 		}

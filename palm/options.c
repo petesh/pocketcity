@@ -198,18 +198,6 @@ static const struct bc_chelts {
 static char **Popups;
 
 /*
- * c++ isms
- */
-#if defined(__cplusplus)
-ButtonKey
-operator++(ButtonKey &bk, int x)
-{
-	bk = (ButtonKey)((int)bk++);
-	return (bk);
-}
-#endif
-
-/*
  * set up the button config form.
  * Adds the string lists to the popups on the screen.
  * Saves having to have multiple copies in the form

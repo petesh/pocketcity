@@ -33,22 +33,22 @@ void UIQuitGame(GtkWidget *w, gpointer data);
 void UISetSpeed(GtkWidget *w, gpointer data);
 
 GtkItemFactoryEntry menu_items[] = {
-	{ "/_File", NULL, NULL, 0, "<Branch>" },
-	{ "/File/_New", "<control>N", UINewGame, 0, NULL },
-	{ "/File/_Open", "<control>O", UIOpenGame, 0, NULL },
-	{ "/File/_Save", "<control>S", UISaveGame, 0, NULL },
-	{ "/File/Save _As", NULL, UISaveGameAs, 0, NULL },
-	{ "/File/sep1",	NULL, NULL, 0, "<Separator>" },
-	{ "/File/_Quit", NULL, UIQuitGame, 0, NULL },
-	{ "/_View", NULL, NULL, 	0, "<Branch>" },
-	{ "/View/_Budget", NULL, UIViewBudget, 0, NULL },
-	{ "/_Speed", NULL, NULL, 0, "<Branch>" },
-	{ "/Speed/_Pause", NULL, UISetSpeed, SPEED_PAUSED, NULL	},
-	{ "/Speed/sep1", NULL, NULL, 0, "<Separator>" },
-	{ "/Speed/_Slow", NULL, UISetSpeed, SPEED_SLOW, NULL },
-	{ "/Speed/_Medium", NULL, UISetSpeed, SPEED_MEDIUM, NULL },
-	{ "/Speed/_Fast", NULL, UISetSpeed, SPEED_FAST, NULL },
-	{ "/Speed/_Turbo", NULL, UISetSpeed, SPEED_TURBO, NULL	},
+	{ "/_File", NULL, NULL, 0, "<Branch>", 0 },
+	{ "/File/_New", "<control>N", UINewGame, 0, NULL, 0 },
+	{ "/File/_Open", "<control>O", UIOpenGame, 0, NULL, 0 },
+	{ "/File/_Save", "<control>S", UISaveGame, 0, NULL, 0 },
+	{ "/File/Save _As", NULL, UISaveGameAs, 0, NULL, 0 },
+	{ "/File/sep1",	NULL, NULL, 0, "<Separator>", 0 },
+	{ "/File/_Quit", NULL, UIQuitGame, 0, NULL, 0 },
+	{ "/_View", NULL, NULL,	0, "<Branch>", 0 },
+	{ "/View/_Budget", NULL, UIViewBudget, 0, NULL, 0 },
+	{ "/_Speed", NULL, NULL, 0, "<Branch>", 0 },
+	{ "/Speed/_Pause", NULL, UISetSpeed, SPEED_PAUSED, NULL, 0 },
+	{ "/Speed/sep1", NULL, NULL, 0, "<Separator>", 0 },
+	{ "/Speed/_Slow", NULL, UISetSpeed, SPEED_SLOW, NULL, 0 },
+	{ "/Speed/_Medium", NULL, UISetSpeed, SPEED_MEDIUM, NULL, 0 },
+	{ "/Speed/_Fast", NULL, UISetSpeed, SPEED_FAST, NULL, 0 },
+	{ "/Speed/_Turbo", NULL, UISetSpeed, SPEED_TURBO, NULL, 0 },
 };
 
 int
@@ -76,14 +76,14 @@ unsigned int timekeeper = 0;
 unsigned int timekeeperdisaster = 0;
 
 void
-UISetSpeed(GtkWidget *w, gpointer data)
+UISetSpeed(GtkWidget *w __attribute__((unused)), gpointer data)
 {
 	WriteLog("Setting speed to %i\n", GPOINTER_TO_INT(data));
 	game.gameLoopSeconds = GPOINTER_TO_INT(data);
 }
 
 static gint
-mainloop_callback(gpointer data)
+mainloop_callback(gpointer data __attribute__((unused)))
 {
 	/* this will be called every second */
 	unsigned int phase = 1;
@@ -114,14 +114,14 @@ mainloop_callback(gpointer data)
 }
 
 static gint
-toolbox_callback(GtkWidget *widget, gpointer data)
+toolbox_callback(GtkWidget *widget __attribute__((unused)), gpointer data)
 {
 	selectedBuildItem = GPOINTER_TO_INT(data);
 	return (FALSE);
 }
 
 void
-scrollbar(GtkAdjustment *adj)
+scrollbar(GtkAdjustment *adj __attribute__((unused)))
 {
 	Goto(GTK_ADJUSTMENT(playscrollerh)->value,
 	    GTK_ADJUSTMENT(playscrollerv)->value);
@@ -139,14 +139,17 @@ ResizeCheck(int width, int height)
 }
 
 void
-checkresize(GtkContainer *widget, GdkEvent *event, gpointer data)
+checkresize(GtkContainer *widget __attribute__((unused)), GdkEvent *event,
+    gpointer data __attribute__((unused)))
 {
 	GdkEventConfigure *gek = (GdkEventConfigure *)event;
 	ResizeCheck(gek->width, gek->height);
 }
 
 static gint
-delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+delete_event(GtkWidget *widget __attribute__((unused)),
+    GdkEvent *event __attribute__((unused)),
+    gpointer data __attribute__((unused)))
 {
 	gtk_main_quit();
 	return (FALSE);
@@ -157,7 +160,9 @@ delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
  * It's an expose event for the drawing widget only.
  */
 static gint
-drawing_exposed_callback(GtkWidget *widget, GdkEvent *event, gpointer data)
+drawing_exposed_callback(GtkWidget *widget __attribute__((unused)),
+    GdkEvent *event __attribute__((unused)),
+    gpointer data __attribute__((unused)))
 {
 	RedrawAllFields();
 
@@ -165,7 +170,9 @@ drawing_exposed_callback(GtkWidget *widget, GdkEvent *event, gpointer data)
 }
 
 static gint
-drawing_realized_callback(GtkWidget *widget, GdkEvent *event, gpointer data)
+drawing_realized_callback(GtkWidget *widget __attribute__((unused)),
+    GdkEvent *event __attribute__((unused)),
+    gpointer data __attribute__((unused)))
 {
 	PCityMain();
 	UINewGame(NULL, 0);
@@ -175,7 +182,8 @@ drawing_realized_callback(GtkWidget *widget, GdkEvent *event, gpointer data)
 
 
 static gint
-button_press_event(GtkWidget *widget, GdkEventButton *event)
+button_press_event(GtkWidget *widget __attribute__((unused)),
+    GdkEventButton *event)
 {
 	if (event->button == 1) {
 		BuildSomething(
@@ -191,7 +199,8 @@ button_press_event(GtkWidget *widget, GdkEventButton *event)
 }
 
 static gint
-motion_notify_event(GtkWidget *widget, GdkEventMotion *event)
+motion_notify_event(GtkWidget *widget __attribute__((unused)),
+    GdkEventMotion *event)
 {
 	int x, y;
 	GdkModifierType state;
@@ -504,7 +513,7 @@ UIUpdateBuildIcon(void)
 }
 
 void
-UIGotoForm(Int16 n)
+UIGotoForm(Int16 n __attribute__((unused)))
 {
 	WriteLog("UIGotoForm\n");
 }
@@ -516,7 +525,7 @@ UICheckMoney(void)
 }
 
 void
-UIScrollMap(dirType direction)
+UIScrollMap(dirType direction __attribute__((unused)))
 {
 	/* TODO: Optimize this as in the Palm port? */
 	/*	   (if nessasary) */
@@ -524,7 +533,9 @@ UIScrollMap(dirType direction)
 }
 
 void
-_UIDrawRect(Int16 nTop, Int16 nLeft, Int16 nHeight, Int16 nWidth)
+_UIDrawRect(Int16 nTop __attribute__((unused)),
+    Int16 nLeft __attribute__((unused)), Int16 nHeight __attribute__((unused)),
+    Int16 nWidth __attribute__((unused)))
 {
 	WriteLog("_UIDrawRect\n");
 }
@@ -597,7 +608,8 @@ UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos)
 }
 
 void
-UIDrawCursor(Int16 xpos, Int16 ypos)
+UIDrawCursor(Int16 xpos __attribute__((unused)),
+    Int16 ypos __attribute__((unused)))
 {
 	/* not used on this platform */
 }
@@ -776,7 +788,7 @@ MapHasJumped(void)
 }
 
 void
-UISetTileSize(Int16 size)
+UISetTileSize(Int16 size __attribute__((unused)))
 {
 	WriteLog("UISetTileSize\n");
 }
@@ -793,7 +805,8 @@ UIDrawPop(void)
 }
 
 void
-UIQuitGame(GtkWidget *w, gpointer data)
+UIQuitGame(GtkWidget *w __attribute__((unused)),
+    gpointer data __attribute__((unused)))
 {
 	gtk_main_quit();
 }

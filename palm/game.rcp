@@ -4,8 +4,6 @@ ICONFAMILYEX COMPRESS
 BEGIN
   BITMAP "graphic/pcity.bmp" BPP 1 DENSITY 1
   BITMAP "graphic/pcity-color.bmp" BPP 8 DENSITY 1
-  BITMAP "graphic/pcity-hd.bmp" BPP 1 DENSITY 2
-  BITMAP "graphic/pcity-color-hd.bmp" BPP 8 DENSITY 2
 END
 
 SMALLICONFAMILYEX COMPRESS

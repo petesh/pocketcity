@@ -45,7 +45,7 @@ budget_traffic(GtkAdjustment *adj)
 {
 	char temp[20];
 	game.upkeep[UPKEEPS_TRAFFIC] = gtk_adjustment_get_value(
-	    GTK_ADJUSTMENT(adjust_tra));
+	    GTK_ADJUSTMENT(adj));
 	sprintf(temp, "%li", (long)BudgetGetNumber(bnTraffic));
 	gtk_label_set_text((GtkLabel*)ltra, temp);
 }
@@ -56,7 +56,7 @@ budget_power(GtkAdjustment *adj)
 	char temp[20];
 
 	game.upkeep[UPKEEPS_POWER] = gtk_adjustment_get_value(
-	    GTK_ADJUSTMENT(adjust_pow));
+	    GTK_ADJUSTMENT(adj));
 	sprintf(temp, "%li", (long)BudgetGetNumber(bnPower));
 	gtk_label_set_text((GtkLabel*)lpow, temp);
 }
@@ -67,13 +67,14 @@ budget_defence(GtkAdjustment *adj)
 	char temp[20];
 
 	game.upkeep[UPKEEPS_DEFENCE] = gtk_adjustment_get_value(
-	    GTK_ADJUSTMENT(adjust_def));
+	    GTK_ADJUSTMENT(adj));
 	sprintf(temp, "%li", (long)BudgetGetNumber(bnDefence));
 	gtk_label_set_text((GtkLabel*)ldef, temp);
 }
 
 gint
-close_budget(GtkWidget *widget, gpointer data)
+close_budget(GtkWidget *widget __attribute__((unused)),
+    gpointer data __attribute__((unused)))
 {
 	dlg = 0;
 	return (FALSE);
@@ -100,7 +101,8 @@ create_right_label(void)
 }
 
 void
-UIViewBudget(GtkWidget *w, gpointer data)
+UIViewBudget(GtkWidget *w __attribute__((unused)),
+    gpointer data __attribute__((unused)))
 {
 	GtkWidget *table, *mainbox;
 	GtkWidget *spinner;

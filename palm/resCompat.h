@@ -8,8 +8,8 @@
 #include <FontSelect.h>
 #include <SonyCLIE.h>
 
-extern UInt32 sWidth;
-extern UInt32 sHeight;
+extern Int32 sWidth;
+extern Int32 sHeight;
 #define	SETWIDTH(x)	sWidth = (x)
 #define	SETHEIGHT(y)	sHeight = (y)
 Err loadHiRes(void);

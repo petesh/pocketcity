@@ -45,7 +45,7 @@ typedef enum buttonKeys {
 } ButtonKey;
 
 typedef struct _PalmAppConfig_01 {
-	ButtonKey	keyOptions[BeEnd];
+	ButtonEvent	keyOptions[BkEnd];
 } PalmAppConfig_01_t;
 
 typedef PalmAppConfig_01_t PlatformAppConfig;
