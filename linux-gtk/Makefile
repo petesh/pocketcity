@@ -4,7 +4,9 @@ GFLAGS := $(shell pkg-config --cflags gtk+-2.0)
 OPTFLAGS = -O2 -Wall
 CFLAGS = $(OPTFLAGS) -DLINUX $(GFLAGS) -I . -I ../source
 GLFLAGS = $(shell pkg-config --libs gtk+-2.0)
-LFLAGS = $(GLFLAGS)
+LIBS =
+LDLIBS = $(LIBS) $(GLFLAGS)
+
 OBJECTS = main.o savegame.o budget.o \
 	handler.o build.o disaster.o drawing.o globals.o simulation.o \
 	stack.o
@@ -17,7 +19,7 @@ debug: CFLAGS += -g -DDEBUG
 debug: all
 
 pocketcity: $(OBJECTS)
-	$(CC) $(CFLAGS) $(LFLAGS) $(OBJECTS) -o $@
+	$(CC) $(CFLAGS) $(OBJECTS) -o $@ $(LDLIBS)
 
 %.o: %.c %.h ../source/zakdef.h ../source/ui.h
 	$(CC) $(CFLAGS) -c $< -o $@
