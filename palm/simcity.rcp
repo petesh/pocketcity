@@ -11,7 +11,7 @@ BEGIN
 END
 
 VERSION 1 "1.0"
-ICON "graphic//pcity.bmp"
+ICON "graphic/pcity.bmp"
 smallicon "graphic/pcitysmall.bmp"
 
 MENU ID menuID_pocketCity

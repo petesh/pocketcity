@@ -19,6 +19,8 @@ int DoTheRoadTrip(long unsigned int startPos);
 signed long GetZoneScore(long unsigned int pos);
 signed int GetScoreFor(unsigned char iamthis, unsigned char what);
 long unsigned int GetRandomZone(void);
+void FindZonesForUpgrading(void);
+int FindScoreForZones(void);
 
 extern void Sim_DistributePower(void)
 {
@@ -171,42 +173,82 @@ unsigned long PowerMoveOn(unsigned long pos, int direction)
 
 }
 
-void UpgradeZones()
+long unsigned int Zones[256];
+signed long ZonePoints[256];
+unsigned int zoneCount=0;
+void FindZonesForUpgrading()
 {
-	long unsigned int Zones[256];
-	signed long ZonePoints[256];
-	int i,j,zoneCount=0,topscorer;
-	long signed topscore;
+	int i;
+	long signed score;
 	long signed int randomZone;
-
-	int downCount = 11*tax+30;
-	int upCount = (0-8)*tax+250;
 
 	int max = mapsize*3;
 	if (max > 256) { max = 256; }
-
-
+	zoneCount = 0;
+	
 	// find some random zones and their scores
 	for (i=0; i<max; i++)
 	{
 		randomZone = GetRandomZone();
 		if (randomZone != -1) // -1 means we didn't find a zone
 		{
-			topscore = GetZoneScore(randomZone);
-			if (topscore != -1)	// -1 means we can't do the road trip from that zone
-			{
+//			score = GetZoneScore(randomZone);
+//			if (score != -1)	// -1 means we can't do the road trip from that zone
+//			{
 				Zones[zoneCount] = randomZone;
-				ZonePoints[zoneCount] = topscore;
+//				ZonePoints[zoneCount] = score;
 				zoneCount++;
-			}
-			else
-			{
-				// this zone should be downgrade right away
-				DowngradeZone(randomZone);
-			}
+//			}
+//			else
+//			{
+//				// this zone should be downgrade right away
+//				DowngradeZone(randomZone);
+//			}
 		}
 	}
+}
 
+
+/*
+The score finding routine is divided into small
+bits of 10 zones per run.
+This is to free the programflow to take care of
+user interaction - in general, all functions
+in the simulation part should complete in under 3/4 second,
+or the user might see the program as being slow.
+
+Still wondering why there's no support for multitaskning in PalmOS...
+*/
+
+unsigned int counter=0;
+int FindScoreForZones()
+{
+	int i;
+	long signed int score;
+	for (i=counter; i<counter+10; i++)
+	{
+		if (i>zoneCount) { return 0; } // this was the last zone!
+		score = GetZoneScore(Zones[i]);
+		if (score != -1)
+		{
+			ZonePoints[i] = score;
+		} else {
+			DowngradeZone(Zones[i]);
+			ZonePoints[i] = -1;
+		}
+	}
+	return 1; // there's still more zones that need a score.
+
+}
+
+
+void UpgradeZones()
+{
+	int i,j,topscorer;
+	long signed topscore;
+
+	int downCount = 11*tax+30;
+	int upCount = (0-8)*tax+250;
 
 	// upgrade the bests
 	for (i=0; i<zoneCount && i<upCount; i++)
@@ -412,14 +454,19 @@ extern int Sim_DoPhase(int nPhase)
 		nPhase++;
 		break;
 	case 2:
-		UpgradeZones();
+		FindZonesForUpgrading();
 		nPhase++;
 		break;
 	case 3:
-	//	DowngradeZones();
-		nPhase++;
+		if (FindScoreForZones() == 0) {
+			nPhase++;
+		}
 		break;
 	case 4:
+		UpgradeZones();
+		nPhase++;
+		break;
+	case 5:
 		TimeElapsed++;
 		nPhase++;
 		UIInitDrawing();

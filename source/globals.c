@@ -9,15 +9,16 @@ long signed int credits = 80000;
 long unsigned int BuildCount[6];
 long unsigned int TimeElapsed=0; // months since Jan 2000
 int tax=8;
-int TILE_SIZE = 16;
 
 
 
 
 #ifdef __palmos__
+int TILE_SIZE = 16;
 int visible_x = 8;
 int visible_y = 8;
-#else // we have a nokia :)
+#else // we have a nokia :) (still running without zoom)
+int TILE_SIZE = 24;
 int visible_x = 19;
 int visible_y = 7;
 #endif
