@@ -78,4 +78,4 @@ simulation.o: ../source/simulation.c
 
 
 clean:
-	rm -f *.bin *.o *.grc *.stm simcity tempbw/*.bin tempcolor/*.bin temp/*
+	rm -f *.bin *.o *.grc *.stm simcity tempbw/*.bin tempcolor/*.bin temp/*.bin
