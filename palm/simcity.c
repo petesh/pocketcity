@@ -727,9 +727,10 @@ hPocketCity(EventPtr event)
 {
 	FormPtr form;
 	Boolean handled = false;
+	PointType minimperc;
 #if defined(HRSUPPORT)
 	Boolean redraw;
-	Int16 hOff, vOff;
+	Int16 hOff = 0, vOff = 0;
 #endif
 
 	switch (event->eType) {
@@ -742,6 +743,14 @@ hPocketCity(EventPtr event)
 		SetSilkResizable(NULL, false);
 		break;
 	case penDownEvent:
+		minimperc.x = event->screenX;
+		minimperc.y = event->screenY;
+
+		if (minimapIsTapped(&minimperc, &minimperc)) {
+			Goto(minimperc.x, minimperc.y, 1);
+			handled = true;
+			break;
+		}
 		scaleEvent(event);
 		if (RctPtInRectangle(event->screenX, event->screenY,
 		    &rPlayGround)) {

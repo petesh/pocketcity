@@ -48,4 +48,4 @@ void minimapPaint(void);
  * \return non-zero if the map has been tapped, zero otherwise.
  */
 Int8
-MinimapIsTapped(PointType *point, PointType *percentage);
+minimapIsTapped(PointType *point, PointType *percentage);

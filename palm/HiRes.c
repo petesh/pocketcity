@@ -58,15 +58,21 @@ setScreenRes(void)
 		SETWIDTH(BASEWIDTH * 1.5);
 		SETHEIGHT(BASEHEIGHT * 1.5);
 		break;
+	case kDensityLow:
+		WriteLog("Single Density\n");
+		SETWIDTH(BASEWIDTH);
+		SETHEIGHT(BASEHEIGHT);
 	default:
 		if (sonyHires()) {
 			WriteLog("Sony High Density\n");
 			SETWIDTH(BASEWIDTH * 2);
 			SETHEIGHT(BASEHEIGHT * 2);
 		} else {
-			WriteLog("Single Density\n");
+			WriteLog("Fallthru - Single Density (%d)\n",
+			    (int)highDensityFeatureSet());
 			SETWIDTH(BASEWIDTH);
 			SETHEIGHT(BASEHEIGHT);
+
 		}
 		break;
 	}
@@ -250,7 +256,7 @@ scaleCoord(Coord x)
 Coord
 normalizeCoord(Coord x)
 {
-	Int32 mul = sonyHires() ? kDensityDouble : hdfs;
+	Int32 mul = sonyHires() ? kDensityDouble : (hdfs ? hdfs : kDensityLow);
 	return ((Coord)((Int32)x * kDensityLow / mul));
 }
 

@@ -64,9 +64,9 @@ minimapPaint(void)
 
 	WinEraseRectangle(&minimap.rect, 0);
 	minimap.rout.topLeft.x = minimap.rect.topLeft.x +
-	    (Int32)getMapXPos() / getMapWidth() * minimap.rect.extent.x;
+	    (Int32)getMapXPos() * minimap.rect.extent.x / getMapWidth();
 	minimap.rout.topLeft.y = minimap.rect.topLeft.y +
-	    (Int32)getMapYPos() / getMapHeight() * minimap.rect.extent.y;
+	    (Int32)getMapYPos() * minimap.rect.extent.y / getMapHeight();
 	WriteLog("Minimap rect = (%d,%d) -> (%d,%d)\n", minimap.rout.topLeft.x,
 	    minimap.rout.topLeft.y, minimap.rout.extent.x,
 	    minimap.rout.extent.y);
