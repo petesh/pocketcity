@@ -5,6 +5,7 @@
 #include "globals.h"
 #include "handler.h"
 #include "disaster.h"
+#include "simulation.h"
 
 int powerleft=0;
 char distributetype = 0;
@@ -520,6 +521,61 @@ long unsigned int GetRandomZone()
 
     UnlockWorld();
     return -1;
+}
+
+extern signed long int BudgetGetNumber(int type)
+{
+    signed long int ret = 0;
+    switch (type) {
+        case BUDGET_RESIDENTIAL:
+            ret = game.BuildCount[COUNT_RESIDENTIAL]
+                    * INCOME_RESIDENTIAL
+                    * game.tax/100;
+            break;
+        case BUDGET_COMMERCIAL:
+            ret = game.BuildCount[COUNT_COMMERCIAL]
+                    * INCOME_COMMERCIAL
+                    * game.tax/100;
+            break;
+        case BUDGET_INDUSTRIAL:
+            ret = game.BuildCount[COUNT_INDUSTRIAL]
+                    * INCOME_INDUSTRIAL
+                    * game.tax/100;
+            break;
+        case BUDGET_TRAFFIC:
+            ret = (game.BuildCount[COUNT_ROADS] * UPKEEP_ROAD
+                    * game.upkeep[UPKEEPS_TRAFFIC])/100;
+            break;
+        case BUDGET_POWER:
+            ret = ((game.BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE +
+                    game.BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT +
+                    game.BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT)
+                    * game.upkeep[UPKEEPS_POWER])/100;
+            break;
+        case BUDGET_DEFENCE:
+            ret = ((game.BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS +
+                     game.BuildCount[COUNT_POLICE_STATIONS]*UPKEEP_POLICE_STATIONS +
+                     game.BuildCount[COUNT_MILITARY_BASES]*UPKEEP_MILITARY_BASES)
+                    * game.upkeep[UPKEEPS_DEFENCE])/100;
+            break;
+        case BUDGET_CURRENT_BALANCE:
+            ret = game.credits;
+            break;
+        case BUDGET_CHANGE:
+            ret = BudgetGetNumber(BUDGET_RESIDENTIAL)
+                  + BudgetGetNumber(BUDGET_COMMERCIAL)
+                  + BudgetGetNumber(BUDGET_INDUSTRIAL)
+                  - BudgetGetNumber(BUDGET_TRAFFIC)
+                  - BudgetGetNumber(BUDGET_POWER)
+                  - BudgetGetNumber(BUDGET_DEFENCE);
+            break;
+        case BUDGET_NEXT_MONTH:
+            ret = BudgetGetNumber(BUDGET_CURRENT_BALANCE) +
+                  BudgetGetNumber(BUDGET_CHANGE);
+            break;
+    }
+
+    return ret;
 }
 
 void DoTaxes()

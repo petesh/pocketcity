@@ -85,6 +85,7 @@ gint mainloop_callback(gpointer data)
     unsigned int phase = 1;
     timekeeper++;
     timekeeperdisaster++;
+    
 
     if (timekeeperdisaster >= SIM_GAME_LOOP_DISASTER) {
         MoveAllObjects();
@@ -102,6 +103,7 @@ gint mainloop_callback(gpointer data)
         gtk_widget_queue_draw(drawingarea);
     }
 
+    UIUpdateBudget();
     return TRUE; // yes, call us again in a sec
 }
 
@@ -381,26 +383,10 @@ extern void UIDrawBorder(void)
 extern void UIDrawCredits(void)
 {
     char temp[23];
-    char date[40];
     sprintf(temp, "$: %ld", game.credits);
     gtk_label_set_text((GtkLabel*)creditslabel, temp);
     GetDate((char*)temp);
-    if(game.gameLoopSeconds == SPEED_PAUSED) {
-    	sprintf(date,"(Paused) %s",temp);
-    }
-    else if(game.gameLoopSeconds == SPEED_SLOW) {
-    	sprintf(date,"(Slow) %s",temp);
-    }
-    else if(game.gameLoopSeconds == SPEED_MEDIUM) {
-    	sprintf(date,"(Medium) %s",temp);
-    }
-    else if(game.gameLoopSeconds == SPEED_FAST) {
-    	sprintf(date,"(Fast) %s",temp);
-    }
-    else if(game.gameLoopSeconds == SPEED_TURBO) {
-    	sprintf(date,"(Speed Of Light) %s",temp);
-    }   
-    gtk_label_set_text((GtkLabel*)timelabel, date);
+    gtk_label_set_text((GtkLabel*)timelabel, temp);
 }
 
 extern void UIUpdateBuildIcon(void)
