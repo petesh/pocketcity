@@ -424,14 +424,12 @@ finish:
 		SetWorld(WORLDPOS(xpos, ypos), Z_REALWATER);
 	} else {
 		if ((x_destroy != 1) || (y_destroy != 1)) {
-			xpos--;
-			ypos--;
 			ty_destroy = y_destroy;
 			while(ty_destroy) {
 				tx_destroy=x_destroy;
 				while(tx_destroy) {
-					SetWorld(WORLDPOS(xpos + tx_destroy,
-					    ypos + ty_destroy), Z_DIRT);
+					SetWorld(WORLDPOS(xpos - 1 + tx_destroy,
+					    ypos - 1 + ty_destroy), Z_DIRT);
 					tx_destroy--;
 				}
 				ty_destroy--;
