@@ -1,9 +1,10 @@
-/*
+/*!
+ * \file
  * Part of the pocketcity application.
- */
-
-/*
- * This provides the stack functions for a unix/linux box. It's almost
+ *
+ * \brief This provides the stack functions for a unix/linux box.
+ *
+ * It's almost
  * identical to the palm one except it uses malloc/realloc normally.
  * realloc on palm has problems (fragmented heap)
  */
@@ -16,18 +17,23 @@
 #include <assert.h>
 #include <appconfig.h>
 
+/*!
+ * \brief the data structure for the stack object
+ */
 typedef struct tag_dsObj {
-	Int32 *bp;
-	Int32 *sp;
-	Int32 *se;
-	Int32 sl;
+	Int32 *bp; /*!< base pointer */
+	Int32 *sp; /*!< stack pointer */
+	Int32 *se; /*!< stack end */
+	Int32 sl; /*!< stack length */
 } dsObj;
 
 #define	STACK_IMPL
 #include <stack.h>
 
-/*
- * resize the stack based on the current size
+/*!
+ * \brief resize the stack based on the current size
+ * \param sp the stack object
+ * \param newSize the new size of the stack
  */
 static void
 StackResize(dsObj *sp, Int32 newSize)
@@ -39,9 +45,6 @@ StackResize(dsObj *sp, Int32 newSize)
 	sp->sp = sp->bp + sd;
 }
 
-/*
- * Create a new stack/list
- */
 dsObj *
 StackNew(void)
 {
@@ -49,9 +52,6 @@ StackNew(void)
 	return (rv);
 }
 
-/*
- * Delete the stack
- */
 void
 StackDelete(dsObj *sp)
 {
@@ -59,9 +59,6 @@ StackDelete(dsObj *sp)
 	free(sp);
 }
 
-/*
- * add an item to the stack
- */
 void
 StackPush(dsObj *sp, Int32 value)
 {
@@ -69,9 +66,6 @@ StackPush(dsObj *sp, Int32 value)
 	*(++sp->sp) = value;
 }
 
-/*
- * pop an item from the stack
- */
 Int32
 StackPop(dsObj *sp)
 {
@@ -84,9 +78,6 @@ StackPop(dsObj *sp)
 	return (-1);
 }
 
-/*
- * is the stack empty
- */
 Int8
 StackIsEmpty(dsObj *sp)
 {
@@ -95,9 +86,6 @@ StackIsEmpty(dsObj *sp)
 	return ((Int8)(sp->sp < sp->bp));
 }
 
-/*
- * empty the stack
- */
 void
 StackDoEmpty(dsObj *sp)
 {
@@ -105,21 +93,12 @@ StackDoEmpty(dsObj *sp)
 		sp->sp = sp->bp - 1;
 }
 
-/*!
- * \brief get count of number of emements in stack
- */
 int
 StackNElements(dsObj *sp)
 {
 	return ((sp->sp+1) - sp->bp);
 }
 
-/*!
- * \brief get an element form the list
- * \param sp the list data structure
- * \param index the element index to retrieve
- * \return the element in the list (or -1)
- */
 Int32
 ListGet(dsObj *sp, Int32 index)
 {
@@ -128,12 +107,6 @@ ListGet(dsObj *sp, Int32 index)
 	return (sp->bp[index + 1]);
 }
 
-/*!
- * \brief set an element in the list
- * \param sp the pointer to the stack object
- * \param index the index of the item
- * \param element the value to set the item to
- */
 void
 ListSet(dsObj *sp, Int32 index, Int32 element)
 {
@@ -141,12 +114,6 @@ ListSet(dsObj *sp, Int32 index, Int32 element)
 		sp->bp[index+1] = element;
 }
 
-/*!
- * \brief insert an element into a list
- * \param sp the list data structure
- * \param index the index to place the element
- * \param element the element to add
- */
 void
 ListInsert(dsObj *sp, Int32 index, Int32 element)
 {
@@ -160,12 +127,6 @@ ListInsert(dsObj *sp, Int32 index, Int32 element)
 	}
 }
 
-/*
- * \brief remove an element from a list
- * \param sp the data structure pointer
- * \param index the element index to remove from the list
- * \return the list element that was removed (or -1)
- */
 Int32
 ListRemove(dsObj *ds, Int32 index)
 {

@@ -28,13 +28,6 @@ static UInt16 ContainsDefence(Int16 x, Int16 y) DISASTER_SECTION;
 static void MonsterCheckSurrounded(Int16 i) DISASTER_SECTION;
 static void CreateMeteor(Int16 x, Int16 y, Int16 size) DISASTER_SECTION;
 
-/*!
- * \brief Do nasty things to a location.
- *
- * turns a zone into wasteland based on the normalized probability.
- * \param type of zone that can be affected
- * \param probability the normalized probability of something bad happens
- */
 void
 DoNastyStuffTo(welem_t type, UInt16 probability)
 {
@@ -59,9 +52,6 @@ DoNastyStuffTo(welem_t type, UInt16 probability)
 	UnlockZone(lz_world);
 }
 
-/*!
- * \brief Do a random disaster.
- */
 void
 DoRandomDisaster(void)
 {
@@ -105,10 +95,6 @@ DoRandomDisaster(void)
 	UnlockZone(lz_world);
 }
 
-/*!
- * \brief Deliberately cause a disaster.
- * \param disaster the type of the disaster to cause.
- */
 void
 DoSpecificDisaster(erdiType disaster)
 {
@@ -148,12 +134,6 @@ DoSpecificDisaster(erdiType disaster)
 	}
 }
 
-/*!
- * \brief Make sure the disasters are still happening.
- *
- * Causes all disasters to go to their next stage.
- * \return true if zone was affected.
- */
 Int16
 UpdateDisasters(void)
 {
@@ -199,7 +179,7 @@ UpdateDisasters(void)
  * \param x position on horizontal of map to spread fire
  * \param y position on vertical of map to spread fire
  */
-void
+static void
 FireSpread(Int16 x, Int16 y)
 {
 	if (x > 0)
@@ -212,14 +192,6 @@ FireSpread(Int16 x, Int16 y)
 		BurnField(x, y + 1, 0);
 }
 
-/*!
- * \brief burn the field specified.
- *
- * Can be forced to burn.
- * \param x position on horizontal of map to spread fire
- * \param y position on vertical of map to spread fire
- * \return true if field was burned.
- */
 Int16
 BurnField(Int16 x, Int16 y, Int16 forceit)
 {
@@ -251,12 +223,6 @@ BurnField(Int16 x, Int16 y, Int16 forceit)
 	return (rv);
 }
 
-/*!
- * \brief Create a 'zilla at the location specified.
- * \param x position on horizontal of map to spread fire
- * \param y position on vertical of map to spread fire
- * \return true if monster was created
- */
 Int16
 CreateMonster(Int16 x, Int16 y)
 {
@@ -277,12 +243,6 @@ CreateMonster(Int16 x, Int16 y)
 	return (rv);
 }
 
-/*!
- * \brief Create a dragon at the location.
- * \param x position on horizontal of map to spread fire
- * \param y position on vertical of map to spread fire
- * \return true if dragon was created
- */
 Int16
 CreateDragon(Int16 x, Int16 y)
 {
@@ -307,7 +267,7 @@ CreateDragon(Int16 x, Int16 y)
  * \brief Check if a monster is surrounded by defensive units.
  * \param i index of monster to check.
  */
-void
+static void
 MonsterCheckSurrounded(Int16 i)
 {
 	if (GetDefenceValue(game.objects[i].x, game.objects[i].y) >= 11 ||
@@ -323,7 +283,7 @@ MonsterCheckSurrounded(Int16 i)
  * \param ypos vertical location
  * \return the 'level' of the defence surrounding the position.
  */
-UInt16
+static UInt16
 GetDefenceValue(Int16 xpos, Int16 ypos)
 {
 	/* police = 2 */
@@ -349,7 +309,7 @@ GetDefenceValue(Int16 xpos, Int16 ypos)
  * \param y vertical location
  * \return the level of defence that this node provides.
  */
-UInt16
+static UInt16
 ContainsDefence(Int16 x, Int16 y)
 {
 	int i;
@@ -373,8 +333,6 @@ ContainsDefence(Int16 x, Int16 y)
 	return (0);
 }
 
-
-/*! \brief Move all the moveable elements around the screen.  */
 void
 MoveAllObjects(void)
 {
@@ -466,12 +424,6 @@ MoveAllObjects(void)
 	}
 }
 
-/*!
- * \brief We've had a meteor strike on the map at that location.
- * \param x horizontal position
- * \param y vertical position
- * \return always happens (true)
- */
 Int16
 MeteorDisaster(Int16 x, Int16 y)
 {
@@ -488,7 +440,7 @@ MeteorDisaster(Int16 x, Int16 y)
  * \param y vertical position
  * \param size size of the meteor
  */
-void
+static void
 CreateMeteor(Int16 x, Int16 y, Int16 size)
 {
 	int i, j;

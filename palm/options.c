@@ -1,3 +1,11 @@
+/*!
+ * \file
+ * \brief code for handling options
+ * 
+ *
+ * This code deals with the two options dialogs in the palm platform
+ * The options for the game and the options for the system (buttons)
+ */
 #include <PalmOS.h>
 #include <simcity_resconsts.h>
 #include <sections.h>
@@ -13,8 +21,7 @@ static FormPtr setupButtonConfig(void) CONFIG_SECTION;
 static void saveButtonConfig(void) CONFIG_SECTION;
 static void clearButtonConfig(void) CONFIG_SECTION;
 
-/*
- * Handler for the main options dialog.
+/*!
  * This is the event loop for the form, making all the appropriate calls to
  * set-up and save the options providing the OK button is hit.
  */
@@ -64,8 +71,9 @@ hOptions(EventPtr event)
 	return (handled);
 }
 
-/*
- * Set the state of the various fields in the options form.
+/*!
+ * \brief Set the state of the various fields in the options form.
+ * \return the form pointer
  */
 static FormPtr
 setupOptions(void)
@@ -85,8 +93,9 @@ setupOptions(void)
 	return (form);
 }
 
-/*
- * save the options from the option dialog to the application state.
+/*!
+ * \brief save the options from the option dialog to the application state.
+ *
  * This does not persist the configuration out, that is the responsiblity
  * of the savegame routines.
  */
@@ -125,10 +134,6 @@ saveOptions(void)
 }
 
 
-/*
- * Handler for the button configuration form.
- * This form allows the user to configure the buttons on the PalmOs device.
- */
 Boolean
 hButtonConfig(EventPtr event)
 {
@@ -175,8 +180,9 @@ hButtonConfig(EventPtr event)
 	return (handled);
 }
 
-/*
- * The elements for the button configuration choices
+/*!
+ * \brief The elements for the button configuration choices
+ *
  * It's defined like this to make the code smaller, and hopefully
  * more easy to read and maintain. You simply add in the entities
  * in the list and you're away. Note that changing the order of items
@@ -184,9 +190,9 @@ hButtonConfig(EventPtr event)
  * the buttons behave strangely.
  */
 static const struct bc_chelts {
-	UInt16 popup;
-	UInt16 list;
-	UInt16 elt;
+	UInt16 popup; /*!< popup in question */
+	UInt16 list; /*!< list in question */
+	UInt16 elt; /*!< affected buttonkey choice */
 } bc_elts[] = {
 	{ List_Cal_Popup, List_Cal, BkCalendar },
 	{ List_Addr_Popup, List_Addr, BkAddress },
@@ -204,11 +210,13 @@ static const struct bc_chelts {
 	{ 0, 0, 0 }
 };
 
-/* Remember this between form load and form exit */
+/*! \brief Remember this between form load and form exit */
 static char **Popups;
 
-/*
- * set up the button config form.
+/*!
+ * \brief set up the button config form.
+ * \return pointer to the form
+ *
  * Adds the string lists to the popups on the screen.
  * Saves having to have multiple copies in the form
  * definition. Costs a bit more at run-time, but saves in
@@ -239,8 +247,9 @@ setupButtonConfig(void)
 	return (form);
 }
 
-/*
- * Remember the button choices made.
+/*!
+ * \brief Remember the button choices made.
+ *
  * This is not persisted until the application terminates cleanly.
  */
 static void
@@ -256,8 +265,10 @@ saveButtonConfig(void)
 	}
 }
 
-/*
- * Clear any allocated data
+/*!
+ * \brief Clear any allocated data
+ *
+ * Namely the list of popup strings
  */
 static void
 clearButtonConfig(void)

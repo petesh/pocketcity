@@ -53,7 +53,7 @@ EXTRACT_ALL            = NO
 # If the EXTRACT_PRIVATE tag is set to YES all private members of a class 
 # will be included in the documentation.
 
-EXTRACT_PRIVATE        = YES
+EXTRACT_PRIVATE        = NO
 
 # If the EXTRACT_STATIC tag is set to YES all static members of a file 
 # will be included in the documentation.
@@ -119,14 +119,14 @@ INLINE_INHERITED_MEMB  = NO
 # path before files name in the file list and in the header files. If set 
 # to NO the shortest path that makes the file name unique will be used.
 
-FULL_PATH_NAMES        = NO
+FULL_PATH_NAMES        = YES
 
 # If the FULL_PATH_NAMES tag is set to YES then the STRIP_FROM_PATH tag 
 # can be used to strip a user defined part of the path. Stripping is 
 # only done if one of the specified strings matches the left-hand part of 
 # the path. It is allowed to use relative paths in the argument list.
 
-STRIP_FROM_PATH        = 
+STRIP_FROM_PATH        = .
 
 # The INTERNAL_DOCS tag determines if documentation 
 # that is typed after a \internal command is included. If the tag is set 
@@ -278,7 +278,7 @@ MAX_INITIALIZER_LINES  = 30
 # For instance some of the names that are used will be different. The list 
 # of all members will be omitted, etc.
 
-OPTIMIZE_OUTPUT_FOR_C  = NO
+OPTIMIZE_OUTPUT_FOR_C  = YES
 
 # Set the OPTIMIZE_OUTPUT_JAVA tag to YES if your project consists of Java sources 
 # only. Doxygen will then generate output that is more tailored for Java. 
@@ -418,7 +418,7 @@ FILTER_SOURCE_FILES    = NO
 # If the SOURCE_BROWSER tag is set to YES then a list of source files will 
 # be generated. Documented entities will be cross-referenced with these sources.
 
-SOURCE_BROWSER         = NO
+SOURCE_BROWSER         = YES
 
 # Setting the INLINE_SOURCES tag to YES will include the body 
 # of functions and classes directly in the documentation.
@@ -563,7 +563,7 @@ ENUM_VALUES_PER_LINE   = 4
 # can take a very long time. In such cases it is better to disable this feature. 
 # Windows users are probably better off using the HTML help feature.
 
-GENERATE_TREEVIEW      = NO
+GENERATE_TREEVIEW      = YES
 
 # If the treeview is enabled (see GENERATE_TREEVIEW) then this tag can be 
 # used to set the initial width (in pixels) of the frame in which the tree 
@@ -625,13 +625,13 @@ LATEX_HEADER           =
 # contain links (just like the HTML output) instead of page references 
 # This makes the output suitable for online browsing using a pdf viewer.
 
-PDF_HYPERLINKS         = NO
+PDF_HYPERLINKS         = YES
 
 # If the USE_PDFLATEX tag is set to YES, pdflatex will be used instead of 
 # plain latex in the generated Makefile. Set this option to YES to get a 
 # higher quality PDF documentation.
 
-USE_PDFLATEX           = NO
+USE_PDFLATEX           = YES
 
 # If the LATEX_BATCHMODE tag is set to YES, doxygen will add the \\batchmode. 
 # command to the generated LaTeX files. This will instruct LaTeX to keep 
@@ -689,7 +689,7 @@ RTF_EXTENSIONS_FILE    =
 # If the GENERATE_MAN tag is set to YES (the default) Doxygen will 
 # generate man pages
 
-GENERATE_MAN           = NO
+GENERATE_MAN           = YES
 
 # The MAN_OUTPUT tag is used to specify where the man pages will be put. 
 # If a relative path is entered the value of OUTPUT_DIRECTORY will be 
@@ -761,7 +761,7 @@ ENABLE_PREPROCESSING   = YES
 # compilation will be performed. Macro expansion can be done in a controlled 
 # way by setting EXPAND_ONLY_PREDEF to YES.
 
-MACRO_EXPANSION        = NO
+MACRO_EXPANSION        = YES
 
 # If the EXPAND_ONLY_PREDEF and MACRO_EXPANSION tags are both set to YES 
 # then the macro expansion is limited to the macros specified with the 
@@ -793,7 +793,7 @@ INCLUDE_FILE_PATTERNS  =
 # or name=definition (no spaces). If the definition and the = are 
 # omitted =1 is assumed.
 
-PREDEFINED             = 
+PREDEFINED             = __attribute__(x)=
 
 # If the MACRO_EXPANSION and EXPAND_PREDEF_ONLY tags are set to YES then 
 # this tag can be used to specify a list of macro names that should be expanded. 
@@ -821,7 +821,7 @@ TAGFILES               =
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create 
 # a tag file that is based on the input files it reads.
 
-GENERATE_TAGFILE       = 
+GENERATE_TAGFILE       = tags
 
 # If the ALLEXTERNALS tag is set to YES all external classes will be listed 
 # in the class index. If set to NO only the inherited external classes 

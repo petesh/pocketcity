@@ -1,3 +1,15 @@
+/*!
+ * \file
+ * \brief back-end code for savegames
+ *
+ * Deals with the savegames being loaded and saved.
+ * Can perform read-only work on palmOS games directly, but performs
+ * read/write on native games.
+ *
+ * The code needs to be made more platform-independent, as it is it depends
+ * a lot on the endianness of the machine you're running it on.
+ * \todo change the savegame format to XML for the linux platforms.
+ */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -18,11 +30,15 @@
 #include <mem_compat.h>
 #include <stringsearch.h>
 
+/*!
+ * \brief an embedded savegame inside a savegame
+ */
 struct embedded_savegame {
 	GameStruct gs;	/*!< game structure of the savegame */
 	char *world;	/*!< world pointer of the savegame */
 };
 
+/*! \brief a savegame structure */
 struct save_tag {
 	int gamecount; /*!< count of savegames in this structure */
 	struct embedded_savegame *games; /*!< the games */

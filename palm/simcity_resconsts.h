@@ -1,3 +1,11 @@
+/*!
+ * \file
+ * \brief resource constants for the game
+ *
+ * Contains all the definitions for the resources from the application.
+ * They are made use of by the various forms to create and check elements
+ * that are selected. Some of the fields have multiple interpretations
+ */
 #define	formID_pocketCity 1000
 #define	formID_budget 1001
 #define	formID_map 1002

@@ -1,5 +1,7 @@
-
-/*
+/*!
+ * \file
+ * \brief Map rendering code.
+ *
  * Performs the rendering of the individual maps on the screen.
  * The only functional map is the general area.
  */
@@ -19,17 +21,22 @@
 #include <palmutils.h>
 #include <sections.h>
 
-typedef enum e_map_type { mt_fullpaint = 1, mt_overlay } map_type;
+/*! \brief map type s */
+typedef enum e_map_type {
+	mt_fullpaint = 1, /*! <brief full painting item */
+	mt_overlay /*!< overlay map */
+} map_type;
 
+/*! \brief map entries */
 typedef enum e_map_entries {
-	me_basemap = 0,
-	me_end /* end entry... used for memory allocation ... don't overrun */
+	me_basemap = 0, /*!< basic map */
+	me_end /*!< end entry */
 } map_entry;
 
-/* Map structure for the various maps to be displayed */
+/*! \brief Map structure for the various maps to be displayed */
 typedef struct scr_map {
-	WinHandle	handle;	/* handle for map painting */
-	map_type	type;	/* overlay | normal map */
+	WinHandle	handle;	/*!< handle for map painting */
+	map_type	type;	/*!< overlay | normal map */
 } scr_map_t;
 
 static void DrawMap(void) MAP_SECTION;
@@ -37,13 +44,20 @@ static void RenderMaps(void) MAP_SECTION;
 static void freemaps(void) MAP_SECTION;
 static void AddMap(WinHandle handle, map_type type, map_entry code) MAP_SECTION;
 
-/* Map structures ... it's a cheap ass array. 0 .. me_end-1 */
+/*! \brief current map */
 map_entry currmap;
-scr_map_t *themaps = NULL;
+/*! \brief the map structures ... it's a cheap ass array. 0 .. me_end-1 */
+scr_map_t *themaps;
 
 static const int StartX = 1;
 static const int StartY = 17;
 
+/*!
+ * \brief add a map to the list of maps
+ * \param handle the handle to the map
+ * \param type type of map
+ * \param code the code of the map
+ */
 static void
 AddMap(WinHandle handle, map_type type, map_entry code)
 {
@@ -55,6 +69,7 @@ AddMap(WinHandle handle, map_type type, map_entry code)
 	themaps[code].type = type;
 }
 
+/*! \brief release the map structures */
 static void
 freemaps(void)
 {
@@ -69,9 +84,8 @@ freemaps(void)
 	themaps = NULL;
 }
 
-/*
- * Handler for the map.
- * takes care of the set-up, pen clicks and popup events.
+/*!
+ * Deals witht he pen clicks and setup/teardown for the map
  */
 Boolean
 hMap(EventPtr event)
@@ -152,6 +166,9 @@ hMap(EventPtr event)
 	return (handled);
 }
 
+/*!
+ * \brief draw the active map
+ */
 static void
 DrawMap(void)
 {
@@ -181,8 +198,8 @@ DrawMap(void)
 	}
 }
 
-/*
- * Render the Maps.
+/*!
+ * \brief Render the Maps onto the offscreen.
  */
 static void
 RenderMaps(void)

@@ -1,3 +1,9 @@
+/*!
+ * \file
+ * \brief this just nulls-out the *_SECTION in function definitions
+ *
+ * This it to allow the code to compile in a non-segmented architecture
+ */
 #if !defined(_SECTIONS_H_)
 #define _SECTIONS_H_
 

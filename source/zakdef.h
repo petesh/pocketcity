@@ -180,7 +180,8 @@
  * \brief set the map size
  *
  * Does not allocate any extra memory.
- * \param x the new map size
+ * \param X the new map X size
+ * \param Y the new map Y size
  */
 #define	setMapSize(X,Y) { \
 	GG.mapx = (X); \
@@ -477,11 +478,13 @@ typedef struct _game_struct06a {
 	MoveableObject	objects[NUM_OF_OBJECTS]; /*!< active objects */
 } GameStruct06;
 
+/*! \brief the statistic to value structure */
 typedef struct _stat_to_value {
 	StatisticItem	item;	/*!< Item we are concerned with */
 	BuildCount	offset; /*!< Offset into object */
 } stat_to_value;
 
+/*! \brief the statistic to value array */
 extern stat_to_value statvalues[];
 
 /*

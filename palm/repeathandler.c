@@ -1,3 +1,9 @@
+/*!
+ * \file
+ * \brief utility code for repeat handlers
+ *
+ * Code to deal with the spinners and the fields that they relate to.
+ */
 #include <PalmOS.h>
 #include <StringMgr.h>
 #include <Form.h>

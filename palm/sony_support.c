@@ -1,3 +1,9 @@
+/*!
+ * \file
+ * \brief support for the sony handheld
+ *
+ * Contains the code that implements the sony high resolution routines
+ */
 #include <PalmTypes.h>
 #include <FeatureMgr.h>
 #include <ErrorBase.h>
@@ -13,19 +19,28 @@
 #include <palmutils.h>
 #include <ui.h>
 
-/*
+/*!
+ * \brief high resolution checked.
  * Variable to indicate that high resolution is in effect & using sony
  * routines.
  */
-static UInt16 hires = 0;
-static UInt8 didl = 0;
+static UInt16 hires;
+/*! \brief I did load the high resolution library */
+static UInt8 didl;
 
+/*! \brief reference to the silk library */
 static Int16 silk_ref = -1;
+/*! \brief version of the silk library */
 static Int8 silk_ver = -1;
 
-
+/*! \bref hold callback function */
 static void (*holdCB)(UInt32 held);
 
+/*!
+ * \brief the hold switch has been flipped
+ * \param npp the notification
+ * \return ErrNone if it's all OK
+ */
 static Err
 PrvHoldNotificationHandler(SysNotifyParamType *npp)
 {
@@ -95,7 +110,6 @@ goHires(void)
 	return (result);
 }
 
-/* Sony specific code to load high resolution library */
 Err
 loadHiRes(void)
 {
@@ -285,10 +299,6 @@ _WinGetDrawWindowBounds(RectangleType *rP)
 		WinGetDrawWindowBounds(rP);
 }
 
-/*
- * check if the draw-window occupies most of the screen...
- * This is a jog assist support routine.
- */
 int
 IsDrawWindowMostOfScreen()
 {
@@ -298,10 +308,6 @@ IsDrawWindowMostOfScreen()
 	    ((UInt32)sWidth * sHeight * 10));
 }
 
-/*!
- * \brief Check if this device is a Sony. For Jog Navigation Support
- * \return true if device is a sony.
- */
 Boolean
 IsSony(void)
 {
@@ -318,7 +324,12 @@ IsSony(void)
 	return (tested == 1);
 }
 
-Err
+/*!
+ * \brief Hook function for sony silk events
+ * \param notifyParamsP unused
+ * \return 0 - always works.
+ */
+static Err
 SonyNotifyHook(SysNotifyParamType *notifyParamsP __attribute__((unused)))
 {
 	EventType ev;
@@ -329,10 +340,6 @@ SonyNotifyHook(SysNotifyParamType *notifyParamsP __attribute__((unused)))
 	return (0);
 }
 
-/*!
- * \brief Check if sony silk available. Loads library as well.
- * \return true if sony silk library is available
- */
 Boolean
 SonySilk(void)
 {
@@ -369,9 +376,6 @@ SonySilk(void)
 	return (silk_ref != 0);
 }
 
-/*!
- * \brief finish up with the sony silk library
- */
 void
 SonyEndSilk(void)
 {
@@ -381,7 +385,7 @@ SonyEndSilk(void)
 			SilkLibDisableResize(silk_ref);
 			SilkLibClose(silk_ref);
 		} else {
-			VskSetState(silk_ref, vskStateResize,vskResizeMin);
+			VskSetState(silk_ref, vskStateResize, vskResizeMin);
 			VskSetState(silk_ref, vskStateEnable, 0);
 			VskClose(silk_ref);
 		}
@@ -389,9 +393,6 @@ SonyEndSilk(void)
 	silk_ref = 0;
 }
 
-/*!
- * \brief set silk area to be resizable
- */
 void
 SonySetSilkResizable(UInt8 state)
 {

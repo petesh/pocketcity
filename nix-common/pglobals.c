@@ -11,7 +11,7 @@
  * Uses strftime to get the brief month name for a specific month.
  * \param month the zero offset month (0 = jan)
  * \param string the string that filled in with the month
- * \length the maximum length of the month
+ * \param length the maximum length of the month
  * \return the string passed (useful for printf; etc.)
  */
 char *

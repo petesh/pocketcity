@@ -1,7 +1,7 @@
-/* \file
+/*! \file
  * \brief Memory compatibility functions
  * 
- * Needed because the annoying palm platform does not supply compatible
+ * Needed because the palm platform does not supply compatible
  * calls for malloc, free etc.
  */
 

@@ -1,3 +1,10 @@
+/*!
+ * \file
+ * \brief implementation of a memory searching algorithm
+ *
+ * It's the horspool string search algorithm, except used for searching
+ * for memory patterns.
+ */
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -6,6 +13,13 @@
 
 #include <stringsearch.h>
 
+/*!
+ * \brief fill up an array with offset values used to advance the pointer
+ * \param srch the search string
+ * \param srch_len the length of the search string
+ * \param bml the alphabet array to occupy
+ * \param bm_len the length of the alphabet
+ */
 static void
 fillBM(const char *srch, size_t srch_len, size_t *bml, size_t bm_len)
 {

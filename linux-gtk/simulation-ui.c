@@ -26,6 +26,7 @@ static GtkWidget *pw_win;
 /*! \brief pointer to the drawing area */
 static GtkWidget *dw_area;
 
+/*! \brief pixmap handles for the map */
 struct tag_pmh {
 	GdkPixmap *allmap; /*!< pixmap for the overall map */
 	GdkPixmap *power; /*!< pixmap for the power map */
@@ -34,15 +35,20 @@ struct tag_pmh {
 	GdkPixmap *water_mask; /*!< mask for the water map */
 } pmh;
 
+/*! \brief show the power bitmap */
 #define SHOW_POWER	1
+/*! \brief show the water bitmap */
 #define SHOW_WATER	(SHOW_POWER<<1)
 
 /*! \brief govern the visibility of the water and power pixmaps */
-static int shown_pixmaps = 0;
+static int shown_pixmaps;
 
+/*! \brief handle for the power button */
 GtkWidget *button_power;
+/*! \brief handle for the water button */
 GtkWidget *button_water;
 
+/*! \brief the list of buttons and fields they care about */
 static struct button_list {
 	GtkWidget	**button; /*!< widget that caused the click */
 	int		field; /*!< value to set shown_pixmaps to */
@@ -52,6 +58,11 @@ static struct button_list {
 	{ NULL, 0 }
 };
 
+/*!
+ * \brief one of the buttons was clicked
+ * \param widget the button that was clicked
+ * \param data unused
+ */
 static void
 bpwater_clicked(GtkWidget *widget, gpointer data __attribute__((unused)))
 {
@@ -77,6 +88,12 @@ bpwater_clicked(GtkWidget *widget, gpointer data __attribute__((unused)))
 	gtk_widget_queue_draw(dw_area);
 }
 
+/*!
+ * \brief close the window
+ * \param wid unused
+ * \param data unused
+ * \return false, it always closes.
+ */
 static gint
 close_window(GtkWidget *wid __attribute__((unused)),
     gpointer data __attribute__((unused)))
@@ -91,13 +108,27 @@ close_window(GtkWidget *wid __attribute__((unused)),
 	return (FALSE);
 }
 
+/*! \brief color need/desire table */
 typedef enum { ccBlank, ccNeed, ccHas } ccr_t;
 
+/*! \brief blank color */
 static GdkColor colBlank = { 0, 0, 0, 0 };
+/*! \brief need power color */
 static GdkColor colNeedPower = { 1, 255, 0, 0 };
+/*! \brief need water color */
 static GdkColor colNeedWater = { 1, 0, 0, 255 };
+/*! \brief power/ware is supplied color */
 static GdkColor colFull = { 2, 255, 255, 255 };
 
+/*!
+ * \brief update one of the maps
+ * \param xpos the x position
+ * \param ypos the y position
+ * \param col the color to use
+ * \param carry doe sthe item carry the subject in question
+ * \param dw_ori the drawing of the origin
+ * \param dw_mask the mask for the drawing
+ */
 static void
 updateAMap(Int16 xpos, Int16 ypos, GdkColor *col, ccr_t carry,
     GdkDrawable *dw_ori, GdkDrawable *dw_mask)
@@ -126,6 +157,14 @@ updateAMap(Int16 xpos, Int16 ypos, GdkColor *col, ccr_t carry,
 	g_object_unref(gc);
 }
 
+/*!
+ * \brief check if the node carries the specific flagged item
+ * \param world the value of the world
+ * \param flag the value of the flag
+ * \param carry test function for carrying
+ * \param flagbit the flagbt to check with
+ * \return the carries/doesn carry/supplied state
+ */
 static ccr_t
 checkCommon(welem_t world, selem_t flag, carryfn_t carry, UInt8 flagbit)
 {
@@ -136,6 +175,12 @@ checkCommon(welem_t world, selem_t flag, carryfn_t carry, UInt8 flagbit)
 	return (ccNeed);
 }
 
+/*!
+ * \brief update a power field
+ * \param xpos the xposition
+ * \param ypos the y position
+ * \param has_carry does carry the item
+ */
 static void
 updatePower(Int16 xpos, Int16 ypos, ccr_t has_carry)
 {
@@ -144,6 +189,12 @@ updatePower(Int16 xpos, Int16 ypos, ccr_t has_carry)
 	    GDK_DRAWABLE(pmh.power), GDK_DRAWABLE(pmh.power_mask));
 }
 
+/*!
+ * \brief update a water field
+ * \param xpos the xposition
+ * \param ypos the y position
+ * \param has_carry does carry the item
+ */
 static void
 updateWater(Int16 xpos, Int16 ypos, ccr_t has_carry)
 {
@@ -152,6 +203,9 @@ updateWater(Int16 xpos, Int16 ypos, ccr_t has_carry)
 	    GDK_DRAWABLE(pmh.water), GDK_DRAWABLE(pmh.water_mask));
 }
 
+/*!
+ * \brief initialize the map
+ */
 static void
 initMap(void)
 {
@@ -176,6 +230,7 @@ initMap(void)
 	}
 }
 
+/*! \brief initialize the painting structures */
 void
 doPixPaint(void)
 {
@@ -197,6 +252,13 @@ doPixPaint(void)
 	initMap();
 }
 
+/*!
+ * \brief handle the window being exposed
+ * \param area the widget area being exposed
+ * \param event the expisure event
+ * \param data unused
+ * \return FALSE, let system also handle the event
+ */
 static gint
 expose_pw(GtkWidget *area,
     GdkEventExpose *event,
@@ -251,6 +313,9 @@ expose_pw(GtkWidget *area,
 	return (FALSE);
 }
 
+/*!
+ * \brief show the map
+ */
 void
 showMap(void)
 {
@@ -292,6 +357,11 @@ showMap(void)
 	gtk_widget_show(pw_win);
 }
 
+/*!
+ * \brief update the map
+ * \param xpos the x position
+ * \param ypos the y position
+ */
 void
 UIUpdateMap(UInt16 xpos, UInt16 ypos)
 {

@@ -1,3 +1,10 @@
+/*!
+ * \file
+ * \brief the main simulation code routines
+ *
+ * This file has all the routines to deal with the startup and general
+ * main loop-executionness of the program.
+ */
 #include <PalmOS.h>
 #include <StringMgr.h>
 #include <KeyMgr.h>
@@ -375,17 +382,17 @@ EventLoop(void)
 	}
 }
 
-/*
- * Handles and resourceID's of the bitmaps
+/*!
+ * \brief Handles and resourceID's of the bitmaps
  */
 static const struct _bmphandles {
-	WinHandle *handle;
-	const DmResID resourceID;
+	WinHandle *handle; /*!< Window Handle of bitmap */
+	const DmResID resourceID; /*!< Resource ID of bitmap obtained */
 } handles[] = {
 	{ &winZones, (DmResID)bitmapID_zones },
 	{ &winMonsters, (DmResID)bitmapID_monsters },
 	{ &winUnits, (DmResID)bitmapID_units },
-//XXX:	{ &winButtons, (DmResID)bitmapID_buttons },
+/* XXX:	{ &winButtons, (DmResID)bitmapID_buttons }, */
 	{ &winSpeeds, (DmResID)bitmapID_Speed }
 };
 
@@ -1355,6 +1362,7 @@ UIDrawCursor(Int16 xpos __attribute__ ((unused)),
  * This specifies the overlay. The icon itself is tile pixels before this.
  * \param xpos the x position on the area to paint
  * \param ypos the y position on the area to paint
+ * \param elem the element to use for the loss icon
  */
 void
 UIDrawLossIcon(Int16 xpos, Int16 ypos, welem_t elem)
@@ -1597,12 +1605,14 @@ GetRandomNumber(UInt32 max)
 #define	ENDX	4
 #define	ENDY	8
 
+/*! \brief the status positions */
 struct StatusPositions {
-	PointType point;
-	PointType offset;
-	UInt32 extents;
+	PointType point; /*!< point where item is located */
+	PointType offset; /*!< offset of item from topleft */
+	UInt32 extents; /*!< how far does this item reach */
 };
 
+/*! \brief the default shape/size of the various locations */
 static RectangleType shapes[] = {
 	{ {0, 0}, {0, 13} },  /* DATELOC */
 	{ {0, 0}, {0, 13} }, /* CREDITSLOC */
@@ -1610,9 +1620,7 @@ static RectangleType shapes[] = {
 	{ {0, 0}, {0, 13} } /* POSITIONLOC */
 };
 
-/*
- * extents.x
- */
+/*! \brief the positions of the items on screen - low resolution */
 static const struct StatusPositions lrpositions[] = {
 	{ {0, 0} , {0, 1}, MIDX },  /* DATELOC */
 	{ {0, 0}, {0, 1}, ENDY }, /* CREDITSLOC */
@@ -1621,9 +1629,7 @@ static const struct StatusPositions lrpositions[] = {
 };
 #ifdef HRSUPPORT
 
-/*
- * High resolution version of the positions
- */
+/*! \brief the positions of the items on screen - high resolution */
 static const struct StatusPositions hrpositions[] = {
 	{ {1, 0}, {0, 1}, ENDY },  /* DATELOC */
 	{ {40, 0}, {0, 1}, ENDY }, /* CREDITSLOC */
@@ -1631,8 +1637,9 @@ static const struct StatusPositions hrpositions[] = {
 	{ {140, 0}, {0, 1}, ENDY }, /* POSITIONLOC */
 };
 
-/*
- * Get the valid array of status positions
+/*!
+ * \brief Get the valid array of status positions
+ *
  * Depends on if we're in High Resolution mode or not
  */
 static struct StatusPositions *
@@ -1653,12 +1660,16 @@ posAt(int pos)
 }
 
 #else
+/*! \brief get low resolution positions */
 #define	posAt(x)	&(lrpositions[(x)])
 #endif
+/*! \brief maximum size of positions array */
 #define	MAXLOC		(sizeof (lrpositions) / sizeof (lrpositions[0]))
 
-/*
- * Draw a status item at the position requested
+/*!
+ * \brief Draw a status item at the position requested
+ * \param location the item to print
+ * \param text the text to display
  */
 void
 UIDrawItem(Int16 location, char *text)
@@ -1710,8 +1721,12 @@ UIDrawItem(Int16 location, char *text)
 		_FntSetFont(stdFont);
 }
 
-/*
- * Check a click in the display.
+/*!
+ * \brief Check a click in the display.
+ * \param x the x location
+ * \param y the y location
+ * \return the item, or -1 if not one of the items.
+ *
  * See if it's one of the status locations. If it is then return it.
  */
 static Int16
@@ -1729,8 +1744,10 @@ UICheckOnClick(Coord x, Coord y)
 	return (-1);
 }
 
-/*
- * Perform an action based on the location on screen that was clicked.
+/*!
+ * \brief Perform an action based on the location on screen that was clicked.
+ * \param x the x location
+ * \param y the y location
  */
 static void
 CheckTextClick(Coord x, Coord y)
@@ -1755,9 +1772,6 @@ CheckTextClick(Coord x, Coord y)
 	}
 }
 
-/*
- * Draw the date on screen.
- */
 void
 UIDrawDate(void)
 {
@@ -1770,9 +1784,6 @@ UIDrawDate(void)
 	UIDrawItem(DATELOC, temp);
 }
 
-/*
- * Draw the amount of credits on screen.
- */
 void
 UIDrawCredits(void)
 {
@@ -1806,9 +1817,6 @@ UIDrawCredits(void)
 #endif
 }
 
-/*
- * Draw the map position on screen
- */
 void
 UIDrawLoc(void)
 {
@@ -1840,9 +1848,6 @@ UIDrawLoc(void)
 #endif
 }
 
-/*
- * Update the build icon on screen
- */
 void
 UIDrawBuildIcon(void)
 {
@@ -1872,9 +1877,6 @@ UIDrawBuildIcon(void)
 #endif
 }
 
-/*!
- * \brief Draw the speed icon on screen
- */
 void
 UIDrawSpeed(void)
 {
@@ -1912,9 +1914,6 @@ UIDrawSpeed(void)
 #endif
 }
 
-/*!
- * \brief Draw the population on screen.
- */
 void
 UIDrawPop(void)
 {
@@ -1949,11 +1948,12 @@ UIDrawPop(void)
 #endif
 }
 
-/*
- * Check if we've got dosh to do what we're asking to do.
+/*!
+ * \brief Check if we've got dosh to do what we're asking to do.
+ *
  * If we're nearly broke show us a warning dialog.
  * If we're broke then show us a we're broke dialog.
- * Only show them once per game.
+ * Only show them once per load cycle.
  */
 void
 UICheckMoney(void)
@@ -1980,6 +1980,16 @@ MapHasJumped(void)
 {
 }
 
+/*!
+ * \brief is the ROM on this machine compatible
+ * \param requiredVersion the asked for version (3.5)
+ * \param launchFlags flags for launching
+ * \return true if OK, false otherwise
+ *
+ * Checks if the rom is compatible so we can pay the game. It may be
+ * partially compatible (3.1+) in which caase flag that fact
+ * Also permit/deny direct structure access depending on the version.
+ */
 static Err
 RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
 {
@@ -2021,43 +2031,53 @@ RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
 	return (0);
 }
 
-static struct fromto {
-	UInt32 from, to;
-} speedslist[] = {
-	{SPEED_PAUSED, SPEED_SLOW},
-	{SPEED_SLOW, SPEED_MEDIUM},
-	{SPEED_MEDIUM, SPEED_FAST},
-	{SPEED_FAST, SPEED_TURBO},
-	{SPEED_TURBO, SPEED_PAUSED}
+/*! \brief list of speeds in game */
+static UInt32 speedslist[] = {
+	SPEED_PAUSED, SPEED_SLOW, SPEED_MEDIUM, SPEED_FAST, SPEED_TURBO
 };
+/*! \brief maximum speed */
+#define MAX_SPEED	(sizeof (speedslist) / sizeof (speedslist[0]))
 
+/*!
+ * \brief get the offset of the speed into the speedslist array
+ *
+ * This is used to calculate the index into the speed bitmap for display
+ * purposes
+ * \return the index into the array, or 0 as a default
+ */
 static Int16
 speedOffset(void)
 {
 	UInt16 i;
 
-	for (i = 0; i < (sizeof (speedslist) / sizeof (speedslist[0])); i++) {
-		if (getLoopSeconds() == speedslist[i].from) {
+	for (i = 0; i < MAX_SPEED; i++)
+		if (getLoopSeconds() == speedslist[i])
 			return (i);
-		}
-	}
 	return (0);
 }
 
+/*!
+ * \brief cycle up to the next speed
+ *
+ * This will loop back around to paused when you exceed turbo
+ */
 static void
 cycleSpeed(void)
 {
-	UInt16 i;
+	UInt16 i = 0;
 
-	for (i = 0; i < (sizeof (speedslist) / sizeof (speedslist[0])); i++) {
-		if (speedslist[i].from == getLoopSeconds()) {
-			setLoopSeconds(speedslist[i].to);
+	while (i < MAX_SPEED) {
+		if (speedslist[i++] == getLoopSeconds())
 			break;
-		}
 	}
+	setLoopSeconds(speedslist[i == MAX_SPEED ? 0 : i]);
 }
 
-/* Do the command against the key passed */
+/*!
+ * \brief Do the command against the key passed
+ * \param event the event that is being triggered
+ * \return 1 if the event was dealt with, 0 otherwise.
+ */
 static Int16
 doButtonEvent(ButtonEvent event)
 {
@@ -2125,14 +2145,25 @@ doButtonEvent(ButtonEvent event)
 	return (1);
 }
 
-static Int16 HardButtonEvent(ButtonKey key)
+/*!
+ * \brief process a hard button being pressed
+ * \param key the key what was received
+ * \return the code from performing the button event
+ */
+static Int16
+HardButtonEvent(ButtonKey key)
 {
 	return (doButtonEvent(gameConfig.pc.keyOptions[key]));
 }
 
+/*!
+ * \brief structure for mapping the silk keys to 'button keys'
+ *
+ * The button keys are known 'event types'.
+ */
 static struct _silkKeys {
-	UInt16 vChar;
-	ButtonKey event;
+	UInt16 vChar;	/*!< the character that was received */
+	ButtonKey event; /*!< the button key event that was sent. */
 } silky[] = {
 	{ pageUpChr, BkHardUp },
 	{ pageDownChr, BkHardDown },
@@ -2199,6 +2230,11 @@ buildSilkList()
 	if (silky[atsilk].vChar == 1) silky[atsilk].vChar = vchrCalc;
 }
 
+/*!
+ * \brief process a virtual key press
+ * \param key the key that was pressed
+ * \return a processed hardbutton event or 0 for not mapped
+ */
 static Int16
 vkDoEvent(UInt16 key)
 {
@@ -2213,9 +2249,12 @@ vkDoEvent(UInt16 key)
 }
 
 #ifdef HRSUPPORT
-static BitmapType *pToolbarBitmap = NULL;
+/*! \brief the tool bar bitmap */
+static BitmapType *pToolbarBitmap;
+/*! \brief the low-resolution bitmap (v2) for palmOS5 compatibility */
 static BitmapType *pOldBitmap;
 
+/*! \brief release the toolbar bitmaps */
 static void
 freeToolbarBitmap(void)
 {
@@ -2229,6 +2268,14 @@ freeToolbarBitmap(void)
 	}
 }
 
+/*!
+ * \brief paint the toolbar bitmaps onto the screen
+ *
+ * Paints onto the cache bitmap (to speed future painting)
+ * \param startx the starting x location
+ * \param starty the starting y location
+ * \param spacing the space between each item
+ */
 static void
 drawToolBitmaps(Coord startx, Coord starty, Coord spacing)
 {
@@ -2251,6 +2298,13 @@ drawToolBitmaps(Coord startx, Coord starty, Coord spacing)
 	}
 }
 
+/*!
+ * \brief get the dimensions of a bitmap
+ * \param resID the ID of the resource
+ * \param width the width
+ * \param height the height
+ * \return 0 if it read the dimensions, 0 otherwise
+ */
 int
 GetBitmapDimensions(UInt16 resID, Coord *width, Coord *height)
 {
@@ -2273,9 +2327,12 @@ GetBitmapDimensions(UInt16 resID, Coord *width, Coord *height)
 	return (0);
 }
 
+/*! \brief the width of the toolbar */
 static Coord tbWidth;
+/*! \brief the width of a bitmap in the toolbar */
 static Coord bWidth;
 
+/*! \brief draw the toolbar on the screen */
 static void
 UIDrawToolBar(void)
 {
@@ -2326,6 +2383,16 @@ UIDrawToolBar(void)
 	}
 }
 
+/*!
+ * \brief check if a location on the toolbar was clicked.
+ *
+ * We already know that the y axis is correct for the toolbar, we're just
+ * checking the X axis.
+ * This has effect of either setting the current build item, or popping up
+ * an extra build list.
+ * \param xpos the location on the x axis to check for clicking
+ * \todo Make the toolbar customizable
+ */
 static void
 toolBarCheck(Coord xpos)
 {
@@ -2346,6 +2413,13 @@ toolBarCheck(Coord xpos)
 	UIDrawBuildIcon();
 }
 
+/*!
+ * \brief react to the drawing area being resized.
+ *
+ * This can happen when the axis is reoriented, or the softsilk area is
+ * removed.
+ * \param draw do I redraw the screen after the resize event.
+ */
 static void
 pcResizeDisplay(Boolean draw)
 {
@@ -2390,7 +2464,7 @@ pcResizeDisplay(Boolean draw)
 
 #ifdef	SONY_CLIE
 
-/* Pauses the game if you flick the 'hold' switch */
+/*! \brief  Pauses the game if you flick the 'hold' switch */
 static void
 HoldHook(UInt32 held)
 {

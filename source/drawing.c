@@ -10,9 +10,6 @@
 #include <drawing.h>
 #include <simulation.h>
 
-/*!
- * \brief Set up the graphics.
- */
 void
 SetUpGraphic(void)
 {
@@ -20,11 +17,6 @@ SetUpGraphic(void)
 }
 
 /*!
- * \brief Set the map position to that location.
- *
- * this function also repaints screen.
- * \param x horizontal position
- * \param y vertical position
  * \todo should only do visuals and location.
  */
 void
@@ -45,13 +37,6 @@ Goto(Int16 x, Int16 y)
 	RedrawAllFields();
 }
 
-/*!
- * \brief Draw everything on the screen.
- *
- * The Game area, Credits and population.
- *
- * \todo change to painting from a bitmap of the screen?
- */
 void
 RedrawAllFields(void)
 {
@@ -82,10 +67,6 @@ RedrawAllFields(void)
 	UnlockZone(lz_world);
 }
 
-/*!
- * \brief Scroll the map in the direction specified
- * \param direction the direction to scroll map in
- */
 void
 ScrollDisplay(dirType direction)
 {
@@ -123,10 +104,6 @@ ScrollDisplay(dirType direction)
 		UIScrollDisplay(direction);
 }
 
-/*!
- * \brief Move the cursor in the location specified.
- * \param direction the direction to scroll map in
- */
 void
 MoveCursor(dirType direction)
 {
@@ -170,11 +147,6 @@ MoveCursor(dirType direction)
 	UnlockZone(lz_world);
 }
 
-/*!
- * \brief Draw the field at the specified location
- * \param xpos horizontal position
- * \param ypos vertical position
- */
 void
 DrawField(Int16 xpos, Int16 ypos)
 {
@@ -185,12 +157,6 @@ DrawField(Int16 xpos, Int16 ypos)
 	UIFinishDrawing();
 }
 
-
-/*!
- * \brief Draw all zones around the point that is being painted.
- * \param xpos horizontal position
- * \param ypos vertical position
- */
 void
 DrawCross(Int16 xpos, Int16 ypos, Int16 xsize, Int16 ysize)
 {
@@ -219,19 +185,6 @@ next:
 	UIFinishDrawing();
 }
 
-
-/*!
- * \brief draw a field without initializing something.
- *
- * ONLY call this function if you make sure to call
- * UIInitDrawing and UIFinishDrawing in the caller
- * Also remember to call (Un)lockWorld (2 functions)
- *
- * This function will not try to draw outside the bounds of the
- * current city.
- * \param xpos horizontal position
- * \param ypos vertical position
- */
 void
 DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 {
@@ -283,11 +236,6 @@ DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 	}
 }
 
-/*!
- * \brief Get the graphic to use for the position in question.
- * \param pos index into map array
- * \return the graphic to paint at this location
- */
 welem_t
 GetGraphicNumber(UInt32 pos)
 {
@@ -306,12 +254,6 @@ GetGraphicNumber(UInt32 pos)
 	return (retval);
 }
 
-/*
- * \brief Deals with special graphics fields
- * \param pos index into map array
- * \param ntype the type of the node.
- * \return the special graphic number for this place.
- */
 welem_t
 GetSpecialGraphicNumber(UInt32 pos)
 {

@@ -26,8 +26,10 @@
 #include <nix_utils.h>
 #include <simulation-ui.h>
 
+/*! \brief path to search for graphics */
 #define PATHSEARCH	".:./graphic:./graphic/icons:../graphic"
 
+/*! \brief the main window's contents */
 static struct main_window {
 	GtkWidget *window; /*!< \brief handle of the window */
 	GtkWidget *drawing; /*!< \brief handle to game play area */
@@ -49,18 +51,19 @@ static struct main_window {
 
 	GdkPixmap *p_mapzones; /*!< \brief pixmap of the map zones */
 	GdkPixmap *p_mapspecials; /*!< \brief pixmap of specials for map */
-	GdkPixmap *p_mapunits; /*! \brief pixmap for the units on map */
+	GdkPixmap *p_mapunits; /*!< \brief pixmap for the units on map */
 } mw;
 
+/*! \brief the execution directory of the program */
 static char *exec_dir;
 
 static void SetUpMainWindow(void);
 static gint mainloop_callback(gpointer data);
-static void QuitGame(GtkWidget *w, gpointer data);
+static void QuitGame(void);
 static void SetSpeed(gpointer data, guint action, GtkWidget *w);
 
 /*! \brief the menu items for the main application */
-GtkItemFactoryEntry menu_items[] = {
+const GtkItemFactoryEntry menu_items[] = {
 	{ "/_File", NULL, NULL, 0, "<Branch>", 0 },
 	{ "/File/_New", "<control>N", newgame_handler, 0, NULL, 0 },
 	{ "/File/_Open", "<control>O", opengame_handler, 0, NULL, NULL },
@@ -89,7 +92,7 @@ GtkItemFactoryEntry menu_items[] = {
  * \param argv array of the arguments
  */
 int
-main(int argc, char *argv[])
+main(int argc, char **argv)
 {
 	gint timerID;
 	char *px;
@@ -133,15 +136,16 @@ unsigned int timekeeperdisaster = 0;
 /*!
  * \brief set the game speed
  * \param w the widget that originated the speed message
+ * \param speed the speed
  * \param data the speed number.
  */
 static void
-SetSpeed(gpointer data __attribute__((unused)), guint action,
+SetSpeed(gpointer data __attribute__((unused)), guint speed,
     GtkWidget *w __attribute__((unused)))
 {
-	action -= 1;
-	WriteLog("Setting speed to %i\n", action);
-	setLoopSeconds(action);
+	speed -= 1;
+	WriteLog("Setting speed to %i\n", speed);
+	setLoopSeconds(speed);
 }
 
 /*!
@@ -568,6 +572,7 @@ SetUpMainWindow(void)
 	gtk_widget_show(mw.window);
 }
 
+/*! \brief image pixmaps */
 static struct image_pms {
 	char *filename; /*!< Filename of the image file */
 	GdkPixmap **pm; /*!< Pixmap to place the image into */
@@ -825,12 +830,6 @@ _UIDrawRect(Int16 nTop __attribute__((unused)),
 	WriteLog("_UIDrawRect\n");
 }
 
-/*!
- * \brief draw a field
- * \param xpos the horizontal position
- * \param ypos the vertical position
- * \param nGraphic the item to paint
- */
 void
 UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
 {
@@ -849,12 +848,6 @@ UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
 	g_object_unref(gc);
 }
 
-/*!
- * \param draw a special object
- * \param i the item to draw
- * \param xpos the horizontal position
- * \param ypos the vertical position
- */
 void
 UIDrawSpecialObject(Int16 xpos, Int16 ypos, Int8 i)
 {
@@ -879,12 +872,6 @@ UIDrawSpecialObject(Int16 xpos, Int16 ypos, Int8 i)
 	g_object_unref(gc);
 }
 
-/*!
- * \brief draw a special unit on the screen
- * \param i the unit do draw
- * \param xpos the horizontal location on screen
- * \param ypos the vertical location on screen
- */
 void
 UIDrawSpecialUnit(Int16 xpos, Int16 ypos, Int8 i)
 {
@@ -909,12 +896,6 @@ UIDrawSpecialUnit(Int16 xpos, Int16 ypos, Int8 i)
 	g_object_unref(gc);
 }
 
-/*!
- * \brief draw a field for the map
- * \param xpos the horizontal position
- * \param ypos the vertical position
- * \param nGraphic the item to paint
- */
 void
 UIDrawMapField(Int16 xpos, Int16 ypos, welem_t nGraphic, GdkDrawable *drawable)
 {
@@ -932,12 +913,6 @@ UIDrawMapField(Int16 xpos, Int16 ypos, welem_t nGraphic, GdkDrawable *drawable)
 	g_object_unref(gc);
 }
 
-/*!
- * \param draw a special object
- * \param i the item to draw
- * \param xpos the horizontal position
- * \param ypos the vertical position
- */
 void
 UIDrawMapSpecialObject(Int16 xpos, Int16 ypos, Int16 i, GdkDrawable *drawable)
 {
@@ -956,12 +931,6 @@ UIDrawMapSpecialObject(Int16 xpos, Int16 ypos, Int16 i, GdkDrawable *drawable)
 	g_object_unref(gc);
 }
 
-/*!
- * \brief draw a special unit on the screen
- * \param i the unit do draw
- * \param xpos the horizontal location on screen
- * \param ypos the vertical location on screen
- */
 void
 UIDrawMapSpecialUnit(Int16 xpos, Int16 ypos, Int16 i, GdkDrawable *drawable)
 {
@@ -980,7 +949,6 @@ UIDrawMapSpecialUnit(Int16 xpos, Int16 ypos, Int16 i, GdkDrawable *drawable)
 	g_object_unref(gc);
 }
 
-/*! unused */
 void
 UIDrawCursor(Int16 xpos __attribute__((unused)),
     Int16 ypos __attribute__((unused)))
@@ -994,8 +962,8 @@ UIDrawCursor(Int16 xpos __attribute__((unused)),
  * \param ypos the vertical location
  * \param offset the offst of the item to paint.
  */
-void
-UIDrawOverlay(Int16 xpos, Int16 ypos, welem_t offset)
+static void
+DrawOverlay(Int16 xpos, Int16 ypos, welem_t offset)
 {
 	GdkGC *gc;
 
@@ -1018,28 +986,18 @@ UIDrawOverlay(Int16 xpos, Int16 ypos, welem_t offset)
 	g_object_unref(gc);
 }
 
-/*!
- * \brief Draw a power loss overlay on the screen at the specified location
- */
 void
 UIDrawPowerLoss(Int16 xpos, Int16 ypos)
 {
-	UIDrawOverlay(xpos, ypos, Z_POWER_OUT);
+	DrawOverlay(xpos, ypos, Z_POWER_OUT);
 }
 
-/*!
- * \brief Draw a water loss overlay on the screen at the specified location
- */
 void
 UIDrawWaterLoss(Int16 xpos, Int16 ypos)
 {
-	UIDrawOverlay(xpos, ypos, Z_WATER_OUT);
+	DrawOverlay(xpos, ypos, Z_WATER_OUT);
 }
 
-/*!
- * \brief get the selected item to build
- * \return the item that is selected.
- */
 BuildCode
 UIGetSelectedBuildItem(void)
 {
@@ -1047,12 +1005,11 @@ UIGetSelectedBuildItem(void)
 }
 
 /*!
- * \brief Draw the play area
  * \todo render the entire play area into an offscreen pixmap, making this call
  * a non-op (the expose code for the drawing area will take care of it).
  */
 void
-UIDrawPlayArea()
+UIDrawPlayArea(void)
 {
 	Int16 x;
 	Int16 y;
@@ -1068,21 +1025,18 @@ UIDrawPlayArea()
 	}
 }
 
-/*! unused */
 void
 LockZone(lockZone zone __attribute__((unused)))
 {
 	/* not used on this platform */
 }
 
-/*! unused */
 void
 UnlockZone(lockZone zone __attribute__((unused)))
 {
 	/* not used on this platform */
 }
 
-/*! unused */
 void
 ReleaseZone(lockZone zone)
 {
@@ -1092,11 +1046,6 @@ ReleaseZone(lockZone zone)
 	}
 }
 
-/*!
- * \brief get a random number between 0 and max
- * \param max the maximum limit of the value to obtain
- * \return the random number
- */
 UInt32
 GetRandomNumber(UInt32 max)
 {
@@ -1105,9 +1054,7 @@ GetRandomNumber(UInt32 max)
 }
 
 /*!
- * \brief the map has jumped to another location
- *
- * Ensure that the scroll bars are oriented correctly.
+ * Ensure that the scroll bars are moved correctly.
  */
 void
 MapHasJumped(void)
@@ -1121,13 +1068,10 @@ MapHasJumped(void)
 /*!
  * \brief terminate the game.
  *
- * Invoked when the quit option is selected from teh menu
- * \param w unused
- * \param data unused
+ * Invoked when the quit option is selected from the menu
  */
-void
-QuitGame(GtkWidget *w __attribute__((unused)),
-    gpointer data __attribute__((unused)))
+static void
+QuitGame(void)
 {
 	gtk_main_quit();
 }
@@ -1136,10 +1080,6 @@ QuitGame(GtkWidget *w __attribute__((unused)),
 
 #include <stdarg.h>
 
-/*!
- * \brief write output to the console
- * \param s the string for formatting
- */
 void
 WriteLog(char *s, ...)
 {

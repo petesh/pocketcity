@@ -1,3 +1,7 @@
+/*!
+ * \file
+ * \brief test code for the string search code
+ */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>

@@ -1,9 +1,12 @@
-/*
- * A stack implementation that uses a growing memptr.
+/*!
+ * \file
+ * \brief A stack implementation that uses a growing memptr.
+ *
  * Designed to hold unsigned longs...
  * I live in an ILP32 / LP64 world.
  * long == pointer in 32 bit and 64 bit. If not then just forgive me for
- * this laziness.
+ * this laziness. It's just that this implementation is for the palmOS
+ * platform.
  */
 #include <MemoryMgr.h>
 #include <ErrorMgr.h>
@@ -12,18 +15,19 @@
 #include <ui.h>
 #include <mem_compat.h>
 
+/*! \brief stack object */
 typedef struct tag_dsobj {
-	MemHandle   sh; /* Start of stack... handle */
-	Int32	  *ss; /* Start of stack */
-	Int32	  *sp; /* Stack pointer */
-	Int32	  *se; /* Stack pointer */
-	Int32	   sl; /* Stack Len */
+	MemHandle   sh; /*!< Start of stack... handle */
+	Int32	  *ss; /*!< Start of stack */
+	Int32	  *sp; /*!< Stack pointer */
+	Int32	  *se; /*!< Stack end pointer */
+	Int32	   sl; /*<! Stack Len */
 } dsObj;
 
 #define STACK_IMPL
 #include <stack.h>
 
-/*
+/*!
  * preallocates 128 elements to the stack
  */
 dsObj *
@@ -44,9 +48,6 @@ StackNew(void)
 	return (s);
 }
 
-/*
- * delete the contents of the stack
- */
 void
 StackDelete(dsObj *sp)
 {
@@ -57,9 +58,6 @@ StackDelete(dsObj *sp)
 	MemPtrFree(sp);
 }
 
-/*
- * resize the stack
- */
 static void
 StackResize(dsObj *sp, Int32 newsize)
 {
@@ -76,9 +74,6 @@ StackResize(dsObj *sp, Int32 newsize)
 	sp->sp = sp->ss + sd;
 }
 
-/*
- * remove the top most item from the stack
- */
 Int32
 StackPop(dsObj *sp)
 {
@@ -92,9 +87,6 @@ StackPop(dsObj *sp)
 	return (-1);
 }
 
-/*
- * add an element to the stack
- */
 void
 StackPush(dsObj *sp, Int32 elt)
 {
@@ -103,39 +95,24 @@ StackPush(dsObj *sp, Int32 elt)
 	*(++sp->sp) = elt;
 }
 
-/*
- * check if the stack is empty
- */
 Int8
 StackIsEmpty(dsObj *sp)
 {
 	return (sp->sp < sp->ss);
 }
 
-/*
- * 'empty' the stack.
- */
 void
 StackDoEmpty(dsObj *sp)
 {
 	sp->sp = sp->ss - 1;
 }
 
-/*
- * get the count of the number of elements on the stack
- */
 Int32
 StackNElements(dsObj *sp)
 {
 	return ((sp->sp+1) - sp->ss);
 }
 
-/*!
- * \brief get an item from the list
- * \param sp The pointer to the data object
- * \param index the index of the object
- * \return the item at the location, or -1 on error
- */
 Int32
 ListGet(dsObj *sp, Int32 index)
 {
@@ -144,12 +121,6 @@ ListGet(dsObj *sp, Int32 index)
 	return (sp->ss[index + 1]);
 }
 
-/*!
- * \brief set an item in the list
- * \param sp the pointer to the data object
- * \param index the index of the item
- * \param element the value for the new item
- */
 void
 ListSet(dsObj *sp, Int32 index, Int32 element)
 {

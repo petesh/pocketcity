@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief the interface routines to the main program.
+ *
+ */
 #if !defined(_SIMCITY_H)
 #define	_SIMCITY_H
 

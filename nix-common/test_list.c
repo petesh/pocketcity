@@ -1,5 +1,6 @@
-/*
- * test the list code.
+/*!
+ * \file
+ * \brief test the list code.
  */
 
 #include <sys/types.h>

@@ -1,14 +1,19 @@
+/*!
+ * \file
+ *
+ * \brief Locking routines for zones.
+ */
 #include <PalmOS.h>
 #include <StringMgr.h>
 #include <globals.h>
 #include <ui.h>
 #include <mem_compat.h>
 
-/* Locking routines */
+/*! \brief items to be locked/unlocked */
 static struct tag_lockers {
-	MemHandle	handle;
-	int		lockcount;
-	void		**destVar;
+	MemHandle	handle; /*!< handle for the item when not locked */
+	int		lockcount; /*!< # of lockers of the item */
+	void		**destVar; /*!< destination value when locked */
 } lockZones[lz_end] = {
 	{ NULL, 0, &worldPtr },
 	{ NULL, 0, &growablePtr }

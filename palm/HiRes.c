@@ -1,3 +1,10 @@
+/*!
+ * \file
+ * \brief high resolution compatibility code
+ *
+ * Provides routines to allow the use of both high resolution and low
+ * resolution displays.
+ */
 #include <PalmTypes.h>
 #include <FeatureMgr.h>
 #include <ErrorBase.h>
@@ -63,6 +70,7 @@ setScreenRes(void)
 		break;
 	}
 }
+
 /*!
  * \brief Check for the High Density Feature set
  *

@@ -1,3 +1,11 @@
+/*!
+ * \file
+ * \brief compatibility interface file
+ *
+ * Provides interface to allow the use of either high resolution code or
+ * low resolution code depending on the setting of the SONY_CLIE or PALM_HIGH
+ * macros.
+ */
 #if !defined(_RESCOMPAT_H_)
 #define	_RESCOMPAT_H_
 

@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief front end for performing savegames
  *
  * Does all the gtk-related processing for the savegames.
@@ -29,6 +30,13 @@
 #include <compilerpragmas.h>
 #include <uibits.h>
 
+/*! \brief private city list selection object */
+struct city_listselect {
+	GtkListStore *store; /*!< store of list for screen */
+	GtkWidget *list; /*!< list widget */
+	savegame_t *sg; /*!< savegame widget */
+};
+
 /*! \brief set the tile size */
 void
 UIResetViewable(void)
@@ -38,13 +46,11 @@ UIResetViewable(void)
 	vgame.MapTileSize = 4;
 }
 
-struct city_listselect {
-	GtkListStore *store;
-	GtkWidget *list;
-	savegame_t *sg;
-};
-
-void
+/*!
+ * \brief free the list selection strucure
+ * \param sel the city celection structure
+ */
+static void
 free_listselect(struct city_listselect *sel)
 {
 	if (sel == NULL) return;
@@ -54,10 +60,14 @@ free_listselect(struct city_listselect *sel)
 }
 /*!
  * \brief load one of the palm games from the pdb file
+ *
  * The OK button was clicked on the list of games from the list of
  * the palm cities.
+ * \param widget the dialog
+ * \param response the response button clicked on the dialog
+ * \param data the city structure
  */
-void
+static void
 ImportOneFromGame(GtkWidget *widget, gint response, gpointer data)
 {
 	struct city_listselect *sel = (struct city_listselect *)data;
@@ -88,6 +98,10 @@ ImportOneFromGame(GtkWidget *widget, gint response, gpointer data)
 	}
 }
 
+/*!
+ * \brief load the cities
+ * \param sg the savegame
+ */
 static void
 loadCities(savegame_t *sg)
 {
@@ -127,7 +141,7 @@ loadCities(savegame_t *sg)
  * \brief load a game
  *
  * Called by the open dialog handler.
- * \param data the file name
+ * \param filename the file name
  */
 static void
 doOpen(gchar *filename)
@@ -162,8 +176,6 @@ doOpen(gchar *filename)
  * \brief open a savegame
  * \param sel unused
  * \param data the filename from the selection dialog
- * \todo fix the code to open the specific filename based on introspection
- * into the filename
  */
 static void
 open_afile(GtkObject *sel __attribute__((unused)), gpointer data)
@@ -176,6 +188,8 @@ open_afile(GtkObject *sel __attribute__((unused)), gpointer data)
 
 /*!
  * \brief free the widget and the data pointer
+ * \param obj unused
+ * \param data the object to destroy
  */
 static void
 free_object(GtkObject *obj __attribute__((unused)), gpointer data)
@@ -206,12 +220,18 @@ opengame_handler(void)
 	gtk_widget_show(GTK_WIDGET(file_sel));
 }
 
+/*! \brief new game form entities */
 static struct ng_form_tag {
-	GtkWidget *form;
-	GtkWidget *cityName;
-	GtkWidget *foo;
+	GtkWidget *form; /*!< form */
+	GtkWidget *cityName; /*!< City's name */
+	GtkWidget *foo; /*!< foo? */
 } ng;
 
+/*!
+ * \brief deal with the closing of the newgame form
+ * \param widget unused
+ * \param data unused
+ */
 static gint
 close_newgame(GtkWidget *widget __attribute__((unused)),
     gpointer data __attribute__((unused)))
@@ -221,9 +241,6 @@ close_newgame(GtkWidget *widget __attribute__((unused)),
 }
 
 /*!
- * \brief start a new game
- * \param w unused
- * \param data unsued
  * \todo save the game before starting a new one
  */
 void
@@ -232,9 +249,9 @@ newgame_handler(void)
 	GtkWidget *table, *mainbox; 
 	GtkWidget *label;
 
-	//SetupNewGame();
-	//UIResetViewable();
-	//setLoopSeconds(SPEED_PAUSED);
+	/* SetupNewGame(); */
+	/* UIResetViewable(); */
+	/* setLoopSeconds(SPEED_PAUSED); */
 	ng.form = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(ng.form), "Create New City");
 
@@ -265,8 +282,8 @@ newgame_handler(void)
 
 /*!
  * \brief set the save game name
- * \param sel the file selection dialog that caused this
- * \param data unused
+ * \param sel unused
+ * \param data the file selection dialog that caused this
  */
 void
 store_filename(GtkWidget *sel __attribute__((unused)), gpointer data)

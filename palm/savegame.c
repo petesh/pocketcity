@@ -1,5 +1,6 @@
-/*
- * This file handles savegame front end.
+/*!
+ * \file
+ * \brief This file handles savegame front end
  */
 
 #include <PalmOS.h>
@@ -33,7 +34,6 @@ static FormPtr filesSetup(FormPtr form) SAVE_SECTION;
 static void cnCancelButtonPressed(void) SAVE_SECTION;
 static void cnCreateButtonPressed(void) SAVE_SECTION;
 static FormPtr cityNewSetup(FormPtr form) SAVE_SECTION;
-static void cityNewCleanup(FormPtr form) SAVE_SECTION;
 static void cnFieldContentChanged(UInt16 fieldID) SAVE_SECTION;
 static void cnRepeatPressed(EventPtr event) SAVE_SECTION;
 
@@ -44,31 +44,27 @@ static Boolean resizeSavegameForm(FormPtr form, Int16 hOff,
 #define resizeSavegameForm(F,H,V)
 #endif
 
+/*! \brief constant for 'add new game' */
 #define	LASTGAME		((UInt16)~0)
+/*! \brief maximum number of savegames in the Palm OS */
 #define	MAXSAVEGAMECOUNT	50
 
-static char **citylist = NULL;
+/*! \brief list of cities n the savegame */
+static char **citylist;
 
-/*
- * Load the game form the auto-save slot
- */
 int
 UILoadAutoGame(void)
 {
 	return (LoadAutoSave());
 }
 
-/*
- * Delete the game stored in the auto-save slot
- */
 void
 UIClearAutoSaveSlot(void)
 {
 	DeleteAutoSave();
 }
 
-/*
- * save the city that is currently being used.
+/*!
  * Needs to find the city in the set of saved cities
  */
 void
@@ -77,12 +73,8 @@ UISaveMyCity(void)
 	SaveGameByName(game.cityname);
 }
 
-/*
- * Save the autosave game.
- * This is a different to 'my city'. the autosave slot is *Distinct* from
- * the mycity slot. If you don't save the game before loading a new-one then
- * you've lost all the changes since the last time you explicitly saved it,
- * and for a lot of people that is the time they first loaded the city.
+/*!
+ * The autosave slot is simply the name of the current autosave city.
  */
 void
 UISaveAutoGame(void)
@@ -91,8 +83,7 @@ UISaveAutoGame(void)
 	UISaveMyCity();
 }
 
-/*
- * Handler for the new file form.
+/*!
  * Makes sure that the text field is given focus.
  */
 Boolean
@@ -113,7 +104,6 @@ hFilesNew(EventPtr event)
 		handled = true;
 		break;
 	case frmCloseEvent:
-		cityNewCleanup(FrmGetActiveForm());
 		break;
 	case keyDownEvent:
 		form = FrmGetActiveForm();
@@ -197,6 +187,8 @@ cnFieldContentChanged(UInt16 fieldID)
 }
 
 /*
+ * \brief react to cancel button being pressed on newcity form.
+ *
  * The cancel button is pressed in the new city form
  * Note the use of the returntoform api, this is means the last
  * form is reopened, and the frmcloseevent isn't sent to the
@@ -209,8 +201,8 @@ cnCancelButtonPressed(void)
 	FrmReturnToForm(0);
 }
 
-/*
- * the create button is pressed in the new city form
+/*!
+ * \brief the create button is pressed in the new city form
  */
 static void
 cnCreateButtonPressed(void)
@@ -295,14 +287,10 @@ cnCreateButtonPressed(void)
 	}
 }
 
-static void
-cityNewCleanup(FormPtr form __attribute__((unused)))
-{
-	
-}
-
-/*
- * Set up the new file form.
+/*!
+ * \brief Set up the new file form.
+ * \param form pointer to the form.
+ * \return the form pointer.
  */
 static FormPtr
 cityNewSetup(FormPtr form)
@@ -327,8 +315,7 @@ cityNewSetup(FormPtr form)
 	return (form);
 }
 
-/*
- * Handler for the list of cities dialog.
+/*!
  * Ensures that the list is populated with all the cities in the save game
  * slots.
  */
@@ -396,8 +383,10 @@ hFiles(EventPtr event)
 	return (handled);
 }
 
-/*
- * set up the files form
+/*!
+ * \brief set up the files form
+ * \param form the form to be dealt with
+ * \return the form passed in
  */
 static FormPtr
 filesSetup(FormPtr form)
@@ -414,6 +403,9 @@ filesSetup(FormPtr form)
  *
  * Deal with the change of the dimensions of the old form
  * \param form the pointer to the form that is to be resized
+ * \param hOff the offset of the form horizontally
+ * \param vOff the offset of the form vertically
+ * \return true if the form was moved/resized
  */
 static Boolean
 resizeSavegameForm(FormPtr form, Int16 hOff, Int16 vOff)
@@ -430,8 +422,9 @@ resizeSavegameForm(FormPtr form, Int16 hOff, Int16 vOff)
 
 #endif /* HRSUPPORT */
 
-/*
- * Update the list of save games.
+/*!
+ * \brief Update the list of save games.
+ *
  * Can be called from 2 contexts ... from the delete items dialog
  * or from the main save game dialog. That's the reason for the
  * check agains the active form and the formID_files pointer
@@ -474,7 +467,9 @@ UpdateSaveGameList(void)
 		LstDrawList(list);
 }
 
-/*
+/*!
+ * \brief clean up the savegame list.
+ *
  * free the memory that has been allocated in the files form.
  * Makes sure that all the objects allocated have been released.
  */
@@ -496,8 +491,9 @@ CleanSaveGameList(void)
 	citylist = NULL;
 }
 
-/*
- * Load a game from the list of save games
+/*!
+ * \brief Load a game from the list of save games
+ *
  * Uses the index into the array, as the array is
  * unsorted, and maps 1:1 with the underlying savegames
  */
@@ -518,8 +514,9 @@ LoadFromList(void)
 	}
 }
 
-/*
- * Delete a game from the list of savegames.
+/*!
+ * \brief Delete a game from the list of savegames.
+ *
  * uses the index into the list to choose the city to delete
  * This is agian because the array is unsorted
  */

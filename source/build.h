@@ -85,12 +85,34 @@ typedef enum {
 extern "C" {
 #endif
 
+/*!
+ * \brief Bulldoze a zone
+ * \param xpos X position on the map
+ * \param ypos Y position on the map
+ * \param _unused unused.
+ */
 EXPORT int Build_Bulldoze(Int16 xpos, Int16 ypos, welem_t _unused) \
     BUILD_SECTION;
+/*!
+ * \brief Build something at the location specified.
+ *
+ * \param xpos the X position on the map
+ * \param ypos the Y position on the map
+ */
 EXPORT int BuildSomething(Int16 xpos, Int16 ypos) BUILD_SECTION;
+/*!
+ * \brief Attempt to destroy the item at the position in question
+ *
+ * Performed by the bulldoze and the auto bulldoze.
+ * \param xpos the X position on the map
+ * \param ypos the Y position on the map
+ */
 EXPORT void Build_Destroy(Int16 xpos, Int16 ypos) BUILD_SECTION;
+/*! \brief Create a river on the map */
 EXPORT void CreateFullRiver(void) BUILD_SECTION;
+/*! \brief Create the forests on the map. */
 EXPORT void CreateForests(void) BUILD_SECTION;
+/*! \brief Remove all the defences on the map */
 EXPORT void RemoveAllDefence(void) BUILD_SECTION;
 
 #ifdef __cplusplus

@@ -3,7 +3,7 @@ VERSION := $(shell grep Version CHANGELOG | head -1 | awk '{print $$2}')
 
 nearlylive: VERSION = $(shell date +%Y.%m.%d)
 
-.PHONY: all linux palm clean stuff
+.PHONY: all linux palm clean stuff docs
 
 stuff:
 	@echo Use \`make\` with either \"linux\", \"palm\" or \"all\" as an argument
@@ -34,3 +34,10 @@ nearlylive dist:
 	ln -s pcity $(SVFILE); \
 	tar chf - $(SVFILE) | gzip -c > $(SVFILE).tgz; \
 	rm $(SVFILE)
+
+docs:
+	doxygen
+	@if [ -s Doxy.warn ]; then\
+		echo "Warnings in Doxy.warn"; \
+		exit 1; \
+	fi

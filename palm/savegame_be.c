@@ -1,6 +1,6 @@
-
-/*
- * This file handles savegame back end
+/*!
+ * \file
+ * \brief This file handles savegame back end
  */
 #include <PalmOS.h>
 #include <StringMgr.h>
@@ -34,13 +34,14 @@ static void getAutoSaveName(char *name) SAVE_SECTION;
 static void DeleteGameByIndex(UInt16 index) SAVE_SECTION;
 static Int16 comparator(void *p1, void *p2, Int32 other) SAVE_SECTION;
 
-/*
- * Open up the savegame database.
+/*!
+ * \brief Open up the savegame database.
+ * \return reference to the database or NULL.
+ *
  * If it does not exist, then it tries to create it.
- * It will return a reference to the database if successful, NULL otherwise.
  */
 static DmOpenRef
-OpenMyDB()
+OpenMyDB(void)
 {
 	Err err = 0;
 	DmOpenRef db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(),
@@ -55,8 +56,10 @@ OpenMyDB()
 	return (db);
 }
 
-/*
- * Find a savegame by the name passed
+/*!
+ * \brief Find a savegame by the name passed
+ * \param name the name of the city
+ * \return the index, or LASTGAME if it's not there.
  */
 static UInt16
 FindGameByName(char *name)
@@ -94,8 +97,7 @@ FindGameByName(char *name)
 		return (gameindex);
 }
 
-/*
- * Reset the viewable elements of the volatile game configuration.
+/*!
  * We set the tile size (16 pels).
  * We reserve 2 tiles (one at the top, one at the bottom) for use
  * with status information.
@@ -109,8 +111,12 @@ ResetViewable(void)
 	setVisibleY((sHeight / gameTileSize()) - 2);
 }
 
-/*
- * Read the city record.
+/*!
+ * \brief Read the city record.
+ * \param rec the record to read
+ * \param gs the game structure
+ * \param wp the pointer to the world (resized in call)
+ * \return 0 if it all went well, -1 otherwise.
  */
 static int
 ReadCityRecord(MemHandle rec, GameStruct *gs, MemPtr *wp)
@@ -140,8 +146,11 @@ leave_me:
 	return (rv);
 }
 
-/*
- * Write the city record
+/*!
+ * \brief Write the city record
+ * \param rec the record to write to
+ * \param gs the game structure
+ * \param wp the world pointer
  */
 static void
 WriteCityRecord(MemHandle rec, GameStruct *gs, MemPtr wp)
@@ -156,8 +165,10 @@ WriteCityRecord(MemHandle rec, GameStruct *gs, MemPtr wp)
 	MemHandleUnlock(rec);
 }
 
-/*
- * Save a game into the database of savegames.
+/*!
+ * \brief Save a game into the database of savegames.
+ * \param index the index to save game into
+ * \return 0 if saved OK, -1 otherwise
  */
 static int
 SaveGameByIndex(UInt16 index)
@@ -167,7 +178,7 @@ SaveGameByIndex(UInt16 index)
 	UInt16 attr = dmHdrAttrBackup;
 
 	if (index == 0)
-	return (0);
+		return (0);
 
 	db = OpenMyDB();
 	if (db == NULL)
@@ -196,19 +207,12 @@ SaveGameByIndex(UInt16 index)
 	return (index);
 }
 
-/*
- * Check if a saved city by this name exists
- */
 int
 GameExists(char *name)
 {
 	return (FindGameByName(name) != LASTGAME);
 }
 
-/*
- * save the city that is currently being used.
- * Needs to find the city in the set of saved cities
- */
 void
 SaveGameByName(char *name)
 {
@@ -218,11 +222,6 @@ SaveGameByName(char *name)
 	SaveGameByIndex(index);
 }
 
-/*
- * Create a new save game slot.
- * Save the city into it using a special save-game mode that says it is to
- * be reconfigured
- */
 void
 CreateNewSaveGame(char *name)
 {
@@ -268,8 +267,10 @@ CreateNewSaveGame(char *name)
 	DmCloseDatabase(db);
 }
 
-/*
- * Load a game by index into the list of savegames.
+/*!
+ * \brief Load a game by index from the savegames.
+ * \param index index of game to load
+ * \return 0 if loaded, -1 otherwise
  */
 static int
 LoadGameByIndex(UInt16 index)
@@ -304,9 +305,6 @@ LoadGameByIndex(UInt16 index)
 }
 
 
-/*
- * Load a game by name
- */
 int
 LoadGameByName(char *name)
 {
@@ -318,8 +316,9 @@ LoadGameByName(char *name)
 		return (-1);
 }
 
-/*
- * Get the name of the autosave city
+/*!
+ * \brief Get the name of the autosave city
+ * \param name the name of the city (fills out string, must be big enough)
  */
 static void
 getAutoSaveName(char *name)
@@ -342,9 +341,6 @@ getAutoSaveName(char *name)
 	DmCloseDatabase(db);
 }
 
-/*
- * Load the autosave city.
- */
 int
 LoadAutoSave(void)
 {
@@ -363,9 +359,6 @@ LoadAutoSave(void)
 	return (LoadGameByName(cityname));
 }
 
-/*
- * set the autosave name
- */
 void
 SetAutoSave(char *name)
 {
@@ -401,9 +394,6 @@ close_me:
 	DmCloseDatabase(db);
 }
 
-/*
- * Clear the autosave name
- */
 void
 DeleteAutoSave(void)
 {
@@ -413,8 +403,10 @@ DeleteAutoSave(void)
 	SetAutoSave(buffer);
 }
 
-/*
- * Delete the savegame from the list of savegames.
+/*!
+ * \brief Delete the savegame from the list of savegames.
+ * \param index the index into the savegames
+ *
  * This will also compact the database of savegames. i.e. when the
  * savegame is deleted it is removed completely.
  */
@@ -439,10 +431,6 @@ close_me:
 	DmCloseDatabase(db);
 }
 
-/*!
- * \brief Delete a city from the DB by name
- * \param name the name of the city to delete
- */
 void
 DeleteGameByName(char *name)
 {
@@ -452,11 +440,6 @@ DeleteGameByName(char *name)
 		DeleteGameByIndex(gameindex);
 }
 
-/*!
- * \brief rename a city
- * \param oldname the old name of the city
- * \param newname the new name of the city
- */
 int
 RenameCity(char *oldname, char *newname)
 {
@@ -544,8 +527,12 @@ CopyCity(Char *name)
 	return (dirty);
 }
 
-/*
- * comparison function for CityNames list
+/*!
+ * \brief comparison function for CityNames list
+ * \param p1 left side
+ * \param p2 right side
+ * \param other a useless variable
+ * \return -1 (before), 0 (equals), 1 (greater)
  */
 static Int16
 comparator(void *p1, void *p2, Int32 other)
@@ -553,10 +540,6 @@ comparator(void *p1, void *p2, Int32 other)
 	return (StrNCaselessCompare(*(char **)p1, *(char **)p2, other));
 }
 
-/*
- * Get The City Names
- * Returns a NULL terminated array
- */
 char **
 CityNames(int *count)
 {
@@ -609,9 +592,6 @@ CityNames(int *count)
 	return (cities);
 }
 
-/*
- * deallocate the cities list
- */
 void
 FreeCityNames(char **names)
 {

@@ -1,4 +1,7 @@
-
+/*!
+ * \file
+ * \brief interface routines to the savegame backend
+ */
 #if !defined(_SAVEGAME_BE_H)
 #define _SAVEGAME_BE_H
 
@@ -48,9 +51,11 @@ char *savegame_getcityname(savegame_t *sg, int item);
  * a pointer into it you need to free it beforehand.
  */
 int savegame_getcity(savegame_t *sg, int item, GameStruct *gs, char **map);
+
 /*!
  * \brief store the contents of a city into the savegame structure
  * \param sg the savegame structure
+ * \param item the index of the savegame to set
  * \param gs the game structure to store
  * \param map the map to store
  * \return 0 on success, -1 on error

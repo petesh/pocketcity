@@ -82,12 +82,8 @@ static const struct _bldStruct {
 #define	BS_LEN	((sizeof (buildStructure) / sizeof (buildStructure[0])))
 
 /*!
- * \brief Build something at the location specified.
- *
  * Looks up the item in the buildStructure and builds it at the appropriate
  * location.
- * \param xpos the X position on the map
- * \param ypos the Y position on the map
  */
 int
 BuildSomething(Int16 xpos, Int16 ypos)
@@ -132,9 +128,6 @@ RemoveDefence(Int16 xpos, Int16 ypos)
 	}
 }
 
-/*!
- * \brief Remove all the defences on the map
- */
 void
 RemoveAllDefence(void)
 {
@@ -262,6 +255,7 @@ Build_Defence(Int16 xpos, Int16 ypos, welem_t type)
 	return (rv);
 }
 
+/*! \brief check that I can't bulldoze a zone */
 static int
 CantBulldoze(welem_t type)
 {
@@ -269,6 +263,12 @@ CantBulldoze(welem_t type)
 	    type == Z_FIRE3 || type == Z_REALWATER || type == Z_CRATER);
 }
 
+/*!
+ * \brief get the blocksize of the item in question (1x1, 2x2)
+ * \param type the item to check
+ * \return the block size
+ * \todo permit non-square sizes (return isn't a plain integer)
+ */
 static UInt16
 blockSize(welem_t type)
 {
@@ -279,11 +279,6 @@ blockSize(welem_t type)
 }
 
 /*!
- * \brief Bulldoze a zone
- * \param xpos X position on the map
- * \param ypos Y position on the map
- * \param _unused unused.
- *
  * \todo Prohibit the rezoning of Wasteland.
  */
 int
@@ -325,13 +320,6 @@ Doff(welem_t base, welem_t node, Int16 *x, Int16 *y)
 	*y -= (node - base) / 2;
 }
 
-/*!
- * \brief Attempt to destroy the item at the position in question
- *
- * Performed by the bulldoze and the auto bulldoze.
- * \param xpos the X position on the map
- * \param ypos the Y position on the map
- */
 void
 Build_Destroy(Int16 xpos, Int16 ypos)
 {
@@ -494,9 +482,7 @@ finish:
 	DrawCross(xpos, ypos, x_destroy, y_destroy);
 }
 
-/*!
- * \brief Mapping of zone to cost of building on a zone
- */
+/*! \brief Mapping of zone to cost of building on a zone */
 static const struct _costMappings {
 	UInt16 type; /*!< type of zone that is built */
 	UInt32 cost; /*!< cost of building the zone in question */
@@ -876,7 +862,7 @@ leaveme:
  *
  * Auto bulldoze if requested.
  * \param xpos x position on map to build on
- * \param xpos y position on map to build on
+ * \param ypos y position on map to build on
  * \param type unused for this function
  */
 static int
@@ -938,11 +924,11 @@ Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 }
 
 /*!
- * \param Build a water pipe.
+ * \brief Build a water pipe.
  *
  * Auto bulldoze as needed
  * \param xpos x position on map to build on
- * \param xpos y position on map to build on
+ * \param ypos y position on map to build on
  * \param type unused for this function
  */
 static int
@@ -1026,9 +1012,7 @@ SpendMoney(UInt32 howMuch)
 }
 
 /*!
- * \brief Create a river on the map
  * \todo Make the river more interesting
- *
  */
 void
 CreateFullRiver(void)
@@ -1087,9 +1071,7 @@ CreateFullRiver(void)
 }
 
 /*!
- * \brief Create the forests on the map.
- *
- * creates some "spraypainted" (someone called them that)
+ * Creates some "spraypainted" (someone called them that)
  * forests throughout the `wilderness`
  */
 void

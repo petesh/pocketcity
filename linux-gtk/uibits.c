@@ -1,5 +1,6 @@
 /*!
  * \file
+ * \brief implementation of the ui misc routines
  *
  * Bits and bobs for the ui. does things like create aligned labels
  * and such. Anything that needed to be placed in a simple routine to
@@ -13,11 +14,6 @@
 
 #include <uibits.h>
 
-/*!
- * \brief create a left aligned label
- * \param s the string to put into the label
- * \return the newly created label
- */
 GtkWidget *
 create_left_label(char *s)
 {
@@ -28,10 +24,6 @@ create_left_label(char *s)
 	return (l);
 }
 
-/*!
- * \brief create a right aligned label with the content "-"
- * \return the newly created right laligned label
- */
 GtkWidget *
 create_right_label(char *string)
 {
@@ -41,4 +33,3 @@ create_right_label(char *string)
 	gtk_misc_set_alignment(GTK_MISC(l), 1, 0.5);
 	return (l);
 }
-

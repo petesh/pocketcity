@@ -1,5 +1,10 @@
-
-/* Handler for the query form */
+/*!
+ * \file
+ * \brief Implementation of the query form
+ *
+ * Contains the handler code, as well as the code to translate an identified
+ * zone into a string for display.
+ */
 #include <PalmTypes.h>
 #include <Chars.h>
 #include <StringMgr.h>
@@ -20,8 +25,7 @@ static void zonetoPtr(Char *zonemsg, welem_t tile, UInt16 maxlen) QUERY_SECTION;
 static void frmShowID(FormPtr fp, UInt16 id) QUERY_SECTION;
 static void frmHideID(FormPtr fp, UInt16 id) QUERY_SECTION;
 
-/*
- * Handler for the query form
+/*!
  * takes care of the set-up, cleanup app-button selection and cleanup
  */
 Boolean
@@ -61,10 +65,11 @@ hQuery(EventPtr event)
 	return (handled);
 }
 
+/*! \brief structure dealing with the zone and the string to print */
 static const struct type_zone {
-	welem_t	tile_start;
-	welem_t	tile_end;
-	UInt16	zonestring;
+	welem_t	tile_start; /*!< starting tile # */
+	welem_t	tile_end; /*!< ending tile # */
+	UInt16	zonestring; /*!< string to use for display */
 } type_zones[] = {
 	{ Z_DIRT, Z_DIRT, si_empty_land },
 	{ Z_REALTREE, Z_REALTREE, si_forest },
@@ -101,9 +106,11 @@ static const struct type_zone {
 	{ 0, 0, 0 }
 };
 
-/*
- * Convert a zone type into a display string.
- * Probably should have an array of all zone entries -> zonetype
+/*!
+ * \brief Convert a zone type into a display string.
+ * \param zonemsg message to occupy
+ * \param tile the tile in question
+ * \param maxlen the maximum length to fill the zone message to
  */
 static void
 zonetoPtr(Char *zonemsg, welem_t tile, UInt16 maxlen)
@@ -123,20 +130,31 @@ zonetoPtr(Char *zonemsg, welem_t tile, UInt16 maxlen)
 	}
 }
 
+/*!
+ * \brief show the form id item in question
+ * \param fp the form pointer
+ * \param id the id of the item to show
+ */
 static void
 frmShowID(FormPtr fp, UInt16 id)
 {
 	FrmShowObject(fp, FrmGetObjectIndex(fp, id));
 }
 
+/*!
+ * \brief hide the form item in question
+ * \param fp the pointer to the form where the item resides
+ * \param id the id of the item on the form
+ */
 static void
 frmHideID(FormPtr fp, UInt16 id)
 {
 	FrmHideObject(fp, FrmGetObjectIndex(fp, id));
 }
 
-/*
- * Set up the display items for the query form.
+/*!
+ * \brief Set up the display items for the query form.
+ * \return the form pointer
  */
 static FormPtr
 querySetup(void)
@@ -195,8 +213,8 @@ querySetup(void)
 	return (form);
 }
 
-/*
- * Tidy up the memory allocated to the form.
+/*!
+ * \brief Tidy up the memory allocated to the form.
  */
 static void
 queryCleanup(void)

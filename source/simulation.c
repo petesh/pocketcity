@@ -124,7 +124,9 @@ Sim_Distribute_Specific(Int16 gridonly)
 /*!
  * \brief Check if the node is a power plant (Nuclear/Coal)
  * \param point the value at the point
- * \return wheterh it is one or not.
+ * \param coord unused
+ * \param flags unused
+ * \return wheter it is one or not.
  */
 static Int16
 IsItAPowerPlant(welem_t point, UInt32 coord __attribute__((unused)),
@@ -161,7 +163,7 @@ IsItAWaterPump(welem_t point, UInt32 coord, selem_t flags)
 
 /*!
  * \brief Set the supplied bit for the point specified
- * \param flagbit The flag to set
+ * \param distrib distribution glob to use
  * \param point location in array of point
  */
 static void
@@ -173,6 +175,7 @@ SetSupplied(distrib_t *distrib, UInt32 point)
 
 /*!
  * \brief Add source to the grid.
+ * \param distrib the distribution structure
  * \param pos index into array of node
  * \param point node value
  * \param status status of node (powered/watered)
@@ -304,6 +307,7 @@ nextneighbor:
 
 /*!
  * \brief Add all the neighbors to this node to the unvisited list.
+ * \param distrib the distribution structure
  * \param pos location of node on list
  */
 static void
@@ -357,6 +361,7 @@ Carries(Int16 (*doescarry)(welem_t), UInt32 pos)
  * 0100 00xx if down
  * 1000 00xx if left
  * xx = number of directions
+ * \param distrib the distribution glob to use for searching
  * \param pos map location to perfrm distribution on.
  * \return fields & quantity in an overloaded array
  */
@@ -430,7 +435,8 @@ DistributeMoveOn(UInt32 pos, dirType direction)
 /*!
  * \brief check if a node exists next to other types of nodes
  * \param pos index into map
- * \param the node type to compare it against
+ * \param dirs directions to check
+ * \param what the node type to compare it against
  * \return true if the node is next to it.
  */
 static UInt8
@@ -1160,6 +1166,8 @@ UpdateVolatiles(void)
  * to 2yr 6 months (10y/4) for the 100 year graph
  * 
  * \param ary the array of entries to shuffle
+ * \param load the value to load on to the start of the stats.
+ * \return the value that shuffled off the end
  */
 static UInt16
 ShuffleIndividualStatistic(UInt16 *ary, UInt16 load)

@@ -1,3 +1,10 @@
+/*!
+ * \file
+ * \brief the palm budget UI code
+ *
+ * This code deals with the code for the budget form from the pocketcity
+ * application
+ */
 #include <PalmOS.h>
 #include <unix_stdlib.h>
 #include <palmutils.h>
@@ -21,6 +28,7 @@ static void updateBudgetNumber(BudgetNumber bn) BUDGET_SECTION;
 static void post_fieldhandler(UInt16 field, buttonmapping_t *map,
     UInt32 newValue) BUDGET_SECTION;
 
+/*! \brief button mapping for the spinners */
 static buttonmapping_t budget_map[] = {
 	{ rbutton_taxdown, rbutton_taxup, fieldID_taxrate,
 		0, 20, bnIncome, offsetof(GameStruct, tax) },
@@ -33,6 +41,12 @@ static buttonmapping_t budget_map[] = {
 	{ 0, 0, 0, 0, 0, 0, 0 }
 };
 
+/*!
+ * \brief deal with the new value that has been passed into a structure
+ * \param field the field that was changed
+ * \param map the button that was pressed
+ * \param newValue the new value of the field in question
+ */
 static void
 post_fieldhandler(UInt16 field __attribute__((unused)), buttonmapping_t *map,
     UInt32 newValue)
@@ -44,6 +58,10 @@ post_fieldhandler(UInt16 field __attribute__((unused)), buttonmapping_t *map,
 	updateBudgetNumber(bnNextMonth);
 }
 
+/*!
+ * \brief deal with the repeat event
+ * \param event the event that was passed in
+ */
 static void
 dealRepeats(EventPtr event)
 {
@@ -51,13 +69,16 @@ dealRepeats(EventPtr event)
 	(void) processRepeater(budget_map, control, true, post_fieldhandler);
 }
 
+/*!
+ * \brief deal with the manual change of the contents of a field
+ * \param fieldID the id# of the field that was changed
+ */
 static void
 dealFieldContentChange(UInt16 fieldID)
 {
 	(void) processRepeater(budget_map, fieldID, false, post_fieldhandler);
 }
-/*
- * Handler for the budget form.
+/*!
  * Takes care of events directed at the form.
  */
 Boolean
@@ -139,14 +160,15 @@ hBudget(EventPtr event)
 	return (handled);
 }
 
-/*
- * A collection of all the labels and their related items.
+/*!
+ * \brief A collection of all the labels and their related items.
+ *
  * Shrinks the code and makes it more consistent.
  */
 static const struct updateentity {
-	const BudgetNumber	item;
-	const char		*formatstr;
-	const UInt32		label;
+	const BudgetNumber	item; /*!< the budget item */
+	const char		*formatstr; /*!< string for formatting */
+	const UInt32		label; /*!< ID of label to alter */
 } entity[] = {
 	{ bnIncome, "%lu%c", labelID_budget_inc },
 	{ bnTraffic, "%lu%c", labelID_budget_tra },
@@ -158,8 +180,18 @@ static const struct updateentity {
 	{ bnResidential, NULL, 0 }
 };
 
+/*! \brief count of budget number entities */
 #define ENTITY_COUNT	(sizeof (entity) / sizeof (entity[0]))
 
+/*!
+ * \brief update the value of a budget number field.
+ *
+ * Scales the number with the K,M... scaling.
+ * \param form the form containing the items
+ * \param label the label to alter
+ * \param format the format of the output
+ * \param value the value of the output
+ */
 static void
 updateBudgetValue(FormPtr form, UInt16 label, const Char *format, long value)
 {
@@ -173,6 +205,10 @@ updateBudgetValue(FormPtr form, UInt16 label, const Char *format, long value)
 	FrmCopyLabel(form, label, temp);
 }
 
+/*!
+ * \update the field in question
+ * \param item the item to update
+ */
 static void
 updateBudgetNumber(const BudgetNumber item)
 {
@@ -193,8 +229,11 @@ updateBudgetNumber(const BudgetNumber item)
 	}
 }
 
-/*
- * Set up the budget form.
+/*!
+ * \brief Set up the budget form.
+ * \param form the form to use
+ * \return the form that was passed in.
+ *
  * configures all the text strings to read the values from the main
  * simulation, as well as adding in space for the text fields to
  * choose the %age to give over to each service.
