@@ -32,6 +32,9 @@
 /*! \brief path to search for graphics */
 #define PATHSEARCH	".:./graphic:./graphic/icons:../graphic"
 
+#define	MILLISECS	1000
+#define	TICKPERSEC	10
+
 /*! \brief the main window's contents */
 static struct main_window {
 	GtkWidget *window; /*!< \brief handle of the window */
@@ -73,6 +76,7 @@ static void cleanupPixmaps(void);
 static void ResetViewable(void);
 static void ShowMainWindow(void);
 static void forceRedistribute(void);
+static void doRepaintDisplay(void);
 
 /*! \brief the menu items for the main application */
 const GtkItemFactoryEntry menu_items[] = {
@@ -138,7 +142,7 @@ main(int argc, char **argv)
 	ShowMainWindow();
 
 	/* start the timer */
-	timerID = g_timeout_add(1000, (mainloop_callback), 0);
+	timerID = g_timeout_add(MILLISECS / TICKPERSEC, (mainloop_callback), 0);
 
 	gtk_main();
 	WriteLog("Cleaning up\n");
@@ -192,20 +196,22 @@ SetSpeed(gpointer data __attribute__((unused)), guint speed,
 static gint
 mainloop_callback(gpointer data __attribute__((unused)))
 {
-	/* this will be called every second */
+	/* this will be called 10 times every second */
 	unsigned int phase = 1;
 
 	timekeeper++;
 	timekeeperdisaster++;
 
-	if (timekeeperdisaster >= SIM_GAME_LOOP_DISASTER) {
+	if ((timekeeperdisaster / TICKPERSEC) >= SIM_GAME_LOOP_DISASTER) {
 		MoveAllObjects();
 		if (UpdateDisasters()) {
 			gtk_widget_queue_draw(mw.drawing);
 		}
 	}
 
-	if (timekeeper >= getLoopSeconds() &&
+	doRepaintDisplay();
+
+	if ((timekeeper / TICKPERSEC) >= getLoopSeconds() &&
 	    getLoopSeconds() != SPEED_PAUSED) {
 		WriteLog("A month has gone by - total months: %lu\n",
 		    (unsigned long)getMonthsElapsed());
@@ -217,7 +223,7 @@ mainloop_callback(gpointer data __attribute__((unused)))
 	}
 
 	UIUpdateBudget();
-	return (TRUE); /* yes, call us again in a sec */
+	return (TRUE); /* yes, call us again */
 }
 
 /*! \brief handle to the bitmap masks for rendering the units */
@@ -913,7 +919,7 @@ UIDrawDate(void)
  * \brief Draw the Location on screen
  */
 void
-UIDrawLoc(void)
+UIDrawLocation(void)
 {
 	char temp[50];
 
@@ -928,7 +934,7 @@ UIDrawLoc(void)
  * Actually simply set the population label to the appropriate value.
  */
 void
-UIDrawPop(void)
+UIDrawPopulation(void)
 {
 	char temp[50];
 	sprintf(temp, "Population: %-9li", (long)getPopulation());
@@ -1291,6 +1297,34 @@ MapHasJumped(void)
 }
 
 /*!
+ * refresh all the entities on the screen that need repainting
+ */
+static void
+doRepaintDisplay(void)
+{
+	UIInitDrawing();
+	if (checkGraphicUpdate(gu_playarea))
+		UIDrawPlayArea();
+	if (checkGraphicUpdate(gu_credits))
+		UIDrawCredits();
+	if (checkGraphicUpdate(gu_population))
+		UIDrawPopulation();
+	if (checkGraphicUpdate(gu_date))
+		UIDrawDate();
+	if (checkGraphicUpdate(gu_location))
+		if (!GETMINIMAPVISIBLE())
+			UIDrawLocation();
+	if (checkGraphicUpdate(gu_buildicon))
+		UIDrawBuildIcon();
+	if (checkGraphicUpdate(gu_speed))
+		UIDrawSpeed();
+	/*if (checkGraphicUpdate(gu_desires))
+		UIPaintDesires();*/
+	clearGraphicUpdate();
+	UIFinishDrawing();
+}
+
+/*!
  * \brief terminate the game.
  *
  * Invoked when the quit option is selected from the menu
@@ -1310,7 +1344,7 @@ forceRedistribute(void)
 	AddGridUpdate(GRID_ALL);
 }
 
-#ifdef DEBUG
+#ifdef LOGGING
 
 #include <stdarg.h>
 
@@ -1325,4 +1359,4 @@ WriteLog(char *s, ...)
 	g_print(mbuf);
 	va_end(args);
 }
-#endif
+#endif /* LOGGING */

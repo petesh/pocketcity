@@ -9,7 +9,7 @@
 #include <zakdef.h>
 #include <stdio.h>
 #include <globals.h>
-#include <ui.h>
+#include <locking.h>
 #include <zonemon.h>
 #include <simulation.h>
 #include <zonestrings.h>

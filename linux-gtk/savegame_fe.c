@@ -29,6 +29,7 @@
 #include <savegame_be.h>
 #include <compilerpragmas.h>
 #include <uibits.h>
+#include <logging.h>
 
 /*! \brief private city list selection object */
 struct city_listselect {
