@@ -8,6 +8,7 @@
 void Build_Road(int xpos, int ypos);
 void Build_PowerLine(int xpos, int ypos);
 void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nType);
+void CreateForest(long unsigned int pos, int size);
 
 int SpendMoney(unsigned long howMuch);
 
