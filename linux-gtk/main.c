@@ -14,7 +14,7 @@
 #include <build.h>
 #include <simulation.h>
 #include <disaster.h>
-
+#include <compilerpragmas.h>
 
 GtkWidget *drawingarea;
 GtkWidget *window;

@@ -18,6 +18,7 @@
 #include <strings.h>
 #include <savegame_fe.h>
 #include <savegame_be.h>
+#include <compilerpragmas.h>
 
 gchar *savegamename;
 

@@ -4,6 +4,7 @@
 #include <zakdef.h>
 #include <globals.h>
 #include <main.h>
+#include <compilerpragmas.h>
 
 GtkWidget *dlg = 0;
 GtkWidget *lres, *lcom, *lind, *lpow, *ltra, *ldef, *lbal, *lcha, *lnex;
