@@ -82,7 +82,7 @@ $(OBJDIR)/%-game.ro: $(OBJDIR) game.rcp langs.rcp \
 		graphic/pcity-color-hd.bmp \
 		graphic/pcitysmall.bmp graphic/pcitysmall-hd.bmp \
 		graphic/pcitysmall-color.bmp graphic/pcitysmall-color-hd.bmp
-	@$(AWK) -v DEBUG=$(DEBUG) -v HIRES=$(HIRES) \
+	$(AWK) -v DEBUG=$(DEBUG) -v HIRES=$(HIRES) \
 		-v SONY=$(SONY) -f filter.awk \
 		game.rcp > $(OBJDIR)/$*-ngame.rcp
 	$(RC.rcp) -L $* $(OBJDIR)/$*-ngame.rcp $(OBJDIR)/$*-game.ro
@@ -111,7 +111,7 @@ $(OBJDIR)/%.o: ../source/%.c ../source/%.h ../source/zakdef.h ../source/ui.h \
 $(OBJDIR)/%.o: frompalm/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJDIR)/%.o: %.c simcity_resconsts.h Makefile-include
+$(OBJDIR)/%.o: %.c simcity_resconsts.h Makefile-include pcity.def
 	$(CC) $(CFLAGS) -c $< -o $@
 
 #
