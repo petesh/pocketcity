@@ -613,8 +613,10 @@ extern unsigned long GetRandomNumber(unsigned long max)
 
 extern void MapHasJumped(void)
 {
-    gtk_adjustment_set_value(GTK_ADJUSTMENT(playscrollerh), game.map_xpos+10);
-    gtk_adjustment_set_value(GTK_ADJUSTMENT(playscrollerv), game.map_ypos+7);
+    ((GtkAdjustment*)playscrollerh)->value = game.map_xpos+10;
+    ((GtkAdjustment*)playscrollerv)->value = game.map_ypos+7;
+    gtk_adjustment_value_changed(GTK_ADJUSTMENT(playscrollerh));
+    gtk_adjustment_value_changed(GTK_ADJUSTMENT(playscrollerv));
 
 }
 

@@ -580,65 +580,34 @@ extern signed long int BudgetGetNumber(int type)
 
 void DoTaxes()
 {
-    game.credits += (
-            game.BuildCount[COUNT_RESIDENTIAL]*INCOME_RESIDENTIAL +
-            game.BuildCount[COUNT_COMMERCIAL]*INCOME_COMMERCIAL   +
-            game.BuildCount[COUNT_INDUSTRIAL]*INCOME_INDUSTRIAL
-            )*game.tax/100;
+    game.credits += BudgetGetNumber(BUDGET_RESIDENTIAL) +
+                    BudgetGetNumber(BUDGET_COMMERCIAL) +
+                    BudgetGetNumber(BUDGET_INDUSTRIAL);
 }
 
 void DoUpkeep()
 {
-    long unsigned int change = 0;
-    // roads
-    change = game.BuildCount[COUNT_ROADS]*UPKEEP_ROAD;
-    change = (change*game.upkeep[UPKEEPS_TRAFFIC])/100;
+    long unsigned int upkeep;
+
+    upkeep = BudgetGetNumber(BUDGET_TRAFFIC) +
+             BudgetGetNumber(BUDGET_POWER) +
+             BudgetGetNumber(BUDGET_DEFENCE);
+
+    if (upkeep <= game.credits) {
+        game.credits -= upkeep;
+        return;
+    }
+    UIWriteLog("*** Negative Cashflow\n");
+    game.credits = 0;
     
-    if (game.credits < change) {
-        // can't pay
-        game.credits = 0;
-        DoNastyStuffTo(TYPE_ROAD,1);
-    } else {
-        game.credits -= change;
-    }
-
-    // power lines
-    change = game.BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE;
-    change = (change*game.upkeep[UPKEEPS_POWER])/100;
-    if (game.credits < change) {
-        // can't pay
-        game.credits = 0;
-        DoNastyStuffTo(TYPE_POWER_LINE,5);
-    } else {
-        game.credits -= change;
-    }
-
-    // power plants
-    change = game.BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT + game.BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT;
-    change = (change*game.upkeep[UPKEEPS_POWER])/100;
-    if (game.credits < change) {
-        // can't pay
-        game.credits = 0;
-        DoNastyStuffTo(TYPE_POWER_PLANT,15);
-        DoNastyStuffTo(TYPE_NUCLEAR_PLANT,30);
-    } else {
-        game.credits -= change;
-    }
-
-    // fire stations
-    change =  game.BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS;
-    change += game.BuildCount[COUNT_POLICE_STATIONS]*UPKEEP_POLICE_STATIONS;
-    change += game.BuildCount[COUNT_MILITARY_BASES]*UPKEEP_MILITARY_BASES;
-    change = (change*game.upkeep[UPKEEPS_DEFENCE])/100;    
-    if (game.credits < change) {
-        // can't friggin pay...
-        game.credits = 0;
-        DoNastyStuffTo(TYPE_FIRE_STATION,10);
-        DoNastyStuffTo(TYPE_POLICE_STATION,10);
-        DoNastyStuffTo(TYPE_MILITARY_BASE,30);
-    } else {
-        game.credits -= change;
-    }
+    // roads
+    DoNastyStuffTo(TYPE_ROAD,1);
+    DoNastyStuffTo(TYPE_POWER_LINE,5);
+    DoNastyStuffTo(TYPE_POWER_PLANT,15);
+    DoNastyStuffTo(TYPE_NUCLEAR_PLANT,50);
+    DoNastyStuffTo(TYPE_FIRE_STATION,10);
+    DoNastyStuffTo(TYPE_POLICE_STATION,12);
+    DoNastyStuffTo(TYPE_MILITARY_BASE,35);
     
 }
 

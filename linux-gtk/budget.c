@@ -1,10 +1,13 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include "../source/simulation.h"
+#include "../source/zakdef.h"
+#include "../source/globals.h"
 #include "main.h"
 
 GtkWidget *dlg=0;
 GtkWidget *lres,*lcom,*lind,*lpow,*ltra,*ldef,*lbal,*lcha,*lnex;
+GtkObject *adjust_tra, *adjust_pow, *adjust_def;
 
 extern void UIUpdateBudget(void)
 {
@@ -34,14 +37,31 @@ extern void UIUpdateBudget(void)
 
 }
 
-gint budget_ok(GtkWidget *widget, gpointer data)
+void budget_traffic(GtkAdjustment *adj)
 {
-    gtk_object_destroy(GTK_OBJECT(dlg));
-    dlg = 0;
-    return FALSE;
+    char temp[20];
+    game.upkeep[UPKEEPS_TRAFFIC] = gtk_adjustment_get_value(GTK_ADJUSTMENT(adjust_tra));
+    sprintf(temp,"%li", BudgetGetNumber(BUDGET_TRAFFIC));
+    gtk_label_set_text((GtkLabel*)ltra,temp);
 }
 
-gint close_budget_cancel(GtkWidget *widget, gpointer data)
+void budget_power(GtkAdjustment *adj)
+{
+    char temp[20];
+    game.upkeep[UPKEEPS_POWER] = gtk_adjustment_get_value(GTK_ADJUSTMENT(adjust_pow));
+    sprintf(temp,"%li", BudgetGetNumber(BUDGET_POWER));
+    gtk_label_set_text((GtkLabel*)lpow,temp);
+}
+
+void budget_defence(GtkAdjustment *adj)
+{
+    char temp[20];
+    game.upkeep[UPKEEPS_DEFENCE] = gtk_adjustment_get_value(GTK_ADJUSTMENT(adjust_def));
+    sprintf(temp,"%li", BudgetGetNumber(BUDGET_DEFENCE));
+    gtk_label_set_text((GtkLabel*)ldef,temp);
+}
+
+gint close_budget(GtkWidget *widget, gpointer data)
 {
     dlg = 0;
     return FALSE;
@@ -66,23 +86,18 @@ GtkWidget * create_right_label(void)
 extern void UIViewBudget(GtkWidget *w, gpointer data)
 {
     GtkWidget *table, *mainbox;
-    GtkWidget *button;
 
     dlg = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-//    gtk_window_set_modal(GTK_WINDOW(dlg),1);
     gtk_window_set_title(GTK_WINDOW(dlg), "Pocket City Budget");
 
     mainbox = gtk_vbox_new(FALSE,10);
     table = gtk_table_new(12,3,TRUE);
     gtk_container_set_border_width(GTK_CONTAINER(mainbox),3);
 
-    button = gtk_button_new_with_label("OK");
-    g_signal_connect(G_OBJECT(button),"clicked", G_CALLBACK(budget_ok), 0);
-    g_signal_connect(G_OBJECT(dlg),"delete_event", G_CALLBACK(close_budget_cancel), 0);
+    g_signal_connect(G_OBJECT(dlg),"delete_event", G_CALLBACK(close_budget), 0);
 
     gtk_container_add(GTK_CONTAINER(dlg), mainbox);
     gtk_box_pack_start(GTK_BOX(mainbox), table,TRUE,TRUE,0);
-    gtk_box_pack_start(GTK_BOX(mainbox), button,TRUE,TRUE,0);
     // layout the labels
     gtk_table_attach_defaults(GTK_TABLE(table),gtk_label_new("Income"),0,3,0,1);
     gtk_table_attach_defaults(GTK_TABLE(table),create_left_label("Residential"),0,1,1,2);
@@ -118,6 +133,27 @@ extern void UIViewBudget(GtkWidget *w, gpointer data)
     gtk_table_attach_defaults(GTK_TABLE(table),lbal,2,3,11,12);
     gtk_table_attach_defaults(GTK_TABLE(table),lcha,2,3,12,13);
     gtk_table_attach_defaults(GTK_TABLE(table),lnex,2,3,13,14);
+    
+    // and the adjustments
+    {
+        GtkWidget *spinner;
+        adjust_tra = gtk_adjustment_new(game.upkeep[UPKEEPS_TRAFFIC],0,100,1,10,0);
+        spinner = gtk_spin_button_new(GTK_ADJUSTMENT(adjust_tra),0.1,0);
+        gtk_table_attach_defaults(GTK_TABLE(table),spinner,1,2,6,7);
+        g_signal_connect(G_OBJECT(spinner), "value_changed", G_CALLBACK(budget_traffic), NULL);
+
+        adjust_pow = gtk_adjustment_new(game.upkeep[UPKEEPS_POWER],0,100,1,10,0);
+        spinner = gtk_spin_button_new(GTK_ADJUSTMENT(adjust_pow),0.1,0);
+        gtk_table_attach_defaults(GTK_TABLE(table),spinner,1,2,7,8);
+        g_signal_connect(G_OBJECT(spinner), "value_changed", G_CALLBACK(budget_power), NULL);
+
+        adjust_def = gtk_adjustment_new(game.upkeep[UPKEEPS_DEFENCE],0,100,1,10,0);
+        spinner = gtk_spin_button_new(GTK_ADJUSTMENT(adjust_def),0.1,0);
+        gtk_table_attach_defaults(GTK_TABLE(table),spinner,1,2,8,9);
+        g_signal_connect(G_OBJECT(spinner), "value_changed", G_CALLBACK(budget_defence), NULL);
+
+    }
+    
     
     UIUpdateBudget();
 
