@@ -62,7 +62,7 @@ BITMAPCOLOR ID bitmapID_IndNine2                     "graphic/16x16-color/i_09.b
 BITMAPCOLOR ID bitmapID_IndTen2                      "graphic/16x16-color/i_10.bmp" COMPRESS	
 BITMAPCOLOR ID bitmapID_PowerPlant2            "graphic/16x16-color/powerplant.bmp"    COMPRESS	
 BITMAPCOLOR ID bitmapID_NulearPlant2           "graphic/16x16-color/nuclear.bmp"    COMPRESS
-BITMAP ID bitmapID_Waste2                 "graphic/16x16-color/waste.bmp"
+BITMAPCOLOR ID bitmapID_Waste2                 "graphic/16x16-color/waste.bmp"
 
 BITMAPCOLOR ID bitmapID_PowerLeftRight2        "graphic/16x16-color/power01.bmp"    COMPRESS	
 BITMAPCOLOR ID bitmapID_PowerUpDown2           "graphic/16x16-color/power02.bmp"    COMPRESS
