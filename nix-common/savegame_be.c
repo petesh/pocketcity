@@ -3,12 +3,10 @@
  * \brief back-end code for savegames
  *
  * Deals with the savegames being loaded and saved.
- * Can perform read-only work on palmOS games directly, but performs
- * read/write on native games.
+ * Operates on .pdb files in a read-only manner (palmos savegames)
+ * Operates on .cty files in a read-write manner (OS-native). These can
+ * be beamed to/from PalmOS devices.
  *
- * The code needs to be made more platform-independent, as it is it depends
- * a lot on the endianness of the machine you're running it on.
- * \todo change the savegame format to XML for the linux platforms.
  */
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -22,8 +20,10 @@
 
 #include <main.h>
 #include <globals.h>
+#include <sections.h>
+#include <pack.h>
 #include <handler.h>
-#include <ui.h>
+#include <logging.h>
 #include <simulation.h>
 #include <inttypes.h>
 #include <strings.h>
@@ -36,6 +36,7 @@
 struct embedded_savegame {
 	GameStruct gs;	/*!< game structure of the savegame */
 	char *world;	/*!< world pointer of the savegame */
+	char *flags;	/*!< world pointer of the savegame */
 };
 
 /*! \brief a savegame structure */
@@ -43,6 +44,7 @@ struct save_tag {
 	int gamecount; /*!< count of savegames in this structure */
 	struct embedded_savegame *games; /*!< the games */
 };
+
 typedef struct save_tag savegame_t;
 
 #define _SAVEGAME_BE_IMPL
@@ -57,25 +59,12 @@ read_int8(int fd)
 	return (rv);
 }
 
-static void
-write_int8(int fd, Int8 value)
-{
-	write(fd, &value, 1);
-}
-
 static Int16
 read_int16(int fd)
 {
 	Int8 by[2];
 	read(fd, by, 2);
 	return (by[0] << 8 | by[1]);
-}
-
-static void
-write_int16(int fd, Int16 value)
-{
-	write_int8(fd, (value >> 8) & 0xff);
-	write_int8(fd, value & 0xff);
 }
 
 static Int32
@@ -86,13 +75,27 @@ read_int32(int fd)
 	return (by[0] << 24 | by[1] << 16 | by[2] << 8 | by[3]);
 }
 
+*/
+
+static void
+write_int8(int fd, Int8 value)
+{
+	write(fd, &value, 1);
+}
+
+static void
+write_int16(int fd, Int16 value)
+{
+	write_int8(fd, (value >> 8) & 0xff);
+	write_int8(fd, value & 0xff);
+}
+
 static void
 write_int32(int fd, Int32 value)
 {
 	write_int16(fd, (value >> 16) & 0xffff);
 	write_int16(fd, value & 0xffff);
 }
-*/
 
 /*
 static char *
@@ -140,9 +143,12 @@ mapm_int32(unsigned char *mem, unsigned char *val)
  * a mem-mapped copy of the file. If you change the savegame structure you
  * need to make sure that the reading routines here match the declarations
  * in the GameStruct structure, otherwise you read in garbage.
+ * I am completely convinced that the creation of this code could be automated
+ * in order to eliminate the potential confusion every time the structure
+ * changes (e.g. using the stabs information to generate this)
  */
 static char *
-read_palmstructure(char *mem, GameStruct *new, char **map)
+read_palmstructure(char *mem, GameStruct *new, char **map, char **flags)
 {
 	int i;
 	int j;
@@ -161,7 +167,7 @@ read_palmstructure(char *mem, GameStruct *new, char **map)
 
 	new->map_xpos = *mem++;
 	new->map_ypos = *mem++;
-
+	
 	mem = mapm_int32(mem, (char *)&new->credits);
 	mem = mapm_int32(mem, (char *)&new->TimeElapsed);
 
@@ -176,6 +182,7 @@ read_palmstructure(char *mem, GameStruct *new, char **map)
 	new->gridsToUpdate = *mem++;
 
 	mem = mapm_int16(mem, (char *)&new->evaluation);
+	printf("stats starting at %p\n", mem);
 	i = 0;
 	while (i < st_tail) {
 		for (j = 0; j < STATS_COUNT; j++) {
@@ -188,12 +195,13 @@ read_palmstructure(char *mem, GameStruct *new, char **map)
 		}
 		i++;
 	}
+	printf("units starting at %p\n", mem);
 	i = 0;
 	while (i < NUM_OF_UNITS) {
 		mem = mapm_int16(mem, (char *)&new->units[i].x);
 		mem = mapm_int16(mem, (char *)&new->units[i].y);
 		mem = mapm_int16(mem, (char *)&new->units[i].active);
-		new->units[i].type = *mem++;
+		mem = mapm_int16(mem, (char *)&new->units[i].type);
 		mem += 1;
 		i++;
 	}
@@ -205,70 +213,93 @@ read_palmstructure(char *mem, GameStruct *new, char **map)
 		mem = mapm_int16(mem, (char *)&new->objects[i].active);
 		i++;
 	}
-	map_size = (sizeof (welem_t) + sizeof (selem_t)) *
-	    new->mapx * new->mapy;
+	map_size = sizeof (welem_t) * new->mapx * new->mapy;
 	ptr = malloc(map_size);
 	*map = ptr;
 	printf("map starting from: %p for %d\n", mem, map_size);
-	for (i = 0; i < new->mapx * new->mapy; ptr+=2, i++) {
-		mem = mapm_int16(mem, ptr);
-	}
+	bcopy(mem, *map, new->mapx * new->mapy);
+	mem += new->mapx * new->mapy;
+	//for (i = 0; i < new->mapx * new->mapy; ptr++, i++) {
+	//	mem = mapm_int8(mem, ptr);
+	//}
+	map_size = sizeof (selem_t) * new->mapx * new->mapy;
+	ptr = malloc(map_size);
+	*flags = ptr;
+	UnpackBits(mem, ptr, 2, new->mapx * new->mapy);
 	return (mem);
 }
 
-/*
 static void
-write_palmstructure(GameStruct *new, int fd)
+write_palmstructure(GameStruct *new, char *map, char *flags, int fd)
 {
 	int i;
 	int j;
+	size_t compres_size;
+	char *compres_buf;
 
-	write(fd, new->gsi.version, 4);
-	write_int8(fd, new->gsi.mapx);
-	write_int8(fd, new->gsi.mapy);
-	write_int16(fd, new->gsi.map_xpos);
-	write_int16(fd, new->gsi.map_ypos);
-	write_int32(fd, new->gsi.credits);
-	write_int32(fd, new->gsi.TimeElapsed);
-	write_int8(fd, new->gsi.tax);
-	write_int8(fd, new->gsi.gameLoopSeconds);
-	write_int8(fd, new->gsi.diff_disaster);
-	write_int8(fd, new->gsi.auto_bulldoze);
-	write(fd, new->gsi.cityname, CITYNAMELEN);
-	write_int8(fd, new->gsi.upkeep[0]);
-	write_int8(fd, new->gsi.upkeep[1]);
-	write_int8(fd, new->gsi.upkeep[2]);
-	write_int16(fd, new->gsi.evaluation);
-	write_int8(fd, new->gsi.c_units);
-	write_int8(fd, new->gsi.c_objects);
+	write(fd, new->version, 4);
+	write_int8(fd, new->mapx);
+	write_int8(fd, new->mapy);
+	write_int8(fd, new->map_xpos);
+	write_int8(fd, new->map_ypos);
+	write_int32(fd, new->credits);
+	write_int32(fd, new->TimeElapsed);
+	write_int8(fd, new->tax);
+	write_int8(fd, new->gameLoopSeconds);
+	write_int8(fd, new->diff_disaster);
+	write_int8(fd, new->gas_bits);
+	write(fd, new->cityname, CITYNAMELEN);
+	for (i = 0; i < ue_tail; i++)
+		write_int8(fd, new->upkeep[i]);
+	write_int8(fd, new->gridsToUpdate);
+	write_int16(fd, new->evaluation);
 	i = 0;
-	while (i < si_tail) {
+	while (i < st_tail) {
 		for (j = 0; j < STATS_COUNT; j++) {
-			write_int16(fd, new->gsi.statistics[i].last_ten[j]);
+			write_int16(fd, new->statistics[i].last_ten[j]);
 		}
 		for (j = 0; j < STATS_COUNT; j++) {
-			write_int16(fd, new->gsi.statistics[i].last_century[j]);
+			write_int16(fd, new->statistics[i].last_century[j]);
 		}
 		i++;
 	}
+
 	i = 0;
-	while (i < new->gsi.c_units) {
-		 write_int16(fd, new->units[i].x);
-		 write_int16(fd, new->units[i].y);
-		 write_int16(fd, new->units[i].active);
-		 write_int16(fd, new->units[i].type);
+	while (i < NUM_OF_UNITS) {
+		new->units[i].x = 0x00ff;
+		write_int16(fd, new->units[i].x);
+		new->units[i].y = 0xee00;
+		write_int16(fd, new->units[i].y);
+		new->units[i].active = 0x00dd;
+		write_int16(fd, new->units[i].active);
+		new->units[i].type = 0xaa00;
+		write_int16(fd, new->units[i].type);
 		i++;
 	}
 	i = 0;
-	while (i < new->gsi.c_objects) {
-		 write_int16(fd, new->objects[i].x);
-		 write_int16(fd, new->objects[i].y);
-		 write_int16(fd, new->objects[i].dir);
-		 write_int16(fd, new->objects[i].active);
+	while (i < NUM_OF_OBJECTS) {
+		new->objects[i].x = 0x0011;
+		write_int16(fd, new->objects[i].x);
+		new->objects[i].y = 0x2200;
+		write_int16(fd, new->objects[i].y);
+		new->objects[i].dir = 0x0033;
+		write_int16(fd, new->objects[i].dir);
+		new->objects[i].active = 0x0044;
+		write_int16(fd, new->objects[i].active);
 		i++;
 	}
+
+	setWorld(0, 0xff);
+	setWorldFlags(0, 0x3);
+	/* Now we write the map */
+	(void) write(fd, map, new->mapx * new->mapy);
+	compres_size = (new->mapx * new->mapy +
+	    (((sizeof (selem_t) * 8) / 2) - 1)) / ((sizeof (selem_t) * 8) / 2);
+	compres_buf = malloc(compres_size);
+	PackBits(flags, compres_buf, 2, new->mapx * new->mapy);
+	(void) write(fd, compres_buf, compres_size);
+	free(compres_buf);
 }
-*/
 
 savegame_t *
 savegame_open(char *filename)
@@ -278,7 +309,6 @@ savegame_open(char *filename)
 	int fd = open(filename, O_RDONLY, 0666);
 	char *buf, *buf2, *buf3;
 	size_t size;
-	char sbuf[4];
 
 	if (rv == NULL) {
 		perror("calloc");
@@ -287,29 +317,14 @@ savegame_open(char *filename)
 
 	if (fd == -1) {
 		perror("open");
+		free(rv);
 		return (NULL);
 	}
-
-	read(fd, sbuf, 4);
-	if (0 == memcmp(sbuf, SAVEGAMEVERSION, 4)) {
-		size_t worldsize;
-		lseek(fd, SEEK_SET, 0);
-		rv->gamecount = 1;
-		rv->games = calloc(1, sizeof (struct embedded_savegame));
-		read(fd, &rv->games[0].gs, sizeof (GameStruct));
-		worldsize = (rv->games[0].gs.mapx * rv->games[0].gs.mapy) *
-		    (sizeof (selem_t) + sizeof (welem_t));
-		rv->games[0].world = calloc(1, worldsize);
-		read(fd, (void *)worldPtr, worldsize);
-		close(fd);
-		return(rv);
-	}
-
-	/* It's a palmos savegame structure */
 
 	if (-1 == fstat(fd, &st)) {
 		perror("fstat");
 		close(fd);
+		free(rv);
 		return (NULL);
 	}
 	size = st.st_size;
@@ -318,10 +333,29 @@ savegame_open(char *filename)
 	if (buf == MAP_FAILED) {
 		perror("mmap");
 		close(fd);
+		free(rv);
 		return (NULL);
 	}
 	close(fd);
+
+	if (0 == memcmp(buf, SAVEGAMEVERSION, 4)) { /* Native Savegame */
+		rv->gamecount = 1;
+		rv->games = calloc(1, sizeof (struct embedded_savegame));
+		read_palmstructure(buf, &rv->games[0].gs,
+			&rv->games[0].world, &rv->games[0].flags);
+		munmap(buf, st.st_size);
+		close(fd);
+		return(rv);
+	}
+
+	/* It may be a palmos savegame structure ... this would be a .pdb */
+
 	buf2 = inMem(buf, size, SAVEGAMEVERSION, 4);
+	if (buf2 == NULL) {
+		free(rv);
+		return (NULL);
+	}
+	
 	while (buf2 != NULL) {
 		rv->gamecount++;
 		rv->games = realloc(rv->games,
@@ -329,7 +363,8 @@ savegame_open(char *filename)
 		buf3 = buf2;
 		buf2 = read_palmstructure(buf2,
 		    &rv->games[rv->gamecount - 1].gs,
-		    &rv->games[rv->gamecount - 1].world);
+		    &rv->games[rv->gamecount - 1].world,
+		    &rv->games[rv->gamecount - 1].flags);
 		size -= (buf2 - buf3);
 		buf2 = inMem(buf2, size, SAVEGAMEVERSION, 4);
 	}
@@ -344,6 +379,7 @@ savegame_close(savegame_t *sg)
 
 	for (index = 0; index < sg->gamecount; index++) {
 		free(sg->games[index].world);
+		free(sg->games[index].flags);
 	}
 	free(sg->games);
 	free(sg);
@@ -359,29 +395,37 @@ savegame_getcityname(savegame_t *sg, int item)
 }
 
 int
-savegame_getcity(savegame_t *sg, int item, GameStruct *gs, char **map)
+savegame_getcity(savegame_t *sg, int item, GameStruct *gs, char **map,
+    char **flags)
 {
 	size_t newl = 0;
 	if (sg == NULL || item >= sg->gamecount)
 		return (-1);
 	bcopy(&sg->games[item].gs, gs, sizeof (GameStruct));
-	newl = (sizeof (welem_t) + sizeof (selem_t)) * gs->mapx * gs->mapy;
+	newl = (sizeof (welem_t)) * gs->mapx * gs->mapy;
 	*map = (char *)realloc (*map, newl);
 	bcopy(sg->games[item].world, *map, newl);
+	newl = (sizeof (selem_t)) * gs->mapx * gs->mapy;
+	*flags = (char *)realloc(*map, newl);
+	bcopy(sg->games[item].flags, *map, newl);
 	return (0);
 }
 
 int
-savegame_setcity(savegame_t *sg, int item, GameStruct *gs, char *map)
+savegame_setcity(savegame_t *sg, int item, GameStruct *gs, char *map,
+    char *flags)
 {
 	size_t newl;
 
 	if (map == NULL || sg == NULL || item >= sg->gamecount)
 		return (-1);
 	bcopy(gs, &sg->games[item].gs, sizeof (GameStruct));
-	newl = sizeof (selem_t) + sizeof (welem_t) * gs->mapx * gs->mapy;
+	newl = sizeof (welem_t) * gs->mapx * gs->mapy;
 	sg->games[item].world = realloc(sg->games[item].world, newl);
 	bcopy(map, sg->games[item].world, newl);
+	newl = sizeof (selem_t) * gs->mapx * gs->mapy;
+	sg->games[item].flags = realloc(sg->games[item].flags, newl);
+	bcopy(flags, sg->games[item].flags, newl);
 	return (0);
 }
 
@@ -398,8 +442,16 @@ load_defaultfilename(void)
 	savegame_t *sg = savegame_open(getCityFileName());
 	if (sg == NULL)
 		return (-1);
-	if (worldPtr != NULL) free(worldPtr);
-	savegame_getcity(sg, 0, &game, (char **)&worldPtr);
+	if (worldPtr != NULL) {
+		free(worldPtr);
+		worldPtr = NULL;
+	}
+	if (flagPtr != NULL) {
+		free(flagPtr);
+		flagPtr = NULL;
+	}
+	savegame_getcity(sg, 0, &game, (char **)&worldPtr,
+	    (char **)&flagPtr);
 	savegame_close(sg);
 	return (0);
 }
@@ -407,15 +459,17 @@ load_defaultfilename(void)
 int
 save_defaultfilename()
 {
-	return(save_filename(getCityFileName(), &game, worldPtr));
+	return(save_filename(getCityFileName(), &game, worldPtr, flagPtr));
 }
 
 int
-save_filename(char *sel, GameStruct *gs, char *world)
+save_filename(char *sel, GameStruct *gs, char *world, char *flags)
 {
-	int fd, ret;
-	ssize_t worldsize = gs->mapx * gs->mapy *
-	    (sizeof (selem_t) + sizeof (welem_t));
+	int fd;//, ret;
+	//ssize_t worldsize = gs->mapx * gs->mapy * (sizeof (welem_t));
+	//ssize_t flagssize = gs->mapx * gs->mapy * (sizeof (selem_t));
+	//char *nbuf = NULL;
+	//ssize_t compres_size;
 
 	if (sel == NULL) {
 		return (-1);
@@ -428,28 +482,44 @@ save_filename(char *sel, GameStruct *gs, char *world)
 		perror("open"); /* TODO: make this nicer */
 		return (-1);
 	}
-	/* God, I love to write all my vars at one time */
-	/* using a struct :D */
-
+	
+	write_palmstructure(gs, world, flags, fd);
+	/*
 	ret = write(fd, (void*)gs, sizeof (GameStruct));
 	if (ret == -1) {
-		perror("write game"); /* TODO: make this nicer */
+		perror("write game"); / * TODO: make this nicer * /
 		return (-1);
 	} else if (ret != sizeof (GameStruct)) {
 		WriteLog("Whoops, couldn't write full length of game\n");
 		return (-1);
 	}
 
-	/* and now the great worldPtr :D */
+	/ * and now the great worldPtr :D * /
 	ret = write(fd, (void*)world, (size_t)worldsize);
 	if (ret == -1) {
-		perror("write world"); /* TODO: make this nicer */
+		perror("write world"); / * TODO: make this nicer * /
 		return (-1);
 	} else if (ret != worldsize) {
 		WriteLog("Whoops, couldn't write full length of world\n");
 		return (-1);
 	}
 
+	compres_size = (gs->mapx * gs->mapy +  (sizeof (selem_t))) /
+	    (sizeof (selem_t) / 2);
+	nbuf = malloc(compres_size);
+	PackBits(worldFlags, nbuf, 2, gs->mapx * gs->mapy);
+	ret = write(fd, (void *)nbuf, (size_t)compres_size);
+	if (ret == -1) {
+		perror("write world flags"); / * TODO: make this nicer * /
+		free(nbuf);
+		return (-1);
+	} else if (ret != compres_size) {
+		WriteLog("Whoops, couldn't write the full length of world\n");
+		free(nbuf);
+		return (-1);
+	}
+	free(nbuf);
+	*/
 	if (close(fd) == -1) {
 		perror("close"); /* TODO: make this nicer */
 		return (-1);

@@ -44,13 +44,16 @@ char *savegame_getcityname(savegame_t *sg, int item);
  * \param item the index of the savegame to access
  * \param gs the game structure to populate with the world
  * \param map the reference to a pointer that will be allocated and filled
- *        with the map. It will be realloced into.
+ *      with the map. It will be realloced into.
+ * \param flags the reference to a pointer that will be allocated and filled
+ * 	with the map flags. It will be realloced into.
  * \return 0 if the item was copied safely, -1 otherwise
  *
  * the map parameter will have it's value overwritten, so if you've allocated
  * a pointer into it you need to free it beforehand.
  */
-int savegame_getcity(savegame_t *sg, int item, GameStruct *gs, char **map);
+int savegame_getcity(savegame_t *sg, int item, GameStruct *gs, char **map,
+    char **flags);
 
 /*!
  * \brief store the contents of a city into the savegame structure
@@ -58,18 +61,21 @@ int savegame_getcity(savegame_t *sg, int item, GameStruct *gs, char **map);
  * \param item the index of the savegame to set
  * \param gs the game structure to store
  * \param map the map to store
+ * \param flags the map flags to store
  * \return 0 on success, -1 on error
  */
-int savegame_setcity(savegame_t *sg, int item, GameStruct *gs, char *map);
+int savegame_setcity(savegame_t *sg, int item, GameStruct *gs, char *map,
+    char *flags);
 
 /*!
  * \brief save the game into the file specified
  * \param name the name of the file to save the game to
  * \param gs the structure to save
  * \param world the world to save
+ * \param flags the world flags to save
  * \return 0 if the file was saved successfully, -1 otherwise
  */
-int save_game(char *name, GameStruct *gs, char *world);
+int save_game(char *name, GameStruct *gs, char *world, char *flags);
 /*!
  * \brief save the default savegame file and map
  * \return -1 if something went wrong, 0 otherwise
@@ -86,9 +92,10 @@ int load_defaultfilename(void);
  * \param sel the name of the file to save
  * \param gs the gamestruct to save
  * \param world the worldpointer to save
+ * \param flags the world flags to save
  * \return -1 on error, 0 otherwise.
  */
-int save_filename(char *sel, GameStruct *gs, char *world);
+int save_filename(char *sel, GameStruct *gs, char *world, char *flags);
 
 /*!
  * \brief Initialize the game structures for a new game

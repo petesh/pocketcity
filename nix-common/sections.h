@@ -13,6 +13,7 @@
 #define SAVE_SECTION
 #define BUILD_SECTION
 #define DISASTER_SECTION
+#define PACK_SECTION
 
 #endif /* _SECTIONS_H_ */
 

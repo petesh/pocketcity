@@ -15,7 +15,7 @@ LDLIBS = $(LIBS) $(GLFLAGS)
 OBJECTS = main.o savegame_fe.o budget.o \
 	stack.o savegame_be.o pglobals.o nix_utils.o simulation-ui.o \
 	handler.o build.o disaster.o drawing.o globals.o simulation.o \
-	uibits.o stringsearch.o zonemon.o zonestrings.o
+	uibits.o stringsearch.o zonemon.o zonestrings.o pack.o
 
 .PHONY: all debug clean
 

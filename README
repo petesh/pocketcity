@@ -15,16 +15,20 @@ To compile for PalmOS:
  
  install:               for this:
 
- PocketCity-EN.prc		pocketcity in english
- PocketCity-sony-EN.prc	pocketcity in english for high resolution (sony)
+ normal-PocketCity-EN.prc		pocketcity in english
+ sony-PocketCity-EN.prc			pocketcity in english for sony palmos
+					  devices (including palm5 sony devices)
+ palm5-PocketCity-EN.prc		pocketcity in english for palm 5 devices
  
  		--- but also install one of:
- PocketCity-bw-single.pdb		black/white displays
- PocketCity-grey-single.pdb         16 greyscale displays (like the Vx)
- PocketCity-color-single.pdb        256 color displays    (like the IIIc)
- PocketCity-merged-single.pdb       can be used on b/w, grey & color devices
+ PocketCity-bw-1.pdb		black/white displays
+ PocketCity-twobit-1.pdb	2-bit color devices (??)
+ PocketCity-grey-1.pdb         16 greyscale displays (like the Vx)
+ PocketCity-color-1.pdb        256 color displays    (like the IIIc)
+ PocketCity-merged-1.pdb       can be used on b/w, grey & color devices
 
- to actually use the game; they contain the tiles.
+ to actually use the game; they contain the tiles. If you don't add the tile
+ the game will complain on startup.
 
 Special Features:
 =================
@@ -48,6 +52,7 @@ Sony Devices (4 and 5):
   * Jog dial scrolls the map
   * High Resolution where available (layout changes)
   * Using the hold switch pauses the game.
+  * Soft Silk
 
 PalmOS 3.1:
 ===========

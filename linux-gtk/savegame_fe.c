@@ -77,7 +77,8 @@ ImportOneFromGame(GtkWidget *widget, gint response, gpointer data)
 			gtk_tree_model_get(model, &iter, 0, &city, -1);
 		}
 
-		savegame_getcity(sel->sg, city, &game, (char **)&worldPtr);
+		savegame_getcity(sel->sg, city, &game, (char **)&worldPtr,
+		    (char **)&flagPtr);
 		PostLoadGame();
 		DrawGame(1);
 		MapHasJumped();
@@ -166,7 +167,8 @@ doOpen(gchar *filename)
 	if (savegame_citycount(sg) > 1) {
 		loadCities(sg);
 	} else {
-		savegame_getcity(sg, 0, &game, (char **)&worldPtr);
+		savegame_getcity(sg, 0, &game, (char **)&worldPtr,
+		    (char **)&flagPtr);
 		PostLoadGame();
 		DrawGame(1);
 		MapHasJumped();
