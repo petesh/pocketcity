@@ -13,7 +13,7 @@ extern void DoNastyStuffTo(int type, unsigned int probability)
     if (GetRandomNumber(probability) != 0) { return; } // nothing happened :(
 
     LockWorld();
-    for (i=0; i<200; i++) {
+    for (i=0; i<50; i++) {
         randomTile = GetRandomNumber(mapsize*mapsize);
         if (GetWorld(randomTile) == type) {
             // wee, let's destroy something

@@ -472,7 +472,7 @@ long unsigned int GetRandomZone()
 
 void DoTaxes()
 {
-    credits += (BuildCount[COUNT_RESIDENTIAL]+BuildCount[COUNT_COMMERCIAL]+BuildCount[COUNT_INDUSTRIAL])*150*tax/100;
+    credits += (BuildCount[COUNT_RESIDENTIAL]+BuildCount[COUNT_COMMERCIAL]+BuildCount[COUNT_INDUSTRIAL])*75*tax/100;
 }
 
 void DoUpkeep()
@@ -500,8 +500,8 @@ void DoUpkeep()
     if (credits < (BuildCount[COUNT_NUCLEARPLANTS]*500 + BuildCount[COUNT_POWERPLANTS]*200)) {
         // can't pay
         credits = 0;
-        DoNastyStuffTo(TYPE_POWER_PLANT,25);
-        DoNastyStuffTo(TYPE_NUCLEAR_PLANT,50);
+        DoNastyStuffTo(TYPE_POWER_PLANT,15);
+        DoNastyStuffTo(TYPE_NUCLEAR_PLANT,30);
     } else {
         credits -= (BuildCount[COUNT_NUCLEARPLANTS]*500 + BuildCount[COUNT_POWERPLANTS]*200);
     }
