@@ -320,25 +320,25 @@ void BudgetInit(void)
     temp = MemPtrNew(12);
     change = BuildCount[COUNT_RESIDENTIAL]*INCOME_RESIDENTIAL*tax/100;
     cashflow += change;
-    sprintf(temp,"%lu",  change);
+    StrPrintF(temp,"%lu",  change);
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_res)), temp);
 
     temp = MemPtrNew(12);
     change = BuildCount[COUNT_COMMERCIAL]*INCOME_COMMERCIAL*tax/100;
     cashflow += change;
-    sprintf(temp,"%lu",  change);
+    StrPrintF(temp,"%lu",  change);
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_com)), temp);
 
     temp = MemPtrNew(12);
     change = BuildCount[COUNT_INDUSTRIAL]*INCOME_INDUSTRIAL*tax/100;
     cashflow += change;
-    sprintf(temp,"%lu",  change);
+    StrPrintF(temp,"%lu",  change);
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_ind)), temp);
 
     temp = MemPtrNew(12);
     change = BuildCount[COUNT_ROADS]*UPKEEP_ROAD;
     cashflow -= change;
-    sprintf(temp,"%lu", change);
+    StrPrintF(temp,"%lu", change);
     CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_tra)), temp);
 
     temp = MemPtrNew(12);
@@ -346,20 +346,20 @@ void BudgetInit(void)
              BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT +
              BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT;
     cashflow -= change;
-    sprintf(temp,"%lu", change);
+    StrPrintF(temp,"%lu", change);
    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_pow)), temp);
 
 
    temp = MemPtrNew(12);
-   sprintf(temp,"%+li", cashflow);
+   StrPrintF(temp,"%+li", cashflow);
    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_tot)), temp);
 
    temp = MemPtrNew(12);
-   sprintf(temp,"%li", credits+cashflow);
+   StrPrintF(temp,"%li", credits+cashflow);
    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_bal)), temp);
 
    temp = MemPtrNew(12);
-   sprintf(temp,"%li", credits);
+   StrPrintF(temp,"%li", credits);
    CtlSetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form, labelID_budget_now)), temp);
 }
 
