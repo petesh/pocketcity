@@ -250,9 +250,10 @@ BurnField(Int16 x, Int16 y, Int16 forceit)
         Build_Destroy(x,y);
         SetWorld(WORLDPOS(x,y), TYPE_FIRE1);
         SetScratch(WORLDPOS(x,y));
+        /* DrawCross will lock the world flags itself */
+        UnlockWorldFlags();
         DrawCross(x,y);
         vgame.BuildCount[COUNT_FIRE]++;
-        UnlockWorldFlags();
         UnlockWorld();
         return (1);
     }
@@ -449,7 +450,9 @@ MoveAllObjects(void)
             default:
                 break;
             }
+            LockWorld();
             DrawCross(x, y); /* draw where it came from (erase it) */
+            UnlockWorld();
             DrawField(game.objects[i].x, game.objects[i].y); /* draw object */
         }
     }

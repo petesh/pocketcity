@@ -184,8 +184,10 @@ Build_Defence(Int16 xpos, Int16 ypos, UInt16 type)
     game.units[sel].active = newactive;
     game.units[sel].type = type;
 
+    LockWorld();
     DrawCross(oldx, oldy);
     DrawCross(xpos, ypos);
+    UnlockWorld();
 }
 
 /*
@@ -224,7 +226,6 @@ Build_Destroy(Int16 xpos, Int16 ypos)
 {
     unsigned char type;
 
-    LockWorld();
     type = GetWorld(WORLDPOS(xpos,ypos));
     RemoveDefence(xpos, ypos);
 
@@ -266,7 +267,6 @@ Build_Destroy(Int16 xpos, Int16 ypos)
     } else {
         SetWorld(WORLDPOS(xpos,ypos),TYPE_DIRT);
     }
-    UnlockWorld();
 
     DrawCross(xpos, ypos);
 }
@@ -326,8 +326,10 @@ Build_Generic(Int16 xpos, Int16 ypos, UInt16 type)
 
     worldItem = GetWorld(WORLDPOS(xpos, ypos));
 
-    if ((type == TYPE_TREE) && (worldItem == TYPE_TREE))
+    if ((type == TYPE_TREE) && (worldItem == TYPE_TREE)) {
+        UnlockWorld();
         return;
+    }
 
     if (IsBulldozable(worldItem)) {
         if (worldItem == TYPE_TREE) toSpend += BUILD_COST_BULLDOZER;

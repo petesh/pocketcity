@@ -182,7 +182,6 @@ void
 DrawCross(Int16 xpos, Int16 ypos)
 {
     UIInitDrawing();
-    LockWorld();
     LockWorldFlags();
     if (xpos > 0)
         DrawFieldWithoutInit(xpos - 1, ypos);
@@ -193,7 +192,6 @@ DrawCross(Int16 xpos, Int16 ypos)
     if (ypos + 1 < GetMapSize())
         DrawFieldWithoutInit(xpos, ypos + 1);
     DrawFieldWithoutInit(xpos, ypos);
-    UnlockWorld();
     UnlockWorldFlags();
     UIFinishDrawing();
 }

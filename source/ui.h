@@ -39,10 +39,12 @@ UInt8 UIGetSelectedBuildItem(void);
 
 Int16 InitWorld(void);
 Int16 ResizeWorld(UInt32 size);
+UInt8 LockedWorld(void);
 void LockWorld(void);
 void UnlockWorld(void);
 UInt8 GetWorld(UInt32 pos);
 void SetWorld(UInt32 pos, UInt8 value);
+UInt8 LockedWorldFlags(void);
 void LockWorldFlags(void);
 void UnlockWorldFlags(void);
 

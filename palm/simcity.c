@@ -1851,29 +1851,56 @@ MapHasJumped(void)
 {
 }
 
+UInt8
+LockedWorld()
+{
+    return (worldPtr != NULL);
+}
 
 void
 LockWorld()
 {
+#ifdef DEBUG
+    if (worldPtr != NULL)
+        *(int *)0 = 5;
+#endif
     worldPtr = MemHandleLock(worldHandle);
 }
 
 void
 UnlockWorld()
 {
+#ifdef DEBUG
+    if (worldPtr == NULL)
+        *(int *)0 = 5;
+#endif
     MemHandleUnlock(worldHandle);
     worldPtr = NULL;
+}
+
+UInt8
+LockedWorldFlags()
+{
+    return (worldFlagsPtr != NULL);
 }
 
 void
 LockWorldFlags()
 {
+#ifdef DEBUG
+    if (worldFlagsPtr != NULL)
+        *(int *)0 = 5;
+#endif
     worldFlagsPtr = MemHandleLock(worldFlagsHandle);
 }
 
 void
 UnlockWorldFlags()
 {
+#ifdef DEBUG
+    if (worldFlagsPtr == NULL)
+        *(int *)0 = 5;
+#endif
     MemHandleUnlock(worldFlagsHandle);
     worldFlagsPtr = NULL;
 }

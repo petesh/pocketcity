@@ -13,6 +13,7 @@ Version 0.16dev
   * bug # 655848 crash after money warning
   * bug # 655365 crash after some time of interacting
   * bug # 726131 powerplant math is wrong in build routine
+  * bug # 750475 crash after tree-planting rage
   + auto-bulldoze feature for trees.
   + difficulty level (currently adjusts money at start)
   + Query tool.
