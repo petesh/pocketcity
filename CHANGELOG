@@ -17,6 +17,7 @@ Version 0.16dev
   + difficulty level (currently adjusts money at start)
   + Query tool.
   * Better Pause / Freeze logic for dialogs.
+  * mycity == autosave city
 
 Version 0.15
   * patch # 648260 Make greyscale work on HandEra 330

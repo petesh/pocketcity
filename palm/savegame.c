@@ -38,7 +38,7 @@ static char **citylist = NULL;
 int
 UILoadAutoGame(void)
 {
-    return LoadAutoSave();
+    return (LoadAutoSave());
 }
 
 /*
@@ -103,10 +103,12 @@ cnCreateButtonPressed(void)
 	SetDifficultyLevel(1);
     if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Hard)))
 	SetDifficultyLevel(2);
+
     pGameName = FldGetTextPtr(FrmGetObjectPtr(form,
 	    FrmGetObjectIndex(form, fieldID_newGameName)));
     if (pGameName != NULL) {
-	StrCopy((char*)game.cityname,pGameName);
+	MemSet(game.cityname, CITYNAMELEN, '\0');
+	StrNCopy((char*)game.cityname, pGameName, CITYNAMELEN);
         while (GameExists(game.cityname)) {
             int slen = StrLen(game.cityname);
             if (slen < CITYNAMELEN-1) {
@@ -118,10 +120,10 @@ cnCreateButtonPressed(void)
         }
 	CreateNewSaveGame(game.cityname);
 	CleanSaveGameList();
-	if (LoadGameByName(game.cityname) == -1) {
+	if (LoadGameByName(game.cityname) != -1) {
 	    FrmEraseForm(form);
 	    form = FrmGetFormPtr(formID_files);
-	    if (form)
+	    if (form != NULL)
 		FrmEraseForm(form);
 	    FrmGotoForm(formID_pocketCity);
 	} else {
@@ -253,30 +255,29 @@ static void
 UpdateSaveGameList(void)
 {
     int count;
-    FormPtr form;
+    FormPtr files_form;
+    ListType *list;
 
     if (citylist != NULL)
 	FreeCityNames(citylist);
 
     citylist = CityNames(&count);
 
+    files_form = FrmGetFormPtr(formID_files);
+    list = FrmGetObjectPtr(files_form,
+	FrmGetObjectIndex(files_form, listID_FilesList));
+
     if (NULL == citylist) {
-        form = FrmGetFormPtr(formID_files);
-        LstSetListChoices(FrmGetObjectPtr(form,
-              FrmGetObjectIndex(form, listID_FilesList)), NULL, 0);
-        if (form == FrmGetActiveForm())
-            LstDrawList(FrmGetObjectPtr(form,
-                  FrmGetObjectIndex(form, listID_FilesList)));
+        LstSetListChoices(list, NULL, 0);
+        if (files_form == FrmGetActiveForm())
+            LstDrawList(list);
         return; /* no cities */
     }
 
     /* update list */
-    form = FrmGetFormPtr(formID_files);
-    LstSetListChoices(FrmGetObjectPtr(form,
-          FrmGetObjectIndex(form, listID_FilesList)), citylist, count);
-    if (form == FrmGetActiveForm())
-        LstDrawList(FrmGetObjectPtr(form,
-              FrmGetObjectIndex(form, listID_FilesList)));
+    LstSetListChoices(list, citylist, count);
+    if (files_form == FrmGetActiveForm())
+        LstDrawList(list);
 }
 
 /*
@@ -286,14 +287,16 @@ UpdateSaveGameList(void)
 static void
 CleanSaveGameList(void)
 {
+    ListType *listp;
     FormPtr form = FrmGetFormPtr(formID_files);
-    void *fp;
 
-    if (form == NULL) return;
-    fp = FrmGetObjectPtr(form, FrmGetObjectIndex(form, listID_FilesList));
-    if (fp == NULL) return;
+    if (form == NULL)
+	return;
+    listp = FrmGetObjectPtr(form, FrmGetObjectIndex(form, listID_FilesList));
+    if (listp == NULL)
+	return;
 
-    LstSetListChoices(fp, NULL, 0);
+    LstSetListChoices(listp, NULL, 0);
 
     FreeCityNames(citylist);
     citylist = NULL;

@@ -210,7 +210,7 @@ FillStringList(UInt16 resID, UInt16 *length)
     rv[0] = lom;
     while(atitem < max) {
         SysStringByIndex(resID, atitem, item, 200);
-        StrCopy(rv[atitem], item);
+        StrNCopy(rv[atitem], item, 200);
         rv[atitem+1] = rv[atitem] + (StrLen(item)+1);
         atitem++;
     }

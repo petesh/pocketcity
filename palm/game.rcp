@@ -61,7 +61,8 @@ NOSAVEBEHIND
 MENUID menu_budget
 BEGIN
     TITLE "Budget"
-    POPUPTRIGGER "Budget" ID listID_shifter_popup AT (100 1 auto auto) LEFTANCHOR
+    POPUPTRIGGER "Budget" ID listID_shifter_popup
+	AT (100 1 auto auto) LEFTANCHOR
     LIST 
         "Budget" "Map"
         ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 2
@@ -122,19 +123,27 @@ BEGIN
     TITLE "Game Options"
     /* disasters - some people wants to adjust the frequency */
     LABEL "Disasters:" AUTOID AT (RIGHT@60 18)
-    PUSHBUTTON "Off" ID buttonID_dis_off   AT (PREVRIGHT+4 PREVTOP AUTO AUTO) GROUP 1
-    PUSHBUTTON "I"   ID buttonID_dis_one   AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
-    PUSHBUTTON "II"  ID buttonID_dis_two   AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
-    PUSHBUTTON "III" ID buttonID_dis_three AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
+    PUSHBUTTON "Off" ID buttonID_dis_off
+	AT (PREVRIGHT+4 PREVTOP AUTO AUTO) GROUP 1
+    PUSHBUTTON "I"   ID buttonID_dis_one
+	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
+    PUSHBUTTON "II"  ID buttonID_dis_two
+	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
+    PUSHBUTTON "III" ID buttonID_dis_three
+	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
 
     LABEL "Difficulty:" AUTOID AT (RIGHT@60 PREVBOTTOM+4)
-    PUSHBUTTON "Easy" ID buttonID_Easy AT (PREVRIGHT+4 PREVTOP AUTO AUTO) GROUP 2
-    PUSHBUTTON "Medium" ID buttonID_Medium AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 2
-    PUSHBUTTON "Hard" ID buttonID_Hard AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 2
+    PUSHBUTTON "Easy" ID buttonID_Easy
+	AT (PREVRIGHT+4 PREVTOP AUTO AUTO) GROUP 2
+    PUSHBUTTON "Medium" ID buttonID_Medium
+	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 2
+    PUSHBUTTON "Hard" ID buttonID_Hard
+	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 2
 
     LABEL "Auto Bulldoze:" AUTOID AT (RIGHT@60 PREVBOTTOM+4)
 
-    CHECKBOX "" ID checkboxID_autobulldoze AT (PREVRIGHT+1 PREVTOP AUTO AUTO) RIGHTANCHOR
+    CHECKBOX "" ID checkboxID_autobulldoze
+	AT (PREVRIGHT+1 PREVTOP AUTO AUTO) RIGHTANCHOR
 
     BUTTON "OK" ID buttonID_OK AT (2 146 AUTO AUTO)
     BUTTON "Cancel" ID buttonID_Cancel AT (PREVRIGHT+4 PREVTOP AUTO AUTO)
@@ -177,28 +186,36 @@ BEGIN
     TITLE "Pocket City Savegames"
 
     LIST "" ID listID_FilesList AT (1 18 158 123) USABLE 
-    BUTTON "New"     ID buttonID_FilesNew     AT (2 prevbottom+5 AUTO AUTO)
-    BUTTON "Load"    ID buttonID_FilesLoad    AT (prevright+4 prevtop AUTO AUTO)
-    BUTTON "Delete"  ID buttonID_FilesDelete  AT (prevright+4 prevtop AUTO AUTO)
+    BUTTON "New" ID buttonID_FilesNew AT (2 prevbottom+5 AUTO AUTO)
+    BUTTON "Load" ID buttonID_FilesLoad AT (prevright+4 prevtop AUTO AUTO)
+    BUTTON "Delete" ID buttonID_FilesDelete AT (prevright+4 prevtop AUTO AUTO)
 END
 
-FORM ID formID_filesNew AT ( 1 78 158 79 )
+FORM ID formID_filesNew AT ( 1 88 158 70 )
 USABLE
 SAVEBEHIND
 MODAL
 DEFAULTBTNID buttonID_FilesNewCancel
 BEGIN
     TITLE "New city"
-    FIELD ID fieldID_newGameName AT (54 20 92 AUTO ) UNDERLINED
-    MAXCHARS 18 AUTOSHIFT
-    LABEL "Name:" AUTOID AT (RIGHT@PREVLEFT-6 20)
+    FIELD ID fieldID_newGameName AT (54 18 92 AUTO ) UNDERLINED
+        MAXCHARS 18 AUTOSHIFT
+    LABEL "Name:" AUTOID AT (RIGHT@PREVLEFT-6 PREVTOP)
 
     LABEL "Difficulty:" AUTOID AT (RIGHT@PREVRIGHT PREVBOTTOM+6)
-    PUSHBUTTON "Easy" ID buttonID_Easy AT (54 PREVTOP AUTO AUTO) GROUP 1
-    PUSHBUTTON "Medium" ID buttonID_Medium AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
-    PUSHBUTTON "Hard" ID buttonID_Hard AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
-    BUTTON "Create"     ID buttonID_FilesNewCreate     AT (4 prevbottom+6 AUTO AUTO)
-    BUTTON "Cancel"    ID buttonID_FilesNewCancel    AT (prevright+4 prevtop AUTO AUTO)
+    PUSHBUTTON "Easy" ID buttonID_Easy
+        AT (54 PREVTOP AUTO AUTO) GROUP 1
+    PUSHBUTTON "Medium" ID buttonID_Medium
+        AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
+    PUSHBUTTON "Hard" ID buttonID_Hard
+        AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
+
+    BUTTON "Create" ID buttonID_FilesNewCreate
+        AT (4 prevbottom+6 AUTO AUTO)
+    BUTTON "Cancel" ID buttonID_FilesNewCancel
+        AT (prevright+4 prevtop AUTO AUTO)
+
+    GRAFFITISTATEINDICATOR AT ( 142 PREVTOP )
 END
 
 BITMAP ID bitmapID_iconPushed "graphic/icon_pushed.bmp" COMPRESS
@@ -209,31 +226,64 @@ SAVEBEHIND
 MODAL
 BEGIN
     TITLE "Quicklist"
-    BUTTON "" ID gi_buildBulldoze AT (3 15 AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconBulldoze SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID gi_buildResidential AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconResidential SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID gi_buildCommercial AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconCommercial SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID gi_buildIndustrial AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconIndustrial SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildBulldoze AT (3 15 AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconBulldoze SELECTEDBITMAPID bitmapID_iconPushed
 
-    BUTTON "" ID gi_buildRoad AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconRoad SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildResidential AT (PREVRIGHT PREVTOP AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconResidential SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildCommercial AT (PREVRIGHT PREVTOP AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconCommercial SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildIndustrial AT (PREVRIGHT PREVTOP AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconIndustrial SELECTEDBITMAPID bitmapID_iconPushed
 
-    BUTTON "" ID gi_buildPowerPlant AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconPowerPlant SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID gi_buildNuclearPlant AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconNuclear SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildRoad AT (PREVRIGHT PREVTOP AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconRoad SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildPowerPlant AT (PREVRIGHT PREVTOP AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconPowerPlant SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildNuclearPlant AT (PREVRIGHT PREVTOP AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconNuclear SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildPowerLine AT (PREVRIGHT PREVTOP AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconPowerline SELECTEDBITMAPID bitmapID_iconPushed
 
-    BUTTON "" ID gi_buildPowerLine AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconPowerline SELECTEDBITMAPID bitmapID_iconPushed
-	
-    BUTTON "" ID gi_buildWaterPlant AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconWaterPlant SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID gi_buildWaterPipe AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconWaterPipe SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildWaterPlant AT (PREVRIGHT PREVTOP AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconWaterPlant SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildWaterPipe AT (PREVRIGHT PREVTOP AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconWaterPipe SELECTEDBITMAPID bitmapID_iconPushed
 
-    BUTTON "" ID gi_buildTree AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconTree SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID gi_buildWater AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconWater SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildTree AT (PREVRIGHT PREVTOP AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconTree SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildWater AT (PREVRIGHT PREVTOP AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconWater SELECTEDBITMAPID bitmapID_iconPushed
 
+    BUTTON "" ID gi_queryItem AT (PREVLEFT PREVBOTTOM AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconQuery SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_defenceFire AT (RIGHT@PREVLEFT-12 PREVTOP AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconDefFire SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_defencePolice AT (RIGHT@PREVLEFT PREVTOP AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconDefPolice SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_defenceMilitary AT (RIGHT@PREVLEFT PREVTOP AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconDefMilitary SELECTEDBITMAPID bitmapID_iconPushed
 
-    BUTTON "" ID gi_queryItem     AT (PREVLEFT PREVBOTTOM AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconQuery SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID gi_defenceFire     AT (RIGHT@PREVLEFT-12 PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefFire SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID gi_defencePolice   AT (RIGHT@PREVLEFT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefPolice SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID gi_defenceMilitary AT (RIGHT@PREVLEFT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefMilitary SELECTEDBITMAPID bitmapID_iconPushed
     /* next line  - defence and such */
-    BUTTON "" ID gi_buildExtra AT (3 PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconExtra SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_buildExtra AT (3 PREVTOP AUTO AUTO)
+        NOFRAME GRAPHICAL LEFTANCHOR
+        BITMAPID bitmapID_iconExtra SELECTEDBITMAPID bitmapID_iconPushed
 
 END
 

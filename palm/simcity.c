@@ -111,7 +111,7 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
     WriteLog("Starting Pocket City\n");
     _PalmInit();
     PCityMain();
-    if (UILoadAutoGame()) {
+    if (-1 != UILoadAutoGame()) {
         SetLowNotShown();
         SetOutNotShown();
 	FrmGotoForm(formID_pocketCity);
