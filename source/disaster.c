@@ -71,21 +71,25 @@ extern void DoRandomDisaster(void)
                 if (BurnField(x,y,0)) {
                     UIDisplayError(ERROR_FIRE_OUTBREAK);
                     Goto(x,y);
+                    MapHasJumped();
                 }
             } else if (random < 15 && game.objects[OBJ_MONSTER].active == 0) {
                 if (CreateMonster(x,y)) {
                     UIDisplayError(ERROR_MONSTER);
                     Goto(x,y);
+                    MapHasJumped();
                 }
             } else if (random < 17 && game.objects[OBJ_DRAGON].active == 0) {
                 if (CreateDragon(x,y)) {
                     UIDisplayError(ERROR_DRAGON);
                     Goto(x,y);
+                    MapHasJumped();
                 }
             } else if (random < 19) {
                 if (MeteorDisaster(x,y)) {
                     UIDisplayError(ERROR_METEOR);
                     Goto(x,y);
+                    MapHasJumped();
                 }
             }
             UnlockWorld();

@@ -12,6 +12,7 @@
 #include "../source/globals.h"
 #include "../source/handler.h"
 #include "../source/ui.h"
+#include "../source/simulation.h"
 
 gchar * savegamename;
 
@@ -69,6 +70,8 @@ void open_filename(GtkFileSelection *sel, gpointer data)
     }
 
     // update the screen with the new game
+    Sim_Distribute(0);
+    Sim_Distribute(1);
     DrawGame(1);
     MapHasJumped();
     
