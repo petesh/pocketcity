@@ -89,9 +89,9 @@ BEGIN
   BUTTONS "Close"
 END
 
-BITMAP ID bitmapID_SpeedPaused         "graphic/speed_paused.bmp" COMPRESS
-BITMAP ID bitmapID_SpeedSlow           "graphic/speed_slow.bmp" COMPRESS
-BITMAP ID bitmapID_SpeedNormal         "graphic/speed_normal.bmp" COMPRESS
-BITMAP ID bitmapID_SpeedFast           "graphic/speed_fast.bmp" COMPRESS
-BITMAP ID bitmapID_SpeedUltra          "graphic/speed_ultra.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_SpeedPaused         "graphic/speed_paused.bmp" "" "" "graphic/speed_paused-color.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_SpeedSlow           "graphic/speed_slow.bmp"   "" "" "graphic/speed_slow-color.bmp"   COMPRESS
+BITMAPFAMILY ID bitmapID_SpeedNormal         "graphic/speed_normal.bmp" "" "" "graphic/speed_normal-color.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_SpeedFast           "graphic/speed_fast.bmp"   "" "" "graphic/speed_fast-color.bmp"   COMPRESS
+BITMAPFAMILY ID bitmapID_SpeedUltra          "graphic/speed_ultra.bmp"  "" "" "graphic/speed_ultra-color.bmp"  COMPRESS
 
