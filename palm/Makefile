@@ -4,6 +4,7 @@ PLATFORM = PALM
 CC = m68k-palmos-gcc
 AWK = gawk
 MULTIGEN = m68k-palmos-multigen
+BUILDPRC = build-prc
 RC = pilrc
 
 VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
@@ -21,9 +22,23 @@ OBJECTS = stack.o simcity.o handler.o drawing.o globals.o build.o \
 	simulation.o HiRes.o disaster.o palmutils.o savegame_be.o \
 	pcity-sections.o \
 	options.o map.o budget.o query.o savegame.o
+
+BLDIR=build
+
+debug: BLDIR=build-debug
+hires: BLDIR=build-sony
+dhires: BLDIR=build-debug-sony
+
+OBJDIR = $(BLDIR)
+
+DESTOBJS = $(OBJECTS:%=$(OBJDIR)/%)
+
 PROGNAME = "Pocket City"
+DBNAME = "Pocket City Tiles"
 PROGTOKEN = PCit
-PRCTARGETS = pcity pcity-grey pcity-color mg-pcity
+# tile database type
+COLORDBTOKEN = tidb
+#PRCTARGETS = pcity
 
 DEBUG=0
 HIRES=0
@@ -32,15 +47,25 @@ DSTAMP := $(shell date "+%Y/%m/%d@%H:%M")
 
 RC.rcp=$(RC) $(RCFLAGS)
 
+# Multi language support - game-$(LANGUAGES).stm
+LANGUAGES=EN
+
+GAMESTMS=$(LANGUAGES:%=game-%.stm)
+
+PRCTARGETS=$(LANGUAGES:%=$(OBJDIR)/pcity-%.prc)
+
+# Resource PDBs (graphical; non-language)
+COLORTYPES=bw grey color merged
+COLORTARGETS=$(COLORTYPES:%=pcity-%.pdb)
+
 .PHONY: all debug clean cheat hires dhires
-.PRECIOUS: simcity-grey.stm zones-grey.stm simcity-color.stm zones-color.stm
+.PRECIOUS: %.stm game-%.stm $(OBJDIR) temp temp-%
 
 #
 # make all
 #
 
-all debug: VER $(addsuffix .prc,$(PRCTARGETS))
-hires dhires: VER $(addsuffix .prc,$(addprefix sy-,$(PRCTARGETS)))
+all debug hires dhires: VER $(PRCTARGETS) $(COLORTARGETS)
 
 nearlylive: VERSION = $(shell date +%Y.%m.%d)
 nearlylive: VER dist
@@ -62,46 +87,24 @@ cheat: debug
 debug dhires: CFLAGS += -g -DDEBUG
 debug dhires: DEBUG=1
 
-hires dhires: HCFLAGS = -DSONY_CLIE
+hires dhires: CFLAGS += -DSONY_CLIE
 hires dhires: HIRES=1
 
-#### the different versions
-pcity-%.prc: simcity-%.stm zones-%.stm game.stm version.stm touch.stm \
-		pcity
-	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
-		pcity temp$*/*.bin temp/*.bin
+# the different language versions
+$(OBJDIR)/pcity-%.prc: game-%.stm version.stm touch.stm $(OBJDIR)/pcity
+	$(BUILDPRC) -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
+		$(OBJDIR)/pcity temp-$*/*.bin
 
-mg-pcity.prc: game.stm mg.stm version.stm touch.stm pcity
-	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
-		pcity mg/*.bin temp/*.bin
+# This is the color database
+pcity-%.pdb: simcity-%.stm zones-%.stm
+	$(BUILDPRC) -o $@ -n $(DBNAME) -c $(PROGTOKEN) -t $(COLORDBTOKEN) \
+		temp-$*/*.bin
 
-pcity.prc: simcity.stm zones.stm game.stm version.stm touch.stm pcity
-	build-prc -o pcity.prc -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
-		pcity tempbw/*.bin temp/*.bin
+$(OBJDIR)/pcity-sections.o: $(OBJDIR)/pcity-sections.s
+	$(CC) -c $< -o $@
 
-sy-pcity.prc: sy/ game.stm sy/syicons.stm simcity.stm zones.stm \
-		version.stm touch.stm sy/pcity
-	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
-		sy/pcity tempbw/*.bin temp/*.bin
-
-sy-mg-pcity.prc: sy/ game.stm sy/syicons.stm simcity.stm zones.stm \
-		mg.stm version.stm touch.stm sy/pcity
-	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
-		sy/pcity mg/*.bin temp/*.bin sy/*.bin
-
-sy-pcity-%.prc: sy/ game.stm sy/syicons.stm simcity-%.stm zones-%.stm \
-		version.stm touch.stm sy/pcity
-	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
-		sy/pcity temp$*/*.bin temp/*.bin sy/*.bin
-
-pcity-sections.o: pcity-sections.s
-	$(CC) -c pcity-sections.s
-
-sy/pcity-sections.o: pcity-sections.s
-	$(CC) -c pcity-sections.s -o sy/pcity-sections.o
-
-pcity-sections.s pcity-sections.ld: pcity.def
-	$(MULTIGEN) pcity.def
+$(OBJDIR)/pcity-sections.s $(OBJDIR)/pcity-sections.ld: pcity.def
+	$(MULTIGEN) -b $(OBJDIR)/pcity-sections pcity.def
 
 #### binary resources
 #grcs.stm: simcity
@@ -115,17 +118,21 @@ pcity-sections.s pcity-sections.ld: pcity.def
 temp:
 	@mkdir -p temp
 
+temp-%:
+	@mkdir -p temp-$*
+
 version.stm: temp ../CHANGELOG
 	@echo "VERSION 1 \"$(VERSION)\"" > version.rcp
 	$(RC.rcp) version.rcp temp
 	@rm -f version.rcp
 	@echo touching>$@
 
-game.stm: temp game.rcp simcity_resconsts.h
+# Language
+game-%.stm: temp-% game.rcp simcity_resconsts.h
 	@$(AWK) -v DEBUG=$(DEBUG) -v HIRES=$(HIRES) -f filter.awk \
-		game.rcp > ngame.rcp
-	$(RC.rcp) ngame.rcp temp
-	@cat ngame.rcp > $@ && rm -f ngame.rcp
+		game.rcp > ngame-$*.rcp
+	$(RC.rcp) -L $* ngame-$*.rcp temp-$*
+	@cat ngame-$*.rcp > $@ && rm -f ngame-$*.rcp
 
 touch.stm: temp
 	@echo "#include \"simcity_resconsts.h\"" > touch.rcp
@@ -135,64 +142,35 @@ touch.stm: temp
 
 # This will take care of all *.rcp
 # the files must be called this:
-# *-color.rcp => tempcolor/
-# *-grey.rcp  => tempgrey/
-# *.rcp       => tempbw/
+#	*-?.rcp => temp-?
 
 # simcity_resconsts.h
 %.stm: %.rcp
-	@dir=temp$(if $(findstring -,$*),$(word 2, $(subst -, ,$*)),bw);\
-	if [ ! -d $$dir ]; then mkdir -p $$dir; fi
-	$(RC.rcp) $< temp$(if $(findstring -,$*),$(word 2, $(subst -, ,$*)),bw)
-	@echo touching>$*.stm
+	@end=$(word 2, $(subst -, ,$*)); \
+	if [ ! -d temp-$$end ]; then mkdir -p temp-$$end; fi; \
+	echo $(RC.rcp) -L $$end $< temp-$$end; \
+	$(RC.rcp) -L $$end $< temp-$$end;
+	@echo touching>$@
 
 #
 # actual source
 #
 
-pcity: $(OBJECTS)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o pcity $(LDLIBS) pcity-sections.ld
-
-simcity.o: simcity.c simcity.h ../source/handler.h ../source/ui.h \
-	../source/zakdef.h simcity_resconsts.h
-
-%.o: ../source/%.c ../source/%.h ../source/zakdef.h ../source/ui.h
-	$(CC) $(CFLAGS) -c $< -o $@
-#
-# Hi res objects
-#
-
-SYOBJECTS=$(addprefix sy/,$(OBJECTS))
-
-sy/:
+$(OBJDIR):
 	@-[ -d "$@" ] || mkdir -p $@
 
-sy/pcity: $(SYOBJECTS)
-	$(CC) $(HCFLAGS) $(CFLAGS) $(LDFLAGS) $(SYOBJECTS) -o $@ $(LDLIBS) pcity-sections.ld
+$(OBJDIR)/pcity: $(OBJDIR) $(DESTOBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(DESTOBJS) -o $@ $(LDLIBS) \
+		$(OBJDIR)/pcity-sections.ld
 
-sy/simcity.o: simcity.c simcity.h ../source/handler.h ../source/ui.h \
-	../source/zakdef.h
+$(OBJDIR)/simcity.o: simcity.c simcity.h ../source/handler.h ../source/ui.h \
+	../source/zakdef.h simcity_resconsts.h
 
-sy/%.o: ../source/%.c ../source/%.h ../source/zakdef.h ../source/ui.h
-	$(CC) $(HCFLAGS) $(CFLAGS) -c $< -o $@
+$(OBJDIR)/%.o: ../source/%.c ../source/%.h ../source/zakdef.h ../source/ui.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
-sy/%.o: %.c
-	$(CC) $(HCFLAGS) $(CFLAGS) -c $< -o $@
-
-#sy/grcs.stm: sy/simcity
-#	@cd sy; m68k-palmos-obj-res simcity
-#	@echo touching>sy/sy.stm
-
-sy/syicons.stm: hricons.rcp
-	$(RC.rcp) hricons.rcp sy
-	@echo touching>$@
-
-mg.stm: mg/ mg.rcp simcity_resconsts.h
-	$(RC.rcp) mg.rcp mg
-	@echo touching>$@
-
-mg/:
-	@mkdir -p mg/
+$(OBJDIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 #
 # dist
@@ -218,7 +196,5 @@ dist: all hires
 #
 
 clean:
-	rm -f *.bin *.o *.grc *.stm pcity *.prc \
-		tempbw/*.bin tempcolor/*.bin temp/*.bin tempgrey/*.bin sy/* \
-		mg/* *.zip *.gz pcity-sections.s pcity-sections.ld
-	rm -rf mg/ sy/ tempbw/ tempcolor/ temp/ tempgrey/
+	rm -f *.stm *.pdb temp*/*.bin build*/* *.zip *.gz
+	rm -rf temp* build*
