@@ -420,7 +420,7 @@ extern void UIDrawPop(void)
     StrPrintF(temp, "(%02u,%02u) Pop: %9li",
             map_xpos,
             map_ypos,
-            (BuildCount[COUNT_RESIDENTIAL]*50));
+            (BuildCount[COUNT_RESIDENTIAL]*25));
 
 	rect.topLeft.x = 3;
 	rect.topLeft.y = 148;
