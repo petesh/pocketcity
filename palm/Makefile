@@ -1,6 +1,6 @@
 
 CC = m68k-palmos-gcc
-CFLAGS = -O2 -Wall
+CFLAGS = -O2 -Wall -DPALM
 OBJECTS = simcity.o handler.o drawing.o globals.o build.o simulation.o \
 		  disaster.o savegame.o map.o budget.o
 PROGNAME = "Pocket City"

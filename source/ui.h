@@ -14,6 +14,7 @@ extern void UISetUpGraphic(void);
 extern void UIDrawCredits(void);
 extern void UIUpdateBuildIcon(void);
 extern void UIGotoForm(int);
+extern void UIDrawPop(void);
 
 extern void UICheckMoney(void);
 extern void UIScrollMap(int direction);

@@ -7,9 +7,11 @@
 #include "build.h"
 
 // for the palm
+#ifdef PALM
 #include <PalmOS.h>
 #include <unix_string.h>
 #include <unix_stdlib.h>
+#endif
 
 
 

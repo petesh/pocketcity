@@ -11,6 +11,7 @@ Legend:
 Version 0.12
 ==========================
 Kean Pedersen:
+  + Started port to GTK+ (Linux)
   + Budget control
   + Disaster control (now you can turn them off)
   + Options page (not much there yet)

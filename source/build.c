@@ -1,5 +1,7 @@
+#ifdef PALM
 #include <PalmOS.h>
 #include "../palm/simcity.h"
+#endif
 #include "build.h"
 #include "globals.h"
 #include "ui.h"
