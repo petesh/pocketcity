@@ -11,6 +11,7 @@
 #define ERROR_PLANT_EXPLOSION   4
 #define ERROR_MONSTER           5
 #define ERROR_DRAGON            6
+#define ERROR_METEOR		7
 
 #define SPEED_SLOW              15
 #define SPEED_MEDIUM            10
@@ -27,6 +28,7 @@
 #define TYPE_FIRE2              64
 #define TYPE_FIRE3              65
 #define TYPE_REAL_WATER         66
+#define TYPE_CRATER		67
 #define TYPE_FIRE_STATION       23
 #define TYPE_POWER_PLANT        60
 #define TYPE_NUCLEAR_PLANT      61

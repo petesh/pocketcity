@@ -5,3 +5,5 @@ extern int BurnField(int x, int y,int forceit);
 extern int CreateMonster(int x, int y);
 extern int CreateDragon(int x, int y);
 extern void MoveAllObjects(void);
+extern int MeteorDisaster();
+extern void CreateMeteor(long unsigned int pos, int size);
