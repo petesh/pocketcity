@@ -28,6 +28,7 @@ Morten Brix Pedersen (new developer):
 Aaron Krill:
   * Changed population to be more realistic.
   * Changed powerplant upkeep to be more realistic.
+  + Save/Load on Save/Load menu options
 
 Version 0.07
 ============
