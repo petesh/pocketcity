@@ -20,6 +20,7 @@ void _UICreateNewSaveGame(void);
 void _UICleanSaveGameList(void);
 void _UIDeleteFromList(void);
 int  _UILoadFromList(void);
+int  _UILoadNewestFromList(void);
 void UIDeleteGame(UInt16 index);
 int  UILoadGame(UInt16 index);
 void UINewGame(void);
@@ -124,6 +125,23 @@ void _UICreateNewSaveGame(void)
         }
         DmCloseDatabase(db);
     }
+}
+
+int _UILoadNewestFromList(void)
+{
+    int n;
+    FormPtr form = FrmGetActiveForm();
+    n = LstGetNumberOfItems(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)));
+    LstSetSelection(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)),n - 1);
+    UIWriteLog("..");
+    { char s[20];
+        sprintf(s, "%i\n", n);
+        UIWriteLog(s);
+    }
+    
+
+
+   return _UILoadFromList(); 
 }
 
 int _UILoadFromList(void)
@@ -402,6 +420,10 @@ extern Boolean hFiles(EventPtr event)
                             _UICreateNewSaveGame();
                             _UICleanSaveGameList();
                             _UIUpdateSaveGameList();
+                            // and load the game right after creating it
+                            if (_UILoadNewestFromList()) {
+                                FrmGotoForm(formID_pocketCity);
+                            }
                         } else {
                             strcpy((char*)cityname,"");
                             UIWriteLog("No name specified\n");
