@@ -7,7 +7,20 @@ TYPES=bw color
 
 TARGETS=speed
 
-all: $(TYPES)
+DIRS=icons icons-color
+ALLDIRS=$(DIRS:%=all-%)
+DEBUGDIRS=$(DIRS:%=debug-%)
+CLEANDIRS=$(DIRS:%=clean-%)
+
+all: $(ALLDIRS) $(TYPES)
+debug: $(DEBUGDIRS) $(TYPES)
+
+all-%:
+	cd $(@:all-%=%) && $(MAKE) $(MAKEFLAGS) all
+debug-%:
+	cd $(@:debug-%=%) && $(MAKE) $(MAKEFLAGS) debug
+clean-%:
+	cd $(@:clean-%=%) && $(MAKE) $(MAKEFLAGS) clean
 
 .PHONY: $(TYPES)
 
@@ -25,5 +38,5 @@ speed-grey.bmp:
 
 CLEANTARGETS=$(TARGETS:%=%-*.bmp)
 
-clean:
+clean: $(CLEANDIRS)
 	$(RM) $(CLEANTARGETS)

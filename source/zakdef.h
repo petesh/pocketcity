@@ -10,27 +10,16 @@
 
 #include <appconfig.h>
 
+/*! \brief bitmask for anding off when setting/getting world flags */
+#define	FLAGS_ANDMASK	0x00ff
+/*! \brief shift value for getting/setting world flags */
+#define FLAGS_SHIFTVALUE	0x8
+/*! \brief bitmask for anding off when setting/getting world pointer */
+#define WORLD_ANDMASK	0xff00
+/* There is ho shift value for the world field */
+
 /*! \brief how often the disasters are updated - in seconds */
 #define	SIM_GAME_LOOP_DISASTER  2
-
-/*!
- * \brief the possible errors/warnings.
- *
- * Make sure they don't intersect as the overlap in the warning dialogs.
- */
-typedef enum erdiType_en {
-	enSTART = 0, /*!< starting guard for errors */
-	enOutOfMemory, /*!< out of memory error */
-	enOutOfMoney, /*!< out of money */
-	enEND, /*!< ending guard for errors */
-	diSTART = 79, /*!< starting disaster guard */
-	diFireOutbreak, /*!< a fire disaster */
-	diPlantExplosion, /*!< a power plant explosion */
-	diMonster, /*!< a monster */
-	diDragon, /*!< a dragon */
-	diMeteor, /*!< a meteor */
-	diEND /*!< ending guard for disasters */
-} erdiType;
 
 /*! \brief the number of seconds in a month at slow speed */
 #define	SPEED_SLOW	15
@@ -55,30 +44,6 @@ typedef enum erdiType_en {
 #define	ZONE_RESIDENTIAL	2
 /*! \brief unoccupied commercial zone mapping */
 #define	ZONE_INDUSTRIAL		3
-
-/*! \brief zone identification for scoring */
-typedef enum {
-	ztWhat = 0, /*!< Unknown Zone */
-	ztCommercial, /*!< Commercial Zone */
-	ztResidential, /*!< Residential Zone */
-	ztIndustrial /*!< Industrial Zone */
-} zoneType;
-
-/*! \brief directions for checking power distribution routines */
-typedef enum {
-	dtUp = 0, /*!< Up */
-	dtRight, /*!< right */
-	dtDown, /*!< down */
-	dtLeft /*!< left */
-} dirType;
-
-/*! \brief the zone types for querying */
-struct zoneTypeValue {
-	char	description[255]; /*!< The description of the zone */
-	UInt8	value;	/*!< The Value of the zone */
-	UInt8	pollution; /*!< Pollution level of the zone */
-	UInt8	crime; /*!< Crime level of the zone */
-};
 
 /*
  * these might be used here, but
@@ -152,26 +117,6 @@ struct zoneTypeValue {
 /*! \brief bridge (direction?) */
 #define	TYPE_BRIDGE		81
 
-/*! \brief elements for the BuildCount[] array */
-typedef enum {
-	bc_residential = 0, /*!< count of residential units */
-	bc_commercial, /*!< count of commercial units */
-	bc_industrial, /*!< count of industrial units */
-	bc_roads, /*!< count of roads */
-	bc_trees, /*!< count of trees */
-	bc_water, /*!< count of water */
-	bc_coalplants, /*!< count of coal power plants */
-	bc_nuclearplants, /*!< count of nuclear power plants */
-	bc_powerlines, /*!< count of power lines */
-	bc_waste, /*!< count of wasteland zones */
-	bc_fire, /*!< count of fire elements */
-	bc_fire_stations, /*!< count of fire station */
-	bc_police_stations, /*!< count of police stations */
-	bc_military_bases, /*!< count of military bases */
-	bc_waterpipes, /*!< count of water pipes */
-	bc_waterpumps /*!< count of water pumps */
-} BuildCount;
-
 /* Supply units per plant */
 /*! \brief number of power units supplied by a coal power plant */
 #define	SUPPLY_POWER_PLANT	100
@@ -187,21 +132,6 @@ typedef enum {
 #define	INCOME_COMMERCIAL	35
 /*! \brief income from an industrial zone per value level */
 #define	INCOME_INDUSTRIAL	30
-
-/* for the upkeep[] array */
-
-/*!
- * \brief the entries in the upkeep array.
- *
- * If you add something here you will have to add it to the savegame structure
- * so it will require revving up the savegame version.
- */
-typedef enum {
-	ue_traffic = 0, /*!< Upkeep percentage entry for the traffic */
-	ue_power, /*!< Upkeep percentage entry for the power */
-	ue_defense, /*!< Upkeep percentage entry for the defence */
-	ue_tail /*!< Tail ender, for allocating the array in game structure */
-} UpkeepEntries;
 
 /* upkeep cost per tile */
 
@@ -234,23 +164,6 @@ typedef enum {
 /*! \brief Chance of object turning either clockwise or anti-clockwise */
 #define	OBJ_CHANCE_OF_TURNING	5
 
-/*! \brief a moveable item on the map */
-typedef struct _moveable_object {
-	UInt16 x; /*!< x position on the map */
-	UInt16 y; /*!< y position on the map */
-	UInt16 dir; /*!< direction object is facing */
-	UInt16 active; /*!< object is active */
-} MoveableObject;
-
-/*! \brief type of object */
-typedef enum {
-	obj_monster = 0, /*!< 'zilla */
-	obj_dragon, /*!< Fire dragon */
-	obj_chopper, /*!< Helicopter */
-	obj_ship, /*!< a boat to wander up & down the river */
-	obj_train /*!< a train */
-} Objects;
-
 /*!
  * \brief the number of defence units that may be on the screen at a time.
  *
@@ -281,6 +194,150 @@ typedef enum {
 /*! \brief code to say to update both water and power grids */
 #define	GRID_ALL		(GRID_POWER|GRID_WATER)
 
+/*! \brief the maximum length of the city name string */
+#define	CITYNAMELEN 20
+
+/*! \brief version number of the configuration file */
+#define	CONFIG_VERSION 1
+
+/*! \brief save game version */
+#define	SAVEGAMEVERSION	 "PC06"
+
+/*! \brief get the map size */
+#define	GetMapSize() (game.mapsize)
+/*!
+ * \brief set the map size
+ *
+ * Does not allocate any extra memory.
+ * \param x the new map size
+ */
+#define	SetMapSize(x) { game.mapsize = (x); \
+	vgame.mapmul = game.mapsize * game.mapsize; \
+	vgame.world_size = vgame.mapmul << 1; \
+}
+
+/*! \brief get the map array size */
+#define	MapMul() (vgame.mapmul)
+
+/*! \brief get the world pointer size .. based on map */
+#define WorldSize() (vgame.world_size)
+
+/*!
+ * \brief add a grid to be updated
+ * \param T the grid to add
+ */
+#define	AddGridUpdate(T)		(game.gridsToUpdate |= T)
+/*!
+ * \brief Check if a grid need updating
+ * \param T the grid to check
+ * \return whether the grid need updating
+ */
+#define	NeedsUpdate(T)		  (game.gridsToUpdate & T)
+/*!
+ * \brief Clear the need to update a sertain grid.
+ * \param T the grid to clear
+ */
+#define	ClearUpdate(T)		  (game.gridsToUpdate &= ~T)
+
+/*!
+ * \brief get the position of a map location in the world array
+ * \param x the x position
+ * \param y the y position
+ * \return the position in the array
+ */
+#define	WORLDPOS(x, y)	((x) + (y) * (GetMapSize()))
+
+/*! \brief save the current speed, and change the speed to paused */
+#define	SaveSpeed()			 { \
+	vgame.oldLoopSeconds = game.gameLoopSeconds; \
+	game.gameLoopSeconds = SPEED_PAUSED; \
+}
+
+/*! \brief restore the saved game speed */
+#define	RestoreSpeed()		  { \
+	game.gameLoopSeconds = vgame.oldLoopSeconds; \
+}
+
+/*!
+ * \brief the possible errors/warnings.
+ *
+ * Make sure they don't intersect as the overlap in the warning dialogs.
+ */
+typedef enum erdiType_en {
+	enSTART = 0, /*!< starting guard for errors */
+	enOutOfMemory, /*!< out of memory error */
+	enOutOfMoney, /*!< out of money */
+	enEND, /*!< ending guard for errors */
+	diSTART = 79, /*!< starting disaster guard */
+	diFireOutbreak, /*!< a fire disaster */
+	diPlantExplosion, /*!< a power plant explosion */
+	diMonster, /*!< a monster */
+	diDragon, /*!< a dragon */
+	diMeteor, /*!< a meteor */
+	diEND /*!< ending guard for disasters */
+} erdiType;
+
+/*! \brief zone identification for scoring */
+typedef enum {
+	ztWhat = 0, /*!< Unknown Zone */
+	ztCommercial, /*!< Commercial Zone */
+	ztResidential, /*!< Residential Zone */
+	ztIndustrial /*!< Industrial Zone */
+} zoneType;
+
+/*! \brief directions for checking power distribution routines */
+typedef enum {
+	dtUp = 0, /*!< Up */
+	dtRight, /*!< right */
+	dtDown, /*!< down */
+	dtLeft /*!< left */
+} dirType;
+
+/*! \brief the zone types for querying */
+struct zoneTypeValue {
+	char	description[255]; /*!< The description of the zone */
+	UInt8	value;	/*!< The Value of the zone */
+	UInt8	pollution; /*!< Pollution level of the zone */
+	UInt8	crime; /*!< Crime level of the zone */
+};
+
+/*! \brief elements for the BuildCount[] array */
+typedef enum {
+	bc_residential = 0, /*!< count of residential units */
+	bc_commercial, /*!< count of commercial units */
+	bc_industrial, /*!< count of industrial units */
+	bc_roads, /*!< count of roads */
+	bc_trees, /*!< count of trees */
+	bc_water, /*!< count of water */
+	bc_coalplants, /*!< count of coal power plants */
+	bc_nuclearplants, /*!< count of nuclear power plants */
+	bc_powerlines, /*!< count of power lines */
+	bc_waste, /*!< count of wasteland zones */
+	bc_fire, /*!< count of fire elements */
+	bc_fire_stations, /*!< count of fire station */
+	bc_police_stations, /*!< count of police stations */
+	bc_military_bases, /*!< count of military bases */
+	bc_waterpipes, /*!< count of water pipes */
+	bc_waterpumps /*!< count of water pumps */
+} BuildCount;
+
+/*! \brief a moveable item on the map */
+typedef struct _moveable_object {
+	UInt16 x; /*!< x position on the map */
+	UInt16 y; /*!< y position on the map */
+	UInt16 dir; /*!< direction object is facing */
+	UInt16 active; /*!< object is active */
+} MoveableObject;
+
+/*! \brief type of object */
+typedef enum {
+	obj_monster = 0, /*!< 'zilla */
+	obj_dragon, /*!< Fire dragon */
+	obj_chopper, /*!< Helicopter */
+	obj_ship, /*!< a boat to wander up & down the river */
+	obj_train /*!< a train */
+} Objects;
+
 /*! \brief The type of a defence unit */
 typedef enum DefenceUnitTypes {
 	DuFireman = 0, DuPolice, DuMilitary
@@ -294,8 +351,20 @@ typedef struct _defence_unit {
 	DefenceUnitTypes type; /*!< the defence unit type */
 } DefenceUnit;
 
-/*! \brief the maximum length of the city name string */
-#define	CITYNAMELEN 20
+/* for the upkeep[] array */
+
+/*!
+ * \brief the entries in the upkeep array.
+ *
+ * If you add something here you will have to add it to the savegame structure
+ * so it will require revving up the savegame version.
+ */
+typedef enum {
+	ue_traffic = 0, /*!< Upkeep percentage entry for the traffic */
+	ue_power, /*!< Upkeep percentage entry for the power */
+	ue_defense, /*!< Upkeep percentage entry for the defence */
+	ue_tail /*!< Tail ender, for allocating the array in game structure */
+} UpkeepEntries;
 
 /*!
  * \brief the central game structure.
@@ -324,6 +393,7 @@ typedef struct _game_struct05 {
 	Char		cityname[CITYNAMELEN]; /*!< Name of city */
 	UInt8		upkeep[ue_tail];	/*!< upkeep %ages for bits */
 	UInt8		diff_disaster;	/*!< rate of disasters */
+	UInt8		gridsToUpdate; /*!< grids to update next update loop */
 	DefenceUnit	units[NUM_OF_UNITS];	/*!< Defence Units */
 	MoveableObject  objects[NUM_OF_OBJECTS]; /*!< Special objects */
 } GameStruct05;
@@ -370,7 +440,6 @@ typedef struct _psuCount {
  */
 typedef struct _vgame_struct {
 	UInt16		mapmul;	/*!< x*y */
-	int		gridsToUpdate; /*!< grids to update next update loop */
 	long unsigned	BuildCount[bc_waterpumps]; /*!< count of elements */
 	unsigned char	tileSize;	/*!< size of a tile */
 	unsigned short	oldLoopSeconds;	/*!< last selected speed - for pause */
@@ -378,6 +447,7 @@ typedef struct _vgame_struct {
 	int		visible_y;	/*!< visible tiles on the y */
 	int		cursor_xpos;	/*!< cursor ?? */
 	int		cursor_ypos;	/*!< cursor ?? */
+	long unsigned	world_size;	/*!< size of world pointer */
 } vGameStruct;
 
 /*!
@@ -394,60 +464,17 @@ typedef struct _appConfig_01 {
 /*! \brief currently used application conofiguration version */
 typedef appConfig_01_t AppConfig_t;
 
-/*! \brief version number of the configuration file */
-#define	CONFIG_VERSION 1
-
-/*! \brief save game version */
-#define	SAVEGAMEVERSION	 "PC05"
-
-/*! \brief get the map size */
-#define	GetMapSize() (game.mapsize)
 /*!
- * \brief set the map size
+ * \brief Function to return the character string for a month (short)
  *
- * Does not allocate any extra memory.
- * \param x the new map size
+ * This function is needed for the various platforms as they do not all work
+ * the same way. We get the advantage in (l)unix that the language will be
+ * derived from the current locale.
+ * \param month the month to get
+ * \param string the buffer to fit the string into
+ * \param length the maximum string acceptable in string
+ * \return the month in a string
  */
-#define	SetMapSize(x) { game.mapsize = (x); \
-	vgame.mapmul = game.mapsize * game.mapsize; \
-}
-
-/*! \brief get the map array size */
-#define	GetMapMul() (vgame.mapmul)
-/*!
- * \brief add a grid to be updated
- * \param T the grid to add
- */
-#define	AddGridUpdate(T)		(vgame.gridsToUpdate |= T)
-/*!
- * \brief Check if a grid need updating
- * \param T the grid to check
- * \return Whether the grid need updating
- */
-#define	NeedsUpdate(T)		  (vgame.gridsToUpdate | T)
-/*!
- * \brief Clear the need to update a sertain grid.
- * \param T the grid to clear
- */
-#define	ClearUpdate(T)		  (vgame.gridsToUpdate &= ~T)
-
-/*!
- * \brief get the position of a map location in the world array
- * \param x the x position
- * \param y the y position
- * \return the position in the array
- */
-#define	WORLDPOS(x, y)	((x) + (y) * (GetMapSize()))
-
-/*! \brief save the current speed, and change the speed to paused */
-#define	SaveSpeed()			 { \
-	vgame.oldLoopSeconds = game.gameLoopSeconds; \
-	game.gameLoopSeconds = SPEED_PAUSED; \
-}
-
-/*! \brief restore the saved game speed */
-#define	RestoreSpeed()		  { \
-	game.gameLoopSeconds = vgame.oldLoopSeconds; \
-}
+char *getMonthString(UInt16 month, Char *string, UInt16 length);
 
 #endif /* _ZAKDEF_H */

@@ -420,6 +420,22 @@ STRINGTABLE ID resstrings_base ""
 	"FOREST"
 	"RENDERING_MAP"
 
+/* Month Strings */
+STRINGTABLE ID strID_Months
+	""
+	"Jan"
+	"Feb"
+	"Mar"
+	"Apr"
+	"May"
+	"Jun"
+	"Jul"
+	"Aug"
+	"Sep"
+	"Oct"
+	"Nov"
+	"Dec"
+
 FORM ID formID_DistribDetails AT ( 0 0 160 160 )
 USABLE
 NOSAVEBEHIND

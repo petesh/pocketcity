@@ -46,7 +46,7 @@ void UpdateVolatiles(void);
 #define	UnsetScratch(i) AndWorldFlags((i), (unsigned char)~SCRATCHBIT)
 #define	ClearScratch() { \
 	long i = 0; \
-	for (; i < GetMapMul(); i++) UnsetScratch(i); \
+	for (; i < MapMul(); i++) UnsetScratch(i); \
 }
 
 #endif /* _SIMULATION_H_ */

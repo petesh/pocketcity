@@ -1,12 +1,12 @@
 
 include Makefile-include
 
-BINNAME=pcity
+BIN=pcity
 
 NDTARGETS=lores palm5 sony
-DTARGETS=debug dpalm5 dsony
+DTARGETS=dlores dpalm5 dsony cheat
 
-.PHONY: nextdir
+.PHONY: %-nextdir
 .NOTPARALLEL:
 .PRECIOUS: %.stm %.rcp
 
@@ -16,47 +16,55 @@ DENSITIES := single # onehalf double all
 ITARGETS= $(foreach density,$(DENSITIES),$(DEPTHS:%=%-$(density)))
 STUBS := multidensity-stubs.txt
 
-COLORTARGETS := $(ITARGETS:%=$(BINNAME)-%.pdb)
+COLORTARGETS := $(ITARGETS:%=$(BIN)-%.pdb)
 
-TARGETS=$(DTARGETS) $(NDTARGETS) cheat
+TARGETS=$(NDTARGETS)
 
-lores: TDIR =-nd
+lores: TDIR =nd
+lores: BINNAME=$(BIN)
 
-debug: TDIR =-d
+dlores: TDIR =d
+dlores: BINNAME=debug-$(BIN)
 
-palm5: TDIR =-nd5
-palm5: BINNAME=palm5-pcity
+palm5: TDIR =nd5
+palm5: BINNAME=palm5-$(BIN)
 
-dpalm5: TDIR =-d5
-dpalm5: BINNAME=palm5-pcity
+dpalm5: TDIR =d5
+dpalm5: BINNAME=debug-palm5-$(BIN)
 
-sony: TDIR =-nds
-sony: BINNAME=sony-pcity
+sony: TDIR =nds
+sony: BINNAME=sony-$(BIN)
 
-dsony: TDIR =-ds
-dsony: BINNAME=sony-pcity
+dsony: TDIR =ds
+dsony: BINNAME=debug-sony-$(BIN)
 
-cheat: TDIR =-dc
+cheat: TDIR =dc
+cheat: BINNAME=debug-cheat-$(BIN)
 
-OBJDIR = out$(TDIR)
+OBJDIR = .out-$(TDIR)
 
-%: OBJDIR =out$(TDIR)
+%: OBJDIR = .out-$(TDIR)
 
 VERSION := $(shell /bin/grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 nearlylive: VERSION = $(shell date +%Y.%m.%d)
 
 DSTAMP := $(shell date "+%Y/%m/%d@%H:%M")
 
-all: nextdir full
+all: all-nextdir $(TARGETS)
+debug: debug-nextdir $(DTARGETS)
 
-$(TARGETS): VER $(COLORTARGETS)
+$(TARGETS) $(DTARGETS): VER $(COLORTARGETS)
 	$(MAKE) $(MAKEFLAGS) -f Makefile-dowork BINARY=$(BINNAME) \
-		OBJDIR=out$(TDIR) $@
+		OBJDIR=.out-$(TDIR) BINPRE=$(TDIR) $@
 
-clean:
-	rm -rf .temp-* $(BINNAME)-*.rcp *.pdb
+clean: clean-graphic
+	rm -rf .temp-* $(BIN)-*.rcp *.pdb *.prc
 	$(MAKE) $(MAKEFLAGS) -f Makefile-dowork BINARY=$(BINNAME) \
-		OBJDIR=out$(TDIR) $@
+		OBJDIR=.out-$(TDIR) $@
+
+clean-%:
+	cd $(@:clean-%=%) && $(MAKE) $(MAKEFLAGS) clean
+	
 # Build Stamping
 
 VER: version.stm touch.stm
@@ -68,7 +76,7 @@ version.stm: .temp ../CHANGELOG
 	@echo "VERSION 1 \"$(VERSION)\"" > version.rcp
 	$(RC.rcp) version.rcp .temp
 	@rm -f version.rcp
-	@echo touching>$@
+	@echo touching $(VERSION)>$@
 
 touch.stm: .temp
 	@echo "#include \"simcity_resconsts.h\"" > touch.rcp
@@ -88,9 +96,7 @@ full: $(TARGETS)
 dist nearlylive: $(NDTARGETS)
 	@mkdir -p $(DDIR)
 	@cp $(DISTFILES) *.pdb $(DDIR)
-	for I in out-nd out-nd5 out-nds; do \
-		cp $$I/*.prc $(DDIR); \
-	done
+	@ cp $$I/*.prc $(DDIR)
 	@tar cvf - $(DDIR) | gzip -9c >$(DDIR).tar.gz
 	@zip -9R $(DDIR).zip $(DDIR)/*
 	@rm -rf $(DDIR)
@@ -117,7 +123,7 @@ pcity-%.pdb: pcity-%.stm
 		-c $(PROGTOKEN) -t $(COLORDBTOKEN) .temp-$*/*.bin
 
 
-nextdir:
-	cd graphic; $(MAKE) $(MAKEFLAGS)
+%-nextdir:
+	cd graphic && $(MAKE) $(MAKEFLAGS) $(@:%-nextdir=%)
 
 FRC:

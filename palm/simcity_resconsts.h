@@ -198,6 +198,7 @@
 #define	strID_Descriptions 1021
 #define	strID_Items 1022
 #define	wdlID_Costs 1023
+#define strID_Months 1024
 
 #define	bitmapID_zones 1600
 #define	bitmapID_monsters 1601

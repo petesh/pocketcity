@@ -14,6 +14,7 @@ extern "C" {
 extern GameStruct game;
 extern vGameStruct vgame;
 extern AppConfig_t gameConfig;
+extern void *worldFlags;
 
 void LongToString(Int32 value, char *out);
 char *GetDate(char *temp);

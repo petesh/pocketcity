@@ -3,11 +3,11 @@ include Makefile-include
 
 OBJECTS := stack.o simcity.o handler.o drawing.o globals.o build.o \
 	simulation.o HiRes.o disaster.o palmutils.o savegame_be.o \
-	sony_support.o pcity-sections.o \
+	sony_support.o mem_compat.o pcity-sections.o \
 	options.o map.o budget.o query.o savegame.o
 
 BUILDENDS=nd d nd5 d5 nds ds dc
-BUILDDIRS:=$(BUILDENDS:%=out-%)
+BUILDDIRS:=$(BUILDENDS:%=.out-%)
 
 DEBUG := 0
 HIRES := 0
@@ -17,7 +17,7 @@ SONY := 0
 LANGUAGES := EN
 
 DESTOBJS = $(OBJECTS:%=$(OBJDIR)/%)
-PRCTARGETS = $(LANGUAGES:%=$(OBJDIR)/$(BINARY)-%.prc)
+PRCTARGETS = $(LANGUAGES:%=$(BINARY)-%.prc)
 
 LANGDIRS = $(LANGUAGES:%=(OBJDIR)/%)
 
@@ -32,22 +32,24 @@ TEMPDIRS:=$(TEMPENDS:%=.temp-%)
 # make all
 #
 
-lores debug palm5 dpalm5 sony dsony: $(PRCTARGETS)
+lores dlores palm5 dpalm5 sony dsony: $(PRCTARGETS)
 
-nearlylive: all palm5 sony
+nearlylive: lores palm5 sony
+
+debug: dlores dpalm5 dsony
 
 #
 # make cheat
 #
 cheat: CFLAGS += -DCHEAT
-cheat: debug
+cheat: dlores
 
 ##################
 ### make debug ###
 ##################
 
-debug dpalm5 dsony: AXCFLAGS = -g -DDEBUG
-debug dpalm5 dsony: DEBUG=1
+dlores dpalm5 dsony: AXCFLAGS = -g -DDEBUG
+dlores dpalm5 dsony: DEBUG=1
 
 palm5 dpalm5: BXCFLAGS = -DPALM_HIGH
 palm5 dpalm5: HIRES=1
@@ -59,7 +61,7 @@ sony dsony: SONY=1
 CFLAGS += $(AXCFLAGS) $(BXCFLAGS) $(CXCFLAGS)
 
 # the different language versions
-$(OBJDIR)/$(BINARY)-%.prc: $(OBJDIR) $(OBJDIR)/pcity $(OBJDIR)/%-lang/game.stm
+$(BINARY)-%.prc: $(OBJDIR) $(OBJDIR)/pcity $(OBJDIR)/%-lang/game.stm
 	$(BUILDPRC) -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		$(OBJDIR)/pcity $(OBJDIR)/$*-lang/*.bin .temp/*.bin
 
@@ -71,7 +73,10 @@ $(OBJDIR)/pcity-sections.s $(OBJDIR)/pcity-sections.ld: pcity.def
 
 # Language
 $(OBJDIR)/%-lang/game.stm: $(OBJDIR) $(OBJDIR)/%-lang \
-		game.rcp langs.rcp simcity_resconsts.h
+		game.rcp langs.rcp simcity_resconsts.h graphic/pcity.bmp \
+		graphic/pcity-hd.bmp graphic/pcity-color.bmp graphic/pcity-color-hd.bmp \
+		graphic/pcitysmall.bmp graphic/pcitysmall-hd.bmp \
+		graphic/pcitysmall-color.bmp graphic/pcitysmall-color-hd.bmp
 	@$(AWK) -v DEBUG=$(DEBUG) -v HIRES=$(HIRES) \
 		-v SONY=$(SONY) -f filter.awk \
 		game.rcp > $(OBJDIR)/$*-lang/ngame.rcp
@@ -108,6 +113,5 @@ $(OBJDIR)/%.o: %.c simcity_resconsts.h Makefile-include
 #
 clean:
 	rm -f *.stm .temp*/*.bin build*/* *.zip *.gz
-	rm -rf $(TEMPDIRS) temp
+	rm -rf $(TEMPDIRS) .temp
 	rm -rf $(BUILDDIRS)
-	cd graphic; make clean

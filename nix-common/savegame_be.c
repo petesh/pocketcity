@@ -156,6 +156,7 @@ open_filename(char *sel, int palm)
 {
 	int fd, ret;
 	char tempversion[4];
+	int worldsize = WorldSize();
 
 	WriteLog("Opening save game from %s\n", sel);
 
@@ -195,11 +196,11 @@ open_filename(char *sel, int palm)
 	}
 
 	/* and now the great worldPtr :D */
-	ret = read(fd, (void *)worldPtr, GetMapMul());
+	ret = read(fd, (void *)worldPtr, worldsize);
 	if (ret == -1) {
 		perror("read world"); /* TODO: make this nicer */
 		return (-1);
-	} else if (ret != GetMapMul()) {
+	} else if (ret != worldsize) {
 		WriteLog("Oops, couldn't read full length of world\n");
 		return (-1);
 	}
@@ -216,6 +217,7 @@ int
 save_filename(char *sel, int palm)
 {
 	int fd, ret;
+	int worldsize = WorldSize();
 
 	if (sel == NULL) {
 		return (-1);
@@ -244,11 +246,11 @@ save_filename(char *sel, int palm)
 	}
 
 	/* and now the great worldPtr :D */
-	ret = write(fd, (void*)worldPtr, GetMapMul());
+	ret = write(fd, (void*)worldPtr, worldsize);
 	if (ret == -1) {
 		perror("write world"); /* TODO: make this nicer */
 		return (-1);
-	} else if (ret != GetMapMul()) {
+	} else if (ret != worldsize) {
 		WriteLog("Whoops, couldn't write full length of world\n");
 		return (-1);
 	}

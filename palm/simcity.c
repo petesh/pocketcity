@@ -25,17 +25,20 @@
 #include <HostControl.h>
 #endif
 
+/*! \brief the worldHandle for moving the world around the place */
 static MemHandle worldHandle;
-static MemHandle worldFlagsHandle;
-MemPtr worldPtr;
-MemPtr worldFlagsPtr;
+
 static RectangleType rPlayGround;
 
-WinHandle winZones;
-WinHandle winMonsters;
-WinHandle winUnits;
-WinHandle winButtons;
-WinHandle winSpeeds;
+/*! \brief the on screen zones */
+static WinHandle winZones;
+/*! \brief the Monsters */
+static WinHandle winMonsters;
+/*! \brief The defensive units */
+static WinHandle winUnits;
+
+/*! \brief the offscreen window containing the speed images */
+static WinHandle winSpeeds;
 
 BuildCode nSelectedBuildItem = Be_Bulldozer;
 BuildCode nPreviousBuildItem = Be_Bulldozer;
@@ -487,8 +490,7 @@ _PalmFini(Int16 reached)
 
 	switch (reached) {
 	case 0:
-		if (worldHandle != NULL) MemHandleFree(worldHandle);
-		if (worldFlagsHandle != NULL) MemHandleFree(worldFlagsHandle);
+		PurgeWorld();
 	case 5:
 		/* clean up handles */
 		for (i = 0; i < (sizeof (handles) / sizeof (handles[0])); i++) {
@@ -1240,6 +1242,16 @@ UIUnlockScreen(void)
 }
 
 /*
+ * Get a month string
+ */
+char *
+getMonthString(UInt16 month, char *string, UInt16 maxlen)
+{
+	SysStringByIndex(strID_Months, month, string, maxlen);
+	return (string);
+}
+
+/*
  * Draw a rectangle on the screen.
  * it will be exactly nHeight*nWidth pixels in size.
  * the frame's left border will be at nTop-1 and so on
@@ -1283,7 +1295,7 @@ UISetUpGraphic(void)
 
 /*
  * Null Function.
- * Would be the tracking cursr on the screen in a bigger environment
+ * Would be the tracking cursor on the screen in a bigger environment
  */
 void
 UIDrawCursor(Int16 xpos __attribute__ ((unused)),
@@ -1291,22 +1303,27 @@ UIDrawCursor(Int16 xpos __attribute__ ((unused)),
 {
 }
 
-/*
- * Draw a generic loss icon.
+/*!
+ * \brief Draw a generic loss icon.
+ * 
  * It is obtained from the zones bitmap.
  * The location in the zones bitmap is stated by the tilex and tiley values.
  * This specifies the overlay. The icon itself is tile pixels before this.
+ * \param xpos the x position on the area to paint
+ * \param ypos the y position on the area to paint
+ * \param tilex the tile's x position (in tiles)
+ * \param tiley the tile's y position (in tiles)
  */
 void
-UIDrawLossIcon(Int16 xpos, Int16 ypos, Coord tilex, Coord tiley)
+UIDrawLossIcon(Int16 xpos, Int16 ypos, Int16 tilex, Int16 tiley)
 {
 	RectangleType rect;
 
 	if (IsDeferDrawing())
 		return;
 
-	rect.topLeft.x = tilex;
-	rect.topLeft.y = tiley;
+	rect.topLeft.x = (Coord)tilex * vgame.tileSize;
+	rect.topLeft.y = (Coord)tiley * vgame.tileSize;
 	rect.extent.x = vgame.tileSize;
 	rect.extent.y = vgame.tileSize;
 
@@ -1314,7 +1331,7 @@ UIDrawLossIcon(Int16 xpos, Int16 ypos, Coord tilex, Coord tiley)
 	StartHiresDraw();
 	/* first draw the overlay */
 	_WinCopyRectangle(winZones, WinGetActiveWindow(), &rect,
-	    xpos * vgame.tileSize +XOFFSET, ypos * vgame.tileSize + YOFFSET,
+	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
 	    winErase);
 	/* now draw the powerloss icon */
 	rect.topLeft.x -= vgame.tileSize;
@@ -1324,27 +1341,35 @@ UIDrawLossIcon(Int16 xpos, Int16 ypos, Coord tilex, Coord tiley)
 	EndHiresDraw();
 }
 
-/*
- * Draw the water loss icon on a field.
+/*!
+ * \brief Draw the water loss icon on a field.
+ * 
  * The Field has already been determined to not have water.
+ * \todo the '5' here is a magic number, fix it
  */
 void
 UIDrawWaterLoss(Int16 xpos, Int16 ypos)
 {
-	UIDrawLossIcon(xpos, ypos, 80, 0);
+	UIDrawLossIcon(xpos, ypos, 5, 0);
 }
 
-/*
- * Draw a power loss icon for the field.
+/*!
+ * \brief Draw a power loss icon for the field.
+ * 
+ * The field has already been determined to not have power
+ * \todo the '5' here is a magic number, fix it
  */
 void
 UIDrawPowerLoss(Int16 xpos, Int16 ypos)
 {
-	UIDrawLossIcon(xpos, ypos, 144, 0);
+	UIDrawLossIcon(xpos, ypos, 9, 0);
 }
 
-/*
- * Draw a special unit at the location chosen
+/*!
+ * \brief Draw a special unit at the location chosen
+ * \param i the unit number being painted (index)
+ * \param xpos the x position of the unit in tiles
+ * \param ypos the y position of the unit in tiles
  */
 void
 UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos)
@@ -1353,7 +1378,7 @@ UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos)
 	if (IsDeferDrawing())
 		return;
 
-	rect.topLeft.x = game.units[i].type*vgame.tileSize;
+	rect.topLeft.x = game.units[i].type * vgame.tileSize;
 	rect.topLeft.y = vgame.tileSize;
 	rect.extent.x = vgame.tileSize;
 	rect.extent.y = vgame.tileSize;
@@ -1452,7 +1477,6 @@ UIScrollMap(dirType direction)
 
 	/* and lastly, fill the gap */
 	LockWorld();
-	LockWorldFlags();
 	UIInitDrawing();
 
 	if (direction == 1 || direction == 3) {
@@ -1475,7 +1499,6 @@ UIScrollMap(dirType direction)
 	UIDrawPop();
 
 	UIFinishDrawing();
-	UnlockWorldFlags();
 	UnlockWorld();
 }
 
@@ -1810,8 +1833,8 @@ UIUpdateBuildIcon(void)
 #endif
 }
 
-/*
- * Draw the speed icon on screen
+/*!
+ * \brief Draw the speed icon on screen
  */
 void
 UIDrawSpeed(void)
@@ -1828,8 +1851,9 @@ UIDrawSpeed(void)
 	EndHiresDraw();
 }
 
-/*
- * Draw the population on screen.
+/*!
+ * \brief Draw the population on screen.
+ *
  * As a side effect also draws the population, Location and Speed to screen
  */
 void
@@ -1888,48 +1912,6 @@ UICheckMoney(void)
 	}
 }
 
-/* memory handlers */
-Int16
-InitWorld(void)
-{
-	worldHandle = MemHandleNew(10);
-	worldFlagsHandle = MemHandleNew(10);
-	WriteLog("Allocation initial 20 bytes\n");
-
-	if (worldHandle == 0 || worldFlagsHandle == 0) {
-		UIDisplayError(enOutOfMemory);
-		WriteLog("InitWorld FAILED alloc!\n");
-		return (0);
-	}
-	return (1);
-}
-
-
-Int16
-ResizeWorld(UInt32 size)
-{
-	WriteLog("Allocating bytes: %li\n", (unsigned long)size);
-
-	if (MemHandleResize(worldHandle, size) != 0 ||
-	    MemHandleResize(worldFlagsHandle, size) != 0) {
-		UIDisplayError(enOutOfMemory);
-		/* QuitGameError(); */
-		WriteLog("resizeWorld FAILED alloc!\n");
-		return (0);
-	}
-
-	LockWorld();
-	LockWorldFlags();
-
-	MemSet(worldPtr, size, 0);
-	MemSet(worldFlagsPtr, size, 0);
-
-	UnlockWorld();
-	UnlockWorldFlags();
-
-	return (1);
-}
-
 void
 MapHasJumped(void)
 {
@@ -1946,101 +1928,27 @@ int lockWorldCount = 0;
 void
 LockWorld()
 {
-	if (++lockWorldCount == 1)
-		worldPtr = MemHandleLock(worldHandle);
+	if (++lockWorldCount == 1) {
+		if (worldHandle != NULL) {
+			WriteLog("Locking\n");
+			worldPtr = MemHandleLock(worldHandle);
+		}
+	}
 }
 
 void
 UnlockWorld()
 {
+	if (worldHandle == 0) {
+		worldHandle = MemPtrRecoverHandle(worldPtr);
+	}
 	if (--lockWorldCount == 0) {
-		MemHandleUnlock(worldHandle);
+		WriteLog("UnLocking\n");
+		MemPtrUnlock(worldPtr);
 		worldPtr = NULL;
 	}
 	ErrFatalDisplayIf(lockWorldCount < 0,
 	    "Too many unlock world calls");
-}
-
-UInt8
-LockedWorldFlags()
-{
-	return (worldFlagsPtr != NULL);
-}
-
-int lockWorldFlagsCount = 0;
-
-void
-LockWorldFlags()
-{
-	if (++lockWorldFlagsCount == 1)
-		worldFlagsPtr = MemHandleLock(worldFlagsHandle);
-}
-
-void
-UnlockWorldFlags()
-{
-	if (--lockWorldFlagsCount == 0) {
-		MemHandleUnlock(worldFlagsHandle);
-		worldFlagsPtr = NULL;
-	}
-	ErrFatalDisplayIf(lockWorldFlagsCount < 0,
-	    "Too many unlock world flags calls");
-}
-
-UInt8
-GetWorldFlags(UInt32 pos)
-{
-	/* NOTE: LockWorld() MUST have been called before this is used!!! */
-	if (pos >= GetMapMul()) {
-		WriteLog("Get Flags out of range\n");
-		return (0);
-	}
-	return (((UInt8 *)worldFlagsPtr)[pos]);
-}
-
-void
-SetWorldFlags(UInt32 pos, UInt8 value)
-{
-	if (pos >= GetMapMul()) {
-		WriteLog("Write to flags out of range\n");
-		return;
-	}
-	((UInt8 *)worldFlagsPtr)[pos] = value;
-}
-
-void
-OrWorldFlags(UInt32 pos, UInt8 value)
-{
-	if (pos > GetMapMul())
-		return;
-	((UInt8 *)worldFlagsPtr)[pos] |= value;
-}
-
-void
-AndWorldFlags(UInt32 pos, UInt8 value)
-{
-	if (pos > GetMapMul())
-		return;
-	((UInt8 *)worldFlagsPtr)[pos] &= value;
-}
-
-UInt8
-GetWorld(UInt32 pos)
-{
-	/* NOTE: LockWorld() MUST have been called before this is used!!! */
-	if (pos >= GetMapMul()) {
-		WriteLog("Get World out of range\n");
-		return (0);
-	}
-	return (((UInt8 *)worldPtr)[pos]);
-}
-
-void
-SetWorld(UInt32 pos, UInt8 value)
-{
-	if (pos > GetMapMul())
-		return;
-	((UInt8 *)worldPtr)[pos] = value;
 }
 
 static Err
@@ -2211,9 +2119,9 @@ static struct _silkKeys {
 /*!
  * \brief find the calculator button on the screen
  * 
- * The calculator button can be a favolrites button on the Zire. The problem
+ * The calculator button can be a favorites button on the Zire. The problem
  * is that the Zire uses a different code on PalmOS 4 than on PalmOS 5 for
- * the key.
+ * the key, making it not work.
  */
 static void
 buildSilkList()
@@ -2225,6 +2133,11 @@ buildSilkList()
 	const PenBtnInfoType *silkinfo = EvtGetPenBtnList(&btncount);
 	/* favorites / find */
 	while (silky[atsilk].vChar != 1) atsilk++;
+	/* Bail if we're not a Zire */
+	if (!isZireOld()) {
+		silky[atsilk].vChar = vchrCalc;
+		return;
+	}
 	while (atbtn < btncount) {
 		WriteLog("btn: %ld char: %lx\n", (long)atbtn,
 		    (long)silkinfo[atbtn].asciiCode);

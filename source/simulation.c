@@ -15,37 +15,39 @@
 #include <disaster.h>
 #include <simulation.h>
 #include <stack.h>
-
-#if defined(PALM)
-#include <MemoryMgr.h>
-#include <unix_stdio.h>
-#include <unix_string.h>
-#include <unix_stdlib.h>
-#include <StringMgr.h>
-#else
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#endif
 #include <compilerpragmas.h>
+#include <mem_compat.h>
+
+/*! \brief Structure for performing distribution */
+typedef struct _distrib {
+	Int16 (*doescarry)(UInt8); /*!< Does the node carry the item */
+	Int16 (*isplant)(UInt8, UInt32, UInt8); /*!< Is the node a supplier */
+	void *needSourceList; /*!< list of nodes that need to be powered */
+	void *unvisitedNodes; /*!< nodes that have not been visited */
+	Int8 flagToSet; /*!< flag that is being set in this loop */
+	Int16 SourceLeft; /*!< amount of source left */
+	Int16 SourceTotal; /*!< total source available */
+	Int16 NodesTotal; /*!< nodes visited */
+	Int16 NodesSupplied; /*!< nodes supplied */
+} distrib_t;
 
 static void DoTaxes(void);
 static void DoUpkeep(void);
-static Int16 DistributeNumberOfSquaresAround(UInt32 pos);
+static Int16 DistributeNumberOfSquaresAround(distrib_t *distrib, UInt32 pos);
 
 static void UpgradeZones(void);
 static void UpgradeZone(UInt32 pos);
 static void DowngradeZone(UInt32 pos);
 static Int16 DoTheRoadTrip(UInt32 startPos);
 static UInt32 DistributeMoveOn(UInt32 pos, dirType direction);
-static void DistributeUnvisited(void);
+static void DistributeUnvisited(distrib_t *distrib);
 
 static long GetZoneScore(UInt32 pos);
 static Int16 GetScoreFor(UInt8 iamthis, UInt8 what);
 static UInt32 GetRandomZone(void);
 static void FindZonesForUpgrading(void);
 static Int16 FindScoreForZones(void);
-static void AddNeighbors(UInt32 pos);
+static void AddNeighbors(distrib_t *distrib, UInt32 pos);
 static Int16 ExistsNextto(UInt32 pos, UInt8 what);
 
 /*
@@ -108,11 +110,11 @@ Sim_Distribute_Specific(Int16 gridonly)
 {
 	if (gridonly == 0) gridonly = GRID_ALL;
 
-	if (NeedsUpdate(GRID_POWER) && (gridonly & GRID_POWER)) {
+	if ((gridonly & GRID_POWER) && NeedsUpdate(GRID_POWER)) {
 		DoDistribute(GRID_POWER);
 		ClearUpdate(GRID_POWER);
 	}
-	if (NeedsUpdate(GRID_WATER) && (gridonly & GRID_WATER)) {
+	if ((gridonly & GRID_WATER) && NeedsUpdate(GRID_WATER)) {
 		DoDistribute(GRID_WATER);
 		ClearUpdate(GRID_WATER);
 	}
@@ -156,33 +158,16 @@ IsItAWaterPump(UInt8 point, UInt32 coord, UInt8 flags)
 	return (0);
 }
 
-static Int16 (*DoesCarry)(UInt8);
-static Int16 (*IsPlant)(UInt8, UInt32, UInt8);
-
-/*! \brief list of nodes that need to be powered */
-static void *needSourceList;
-/*! \brief nodes that have not been visited */
-static void *unvisitedNodes;
-/*! \brief flag that is being set in this loop */
-static Int8 flagToSet;
-/*! \brief amount of source left */
-static Int16 SourceLeft;
-/*! \brief total source availaable */
-static Int16 SourceTotal;
-/*! \brief nodes visited */
-static Int16 NodesTotal;
-/*! \brief nodes supplied */
-static Int16 NodesSupplied;
-
 /*!
  * \brief Set the supplied bit for the point specified
+ * \param flagbit The flag to set
  * \param point location in array of point
  */
 static void
-SetSupplied(UInt32 point)
+SetSupplied(distrib_t *distrib, UInt32 point)
 {
-	NodesSupplied++;
-	OrWorldFlags(point, flagToSet);
+	distrib->NodesSupplied++;
+	OrWorldFlags(point, distrib->flagToSet);
 }
 
 /*!
@@ -193,23 +178,24 @@ SetSupplied(UInt32 point)
  * \return whether node was supplied
  */
 Int16
-SupplyIfPlant(UInt32 pos, UInt8 point, UInt8 status)
+SupplyIfPlant(distrib_t *distrib, UInt32 pos, UInt8 point, UInt8 status)
 {
 	Int16 pt;
-	if (!(pt = IsPlant(point, pos, status)))
+	if (!(pt = distrib->isplant(point, pos, status)))
 		return (0);
 	if (GetScratch(pos))
 		return (0);
-	SetSupplied(pos);
+	SetSupplied(distrib, pos);
 	SetScratch(pos);
-	NodesTotal++;
-	SourceLeft += pt;
-	SourceTotal += pt;
-	if (!StackIsEmpty(needSourceList)) {
-		while (SourceLeft && !StackIsEmpty(needSourceList)) {
-			pos = StackPop(needSourceList);
-			SourceLeft--;
-			SetSupplied(pos);
+	distrib->NodesTotal++;
+	distrib->SourceLeft += pt;
+	distrib->SourceTotal += pt;
+	if (!StackIsEmpty(distrib->needSourceList)) {
+		while (distrib->SourceLeft &&
+		    !StackIsEmpty(distrib->needSourceList)) {
+			pos = StackPop(distrib->needSourceList);
+			distrib->SourceLeft--;
+			SetSupplied(distrib, pos);
 		}
 	}
 	return (pt);
@@ -225,89 +211,93 @@ DoDistribute(Int16 grid)
 	/* type == GRID_POWER | GRID_POWER */
 	Int32 i, j;
 	Int8 gw;
+	distrib_t *distrib = gMalloc(sizeof (distrib_t));
 
-	SourceLeft = 0;
-	SourceTotal = 0;
-	NodesTotal = 0;
-	NodesSupplied = 0;
-	needSourceList = StackNew();
-	unvisitedNodes = StackNew();
+	distrib->SourceLeft = 0;
+	distrib->SourceTotal = 0;
+	distrib->NodesTotal = 0;
+	distrib->NodesSupplied = 0;
+	distrib->needSourceList = StackNew();
+	distrib->unvisitedNodes = StackNew();
 
 	/* Step 1: Find all the powerplants and move out from there */
 	if (grid == GRID_POWER) {
-		IsPlant = &IsItAPowerPlant;
-		DoesCarry = &CarryPower;
-		flagToSet = POWEREDBIT;
+		distrib->isplant = &IsItAPowerPlant;
+		distrib->doescarry = &CarryPower;
+		distrib->flagToSet = POWEREDBIT;
 	} else {
-		IsPlant = &IsItAWaterPump;
-		DoesCarry = &CarryWater;
-		flagToSet = WATEREDBIT;
+		distrib->isplant = &IsItAWaterPump;
+		distrib->doescarry = &CarryWater;
+		distrib->flagToSet = WATEREDBIT;
 	}
 
 	LockWorld(); /* this lock locks for ALL power subs */
-	LockWorldFlags();
-	for (j = 0; j < GetMapMul(); j++)
-		AndWorldFlags(j, ~(flagToSet | SCRATCHBIT));
+	for (j = 0; j < MapMul(); j++)
+		AndWorldFlags(j, ~(distrib->flagToSet | SCRATCHBIT));
 
-	for (i = 0; i < GetMapMul(); i++) {
+	for (i = 0; i < MapMul(); i++) {
 		gw = GetWorld(i);
 		if (!GetScratch(i)) {
-			if (SupplyIfPlant(i, gw, GetWorldFlags(i))) {
-				AddNeighbors(i);
-				DistributeUnvisited();
+			if (SupplyIfPlant(distrib, i, gw, GetWorldFlags(i))) {
+				AddNeighbors(distrib, i);
+				DistributeUnvisited(distrib);
 				/* unpowered points are removed */
-				StackDoEmpty(needSourceList);
+				StackDoEmpty(distrib->needSourceList);
 				WriteLog("Grid#%d Supplied Nodes: %d/%d "
 				    "SrcRemain: %d/%d\n", (int)grid,
-				    (int)NodesSupplied, (int)NodesTotal,
-				    (int)SourceLeft, (int)SourceTotal);
-				SourceLeft = SourceTotal = 0;
-				NodesSupplied = NodesTotal = 0;
+				    (int)distrib->NodesSupplied,
+				    (int)distrib->NodesTotal,
+				    (int)distrib->SourceLeft,
+				    (int)distrib->SourceTotal);
+				distrib->SourceLeft = 0;
+				distrib->SourceTotal = 0;
+				distrib->NodesSupplied = 0;
+				distrib->NodesTotal = 0;
 			}
 		}
 	}
-	UnlockWorldFlags();
 	UnlockWorld();
-	StackDelete(needSourceList);
-	StackDelete(unvisitedNodes);
+	StackDelete(distrib->needSourceList);
+	StackDelete(distrib->unvisitedNodes);
+	gFree(distrib);
 }
 
 /*!
  * \brief Distribute power to the unvisited list.
  */
 static void
-DistributeUnvisited(void)
+DistributeUnvisited(distrib_t *distrib)
 {
 	UInt32 pos;
 	UInt8 flag;
 
-	while (!StackIsEmpty(unvisitedNodes)) {
-		pos = StackPop(unvisitedNodes);
+	while (!StackIsEmpty(distrib->unvisitedNodes)) {
+		pos = StackPop(distrib->unvisitedNodes);
 		flag = GetWorldFlags(pos);
-		if (SupplyIfPlant(pos, GetWorld(pos), flag)) {
+		if (SupplyIfPlant(distrib, pos, GetWorld(pos), flag)) {
 			goto nextneighbor;
 		}
 
-		if (SourceLeft && ((flag & flagToSet) == 0)) {
+		if (distrib->SourceLeft && ((flag & distrib->flagToSet) == 0)) {
 			/*
 			 * if this field hasn't been powered,
 			 * we need to "use" some power to move further along
 			 */
-			SourceLeft--;
+			distrib->SourceLeft--;
 		}
 
 		/* do we have more power left? */
-		if (SourceLeft <= 0)
-			StackPush(needSourceList, pos);
+		if (distrib->SourceLeft <= 0)
+			StackPush(distrib->needSourceList, pos);
 		else
-			SetSupplied(pos);
+			SetSupplied(distrib, pos);
 
 		/* now, set the flags to indicate we've been here */
 		SetScratch(pos);
 
 nextneighbor:
 		/* find the possible ways we can move on from here */
-		AddNeighbors(pos);
+		AddNeighbors(distrib, pos);
 	};
 }
 
@@ -316,27 +306,27 @@ nextneighbor:
  * \param pos location of node on list
  */
 static void
-AddNeighbors(UInt32 pos)
+AddNeighbors(distrib_t *distrib, UInt32 pos)
 {
-	char cross = DistributeNumberOfSquaresAround(pos);
+	char cross = DistributeNumberOfSquaresAround(distrib, pos);
 
 	/* if there's "no way out", return */
 	if ((cross & 0x0f) == 0)
 		return;
 
-	NodesTotal += cross & 0x0f;
+	distrib->NodesTotal += cross & 0x0f;
 
 	if ((cross & 0x10) == 0x10) {
-		StackPush(unvisitedNodes, pos-GetMapSize());
+		StackPush(distrib->unvisitedNodes, pos-GetMapSize());
 	}
 	if ((cross & 0x20) == 0x20) {
-		StackPush(unvisitedNodes, pos+1);
+		StackPush(distrib->unvisitedNodes, pos+1);
 	}
 	if ((cross & 0x40) == 0x40) {
-		StackPush(unvisitedNodes, pos+GetMapSize());
+		StackPush(distrib->unvisitedNodes, pos+GetMapSize());
 	}
 	if ((cross & 0x80) == 0x80) {
-		StackPush(unvisitedNodes, pos-1);
+		StackPush(distrib->unvisitedNodes, pos-1);
 	}
 }
 
@@ -349,11 +339,11 @@ AddNeighbors(UInt32 pos)
  * \param pos location of item.
  */
 static Int16
-Carries(UInt32 pos)
+Carries(distrib_t *distrib, UInt32 pos)
 {
 	if (GetScratch(pos))
 		return (0);
-	return (DoesCarry(GetWorld(pos)));
+	return (distrib->doescarry(GetWorld(pos)));
 }
 
 /*!
@@ -370,24 +360,24 @@ Carries(UInt32 pos)
  * \return fields & quantity in an overloaded array
  */
 static Int16
-DistributeNumberOfSquaresAround(UInt32 pos)
+DistributeNumberOfSquaresAround(distrib_t *distrib, UInt32 pos)
 {
 	Int16 retval = 0;
 	Int8 number = 0;
 
-	if (Carries(DistributeMoveOn(pos, dtUp))) {
+	if (Carries(distrib, DistributeMoveOn(pos, dtUp))) {
 		retval |= 0x10;
 		number++;
 	}
-	if (Carries(DistributeMoveOn(pos, dtRight))) {
+	if (Carries(distrib, DistributeMoveOn(pos, dtRight))) {
 		retval |= 0x20;
 		number++;
 	}
-	if (Carries(DistributeMoveOn(pos, dtDown))) {
+	if (Carries(distrib, DistributeMoveOn(pos, dtDown))) {
 		retval |= 0x40;
 		number++;
 	}
-	if (Carries(DistributeMoveOn(pos, dtLeft))) {
+	if (Carries(distrib, DistributeMoveOn(pos, dtLeft))) {
 		retval |= 0x80;
 		number++;
 	}
@@ -422,7 +412,7 @@ DistributeMoveOn(UInt32 pos, dirType direction)
 		pos++;
 		break;
 	case dtDown:
-		if ((pos+GetMapSize()) >= GetMapMul())
+		if ((pos+GetMapSize()) >= MapMul())
 			return (pos);
 		pos += GetMapSize();
 		break;
@@ -447,11 +437,11 @@ ExistsNextto(UInt32 pos, UInt8 what)
 	if (GetWorld(pos - GetMapSize()) == what && !(pos < GetMapSize())) {
 		return (1);
 	}
-	if (GetWorld(pos + 1) == what && !((pos+1) >= GetMapMul())) {
+	if (GetWorld(pos + 1) == what && !((pos+1) >= MapMul())) {
 		return (1);
 	}
 	if (GetWorld(pos + GetMapSize()) == what &&
-	    !((pos + GetMapSize()) >= GetMapMul())) {
+	    !((pos + GetMapSize()) >= MapMul())) {
 		return (1);
 	}
 	if (GetWorld(pos - 1) == what && (pos != 0)) {
@@ -750,14 +740,11 @@ GetZoneScore(UInt32 pos)
 	type = (IsZone(zone, ztCommercial) ? ztCommercial :
 	    (IsZone(zone, ztResidential) ? ztResidential : ztIndustrial));
 
-	LockWorldFlags();
 	if (((GetWorldFlags(pos) & POWEREDBIT) == 0) ||
 	    ((GetWorldFlags(pos) & WATEREDBIT) == 0)) {
 		/* whoops, no power | water */
-		UnlockWorldFlags();
 		goto unlock_ret;
 	}
-	UnlockWorldFlags();
 
 	if (type != ztResidential)  {
 		/*
@@ -896,7 +883,7 @@ GetRandomZone()
 
 	LockWorld();
 	for (i = 0; i < 5; i++) { /* try five times to hit a valid zone */
-		pos = GetRandomNumber(GetMapMul());
+		pos = GetRandomNumber(MapMul());
 		type = GetWorld(pos);
 		if ((type >= 1 && type <= 3) || (type >= 30 && type <= 59)) {
 			UnlockWorld();
@@ -1110,7 +1097,7 @@ UpdateVolatiles(void)
 
 	LockWorld();
 
-	for (p = 0; p < GetMapMul(); p++) {
+	for (p = 0; p < MapMul(); p++) {
 		UInt8 elt = GetWorld(p);
 		/* Gahd this is terrible. I need to fix it. */
 		if (elt >= TYPE_COMMERCIAL_MIN && elt <= TYPE_COMMERCIAL_MAX)

@@ -8,7 +8,15 @@ nearlylive: VERSION = $(shell date +%Y.%m.%d)
 stuff:
 	@echo Use \`make\` with either \"linux\", \"palm\" or \"all\" as an argument
 
-all: linux palm
+all: all-linux-gtk all-palm
+
+all-%:
+	cd $(@:all-%=%) && $(MAKE) $(MAKEFLAGS) all
+
+debug: debug-linux-gtk debug-palm
+
+debug-%:
+	cd $(@:debug-%=%) && $(MAKE) $(MAKEFLAGS) debug
 
 linux:
 	@echo Making executable for linux-gtk
@@ -27,9 +35,10 @@ palm:
 	@echo one of these to your Palm.
 	@echo --------------------------
 
-clean:
-	cd linux-gtk && $(MAKE) clean
-	cd palm && $(MAKE) clean
+clean: clean-linux-gtk clean-palm
+
+clean-%:
+	cd $(@:clean-%=%) && $(MAKE) $(MAKEFLAGS) clean
 
 SVFILE=pcity-source-$(VERSION)
 

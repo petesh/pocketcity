@@ -58,7 +58,6 @@ RedrawAllFields(void)
 	Int16 i, j;
 
 	LockWorld();
-	LockWorldFlags();
 	UIInitDrawing();
 	UILockScreen();
 	for (i = game.map_xpos; i < vgame.visible_x + game.map_xpos; i++) {
@@ -73,7 +72,6 @@ RedrawAllFields(void)
 
 	UIUnlockScreen();
 	UIFinishDrawing();
-	UnlockWorldFlags();
 	UnlockWorld();
 }
 
@@ -180,11 +178,9 @@ void
 DrawField(Int16 xpos, Int16 ypos)
 {
 	UIInitDrawing();
-	LockWorldFlags();
 
 	DrawFieldWithoutInit(xpos, ypos);
 
-	UnlockWorldFlags();
 	UIFinishDrawing();
 }
 
@@ -198,7 +194,6 @@ void
 DrawCross(Int16 xpos, Int16 ypos)
 {
 	UIInitDrawing();
-	LockWorldFlags();
 	if (xpos > 0)
 		DrawFieldWithoutInit(xpos - 1, ypos);
 	if (ypos > 0)
@@ -208,7 +203,6 @@ DrawCross(Int16 xpos, Int16 ypos)
 	if (ypos + 1 < GetMapSize())
 		DrawFieldWithoutInit(xpos, ypos + 1);
 	DrawFieldWithoutInit(xpos, ypos);
-	UnlockWorldFlags();
 	UIFinishDrawing();
 }
 
@@ -328,7 +322,7 @@ GetSpecialGraphicNumber(UInt32 pos, Int16 nType)
 	case 2: /* bridge */
 		if (pos >= GetMapSize())
 			a = IsRoad(GetWorld(pos - GetMapSize()));
-		if (pos < (unsigned long)(GetMapMul() - GetMapSize()))
+		if (pos < (unsigned long)(MapMul() - GetMapSize()))
 			c = IsRoad(GetWorld(pos + GetMapSize()));
 		if ((unsigned long)(pos % GetMapSize()) <
 		    (unsigned long)(GetMapSize() - 1))
@@ -340,7 +334,7 @@ GetSpecialGraphicNumber(UInt32 pos, Int16 nType)
 	case 1:	/* power lines */
 		if (pos >= GetMapSize())
 			a = CarryPower(GetWorld(pos - GetMapSize()));
-		if (pos < (unsigned long)(GetMapMul() - GetMapSize()))
+		if (pos < (unsigned long)(MapMul() - GetMapSize()))
 			c = CarryPower(GetWorld(pos + GetMapSize()));
 		if (pos % GetMapSize() < (unsigned long)(GetMapSize() - 1))
 			b = CarryPower(GetWorld(pos+1));
@@ -350,7 +344,7 @@ GetSpecialGraphicNumber(UInt32 pos, Int16 nType)
 	case 3: /* water pipe */
 		if (pos >= GetMapSize())
 			a = CarryWater(GetWorld(pos - GetMapSize()));
-		if (pos < (unsigned long)(GetMapMul() - GetMapSize()))
+		if (pos < (unsigned long)(MapMul() - GetMapSize()))
 			c = CarryWater(GetWorld(pos + GetMapSize()));
 		if (pos % GetMapSize() < (unsigned long)(GetMapSize() - 1))
 			b = CarryWater(GetWorld(pos + 1));

@@ -47,7 +47,7 @@ DoNastyStuffTo(Int16 type, UInt16 probability)
 
 	LockWorld();
 	for (i = 0; i < 50; i++) {
-		randomTile = GetRandomNumber(GetMapMul());
+		randomTile = GetRandomNumber(MapMul());
 		if (GetWorld(randomTile) == type) {
 			/* wee, let's destroy something */
 			x = randomTile % GetMapSize();
@@ -77,7 +77,7 @@ DoRandomDisaster(void)
 	LockWorld();
 
 	for (i = 0; i < 100; i++) { /* 100 tries to hit a useful tile */
-		randomTile = GetRandomNumber(GetMapMul());
+		randomTile = GetRandomNumber(MapMul());
 		type = GetWorld(randomTile);
 		if (type != TYPE_DIRT &&
 			type != TYPE_REAL_WATER &&
@@ -118,7 +118,7 @@ DoSpecificDisaster(erdiType disaster)
 	int i = 0;
 
 	while (i++ < 400 && ce == 0) {
-		randomTile = GetRandomNumber(GetMapMul());
+		randomTile = GetRandomNumber(MapMul());
 		x = randomTile % GetMapSize();
 		y = randomTile / GetMapSize();
 
@@ -162,7 +162,6 @@ UpdateDisasters(void)
 	int retval = 0;
 
 	LockWorld();
-	LockWorldFlags();
 	ClearScratch();
 	for (i = 0; i < GetMapSize(); i++) {
 		for (j = 0; j < GetMapSize(); j++) {
@@ -191,7 +190,6 @@ UpdateDisasters(void)
 			}
 		}
 	}
-	UnlockWorldFlags();
 	UnlockWorld();
 	return (retval);
 }
@@ -256,7 +254,6 @@ BurnField(Int16 x, Int16 y, Int16 forceit)
 	int rv = 0;
 
 	LockWorld();
-	LockWorldFlags();
 	type = GetWorld(WORLDPOS(x, y));
 	if ((forceit != 0 && type != TYPE_BRIDGE &&
 	    type != TYPE_REAL_WATER) ||
@@ -277,7 +274,6 @@ BurnField(Int16 x, Int16 y, Int16 forceit)
 		vgame.BuildCount[bc_fire]++;
 		rv = 1;
 	}
-	UnlockWorldFlags();
 	UnlockWorld();
 	return (rv);
 }

@@ -118,7 +118,7 @@ ReadCityRecord(MemHandle rec)
 	if (StrNCompare(SAVEGAMEVERSION, (char *)ptemp, 4) == 0) {
 		LockWorld();
 		MemMove((void *)&game, ptemp, sizeof (GameStruct));
-		MemMove(worldPtr, ptemp + sizeof (GameStruct), GetMapMul());
+		MemMove(worldPtr, ptemp + sizeof (GameStruct), WorldSize());
 		UnlockWorld();
 		PostLoadGame();
 		ResetViewable();
@@ -146,7 +146,7 @@ WriteCityRecord(MemHandle rec)
 	/* write the header and some globals */
 	DmWrite(pRec, 0, (void *)&game, sizeof (GameStruct));
 	DmWrite(pRec, sizeof (GameStruct), (void *)(unsigned char *)worldPtr,
-	    GetMapMul());
+	    WorldSize());
 	UnlockWorld();
 	MemHandleUnlock(rec);
 }
@@ -170,12 +170,12 @@ SaveGameByIndex(UInt16 index)
 		return (-1);
 	if (index <= DmNumRecords(db)) {
 		rec = DmResizeRecord(db, index,
-		    GetMapMul() + sizeof (GameStruct));
+		    WorldSize() + sizeof (GameStruct));
 		rec = DmGetRecord(db, index);
 	} else {
 		index = DmNumRecords(db) + 1;
 		rec = DmNewRecord(db, &index,
-		    GetMapMul() + sizeof (GameStruct));
+		    WorldSize() + sizeof (GameStruct));
 	}
 	if (rec) {
 		WriteCityRecord(rec);
@@ -261,7 +261,7 @@ CreateNewSaveGame(char *name)
 			}
 			index = dmMaxRecordIndex;
 			rec = DmNewRecord(db, &index,
-			    GetMapMul() + sizeof (game));
+			    WorldSize() + sizeof (game));
 			if (rec) {
 				NewGame();
 				WriteCityRecord(rec);

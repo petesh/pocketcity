@@ -16,14 +16,33 @@
 #define	TRGSysFtrID	'TRG '
 #define	TRGVgaFtrNum	2
 
-static Boolean
-isHandEra()
+Boolean
+isHandEra(void)
 {
 	UInt32 version;
 	if (FtrGet(TRGSysFtrID, TRGVgaFtrNum, &version) == 0)
 		if (sysGetROMVerMajor(version) >= 1)
 			return (true);
 	return (false);
+}
+
+UInt16
+isZireOld(void)
+{
+	UInt32 vcl;
+	static UInt16 rv = ~0U;
+
+	if (rv != ~0U)
+		return (rv);
+	if ((FtrGet(sysFtrCreator, sysFtrNumOEMCompanyID, &vcl) == 0) &&
+	    (vcl == 'Palm') &&
+	    (FtrGet(sysFtrCreator, sysFtrNumOEMDeviceID, &vcl) == 0) &&
+	    (vcl == 'Cubs')) {
+		rv = 1;
+	} else {
+		rv = 0;
+	}
+	return (rv);
 }
 
 /* Return the depth in bits per pixel */

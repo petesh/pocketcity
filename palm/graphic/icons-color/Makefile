@@ -3,7 +3,7 @@
 
 MONTAGE=montage
 
-all: montage.bmp
+all debug: montage.bmp
 
 files=bulldozer.bmp residential.bmp commercial.bmp industrial.bmp \
 	road.bmp powerplant.bmp nuclear.bmp powerline.bmp \

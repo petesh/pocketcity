@@ -31,7 +31,7 @@ PCityMain(void)
 {
 	InitWorld();
 	SetMapSize(100);
-	ResizeWorld(GetMapMul());
+	ResizeWorld(WorldSize());
 	SetUpGraphic();
 	game.gameLoopSeconds = SPEED_PAUSED;
 }
@@ -46,7 +46,7 @@ void
 SetupNewGame(void)
 {
 	memset((void *)&vgame, 0, sizeof (vgame));
-	vgame.gridsToUpdate = GRID_ALL;
+	AddGridUpdate(GRID_ALL);
 	game.TimeElapsed = 0;
 	game.map_xpos = 50;
 	game.map_ypos = 50;
@@ -74,7 +74,9 @@ SetupNewGame(void)
 	SetMapSize(100);
 	game.tax = 8; /* TODO: changeable tax rate */
 	SetDisasterLevel(GetDifficultyLevel()+1);
-	ResizeWorld(GetMapMul());
+	LockWorld();
+	ResizeWorld(WorldSize());
+	UnlockWorld();
 	game.gameLoopSeconds = SPEED_PAUSED;
 	game.auto_bulldoze = 1;
 	CreateFullRiver();
@@ -107,7 +109,7 @@ PostLoadGame(void)
 {
 	memset((void *)&vgame.BuildCount, 0, sizeof (vgame.BuildCount));
 	/* XXX: free lunch alert */
-	vgame.gridsToUpdate = GRID_ALL;
+	//vgame.gridsToUpdate = GRID_ALL;
 	SetMapSize(GetMapSize());
 	UpdateVolatiles();
 	Sim_Distribute();

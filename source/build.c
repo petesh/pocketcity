@@ -706,7 +706,7 @@ CreateForests(void)
 	j = GetRandomNumber(6) + 7;
 	for (i = 0; i < j; i++) {
 		k = GetRandomNumber(6) + 8;
-		pos = GetRandomNumber(GetMapMul());
+		pos = GetRandomNumber(MapMul());
 		CreateForest(pos, k);
 	}
 }

@@ -7,8 +7,11 @@ Err changeDepthRes(UInt32 ncolors);
 Err restoreDepthRes(void);
 UInt32 getDepth(void);
 UInt32 GetCreatorID(void);
+UInt16 isZireOld(void);
+Boolean isHandEra(void);
 Char **FillStringList(UInt16 resID, UInt16 *length);
 void FreeStringList(Char **list);
+
 void DangerWillRobinson(char *, char *, int);
 #define	Warning(mesg) DangerWillRobinson(mesg, __FILE__, __LINE__)
 

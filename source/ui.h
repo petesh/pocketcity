@@ -16,19 +16,40 @@
 extern "C" {
 #endif
 
+#ifdef DEBUG
+void WriteLog(char *, ...);
+#else
+#if defined(__cplusplus)
+inline void WriteLog(char *, ...) {}
+#else
+#define	WriteLog(...)
+#endif
+#endif
+
 void UIDisplayError(erdiType nError);
 void UIDisplayError1(char *message);
 
+/*! \brief Initialize the drawing area */
 void UIInitDrawing(void);
+/*! \brief finish up using the drawing area */
 void UIFinishDrawing(void);
+
+/*! \brief unlock the screen, allow any paused repainting to happen */
 void UIUnlockScreen(void);
+
+/*! \brief lock the screen, cause any waiting paing operations to happen */
 void UILockScreen(void);
+
+/*! \brief Draw the border around the playing area */
 void UIDrawBorder(void);
+
+/*! \brief set up the graphics XXX: FIXME */
 void UISetUpGraphic(void);
 void UIDrawCredits(void);
 void UIUpdateBuildIcon(void);
 void UIGotoForm(Int16);
 void UIDrawPop(void);
+void UIPaintDesires(void);
 
 void UICheckMoney(void);
 void UIScrollMap(dirType direction);
@@ -51,8 +72,8 @@ void UnlockWorld(void);
 UInt8 GetWorld(UInt32 pos);
 void SetWorld(UInt32 pos, UInt8 value);
 UInt8 LockedWorldFlags(void);
-void LockWorldFlags(void);
-void UnlockWorldFlags(void);
+
+void PurgeWorld(void);
 
 UInt8 GetWorldFlags(UInt32 pos);
 void SetWorldFlags(UInt32 pos, UInt8 value);
@@ -63,15 +84,6 @@ void MapHasJumped(void);
 
 UInt32 GetRandomNumber(UInt32 max);
 void UISetTileSize(Int16 size);
-#ifdef DEBUG
-void WriteLog(char *, ...);
-#else
-#if defined(__cplusplus)
-inline void WriteLog(char *, ...) {}
-#else
-#define	WriteLog(...)
-#endif
-#endif
 
 #if defined(__cplusplus)
 }

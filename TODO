@@ -22,3 +22,7 @@ Compatibility with < 3.5 palmos ?
 
 Other Platforms:
 	Zaurus / Linux using QT
+
+Things on the Palm that can be improved:
+	Use a back buffer to render the screen
+		[ will allow for scaling too? ]
