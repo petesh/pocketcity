@@ -6,7 +6,7 @@ OBJECTS := stack.o simcity.o handler.o drawing.o globals.o build.o \
 	pcity-sections.o \
 	options.o map.o budget.o query.o savegame.o
 
-BUILDENDS=nd d ndh dh
+BUILDENDS=nd d ndh dh dc
 BUILDDIRS:=$(BUILDENDS:%=out-%)
 
 PROGNAME := "Pocket City"
@@ -42,7 +42,7 @@ TEMPDIRS:=$(TEMPENDS:%=temp-%)
 # make all
 #
 
-all debug hires dhires: VER $(COLORTARGETS) $(PRCTARGETS)
+lores debug hires dhires: VER $(COLORTARGETS) $(PRCTARGETS)
 
 nearlylive: all hires
 

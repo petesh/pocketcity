@@ -3,7 +3,12 @@ include Makefile-include
 
 BINNAME=pcity
 
-all: TDIR =-nd
+NDTARGETS=lores hires
+DTARGETS=debug dhires
+
+TARGETS=$(NDTARGETS) $(DTARGETS) cheat
+
+lores: TDIR =-nd
 
 debug: TDIR =-d
 hires: TDIR =-ndh
@@ -21,7 +26,9 @@ nearlylive: VERSION = $(shell date +%Y.%m.%d)
 
 DSTAMP := $(shell date "+%Y/%m/%d@%H:%M")
 
-all debug hires dhires cheat: VER
+all: lores
+
+$(TARGETS): VER
 	$(MAKE) -f Makefile-dowork BINARY=$(BINNAME) OBJDIR=out$(TDIR) $@
 
 clean:
@@ -51,9 +58,9 @@ DDIR=pcity-palm_$(VERSION)
 
 DISTFILES=../INSTALL ../CHANGELOG ../COPYING ../GAMEHINTS ../README
 
-full: all debug hires dhires
+full: $(TARGETS)
 
-dist nearlylive: all hires
+dist nearlylive: $(NDTARGETS)
 	@mkdir -p $(DDIR)
 	@cp $(DISTFILES) out-nd/*.prc *.pdb $(DDIR)
 	@tar cvf - $(DDIR) | gzip -9c >$(DDIR).tar.gz
