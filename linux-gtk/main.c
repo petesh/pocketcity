@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 #include "../source/ui.h"
 #include "../source/handler.h"
 #include "../source/drawing.h"
@@ -17,16 +22,163 @@ GtkWidget *creditslabel;
 GtkWidget *poplabel;
 GtkWidget *timelabel;
 GtkObject *playscrollerh, *playscrollerv;
-
 void * worldPtr;
 void * worldFlagsPtr;
 GdkPixmap *zones_bitmap,*monsters,*units;
 GdkBitmap *zones_mask,*monsters_mask,*units_mask;
 unsigned char selectedBuildItem = 0;
-
-
 void SetUpMainWindow(void);
 gint mainloop_callback(gpointer data);
+gchar * savegamename;
+void save_game(GtkWidget *w, gpointer data);
+
+
+void open_filename(GtkFileSelection *sel, gpointer data)
+{
+    int fd, ret;
+    savegamename = (gchar*)gtk_file_selection_get_filename(GTK_FILE_SELECTION(data));
+    g_print("Opening save game from %s\n", savegamename);
+    
+    fd = open(savegamename, O_RDONLY);
+    if (fd == -1) {
+        perror("open"); // TODO: make this nicer
+        return;
+    }
+    // God, I love to read all my vars at one time
+    // using a struct :D
+    ret = read(fd,(void*)&game,sizeof(GameStruct));
+    if (ret == -1) {
+        perror("read game"); // TODO: make this nicer
+        return;
+    } else if (ret != sizeof(GameStruct)) {
+        g_print("Whoops, couldn't read full lenght of game\n");
+        return;
+    }
+
+    // and now the great worldPtr :D
+    ret = read(fd,(void*)worldPtr, game.mapsize*game.mapsize);
+    if (ret == -1) {
+        perror("read world"); // TODO: make this nicer
+        return;
+    } else if (ret != game.mapsize*game.mapsize) {
+        g_print("Whoops, couldn't read full lenght of world\n");
+        return;
+    }
+    
+    if (close(fd) == -1) {
+        perror("close"); // TODO: make this nicer
+        return;
+    }
+
+    // update the screen with the new game
+    DrawGame(1);
+    gtk_adjustment_set_value(GTK_ADJUSTMENT(playscrollerh), game.map_xpos+10);
+    gtk_adjustment_set_value(GTK_ADJUSTMENT(playscrollerv), game.map_ypos+7);
+    
+}
+
+void open_game(GtkWidget *w, gpointer data)
+{
+    GtkWidget *fileSel;
+
+    fileSel = gtk_file_selection_new("Select saved game to open");
+    g_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
+            "clicked", G_CALLBACK(open_filename), (gpointer)fileSel);
+
+    g_signal_connect_swapped(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
+            "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
+    g_signal_connect_swapped(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->cancel_button),
+            "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
+            
+    gtk_widget_show(GTK_WIDGET(fileSel));
+}
+
+void new_game(GtkWidget *w, gpointer data)
+{
+    SetupNewGame();
+    game.visible_x = 320/16;
+    game.visible_y = 240/16;
+    game.gameLoopSeconds = SPEED_FAST;
+}
+
+
+void store_filename(GtkFileSelection *sel, gpointer data)
+{
+    savegamename = (gchar*)gtk_file_selection_get_filename(GTK_FILE_SELECTION(data));
+    g_print("This game will be saved as %s from now on\n", savegamename);
+    save_game(NULL,0);
+}
+
+void save_game_as(GtkWidget *w, gpointer data)
+{
+    GtkWidget *fileSel;
+
+    fileSel = gtk_file_selection_new("Save game as...");
+    g_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
+            "clicked", G_CALLBACK(store_filename), (gpointer)fileSel);
+
+    g_signal_connect_swapped(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
+            "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
+    g_signal_connect_swapped(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->cancel_button),
+            "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
+            
+    gtk_widget_show(GTK_WIDGET(fileSel));
+
+}
+
+void save_game(GtkWidget *w, gpointer data)
+{
+    int fd, ret;
+    
+    if (savegamename == NULL) {
+        save_game_as(NULL,0);
+        return;
+    }
+    g_print("Saving game as %s...\n", savegamename);
+
+    fd = open(savegamename, O_WRONLY | O_CREAT | O_TRUNC);
+    if (fd == -1) {
+        perror("open"); // TODO: make this nicer
+        return;
+    }
+    // God, I love to write all my vars at one time
+    // using a struct :D
+    ret = write(fd,(void*)&game,sizeof(GameStruct));
+    if (ret == -1) {
+        perror("write game"); // TODO: make this nicer
+        return;
+    } else if (ret != sizeof(GameStruct)) {
+        g_print("Whoops, couldn't write full lenght of game\n");
+        return;
+    }
+
+    // and now the great worldPtr :D
+    ret = write(fd,(void*)worldPtr, game.mapsize*game.mapsize);
+    if (ret == -1) {
+        perror("write world"); // TODO: make this nicer
+        return;
+    } else if (ret != game.mapsize*game.mapsize) {
+        g_print("Whoops, couldn't write full lenght of world\n");
+        return;
+    }
+    
+    if (close(fd) == -1) {
+        perror("close"); // TODO: make this nicer
+        return;
+    }
+
+}
+
+GtkItemFactoryEntry menu_items[] = {
+    { "/_File",         NULL,           NULL,         0,      "<Branch>"    },
+    { "/File/_New",     "<control>N",   new_game,     0,      NULL          },
+    { "/File/_Open",    "<control>O",   open_game,    0,      NULL          },
+    { "/File/_Save",    "<control>S",   save_game,    0,      NULL          },
+    { "/File/Save _As", NULL,           save_game_as, 0,      NULL          },
+    { "/File/sep1",     NULL,           NULL,         0,      "<Separator>" },
+    { "/File/_Quit",    NULL,           NULL,         0,      NULL          },
+};
+
 
 int main(int argc, char *argv[])
 {
@@ -102,10 +254,7 @@ static gint drawing_exposed_callback(GtkWidget *widget, GdkEvent *event, gpointe
 static gint drawing_realized_callback(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
     PCityMain();
-    SetupNewGame();
-    game.visible_x = 320/16;
-    game.visible_y = 240/16;
-    game.gameLoopSeconds = SPEED_FAST;
+    new_game(NULL,0);
     return FALSE;
 }
 
@@ -158,7 +307,7 @@ static gint motion_notify_event(GtkWidget *widget, GdkEventMotion *event)
 
 void SetUpMainWindow(void)
 {
-    GtkWidget *fieldbox,*box, *toolbox, *headerbox, *playingbox;
+    GtkWidget *fieldbox,*box, *toolbox, *headerbox, *playingbox,*main_box;
     GtkWidget *hscroll, *vscroll;    
     GtkWidget *button;
 
@@ -166,13 +315,14 @@ void SetUpMainWindow(void)
     gtk_window_set_title(GTK_WINDOW(window), "Pocket City");
     g_signal_connect(G_OBJECT(window), "delete_event", G_CALLBACK(delete_event), NULL);
     
+    main_box = gtk_vbox_new(FALSE,0);
     box = gtk_hbox_new(FALSE,0);
     fieldbox = gtk_vbox_new(FALSE,0);
-    toolbox = gtk_table_new(10,3,TRUE);
+    toolbox = gtk_table_new(9,3,TRUE);
     headerbox = gtk_hbox_new(FALSE, 0);
     playingbox = gtk_table_new(2,2,FALSE);
     
-    gtk_container_add(GTK_CONTAINER(window), box);
+    gtk_container_add(GTK_CONTAINER(window), main_box);
 
     gtk_container_set_border_width(GTK_CONTAINER(toolbox), 3);
 
@@ -196,6 +346,7 @@ void SetUpMainWindow(void)
     gtk_table_attach_defaults(GTK_TABLE(playingbox), vscroll,1,2,0,1);
     
     // arange in boxes 
+    gtk_box_pack_end(GTK_BOX(main_box), box, TRUE,TRUE, 0);
     gtk_box_pack_start(GTK_BOX(box), toolbox, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(box), fieldbox, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(fieldbox), headerbox, TRUE, TRUE, 0);
@@ -258,9 +409,26 @@ void SetUpMainWindow(void)
     }
 
 
+    // create the menu
+    {
+        GtkItemFactory *item_factory;
+        GtkAccelGroup *accel_group;
+        gint nmenu_items = sizeof(menu_items)/sizeof(menu_items[0]);
+
+        accel_group = gtk_accel_group_new();
+        item_factory = gtk_item_factory_new(GTK_TYPE_MENU_BAR, "<main>", accel_group);
+        gtk_item_factory_create_items(item_factory, nmenu_items, menu_items, NULL);
+        gtk_window_add_accel_group(GTK_WINDOW(window),accel_group);
+        gtk_box_pack_start(GTK_BOX(main_box),
+                gtk_item_factory_get_widget(item_factory, "<main>"),
+                FALSE, TRUE, 0);
+
+    }
+
+
     
     // show all the widgets
-    gtk_widget_show_all(box);
+    gtk_widget_show_all(main_box);
     
     // finally, show the main window    
     gtk_widget_show(window);
