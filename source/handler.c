@@ -12,6 +12,9 @@
 #include <PalmOS.h>
 #include <unix_string.h>
 #include <unix_stdlib.h>
+#else
+#include <string.h>
+#include <stdlib.h>
 #endif
 
 extern void

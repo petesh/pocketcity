@@ -55,11 +55,11 @@ void open_filename(GtkFileSelection *sel, gpointer data)
     }
 
     // and now the great worldPtr :D
-    ret = read(fd,(void*)worldPtr, game.mapsize*game.mapsize);
+    ret = read(fd,(void*)worldPtr, GetMapMul());
     if (ret == -1) {
         perror("read world"); // TODO: make this nicer
         return;
-    } else if (ret != game.mapsize*game.mapsize) {
+    } else if (ret != GetMapMul()) {
         g_print("Whoops, couldn't read full lenght of world\n");
         return;
     }
@@ -96,8 +96,9 @@ extern void UIOpenGame(GtkWidget *w, gpointer data)
 extern void UINewGame(GtkWidget *w, gpointer data)
 {
     SetupNewGame();
-    game.visible_x = 320/16;
-    game.visible_y = 240/16;
+    vgame.visible_x = 320/16;
+    vgame.visible_y = 240/16;
+    vgame.tileSize = 16;
     game.gameLoopSeconds = SPEED_FAST;
 }
 
@@ -153,11 +154,11 @@ extern void UISaveGame(GtkWidget *w, gpointer data)
     }
 
     // and now the great worldPtr :D
-    ret = write(fd,(void*)worldPtr, game.mapsize*game.mapsize);
+    ret = write(fd,(void*)worldPtr, GetMapMul());
     if (ret == -1) {
         perror("write world"); // TODO: make this nicer
         return;
-    } else if (ret != game.mapsize*game.mapsize) {
+    } else if (ret != GetMapMul()) {
         g_print("Whoops, couldn't write full lenght of world\n");
         return;
     }

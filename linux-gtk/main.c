@@ -144,12 +144,12 @@ static gint button_press_event(GtkWidget *widget, GdkEventButton *event)
 {
     if (event->button == 1) {
         BuildSomething(
-                (int)(event->x / game.tileSize) + game.map_xpos,
-                (int)(event->y / game.tileSize) + game.map_ypos);
+                (int)(event->x / vgame.tileSize) + game.map_xpos,
+                (int)(event->y / vgame.tileSize) + game.map_ypos);
     } else if (event->button == 3) {
         Build_Bulldoze(
-                (int)(event->x / game.tileSize) + game.map_xpos,
-                (int)(event->y / game.tileSize) + game.map_ypos);
+                (int)(event->x / vgame.tileSize) + game.map_xpos,
+                (int)(event->y / vgame.tileSize) + game.map_ypos, 0);
     }
 
     return TRUE;
@@ -169,17 +169,17 @@ static gint motion_notify_event(GtkWidget *widget, GdkEventMotion *event)
     }
 
     if (state & GDK_BUTTON1_MASK 
-            && x > 0 && x < game.visible_x*game.tileSize
-            && y > 0 && y < game.visible_y*game.tileSize) {
+            && x > 0 && x < vgame.visible_x*vgame.tileSize
+            && y > 0 && y < vgame.visible_y*vgame.tileSize) {
         BuildSomething(
-                (int)(x / game.tileSize) + game.map_xpos,
-                (int)(y / game.tileSize) + game.map_ypos);
+                (int)(x / vgame.tileSize) + game.map_xpos,
+                (int)(y / vgame.tileSize) + game.map_ypos);
     } else if (state & GDK_BUTTON3_MASK
-            && x > 0 && x < game.visible_x*game.tileSize
-            && y > 0 && y < game.visible_y*game.tileSize) {
+            && x > 0 && x < vgame.visible_x*vgame.tileSize
+            && y > 0 && y < vgame.visible_y*vgame.tileSize) {
         Build_Bulldoze(
-                (int)(x / game.tileSize) + game.map_xpos,
-                (int)(y / game.tileSize) + game.map_ypos);
+                (int)(x / vgame.tileSize) + game.map_xpos,
+                (int)(y / vgame.tileSize) + game.map_ypos, 1);
     }
 
     return TRUE;
@@ -261,31 +261,51 @@ void SetUpMainWindow(void)
         GtkTooltips *tips;
         int i;
         char image_path[40];
-        gint actions[] = { BUILD_BULLDOZER,BUILD_ROAD,BUILD_POWER_LINE,
-                            BUILD_ZONE_RESIDENTIAL,BUILD_ZONE_COMMERCIAL,BUILD_ZONE_INDUSTRIAL,
-                            BUILD_TREE,BUILD_WATER,BUILD_WATER_PIPE,
-                            BUILD_POWER_PLANT,BUILD_NUCLEAR_PLANT,BUILD_WATER_PUMP,
-                            BUILD_FIRE_STATION,BUILD_POLICE_STATION,BUILD_MILITARY_BASE,
-                            -1,-1,-1,
-                            BUILD_DEFENCE_FIRE,BUILD_DEFENCE_POLICE,BUILD_DEFENCE_MILITARY,
-                            -1,-1,-1,
-                            -1,-1,-1,
-                            -1,-1,-1 };
-
+	// If you change the order here you need to change the xpm...
+	// TODO: make the file names related to the items
+	struct gaa {
+		gint entry; const char *text;
+	} actions[] = {
+		{ Be_Bulldozer, "Bulldozer" },
+		{ Be_Road, "Road" },
+		{ Be_Power_Line, "Power Line" },
+		{ Be_Zone_Residential, "Residential" },
+		{ Be_Zone_Commercial, "Commercial" },
+		{ Be_Zone_Industrial, "Industrial" },
+		{ Be_Tree, "Tree" },
+		{ Be_Water, "Water" },
+		{ Be_Water_Pipe, "Water Pipe" },
+		{ Be_Power_Plant, "Power Plant" },
+		{ Be_Nuclear_Plant, "Nuclear Power Plant" },
+		{ Be_Water_Pump, "Water Pump" },
+		{ Be_Fire_Station, "Fire Station" },
+		{ Be_Police_Station, "Police Station" },
+		{ Be_Military_Base, "Military Base" },
+		{ -1, NULL }, { -1, NULL }, { -1, NULL },
+		{ Be_Defence_Fire, "Fire Brigade" },
+		{ Be_Defence_Police, "Police Car" },
+		{ Be_Defence_Military, "Tank" },
+		{ -1, NULL }, { -1, NULL }, { -1, NULL },
+		{ -1, NULL }, { -1, NULL }, { -1, NULL },
+		{ -1, NULL }, { -1, NULL }, { -1, NULL }
+	};
         tips = gtk_tooltips_new();
                             
         for (i=0; i<30; i++) {
-            if (actions[i] == -1) { continue; }
+            if (actions[i].entry == -1) { continue; }
             
             button = gtk_button_new();
             sprintf(image_path,"graphic/icons/interface_%02i.xpm",i);
             button_image = gtk_image_new_from_file(image_path);
             gtk_container_add(GTK_CONTAINER(button), button_image);
-            gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), button, "test","test2");
+            gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), button, actions[i].text,
+			    "test2");
             
             g_signal_connect(G_OBJECT(button),"clicked",
-                G_CALLBACK(toolbox_callback), GINT_TO_POINTER(actions[i]));
-            gtk_table_attach_defaults(GTK_TABLE(toolbox), button, (i%3), (i%3)+1, (i/3), (i/3)+1);
+                G_CALLBACK(toolbox_callback),
+		GINT_TO_POINTER(actions[i].entry));
+            gtk_table_attach_defaults(GTK_TABLE(toolbox), button,
+			    (i%3), (i%3)+1, (i/3), (i/3)+1);
         }
     }
 
@@ -426,12 +446,12 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
             drawingarea->window,
             gc,
             zones_bitmap,
-            (nGraphic%64)*game.tileSize,
-            (nGraphic/64)*game.tileSize,
-            xpos*game.tileSize,
-            ypos*game.tileSize,
-            game.tileSize,
-            game.tileSize);
+            (nGraphic%64)*vgame.tileSize,
+            (nGraphic/64)*vgame.tileSize,
+            xpos*vgame.tileSize,
+            ypos*vgame.tileSize,
+            vgame.tileSize,
+            vgame.tileSize);
     gdk_gc_destroy(gc);
 }
 
@@ -441,19 +461,19 @@ extern void UIDrawSpecialObject(int i, int xpos, int ypos)
     gc = gdk_gc_new(drawingarea->window);
     gdk_gc_set_clip_mask(gc,monsters_mask);
     gdk_gc_set_clip_origin(gc,
-            xpos*game.tileSize-(game.objects[i].dir*game.tileSize),
-            ypos*game.tileSize-(i*game.tileSize));
+            xpos*vgame.tileSize-(game.objects[i].dir*vgame.tileSize),
+            ypos*vgame.tileSize-(i*vgame.tileSize));
 
     gdk_draw_drawable(
             drawingarea->window,
             gc,
             monsters,
-            game.objects[i].dir*game.tileSize,
-            i*game.tileSize,
-            xpos*game.tileSize,
-            ypos*game.tileSize,
-            game.tileSize,
-            game.tileSize);
+            game.objects[i].dir*vgame.tileSize,
+            i*vgame.tileSize,
+            xpos*vgame.tileSize,
+            ypos*vgame.tileSize,
+            vgame.tileSize,
+            vgame.tileSize);
     gdk_gc_destroy(gc);
 }
 
@@ -463,19 +483,19 @@ extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
     gc = gdk_gc_new(drawingarea->window);
     gdk_gc_set_clip_mask(gc,units_mask);
     gdk_gc_set_clip_origin(gc,
-            xpos*game.tileSize-(game.units[i].type*game.tileSize),
-            ypos*game.tileSize);
+            xpos*vgame.tileSize-(game.units[i].type*vgame.tileSize),
+            ypos*vgame.tileSize);
 
     gdk_draw_drawable(
             drawingarea->window,
             gc,
             units,
-            game.units[i].type*game.tileSize,
+            game.units[i].type*vgame.tileSize,
             0,
-            xpos*game.tileSize,
-            ypos*game.tileSize,
-            game.tileSize,
-            game.tileSize);
+            xpos*vgame.tileSize,
+            ypos*vgame.tileSize,
+            vgame.tileSize,
+            vgame.tileSize);
     gdk_gc_destroy(gc);
 }
 
@@ -490,8 +510,8 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
     gc = gdk_gc_new(drawingarea->window);
     gdk_gc_set_clip_mask(gc,zones_mask);
     gdk_gc_set_clip_origin(gc,
-            xpos*game.tileSize-128,
-            ypos*game.tileSize);
+            xpos*vgame.tileSize-128,
+            ypos*vgame.tileSize);
 
     gdk_draw_drawable(
             drawingarea->window,
@@ -499,10 +519,10 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
             zones_bitmap,
             128,
             0,
-            xpos*game.tileSize,
-            ypos*game.tileSize,
-            game.tileSize,
-            game.tileSize);
+            xpos*vgame.tileSize,
+            ypos*vgame.tileSize,
+            vgame.tileSize,
+            vgame.tileSize);
     gdk_gc_destroy(gc);
 }
 
@@ -512,8 +532,8 @@ extern void UIDrawWaterLoss(int xpos, int ypos)
     gc = gdk_gc_new(drawingarea->window);
     gdk_gc_set_clip_mask(gc,zones_mask);
     gdk_gc_set_clip_origin(gc,
-            xpos*game.tileSize-64,
-            ypos*game.tileSize);
+            xpos*vgame.tileSize-64,
+            ypos*vgame.tileSize);
 
     gdk_draw_drawable(
             drawingarea->window,
@@ -521,10 +541,10 @@ extern void UIDrawWaterLoss(int xpos, int ypos)
             zones_bitmap,
             64,
             0,
-            xpos*game.tileSize,
-            ypos*game.tileSize,
-            game.tileSize,
-            game.tileSize);
+            xpos*vgame.tileSize,
+            ypos*vgame.tileSize,
+            vgame.tileSize,
+            vgame.tileSize);
     gdk_gc_destroy(gc);
 }
 
@@ -573,13 +593,13 @@ extern void UnlockWorld(void)
 
 extern unsigned char GetWorld(long unsigned int pos)
 {
-    if (pos > (game.mapsize*game.mapsize)) { return 0; }
+    if (pos > GetMapMul()) { return 0; }
     return ((char*)worldPtr)[pos];
 }
 
 extern void SetWorld(long unsigned int pos, unsigned char value)
 {
-    if (pos > (game.mapsize*game.mapsize)) { return; }
+    if (pos > GetMapMul()) { return; }
     ((char*)worldPtr)[pos] = value;
 }
 
@@ -595,13 +615,13 @@ extern void UnlockWorldFlags(void)
 
 extern unsigned char GetWorldFlags(long unsigned int pos)
 {
-    if (pos > (game.mapsize*game.mapsize)) { return 0; }
+    if (pos > GetMapMul()) { return 0; }
     return ((char*)worldFlagsPtr)[pos];
 }
 
 extern void SetWorldFlags(long unsigned int pos, unsigned char value)
 {
-    if (pos > (game.mapsize*game.mapsize)) { return; }
+    if (pos > GetMapMul()) { return; }
     ((char*)worldFlagsPtr)[pos] = value;
 }
 
@@ -632,7 +652,7 @@ extern void UIDrawPop(void)
     sprintf(temp, "(%02u,%02u) Population: %-9li",
             game.map_xpos,
             game.map_ypos,
-            game.BuildCount[COUNT_RESIDENTIAL]*150);
+            vgame.BuildCount[COUNT_RESIDENTIAL]*150);
 
     gtk_label_set_text((GtkLabel*)poplabel, temp);
 

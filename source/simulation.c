@@ -698,8 +698,8 @@ UpdateVolatiles(void)
     LockWorld();
     vgame.tileSize = 16;
 
-    for (y = 0; y < game.mapsize; y++)
-        for (x = 0; x < game.mapsize; x++) {
+    for (y = 0; y < GetMapSize(); y++)
+        for (x = 0; x < GetMapSize(); x++) {
             char elt = GetWorld(WORLDPOS(x,y));
             // Gahd this is terrible. I need to fix it.
             if (elt >= ZONE_COMMERCIAL*10+20 &&

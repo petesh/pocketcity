@@ -24,7 +24,10 @@ pcity: $(OBJECTS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.o
+	rm -f *.o pcity core*
+
+clobber:
+	rm -f *.o core*
 
 DDIR=pcity-linux-GTK_$(VERSION)
 

@@ -160,7 +160,7 @@ enum DefenceUnitTypes {
 
 typedef struct _game_struct05 {
     char            version[4];
-    char            mapsize;            // The size of each axis of the map
+    char            _mapsize;            // The size of each axis of the map
     int             _visible_x;          // ??
     int             _visible_y;          // ??
     int             map_xpos;           // start visible x axis
@@ -201,7 +201,7 @@ typedef struct _game_struct06 {
 typedef GameStruct05 GameStruct;
 
 typedef struct _vgame_struct {
-    int                 mapsize;
+    int                 _mapsize;
     int                 gridsToUpdate;
     long unsigned       BuildCount[20];     // count of elements...
     unsigned char       tileSize;           // ??
@@ -213,11 +213,11 @@ typedef struct _vgame_struct {
 
 #define SAVEGAMEVERSION     "PC05"
 
-#define GetMapSize() (game.mapsize)
-#define SetMapSize(x) { game.mapsize = (x); \
-    vgame.mapsize = game.mapsize * game.mapsize; \
+#define GetMapSize() (game._mapsize)
+#define SetMapSize(x) { game._mapsize = (x); \
+    vgame._mapsize = game._mapsize * game._mapsize; \
 }
-#define GetMapMul() (vgame.mapsize)
+#define GetMapMul() (vgame._mapsize)
 #define AddGridUpdate(T)        (vgame.gridsToUpdate |= T)
 #define NeedsUpdate(T)          (vgame.gridsToUpdate | T)
 #define ClearUpdate(T)          (vgame.gridsToUpdate &= ~T)

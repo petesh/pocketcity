@@ -1,6 +1,10 @@
 #ifdef PALM
 #include <PalmOS.h>
 #include "../palm/simcity.h"
+#else
+#include <sys/types.h>
+#include <stddef.h>
+#include <assert.h>
 #endif
 #include "build.h"
 #include "globals.h"
@@ -9,12 +13,11 @@
 
 typedef void (*BuildF)(int xpos, int ypos, unsigned int type);
 
-static void _Build_Bulldoze(int xpos, int ypos, unsigned int _type);
-static void _Build_Road(int xpos, int ypos, unsigned int type);
+static void Build_Road(int xpos, int ypos, unsigned int type);
 static void Build_PowerLine(int xpos, int ypos, unsigned int type);
 static void Build_WaterPipe(int xpos, int ypos, unsigned int type);
 static void Build_Generic(int xpos, int ypos, unsigned int type);
-static void _Build_Defence(int xpos, int ypos, unsigned int type);
+static void Build_Defence(int xpos, int ypos, unsigned int type);
 
 static void CreateForest(long unsigned int pos, int size);
 static void RemoveDefence(int xpos, int ypos);
@@ -28,24 +31,24 @@ static const struct _bldStruct {
     unsigned int type;
     unsigned int gridsToUpdate;
 } buildStructure[] = {
-    { Build_Bulldozer, _Build_Bulldoze, 0, GRID_ALL },
-    { Build_Zone_Residential, Build_Generic, ZONE_RESIDENTIAL, GRID_ALL },
-    { Build_Zone_Commercial, Build_Generic, ZONE_COMMERCIAL, GRID_ALL},
-    { Build_Zone_Industrial, Build_Generic, ZONE_INDUSTRIAL, GRID_ALL},
-    { Build_Road, _Build_Road, 0, 0 },
-    { Build_Power_Plant, Build_Generic, TYPE_POWER_PLANT, GRID_ALL },
-    { Build_Nuclear_Plant, Build_Generic, TYPE_NUCLEAR_PLANT, GRID_ALL },
-    { Build_Power_Line, Build_PowerLine, 0, GRID_ALL },
-    { Build_Water_Pump, Build_Generic, TYPE_WATER_PUMP, GRID_ALL },
-    { Build_Water_Pipe, Build_WaterPipe, 0, GRID_WATER },
-    { Build_Tree, Build_Generic, TYPE_TREE, 0 },
-    { Build_Water, Build_Generic, TYPE_WATER, 0 },
-    { Build_Fire_Station, Build_Generic, TYPE_FIRE_STATION, GRID_ALL },
-    { Build_Police_Station, Build_Generic, TYPE_POLICE_STATION, GRID_ALL },
-    { Build_Military_Base, Build_Generic, TYPE_MILITARY_BASE, GRID_ALL },
-    { Build_Defence_Fire, _Build_Defence, DuFireman, 0 },
-    { Build_Defence_Police, _Build_Defence, DuPolice, 0 },
-    { Build_Defence_Military, _Build_Defence, DuMilitary, 0 },
+    { Be_Bulldozer, Build_Bulldoze, 0, GRID_ALL },
+    { Be_Zone_Residential, Build_Generic, ZONE_RESIDENTIAL, GRID_ALL },
+    { Be_Zone_Commercial, Build_Generic, ZONE_COMMERCIAL, GRID_ALL},
+    { Be_Zone_Industrial, Build_Generic, ZONE_INDUSTRIAL, GRID_ALL},
+    { Be_Road, Build_Road, 0, 0 },
+    { Be_Power_Plant, Build_Generic, TYPE_POWER_PLANT, GRID_ALL },
+    { Be_Nuclear_Plant, Build_Generic, TYPE_NUCLEAR_PLANT, GRID_ALL },
+    { Be_Power_Line, Build_PowerLine, 0, GRID_ALL },
+    { Be_Water_Pump, Build_Generic, TYPE_WATER_PUMP, GRID_ALL },
+    { Be_Water_Pipe, Build_WaterPipe, 0, GRID_WATER },
+    { Be_Tree, Build_Generic, TYPE_TREE, 0 },
+    { Be_Water, Build_Generic, TYPE_WATER, 0 },
+    { Be_Fire_Station, Build_Generic, TYPE_FIRE_STATION, GRID_ALL },
+    { Be_Police_Station, Build_Generic, TYPE_POLICE_STATION, GRID_ALL },
+    { Be_Military_Base, Build_Generic, TYPE_MILITARY_BASE, GRID_ALL },
+    { Be_Defence_Fire, Build_Defence, DuFireman, 0 },
+    { Be_Defence_Police, Build_Defence, DuPolice, 0 },
+    { Be_Defence_Military, Build_Defence, DuMilitary, 0 },
 };
 
 extern void BuildSomething(int xpos, int ypos)
@@ -53,9 +56,13 @@ extern void BuildSomething(int xpos, int ypos)
     int item = UIGetSelectedBuildItem();
     struct _bldStruct *be = (struct _bldStruct *)&(buildStructure[item]);
 
+#ifdef PALM
     ErrFatalDisplayIf(
       item >= (sizeof (buildStructure)/ sizeof (buildStructure[0])),
           "UI item out of range");
+#else
+    assert(item < (sizeof (buildStructure)/ sizeof (buildStructure[0])));
+#endif
 
     be->func(xpos, ypos, be->type);
     AddGridUpdate(be->gridsToUpdate);
@@ -84,7 +91,7 @@ extern void RemoveAllDefence(void)
 }
 
 static void
-_Build_Defence(int xpos, int ypos, unsigned int type)
+Build_Defence(int xpos, int ypos, unsigned int type)
 {
     int oldx, oldy, i, sel=-1,newactive=1,e,s,m,nCounter;
     nCounter = ((type == DuPolice) ? COUNT_POLICE_STATIONS :
@@ -151,8 +158,8 @@ _Build_Defence(int xpos, int ypos, unsigned int type)
 }
 
 
-static void
-_Build_Bulldoze(int xpos, int ypos, unsigned int _type)
+extern void
+Build_Bulldoze(int xpos, int ypos, unsigned int _type)
 {
     int type;
     LockWorld();
@@ -236,7 +243,11 @@ Build_Generic(int xpos, int ypos, unsigned int type)
     struct _costMappings *cmi = (struct _costMappings *)arIndex(
       (char *)&genericMappings[0], sizeof (genericMappings[0]), type);
     LockWorld();
+#ifdef PALM
     ErrFatalDisplayIf(cmi == NULL, "No generic->item mapping");
+#else
+    assert(cmi != NULL);
+#endif
     if (cmi == NULL) return;
 
     if (GetWorld(WORLDPOS(xpos, ypos)) == TYPE_DIRT) {
@@ -260,7 +271,7 @@ Build_Generic(int xpos, int ypos, unsigned int type)
 
 
 void
-_Build_Road(int xpos, int ypos, unsigned int type)
+Build_Road(int xpos, int ypos, unsigned int type)
 {
     int old;
     LockWorld();

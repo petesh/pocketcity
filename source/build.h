@@ -1,25 +1,25 @@
 // the BUILD_* fits the defines in simcity.h (palm)
 typedef enum {
-    Build_Bulldozer = 0,
-    Build_Zone_Residential,
-    Build_Zone_Commercial,
-    Build_Zone_Industrial,
-    Build_Road,
-    Build_Power_Plant,
-    Build_Nuclear_Plant,
-    Build_Power_Line,
-    Build_Water_Pump,
-    Build_Water_Pipe,
-    Build_Tree,
-    Build_Water,
-    Build_Fire_Station,
-    Build_Police_Station,
-    Build_Military_Base,
+    Be_Bulldozer = 0,
+    Be_Zone_Residential,
+    Be_Zone_Commercial,
+    Be_Zone_Industrial,
+    Be_Road,
+    Be_Power_Plant,
+    Be_Nuclear_Plant,
+    Be_Power_Line,
+    Be_Water_Pump,
+    Be_Water_Pipe,
+    Be_Tree,
+    Be_Water,
+    Be_Fire_Station,
+    Be_Police_Station,
+    Be_Military_Base,
     // Defense items are bigger.
-    Build_Defence_Fire,
-    Build_Defence_Police,
-    Build_Defence_Military,
-    Build_Extra
+    Be_Defence_Fire,
+    Be_Defence_Police,
+    Be_Defence_Military,
+    Be_Extra
 } BuildCodes;
 
 #define BUILD_COST_BULLDOZER        5
@@ -37,6 +37,7 @@ typedef enum {
 #define BUILD_COST_WATER_PIPES      20
 #define BUILD_COST_WATER_PUMP       3000
 
+extern void Build_Bulldoze(int xpos, int ypos, unsigned int _unused);
 extern void BuildSomething(int xpos, int ypos);
 extern void Build_Destroy(int xpos, int ypos);
 extern void CreateFullRiver(void);

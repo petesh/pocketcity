@@ -30,8 +30,8 @@ RectangleType rPlayGround;
 WinHandle winZones;
 WinHandle winMonsters;
 WinHandle winUnits;
-BuildCodes nSelectedBuildItem = Build_Bulldozer;
-BuildCodes nPreviousBuildItem = Build_Bulldozer;
+BuildCodes nSelectedBuildItem = Be_Bulldozer;
+BuildCodes nPreviousBuildItem = Be_Bulldozer;
 short int game_in_progress = 0;
 
 short int lowShown = 0;
@@ -365,11 +365,11 @@ static Boolean hPocketCity(EventPtr event)
             }
             if (event->screenX < 12) {
                 // click was on toggle production
-                if (nSelectedBuildItem == Build_Bulldozer) {
+                if (nSelectedBuildItem == Be_Bulldozer) {
                     nSelectedBuildItem = nPreviousBuildItem;
                 } else {
                     nPreviousBuildItem = nSelectedBuildItem;
-                    nSelectedBuildItem = Build_Bulldozer;
+                    nSelectedBuildItem = Be_Bulldozer;
                 }
                 UIUpdateBuildIcon();
                 break;
@@ -595,13 +595,13 @@ UIPopUpExtraBuildList(void)
               FrmGetObjectIndex(ftList, listID_extraBuildList)));
         break;
     case buttonID_extraBuildFireMen:
-        nSelectedBuildItem = Build_Defence_Fire;
+        nSelectedBuildItem = Be_Defence_Fire;
         break;
     case buttonID_extraBuildPolice:
-        nSelectedBuildItem = Build_Defence_Police;
+        nSelectedBuildItem = Be_Defence_Police;
         break;
     case buttonID_extraBuildMilitary:
-        nSelectedBuildItem = Build_Defence_Military;
+        nSelectedBuildItem = Be_Defence_Military;
         break;
     default:
         break;
@@ -1302,7 +1302,7 @@ UIUpdateBuildIcon(void)
     if (DoDrawing == 0) { return; }
 
     bitmaphandle = DmGet1Resource('Tbmp', bitmapID_iconBulldoze +
-            (((nSelectedBuildItem <= Build_Extra)) ?
+            (((nSelectedBuildItem <= Be_Extra)) ?
              nSelectedBuildItem : OFFSET_EXTRA));
 
     if (bitmaphandle == NULL) { return; } // TODO: onscreen error? +save?

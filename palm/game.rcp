@@ -286,7 +286,7 @@ BEGIN
   MESSAGE "Pocketcity for Palm\n" \
   "Made by Zakarun and various others\n" \
   "Version: ^1\n" \
-  "Web: pocketcity.sf.net"
+  "Web: pocketcity.sf.net\n"
   BUTTONS "Close"
 END
 
