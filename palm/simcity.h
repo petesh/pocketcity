@@ -43,6 +43,9 @@
 #define alertID_outMoney                 1002
 #define alertID_lowFunds                 1003
 #define alertID_about                    1004
+#define alertID_newGame                  1005
+#define alertID_loadGame                 1006
+#define alertID_saveGame                 1007
 
 // the jumps in these defines makes coding easier
 #define bitmapID_SpeedPaused            3000

@@ -18,33 +18,33 @@ MENU ID menuID_pocketCity
 BEGIN
   PULLDOWN "Game"
   BEGIN
-    MENUITEM "New"				menuitemID_newGame
-    MENUITEM "Load"				menuitemID_loadGame
-	MENUITEM "Save"				menuitemID_saveGame
-	MENUITEM SEPARATOR 
-	MENUITEM "About"			menuitemID_about
+    MENUITEM "New"                              menuitemID_newGame
+    MENUITEM "Load"                             menuitemID_loadGame
+	MENUITEM "Save"                         menuitemID_saveGame
+	MENUITEM SEPARATOR
+	MENUITEM "About"                        menuitemID_about
   END
   PULLDOWN "Build"
   BEGIN
-	MENUITEM "Bulldoze -$5"				menuitemID_buildBulldoze		"B"
-	MENUITEM "Residential -$50"			menuitemID_buildResidential		"R"
-	MENUITEM "Commercial -$50"			menuitemID_buildCommercial		"C"
-	MENUITEM "Industrial -$50"			menuitemID_buildIndustrial		"I"
-	MENUITEM "Road -$20"				menuitemID_buildRoad
-	MENUITEM "Power Plant -$3000"		menuitemID_buildPowerPlant
-	MENUITEM "Nuclear Plant -$10000"	menuitemID_buildNuclearPlant
-	MENUITEM "Power Line -$5"			menuitemID_buildPowerLine
-	MENUITEM "Tree -$10"				menuitemID_buildTree
-	MENUITEM "Water -$200"				menuitemID_buildWater
+	MENUITEM "Bulldoze -$5"	                menuitemID_buildBulldoze                "B"
+	MENUITEM "Residential -$50"             menuitemID_buildResidential             "R"
+	MENUITEM "Commercial -$50"              menuitemID_buildCommercial              "C"
+	MENUITEM "Industrial -$50"              menuitemID_buildIndustrial              "I"
+	MENUITEM "Road -$20"                    menuitemID_buildRoad
+	MENUITEM "Power Plant -$3000"           menuitemID_buildPowerPlant
+	MENUITEM "Nuclear Plant -$10000"        menuitemID_buildNuclearPlant
+	MENUITEM "Power Line -$5"               menuitemID_buildPowerLine
+	MENUITEM "Tree -$10"                    menuitemID_buildTree
+	MENUITEM "Water -$200"                  menuitemID_buildWater
   END
   PULLDOWN "Speed"
   BEGIN
-	MENUITEM "Slow" menuID_SlowSpeed
-	MENUITEM "Medium" menuID_MediumSpeed
-	MENUITEM "Fast"   menuID_FastSpeed
-	MENUITEM "Turbo"   menuID_TurboSpeed
+	MENUITEM "Slow"                         menuID_SlowSpeed
+	MENUITEM "Medium"                       menuID_MediumSpeed
+	MENUITEM "Fast"                         menuID_FastSpeed
+	MENUITEM "Turbo"                        menuID_TurboSpeed
 	MENUITEM SEPARATOR
-	MENUITEM "Pause" menuID_PauseSpeed
+	MENUITEM "Pause"                        menuID_PauseSpeed
   END
 END
 
@@ -79,6 +79,30 @@ begin
         message "You're running low on money!!"
         buttons "Uh-oh!"
 end
+
+ALERT ID alertID_newGame
+ERROR
+BEGIN
+  TITLE "New"
+  MESSAGE "Function not working"
+  BUTTONS "Ok"
+END
+
+ALERT ID alertID_loadGame
+ERROR
+BEGIN
+  TITLE "Load"
+  MESSAGE "Function not working"
+  BUTTONS "Ok"
+END
+
+ALERT ID alertID_saveGame
+ERROR
+BEGIN
+  TITLE "Save"
+  MESSAGE "Function not working"
+  BUTTONS "Ok"
+END
 
 ALERT ID alertID_about
 BEGIN

@@ -209,6 +209,18 @@ static Boolean hPocketCity(EventPtr event)
                          FrmAlert(alertID_about);
                          handled = 1;
                          break;
+                    case menuitemID_newGame:
+                         FrmAlert(alertID_newGame);
+                         handled = 1;
+                         break;
+                    case menuitemID_loadGame:
+                         FrmAlert(alertID_loadGame);
+                         handled = 1;
+                         break;
+                    case menuitemID_saveGame:
+                         FrmAlert(alertID_saveGame);
+                         handled = 1;
+                         break;
                     case menuID_SlowSpeed:
                         SIM_GAME_LOOP_SECONDS = SPEED_SLOW;
                         UIDrawPop();
