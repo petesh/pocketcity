@@ -49,7 +49,7 @@ BEGIN
   PULLDOWN "M_BUILD"
   BEGIN
 	MENUITEM "REMOVEDEF"		mi_removeDefence
-	MENUITEM "FROMLIST"             gi_buildExtra "i"
+	MENUITEM "FROMLIST"             mi_buildExtra "i"
 	MENUITEM SEPARATOR
 	MENUITEM "FIRE"			mi_CauseFire
 	MENUITEM "MELTDOWN"	        mi_CauseMeltDown
@@ -537,6 +537,7 @@ STRINGTABLE ID strID_Months
 	"Nov"
 	"Dec"
 
+/*
 FORM ID formID_DistribDetails AT ( 0 0 160 160 )
 USABLE
 NOSAVEBEHIND
@@ -546,6 +547,7 @@ BEGIN
     PUSHBUTTON "POWER" ID pb_dd_power AT ( prevright prevtop 50 AUTO ) GROUP 1
     PUSHBUTTON "WATER" ID pb_dd_water AT ( prevright prevtop 50 AUTO ) GROUP 1
 END
+*/
 
 FORM ID formID_ButtonConfig AT ( 0 0 160 160 )
 USABLE
@@ -618,7 +620,9 @@ BEGIN
 	FIELD ID labelID_zonetype AT ( 52 16 160-54 30 )
 		NONEDITABLE MULTIPLELINES
 	LABEL "L_ZONETYPE" AUTOID AT ( RIGHT@PREVLEFT-2 PREVTOP )
-	LABEL "-" labelID_zonevalue AT ( 52 PREVTOP+32 )
+	LABEL "-" labelID_zonelocation AT ( 52 PREVTOP+32 )
+	LABEL "L_ZONELOCATION" AUTOID AT ( RIGHT@PREVLEFT-2 PREVTOP )
+	LABEL "-" labelID_zonevalue AT ( 52 PREVBOTTOM+2 )
 	LABEL "L_ZONEVALUE" AUTOID AT ( RIGHT@PREVLEFT-2 PREVTOP )
 	LABEL "-" labelID_zonedensity AT ( 52 PREVBOTTOM+2 )
 	LABEL "L_ZONEDENSITY" AUTOID AT ( RIGHT@PREVLEFT-2 PREVTOP )

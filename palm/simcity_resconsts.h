@@ -6,6 +6,11 @@
  * They are made use of by the various forms to create and check elements
  * that are selected. Some of the fields have multiple interpretations
  */
+/*!
+ * These items are referenced in an array in the simcity.c program -
+ * they need to be in the same order here as the handler entries in the
+ * id2handler array in simcity.c
+ */
 #define	formID_pocketCity 1000
 #define	formID_budget 1001
 #define	formID_map 1002
@@ -14,43 +19,45 @@
 #define	formID_quickList 1005
 #define	formID_extraBuild 1006
 #define	formID_options 1007
-#define	formID_DistribDetails 1008
-#define	formID_ButtonConfig		 1009
-#define	formID_Query	1010
+#define	formID_ButtonConfig		 1008
+#define	formID_Query	1009
+/* Not Used yet */
+#define	formID_DistribDetails 1010
 
 #define	menu_pocketCity 	1000
 #define	menu_budget 	1001
 #define	menu_map 	1002
 #define fpc_gadgetUI	1003
 
-#define	menuitemID_loadGame 1001
-#define	menuitemID_saveGame 1002
-#define	menuitemID_Budget 1003
-#define	menuitemID_Map 1004
+#define	menuitemID_loadGame 1000
+#define	menuitemID_saveGame 1001
+#define	menuitemID_Budget 1002
+#define	menuitemID_Map 1003
 
-#define	menuitemID_Funny 1005
+#define	menuitemID_Configuration 1004
+#define	menuitemID_Buttons 1005
+#define menuitemID_ForceResupply	1006
 
-#define	menuitemID_Configuration 1006
-#define	menuitemID_Buttons 1007
-#define menuitemID_ForceResupply	1008
+#define	mi_removeDefence		1007
+#define	mi_buildExtra 1008 /* pops up an extra list */
 
-#define	mi_removeDefence		1011
-#define	mi_buildExtra 1012 /* pops up an extra list */
+#define	mi_CauseFire			1009
+#define	mi_CauseMeltDown		1010
+#define	mi_CauseMonster			1011
+#define	mi_CauseDragon			1012
+#define	mi_CauseMeteor			1013
 
-#define	mi_CauseFire			1013
-#define	mi_CauseMeltDown		1014
-#define	mi_CauseMonster			1015
-#define	mi_CauseDragon			1016
-#define	mi_CauseMeteor			1017
+#define	menuID_SlowSpeed 1014
+#define	menuID_MediumSpeed 1015
+#define	menuID_FastSpeed 1016
+#define	menuID_TurboSpeed 1017
+#define	menuID_PauseSpeed 1018
 
-#define	menuID_SlowSpeed 1021
-#define	menuID_MediumSpeed 1022
-#define	menuID_FastSpeed 1023
-#define	menuID_TurboSpeed 1024
-#define	menuID_PauseSpeed 1025
+#define	menuitemID_about 1019
+#define	menuitemID_tips 1020
 
-#define	menuitemID_about 1031
-#define	menuitemID_tips 1032
+#define	menuitemID_Funny 1021
+
 
 #define	gi_buildBulldoze 1100
 #define	gi_buildResidential 1101
@@ -276,6 +283,7 @@
 #define labelID_iswatered 1007
 #define labelID_carrypower 1008
 #define labelID_carrywater 1009
+#define labelID_zonelocation 1010
 
 /* Resource Strings */
 #define	resstrings_base	4096
