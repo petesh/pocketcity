@@ -478,11 +478,11 @@ void DoTaxes()
     short unsigned int indTax;
     float taxRate;
 
-    taxRate = 10/12;
+    taxRate = 0.83;
 
-    popTax = (BuildCount[COUNT_RESIDENTIAL]*25)/100*taxRate;
-    comTax = (BuildCount[COUNT_COMMERCIAL]*25)/100*taxRate;
-    indTax = (BuildCount[COUNT_INDUSTRIAL]*25)/100*taxRate;
+    popTax = (BuildCount[COUNT_RESIDENTIAL]*150)/100*taxRate;
+    comTax = (BuildCount[COUNT_COMMERCIAL]*150)/100*taxRate;
+    indTax = (BuildCount[COUNT_INDUSTRIAL]*150)/100*taxRate;
 
     thisMonthsTaxes = popTax+comTax+indTax;
     credits += thisMonthsTaxes;
@@ -505,7 +505,7 @@ void DoUpkeep()
     powerPlantCount = BuildCount[COUNT_POWERPLANTS] + BuildCount[COUNT_POWERPLANTS]*2;
     roadUpkeep = 2;
     powerLineUpkeep = 1;
-    powerPlantUpkeep = 100;
+    powerPlantUpkeep = 35;
     totalUpkeep = (roadCount*roadUpkeep)+(powerLineCount*powerLineUpkeep)+(powerPlantCount*powerPlantUpkeep);
 
     UnlockWorld();

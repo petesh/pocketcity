@@ -464,7 +464,7 @@ extern void UIUpdateBuildIcon(void)
 
     bitmaphandle = DmGet1Resource(TBMP,bitmapID_iconBulldoze + nSelectedBuildItem);
     bitmap = MemHandleLock(bitmaphandle);
-    WinPaintBitmap(bitmap,140,150);
+    WinDrawBitmap(bitmap,140,150);
     MemHandleUnlock(bitmaphandle);
 }
 
@@ -482,7 +482,7 @@ extern void UIDrawPop(void)
     StrPrintF(temp, "(%02u,%02u) Pop: %-9li",
             map_xpos,
             map_ypos,
-            (BuildCount[COUNT_RESIDENTIAL]*25));
+            (BuildCount[COUNT_RESIDENTIAL]*150));
 
 
     rect.topLeft.x = 3;
@@ -496,7 +496,7 @@ extern void UIDrawPop(void)
 
     bitmaphandle = DmGet1Resource( TBMP, bitmapID_SpeedPaused + SIM_GAME_LOOP_SECONDS);
     bitmap = MemHandleLock(bitmaphandle);
-    WinPaintBitmap(bitmap, 150,150);
+    WinDrawBitmap(bitmap, 150,150);
     MemHandleUnlock(bitmaphandle);
 }
 
