@@ -101,9 +101,6 @@
 #define UPKEEP_POLICE_STATIONS  100
 #define UPKEEP_MILITARY_BASES   500
 
-// a very nice macro
-#define WORLDPOS(x,y)		((x)+(y)*(game.mapsize))
-
 
 // moveable objects
 #define NUM_OF_OBJECTS          10 // max 10, or savegames for palm fail...
@@ -174,6 +171,19 @@ typedef struct _game_struct {
     MoveableObject  objects[10];
 } GameStruct;
 
+typedef struct _vgame_struct {
+    int                 mapsize;
+} vGameStruct;
+
 #define SAVEGAMEVERSION     "PC05"
+
+#define GetMapSize() (game.mapsize)
+#define SetMapSize(x) { game.mapsize = (x); \
+    vgame.mapsize = game.mapsize * game.mapsize; \
+}
+#define GetMapMul() (vgame.mapsize)
+
+// a very nice macro
+#define WORLDPOS(x,y)		((x)+(y)*(GetMapSize()))
 
 #endif

@@ -19,8 +19,8 @@ extern void PCityMain(void)
 {
     // called on entry
     InitWorld();
-    game.mapsize = 100;
-    ResizeWorld(game.mapsize*game.mapsize);
+    SetMapSize(100);
+    ResizeWorld(GetMapMul());
     SetUpGraphic();
     game.gameLoopSeconds = SPEED_PAUSED;
 }
@@ -39,10 +39,10 @@ extern void SetupNewGame(void)
     game.upkeep[1] = 100;
     game.upkeep[2] = 100;
     game.tileSize = 16;
-    game.mapsize = 100;
+    SetMapSize(100);
     game.tax = 8;
     game.disaster_level = 1; // TODO: = difficulty_level
-    ResizeWorld(game.mapsize*game.mapsize);
+    ResizeWorld(GetMapMul());
     game.gameLoopSeconds = SPEED_PAUSED;
     CreateFullRiver();
     CreateForests();

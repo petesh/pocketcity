@@ -12,7 +12,7 @@ void Build_PowerLine(int xpos, int ypos);
 void Build_WaterPipe(int xpos, int ypos);
 void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nType);
 void Build_Defence(int xpos, int ypos, int type);
-void CreateForest(long unsigned int pos, int size);
+static void CreateForest(long unsigned int pos, int size);
 void RemoveDefence(int xpos, int ypos);
 
 int SpendMoney(unsigned long howMuch);
@@ -436,18 +436,24 @@ int SpendMoney(unsigned long howMuch)
  * TODO: make this more interesting, perhaps
  *       it can run the other way too ;)
  */
-extern void CreateFullRiver(void)
+extern void
+CreateFullRiver(void)
 {
-    int i,j,k,width;
+    int i, j, k, width;
+    int axis;
 
     width = GetRandomNumber(5)+5;
-    j = GetRandomNumber(100);
+    j = GetRandomNumber(GetMapSize());
+    axis = GetRandomNumber(1);
     LockWorld();
     
-    for (i=0; i<game.mapsize; i++) {
-        for (k=j; k<width+j; k++) {
-            if (k > 0 && k < game.mapsize) {
-                SetWorld(WORLDPOS(i,k),TYPE_REAL_WATER);
+    for (i = 0; i < GetMapSize(); i++) {
+        for (k = j; k < (width + j); k++) {
+            if ((k > 0) && (k < GetMapSize())) {
+                if (axis)
+                    SetWorld(WORLDPOS(i, k), TYPE_REAL_WATER);
+                else
+                    SetWorld(WORLDPOS(k, i), TYPE_REAL_WATER);
             }
         }
 
@@ -458,7 +464,7 @@ extern void CreateFullRiver(void)
         }
         switch (GetRandomNumber(4)) {
             case 0: if (j > 0)            { j--; } break;
-            case 1: if (j < game.mapsize) { j++; } break;
+            case 1: if (j < GetMapSize()) { j++; } break;
             default: break;
         }
     }
@@ -468,32 +474,34 @@ extern void CreateFullRiver(void)
 /* creates some "spraypainted" (someone called them that ;)
  * forests throughout the `wilderness`
  */
-extern void CreateForests(void)
+extern void
+CreateForests(void)
 {
     int i,j,k;
     unsigned long int pos;
     j = GetRandomNumber(6)+7;
     for (i=0; i<j; i++) {
         k = GetRandomNumber(6)+8;
-        pos = GetRandomNumber(game.mapsize*game.mapsize);
+        pos = GetRandomNumber(GetMapMul());
         CreateForest(pos, k);
     }
 
 }
 
 // create a single forest - look above
-void CreateForest(long unsigned int pos, int size)
+static void
+CreateForest(long unsigned int pos, int size)
 {
     int x,y,i,j,s;
-    x = pos % game.mapsize;
-    y = pos / game.mapsize;
+    x = pos % GetMapSize();
+    y = pos / GetMapSize();
     LockWorld();
     i = x;
     j = y;
 
     for (i=x-size; i<=x+size; i++) {
         for (j=y-size; j<=y+size; j++) {
-            if (i >= 0 && i < game.mapsize && j >= 0 && j < game.mapsize) {
+            if (i >= 0 && i < GetMapSize() && j >= 0 && j < GetMapSize()) {
                 if (GetWorld(WORLDPOS(i,j)) == TYPE_DIRT) {
                     s = ((y>j) ? (y-j) : (j-y)) +
                         ((x>i) ? (x-i) : (i-x));

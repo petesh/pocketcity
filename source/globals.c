@@ -2,6 +2,8 @@
 
 // this is the central game struct
 GameStruct game;
+// This is the volatile game structure (memoizing to reduce op/s)
+vGameStruct vgame;
 
 unsigned char updatePowerGrid = 1;
 unsigned char updateWaterGrid = 1;

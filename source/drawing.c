@@ -15,9 +15,11 @@ extern void Goto(int x, int y)
     game.map_xpos = x-(game.visible_x/2);
     game.map_ypos = y-(game.visible_y/2);
     if (game.map_ypos < 0) { game.map_ypos = 0; }
-    if (game.map_ypos > game.mapsize-game.visible_y) { game.map_ypos = game.mapsize - game.visible_y; }
+    if (game.map_ypos > (GetMapSize() - game.visible_y))
+        game.map_ypos = GetMapSize() - game.visible_y;
     if (game.map_xpos < 0) { game.map_xpos = 0; }
-    if (game.map_xpos > game.mapsize-game.visible_x) { game.map_xpos = game.mapsize - game.visible_x; }
+    if (game.map_xpos > (GetMapSize() - game.visible_x))
+      game.map_xpos = GetMapSize() - game.visible_x;
     RedrawAllFields();
 }
 
@@ -49,33 +51,33 @@ extern void ScrollMap(int direction)
 {
     switch (direction) {
         case 0: // up
-            if (game.map_ypos > 0) { 
-                game.map_ypos-=1; 
-            } else {  
-                game.map_ypos=0; 
-                return; 
+            if (game.map_ypos > 0) {
+                game.map_ypos -= 1;
+            } else {
+                game.map_ypos = 0;
+                return;
             }
             break;
         case 1: // right
-            if (game.map_xpos <= (game.mapsize-1-game.visible_x)) { 
-                game.map_xpos+=1; 
-            } else { 
-                game.map_xpos = game.mapsize-game.visible_x; 
-                return; 
+            if (game.map_xpos <= (GetMapSize() - 1 - game.visible_x)) {
+                game.map_xpos += 1;
+            } else {
+                game.map_xpos = GetMapSize() - game.visible_x;
+                return;
             }
             break;
         case 2: // down
-            if (game.map_ypos <= (game.mapsize-1-game.visible_y)) {
-                game.map_ypos+=1; 
-            } else { 
-                game.map_ypos = game.mapsize-game.visible_y; 
-                return; 
+            if (game.map_ypos <= (GetMapSize() - 1 - game.visible_y)) {
+                game.map_ypos += 1;
+            } else {
+                game.map_ypos = GetMapSize() - game.visible_y;
+                return;
             }
             break;
         case 3: // left
             if (game.map_xpos > 0) {
                 game.map_xpos-=1; 
-            } else { 
+            } else {
                 game.map_xpos=0; 
                 return; 
             }
@@ -94,22 +96,22 @@ extern void MoveCursor(int direction)
     LockWorld();
 
     switch (direction) {
-        case 0: // up
-            if (game.cursor_ypos > 0) { game.cursor_ypos--; }
-            if ((game.cursor_ypos < game.map_ypos)) { ScrollMap(0); }
-            break;
-        case 1: // right
-            if (game.cursor_xpos < game.mapsize-1) { game.cursor_xpos++; }
-            if ((game.cursor_xpos > game.map_xpos+game.visible_x-1) && game.cursor_xpos < game.mapsize) { ScrollMap(1); }
-            break;
-        case 2: // down
-            if (game.cursor_ypos < game.mapsize-1) { game.cursor_ypos++; }
-            if ((game.cursor_ypos > game.map_ypos+game.visible_y-1) && game.cursor_ypos < game.mapsize) { ScrollMap(2); }
-            break;
-        case 3: // left
-            if (game.cursor_xpos > 0) { game.cursor_xpos--; }
-            if ((game.cursor_xpos < game.map_xpos)) { ScrollMap(3); }
-            break;
+    case 0: // up
+        if (game.cursor_ypos > 0) { game.cursor_ypos--; }
+        if ((game.cursor_ypos < game.map_ypos)) { ScrollMap(0); }
+        break;
+    case 1: // right
+        if (game.cursor_xpos < (GetMapSize() - 1)) { game.cursor_xpos++; }
+        if ((game.cursor_xpos > game.map_xpos+game.visible_x-1) && game.cursor_xpos < GetMapSize()) { ScrollMap(1); }
+        break;
+    case 2: // down
+        if (game.cursor_ypos < (GetMapSize() - 1)) { game.cursor_ypos++; }
+        if ((game.cursor_ypos > game.map_ypos+game.visible_y-1) && game.cursor_ypos < GetMapSize()) { ScrollMap(2); }
+        break;
+    case 3: // left
+        if (game.cursor_xpos > 0) { game.cursor_xpos--; }
+        if ((game.cursor_xpos < game.map_xpos)) { ScrollMap(3); }
+        break;
     }
 
     DrawField(old_x, old_y);
@@ -141,8 +143,8 @@ extern void DrawCross(int xpos, int ypos)
     LockWorldFlags();
     if (xpos > 0) { DrawFieldWithoutInit(xpos-1, ypos);}
     if (ypos > 0) { DrawFieldWithoutInit(xpos, ypos-1);}
-    if (xpos+1 < game.mapsize) { DrawFieldWithoutInit(xpos+1, ypos);}
-    if (ypos+1 < game.mapsize) { DrawFieldWithoutInit(xpos, ypos+1);}
+    if (xpos+1 < GetMapSize()) { DrawFieldWithoutInit(xpos+1, ypos);}
+    if (ypos+1 < GetMapSize()) { DrawFieldWithoutInit(xpos, ypos+1);}
     DrawFieldWithoutInit(xpos, ypos);
     UnlockWorld();
     UnlockWorldFlags();
@@ -164,7 +166,7 @@ extern void DrawFieldWithoutInit(int xpos, int ypos)
         return;
     }
 
-    UIDrawField(xpos-game.map_xpos, ypos-game.map_ypos,GetGraphicNumber(WORLDPOS(xpos,ypos)));
+    UIDrawField(xpos-game.map_xpos, ypos-game.map_ypos, GetGraphicNumber(WORLDPOS(xpos,ypos)));
 
     if ((GetWorldFlags(WORLDPOS(xpos,ypos)) & 0x01) == 0 && CarryPower(GetWorld(WORLDPOS(xpos, ypos)))) {
         UIDrawPowerLoss(xpos-game.map_xpos, ypos-game.map_ypos);
@@ -236,24 +238,33 @@ extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
     switch (nType) {
         case 0: // roads
         case 2: // bridge
-            if (pos >= game.mapsize)                            { a = IsRoad(GetWorld(pos-game.mapsize)); }
-            if (pos < (game.mapsize*game.mapsize)-game.mapsize) { c = IsRoad(GetWorld(pos+game.mapsize)); }
-            if (pos % game.mapsize < game.mapsize-1)            { b = IsRoad(GetWorld(pos+1));            }
-            if (pos % game.mapsize > 0)                         { d = IsRoad(GetWorld(pos-1));            }
-            nAddMe = nType== 2 ? TYPE_BRIDGE : 10; // 81 for bridge, 0 for normal road
+            if (pos >= GetMapSize()) a = IsRoad(GetWorld(pos - GetMapSize()));
+            if (pos < (GetMapMul()) - GetMapSize())
+                c = IsRoad(GetWorld(pos + GetMapSize()));
+            if (pos % GetMapSize() < (GetMapSize() - 1))
+                b = IsRoad(GetWorld(pos+1));
+            if (pos % GetMapSize() > 0) d = IsRoad(GetWorld(pos-1));
+            // 81 for bridge, 0 for normal road
+            nAddMe = nType== 2 ? TYPE_BRIDGE : 10;
             break;
         case 1:    // power lines
-            if (pos >= game.mapsize)                            { a = CarryPower(GetWorld(pos-game.mapsize)); }
-            if (pos < (game.mapsize*game.mapsize)-game.mapsize) { c = CarryPower(GetWorld(pos+game.mapsize)); }
-            if (pos % game.mapsize < game.mapsize-1)            { b = CarryPower(GetWorld(pos+1));            }
-            if (pos % game.mapsize > 0)                         { d = CarryPower(GetWorld(pos-1));            }
+            if (pos >= GetMapSize())
+                a = CarryPower(GetWorld(pos - GetMapSize()));
+            if (pos < GetMapMul() - GetMapSize())
+                c = CarryPower(GetWorld(pos + GetMapSize()));
+            if (pos % GetMapSize() < GetMapSize() - 1)
+                b = CarryPower(GetWorld(pos+1));
+            if (pos % GetMapSize() > 0) d = CarryPower(GetWorld(pos-1));
             nAddMe = 70;
             break;
         case 3: // water pipe
-            if (pos >= game.mapsize)                            { a = CarryWater(GetWorld(pos-game.mapsize)); }
-            if (pos < (game.mapsize*game.mapsize)-game.mapsize) { c = CarryWater(GetWorld(pos+game.mapsize)); }
-            if (pos % game.mapsize < game.mapsize-1)            { b = CarryWater(GetWorld(pos+1));            }
-            if (pos % game.mapsize > 0)                         { d = CarryWater(GetWorld(pos-1));            }
+            if (pos >= GetMapSize())
+                a = CarryWater(GetWorld(pos - GetMapSize()));
+            if (pos < GetMapMul() - GetMapSize())
+                c = CarryWater(GetWorld(pos + GetMapSize()));
+            if (pos % GetMapSize() < GetMapSize() - 1)
+                b = CarryWater(GetWorld(pos+1));
+            if (pos % GetMapSize() > 0) d = CarryWater(GetWorld(pos-1));
             nAddMe = 92;
             break;
         default:

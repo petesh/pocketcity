@@ -1,6 +1,7 @@
 #include "zakdef.h"
 
 extern GameStruct game;
+extern vGameStruct vgame;
 
 extern unsigned char updatePowerGrid;
 extern unsigned char updateWaterGrid;

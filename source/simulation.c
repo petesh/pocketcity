@@ -7,7 +7,7 @@
 #include "disaster.h"
 #include "simulation.h"
 
-int powerleft=0;
+int powerleft = 0;
 char distributetype = 0;
 
 void DistributeMoveOnFromThisPoint(unsigned long pos);
@@ -74,13 +74,14 @@ extern void Sim_Distribute(char type)
     // reset powergrid - ie, clear flags 1 & 2
     // or flags 1 & 3 for watergrid
     LockWorldFlags();
-    for (j = 0; j < game.mapsize * game.mapsize; j++) {
-        SetWorldFlags(j, GetWorldFlags(j) & (type==0?0xfc:0xf9));
+    for (j = 0; j < GetMapMul(); j++) {
+        SetWorldFlags(j, GetWorldFlags(j) & (type==TYPEPOWER?
+              ~(POWEREDBIT | SCRATCHBIT):~(WATEREDBIT | SCRATCHBIT)));
     }
 
     // Step 1: Find all the powerplants and move out from there
     LockWorld(); // this lock locks for ALL power subs
-    for (i = 0; i < game.mapsize * game.mapsize; i++) {
+    for (i = 0; i < GetMapMul(); i++) {
         if (GetWorld(i) == TYPE_POWER_PLANT 
                 || GetWorld(i) == TYPE_NUCLEAR_PLANT
                 || GetWorld(i) == TYPE_WATER_PUMP) { // is this a source?
@@ -92,7 +93,8 @@ extern void Sim_Distribute(char type)
                     powerleft += 300; // we get more power
             } else if (distributetype == 1) {
                 if (GetWorld(i) == TYPE_WATER_PUMP
-                && (GetWorldFlags(i)&1)==1 && ExistsNextto(i,TYPE_REAL_WATER))
+                && (GetWorldFlags(i) & POWEREDBIT) == 1 &&
+                ExistsNextto(i, TYPE_REAL_WATER))
                     powerleft += 200; // pumps need power and REAL_WATER
             }
 
@@ -100,8 +102,8 @@ extern void Sim_Distribute(char type)
             DistributeMoveOnFromThisPoint(i);
 
             // prepare for next round
-            for (j = 0; j < game.mapsize * game.mapsize; j++) {
-                SetWorldFlags(j, GetWorldFlags(j) & 0xfd); 
+            for (j = 0; j < GetMapMul(); j++) {
+                SetWorldFlags(j, GetWorldFlags(j) & ~SCRATCHBIT); 
             }
         }
     }
@@ -117,8 +119,10 @@ void DistributeMoveOnFromThisPoint(unsigned long pos)
     char direction = 0;
 
     do {
-        if (((GetWorldFlags(pos) & 0x01) == 0 && distributetype == 0) ||
-            ((GetWorldFlags(pos) & 0x04) == 0 && distributetype == 1)) {
+        if (((GetWorldFlags(pos) & POWEREDBIT) == 0 &&
+              distributetype == TYPEPOWER) ||
+            ((GetWorldFlags(pos) & WATEREDBIT) == 0 &&
+             distributetype == TYPEWATER)) {
             /* if this field hasn't been powered, we need to "use" some power
              * to move further along
              */
@@ -130,7 +134,10 @@ void DistributeMoveOnFromThisPoint(unsigned long pos)
         // now, set the two flags, to indicate
         // 1: we've been here (look 4 lines above)
         // 2: this field is now powered
-        SetWorldFlags(pos, GetWorldFlags(pos) | (distributetype==0?0x3:0x6)); 
+        SetWorldFlags(pos, GetWorldFlags(pos) |
+          (distributetype == TYPEPOWER ?
+           (POWEREDBIT | SCRATCHBIT) :
+           (WATEREDBIT | SCRATCHBIT))); 
 
 
         // find the possible ways we can move on from here
@@ -150,9 +157,9 @@ void DistributeMoveOnFromThisPoint(unsigned long pos)
         } else {
             // we are at a crossway
             // initiate some recursive functions from here ;)
-            if ((cross & 0x10) == 0x10) { DistributeMoveOnFromThisPoint(pos-game.mapsize); }
+            if ((cross & 0x10) == 0x10) { DistributeMoveOnFromThisPoint(pos-GetMapSize()); }
             if ((cross & 0x20) == 0x20) { DistributeMoveOnFromThisPoint(pos+1); }
-            if ((cross & 0x40) == 0x40) { DistributeMoveOnFromThisPoint(pos+game.mapsize); }
+            if ((cross & 0x40) == 0x40) { DistributeMoveOnFromThisPoint(pos+GetMapSize()); }
             if ((cross & 0x80) == 0x80) { DistributeMoveOnFromThisPoint(pos-1); }
             return;
         }
@@ -168,8 +175,11 @@ void DistributeMoveOnFromThisPoint(unsigned long pos)
 // to avoid backtracking the route we came from.
 int DistributeFieldCanCarry(unsigned long pos)
 {
-    if ((GetWorldFlags(pos) & 0x02) == 0x02) { return 0; } // allready been here with this plant
-    return distributetype==0?CarryPower(GetWorld(pos)):CarryWater(GetWorld(pos));
+    if ((GetWorldFlags(pos) & SCRATCHBIT) == SCRATCHBIT) {
+        // already been here with this plant
+        return 0;
+    }
+    return distributetype==TYPEPOWER ? CarryPower(GetWorld(pos)) : CarryWater(GetWorld(pos));
 }
 
 // gives a status of the situation around us
@@ -207,16 +217,16 @@ unsigned long DistributeMoveOn(unsigned long pos, int direction)
 {
     switch (direction) {
         case 0: // up
-            if (pos < game.mapsize) { return pos; }
-            pos -= game.mapsize;
+            if (pos < GetMapSize()) { return pos; }
+            pos -= GetMapSize();
             break;
         case 1: // right
-            if ((pos+1) >= game.mapsize*game.mapsize) { return pos; }
+            if ((pos+1) >= GetMapMul()) { return pos; }
             pos++;
             break;
         case 2: // down
-            if ((pos+game.mapsize) >= game.mapsize*game.mapsize) { return pos; }
-            pos += game.mapsize;
+            if ((pos+GetMapSize()) >= GetMapMul()) { return pos; }
+            pos += GetMapSize();
             break;
         case 3: //left
             if (pos == 0) { return pos; }
@@ -228,9 +238,9 @@ unsigned long DistributeMoveOn(unsigned long pos, int direction)
 
 int ExistsNextto(unsigned long int pos, unsigned char what)
 {
-    if (GetWorld(pos-game.mapsize)==what && !(pos < game.mapsize)) { return 1; }
-    if (GetWorld(pos+1)==what && !((pos+1) >= game.mapsize*game.mapsize)) { return 1; }
-    if (GetWorld(pos+game.mapsize)==what && !((pos+game.mapsize) >= game.mapsize*game.mapsize)) { return 1; }
+    if (GetWorld(pos-GetMapSize())==what && !(pos < GetMapSize())) { return 1; }
+    if (GetWorld(pos+1)==what && !((pos+1) >= GetMapMul())) { return 1; }
+    if (GetWorld(pos+GetMapSize())==what && !((pos+GetMapSize()) >= GetMapMul())) { return 1; }
     if (GetWorld(pos-1)==what && pos != 0) { return 1; }
     return 0;
 }
@@ -252,7 +262,7 @@ void FindZonesForUpgrading()
     int i;
     long signed int randomZone;
 
-    int max = game.mapsize*3;
+    int max = GetMapSize()*3;
     if (max > 256) { max = 256; }
 
     // find some random zones
@@ -425,8 +435,8 @@ signed long GetZoneScore(long unsigned int pos)
     // return -1 to make this zone be downgraded _right now_ (ie. if missing things as power or roads)
 
     signed long score = 0;
-    int x = pos%game.mapsize;
-    int y = pos/game.mapsize;
+    int x = pos % GetMapSize();
+    int y = pos / GetMapSize();
     signed int i,j;
     int bRoad = 0;
     int type = 0;
@@ -477,7 +487,7 @@ signed long GetZoneScore(long unsigned int pos)
     // take a look around at the enviroment ;)
     for (i=x-3; i<4+x; i++) {
         for (j=y-3; j<4+y; j++) {
-            if (!(i<0 || i>=game.mapsize || j<0 || j>=game.mapsize)) {
+            if (!(i<0 || i>=GetMapSize() || j<0 || j>=GetMapSize())) {
                 
                 score += GetScoreFor(type, GetWorld(WORLDPOS(i,j)));
                 
@@ -518,7 +528,7 @@ long unsigned int GetRandomZone()
     LockWorld();
     for (i=0; i<5; i++) // try five times to hit a valid zone
     {
-        pos = GetRandomNumber(game.mapsize*game.mapsize);
+        pos = GetRandomNumber(GetMapMul());
         type = GetWorld(pos);
         if ((type >= 1 && type <= 3) || (type >= 30 && type <= 59)) {
             UnlockWorld();

@@ -13,3 +13,9 @@ enum BudgetNumbers {
     BUDGET_CHANGE,
     BUDGET_NEXT_MONTH
 };
+
+#define POWEREDBIT      0x01
+#define SCRATCHBIT      0x02
+#define WATEREDBIT      0x04
+#define TYPEPOWER       0
+#define TYPEWATER       1

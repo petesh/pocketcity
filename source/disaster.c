@@ -6,7 +6,7 @@
 #include "handler.h"
 #include "build.h"
 #include "disaster.h"
-
+#include "simulation.h"
 
 void FireSpread(int x, int y);
 void CreateWaste(int x, int y);
@@ -25,11 +25,11 @@ extern void DoNastyStuffTo(int type, unsigned int probability)
 
     LockWorld();
     for (i=0; i<50; i++) {
-        randomTile = GetRandomNumber(game.mapsize*game.mapsize);
+        randomTile = GetRandomNumber(GetMapMul());
         if (GetWorld(randomTile) == type) {
             // wee, let's destroy something
-            x = randomTile % game.mapsize;
-            y = randomTile / game.mapsize;
+            x = randomTile % GetMapSize();
+            y = randomTile / GetMapSize();
             CreateWaste(x,y);
             UnlockWorld();
             return;
@@ -53,13 +53,13 @@ extern void DoRandomDisaster(void)
     LockWorld();
 
     for (i=0; i<100; i++) { // give em' a 100 tries to hit a useful tile
-        randomTile = GetRandomNumber(game.mapsize*game.mapsize);
+        randomTile = GetRandomNumber(GetMapMul());
         type = GetWorld(randomTile);
         if (type != TYPE_DIRT &&
             type != TYPE_REAL_WATER &&
             type != TYPE_CRATER) {
-            x = randomTile % game.mapsize;
-            y = randomTile / game.mapsize;
+            x = randomTile % GetMapSize();
+            y = randomTile / GetMapSize();
             random = GetRandomNumber((4-game.disaster_level) * 1000); // TODO: should depend on difficulty
 #ifdef DEBUG
             LongToString(random, temp);
@@ -107,11 +107,13 @@ extern int UpdateDisasters(void)
 
     LockWorld();
     LockWorldFlags();
-    for (j=0; j<game.mapsize*game.mapsize; j++) { SetWorldFlags(j, GetWorldFlags(j) & 0xfd); } // clear used flag
-    for (i=0; i<game.mapsize; i++) {
-        for (j=0; j<game.mapsize; j++) {
+    for (j=0; j< GetMapMul(); j++) { // clear used flag
+        SetWorldFlags(j, GetWorldFlags(j) & ~SCRATCHBIT);
+    }
+    for (i=0; i<GetMapSize(); i++) {
+        for (j=0; j<GetMapSize(); j++) {
             type = GetWorld(WORLDPOS(i,j));
-            if ((GetWorldFlags(WORLDPOS(i,j)) & 0x02) == 0) { // already looked at this one?
+            if ((GetWorldFlags(WORLDPOS(i,j)) & SCRATCHBIT) == 0) { // already looked at this one?
                 if (type == TYPE_FIRE2) {
                     retval = 1;
                     if (GetRandomNumber(5) != 0) {
@@ -160,9 +162,9 @@ void CreateWaste(int x, int y)
 void FireSpread(int x, int y) 
 {
     if (x > 0) { BurnField(x-1,y,0); }
-    if (x < game.mapsize-1) { BurnField(x+1,y,0); }
+    if (x < GetMapSize()-1) { BurnField(x+1,y,0); }
     if (y > 0) { BurnField(x,y-1,0); }
-    if (y < game.mapsize-1) { BurnField(x,y+1,0); }
+    if (y < GetMapSize()-1) { BurnField(x,y+1,0); }
 }
 
 
@@ -190,7 +192,8 @@ extern int BurnField(int x, int y, int forceit)
 
         Build_Destroy(x,y);
         SetWorld(WORLDPOS(x,y), TYPE_FIRE1);
-        SetWorldFlags(WORLDPOS(x,y), GetWorldFlags(WORLDPOS(x,y)) | 0x02); // set used flag
+        SetWorldFlags(WORLDPOS(x,y),
+          GetWorldFlags(WORLDPOS(x,y)) | SCRATCHBIT); // set used flag
         DrawCross(x,y);
         game.BuildCount[COUNT_FIRE]++;
         UnlockWorldFlags();
@@ -330,7 +333,7 @@ extern void MoveAllObjects(void)
                 case 3: // down-right
                 case 4: // down
                 case 5: // down-left
-                    if (game.objects[i].y < game.mapsize-1) { 
+                    if (game.objects[i].y < GetMapSize()-1) { 
                         game.objects[i].y++; 
                     } else {
                         game.objects[i].dir = 0;
@@ -344,7 +347,7 @@ extern void MoveAllObjects(void)
                 case 1: // up-right
                 case 2: // right
                 case 3: // down-right
-                    if (game.objects[i].x < game.mapsize-1) { 
+                    if (game.objects[i].x < GetMapSize()-1) { 
                         game.objects[i].x++; 
                     } else {
                         game.objects[i].dir = 6;
@@ -383,7 +386,7 @@ void CreateMeteor(int x, int y, int size)
     UILockScreen();
     for (i=x-size; i<=x+size; i++) {
         for (j=y-size; j<=y+size; j++) {
-            if (i >= 0 && i < game.mapsize && j >= 0 && j < game.mapsize) {
+            if (i >= 0 && i < GetMapSize() && j >= 0 && j < GetMapSize()) {
                 if (GetRandomNumber(5) < 2) {
                     if (GetWorld(WORLDPOS(i,j)) != TYPE_REAL_WATER) {
                         CreateWaste(i,j);
