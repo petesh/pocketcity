@@ -4,6 +4,7 @@
 #include "ui.h"
 #include "globals.h"
 #include "handler.h"
+#include "disaster.h"
 
 int powerleft=0;
 
@@ -189,7 +190,6 @@ ZoneScore zones[256];
 void FindZonesForUpgrading()
 {
     int i;
-    long signed score;
     long signed int randomZone;
 
     int max = mapsize*3;
@@ -477,23 +477,35 @@ void DoTaxes()
 
 void DoUpkeep()
 {
-    long unsigned int roadCount;
-    long unsigned int roadUpkeep;
-    long unsigned int powerLineCount;
-    long unsigned int powerLineUpkeep;
-    long unsigned int powerPlantCount;
-    long unsigned int powerPlantUpkeep;
-    long unsigned int totalUpkeep;
 
-    roadCount = BuildCount[COUNT_ROADS];
-    powerLineCount = BuildCount[COUNT_POWERLINES];
-    powerPlantCount = BuildCount[COUNT_POWERPLANTS] + BuildCount[COUNT_POWERPLANTS]*2;
-    roadUpkeep = 2;
-    powerLineUpkeep = 1;
-    powerPlantUpkeep = 35;
-    totalUpkeep = (roadCount*roadUpkeep)+(powerLineCount*powerLineUpkeep)+(powerPlantCount*powerPlantUpkeep);
+    // roads
+    if (credits < BuildCount[COUNT_ROADS]*2) {
+        // can't pay
+        credits = 0;
+        DoNastyStuffTo(TYPE_ROAD,1);
+    } else {
+        credits -= BuildCount[COUNT_ROADS]*2;
+    }
+
+    // power lines
+    if (credits < BuildCount[COUNT_POWERLINES]) {
+        // can't pay
+        credits = 0;
+        DoNastyStuffTo(TYPE_POWER_LINE,5);
+    } else {
+        credits -= BuildCount[COUNT_POWERLINES];
+    }
+
+    // power plants
+    if (credits < (BuildCount[COUNT_NUCLEARPLANTS]*500 + BuildCount[COUNT_POWERPLANTS]*200)) {
+        // can't pay
+        credits = 0;
+        DoNastyStuffTo(TYPE_POWER_PLANT,25);
+        DoNastyStuffTo(TYPE_NUCLEAR_PLANT,50);
+    } else {
+        credits -= (BuildCount[COUNT_NUCLEARPLANTS]*500 + BuildCount[COUNT_POWERPLANTS]*200);
+    }
     
-    credits -= totalUpkeep;
 }
 
 extern int Sim_DoPhase(int nPhase)

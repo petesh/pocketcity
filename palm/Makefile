@@ -42,8 +42,8 @@ grcs.stm: simcity
 
 
 #the linker - don't forget to add new objects here
-simcity: simcity.o handler.o drawing.o globals.o build.o simulation.o
-	$(CC) $(CCFLAGS) -O1 simcity.o handler.o drawing.o globals.o build.o simulation.o -o simcity
+simcity: simcity.o handler.o drawing.o globals.o build.o simulation.o disaster.o
+	$(CC) $(CCFLAGS) -O1 simcity.o handler.o drawing.o globals.o build.o simulation.o disaster.o -o simcity
 
 
 #objects (one for each .c file)
@@ -54,6 +54,10 @@ simcity.o: simcity.c simcity.h ../source/handler.h ../source/ui.h \
 handler.o: ../source/handler.c ../source/handler.h ../source/ui.h \
            ../source/zakdef.h
 	$(CC) $(CCFLAGS) -O1 -c ../source/handler.c -o handler.o
+
+disaster.o: ../source/disaster.c ../source/disaster.h ../source/ui.h \
+           ../source/zakdef.h
+	$(CC) $(CCFLAGS) -O1 -c ../source/disaster.c -o disaster.o
 
 drawing.o: ../source/drawing.c ../source/drawing.h ../source/ui.h \
            ../source/zakdef.h

@@ -19,6 +19,8 @@
 #define TYPE_NUCLEAR_PLANT      61
 #define TYPE_WATER              22
 #define TYPE_TREE               21
+#define TYPE_POWER_LINE         5
+#define TYPE_ROAD               4
 
 #define COUNT_RESIDENTIAL       0
 #define COUNT_COMMERCIAL        1

@@ -10,7 +10,7 @@ long unsigned int TimeElapsed=0; // months since Jan 2000
 short updatePowerGrid = 1;
 
 short unsigned int SIM_GAME_LOOP_SECONDS = 0;
-
+int tax = 8;
 
 #ifdef __palmos__
 int TILE_SIZE = 16;
