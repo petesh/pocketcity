@@ -1099,7 +1099,8 @@ extern void UIScrollMap(int direction)
 }
 
 
-extern unsigned long GetRandomNumber(unsigned long max)
+extern unsigned long
+GetRandomNumber(unsigned long max)
 {
     if (max == 0) return 0;
     return (UInt16)SysRandom(0) % (UInt16)max;
@@ -1426,13 +1427,13 @@ extern void UnlockWorldFlags() { MemHandleUnlock(worldFlagsHandle); }
 extern unsigned char GetWorldFlags(long unsigned int pos)
 {
     // NOTE: LockWorld() MUST have been called before this is used!!!
-    if (pos > (game.mapsize*game.mapsize)) { return 0; }
+    if (pos > GetMapMul()) { return 0; }
     return ((unsigned char*)worldFlagsPtr)[pos];
 }
 
 extern void SetWorldFlags(long unsigned int pos, unsigned char value)
 {
-    if (pos > game.mapsize*game.mapsize) { return; }
+    if (pos > GetMapMul()) { return; }
     ((unsigned char*)worldFlagsPtr)[pos] = value;
 }
 
@@ -1440,13 +1441,13 @@ extern void SetWorldFlags(long unsigned int pos, unsigned char value)
 extern unsigned char GetWorld(unsigned long pos)
 {
     // NOTE: LockWorld() MUST have been called before this is used!!!
-    if (pos > (game.mapsize*game.mapsize)) { return 0; }
+    if (pos > GetMapMul()) { return 0; }
     return ((unsigned char*)worldPtr)[pos];
 }
 
 extern void SetWorld(unsigned long pos, unsigned char value)
 {
-    if (pos > game.mapsize*game.mapsize) { return; }
+    if (pos > GetMapMul()) { return; }
     ((unsigned char*)worldPtr)[pos] = value;
 }
 
