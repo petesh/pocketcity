@@ -24,16 +24,19 @@ MemHandle worldHandle;
 MemHandle worldFlagsHandle;
 MemPtr worldPtr;
 MemPtr worldFlagsPtr;
-RectangleType rScrollUp, rScrollDown, rScrollLeft, rScrollRight, rPlayGround;
+RectangleType rPlayGround;
 unsigned char nSelectedBuildItem = 0;
 
 UInt32 timeStamp = 0;
-short int simState = 0;
-short int DoDrawing = 0;
+short simState = 0;
+short DoDrawing = 0;
+unsigned short XOFFSET =0;
+unsigned short YOFFSET =15;
+
+
 
 static Boolean hPocketCity(EventPtr event);
 void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth);
-void _UICheckScrollBarClick(int x, int y);
 void _PalmInit(void);
 void _UIGetFieldToBuildOn(int x, int y);
 Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags);
@@ -54,6 +57,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 	{
 		_PalmInit();
 		ZakMain();
+		UISetTileSize(5);
 
 		FrmGotoForm(formID_pocketCity);
 		do {
@@ -128,30 +132,6 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 void _PalmInit(void)
 {
 	timeStamp = TimGetSeconds();
-	rScrollUp.topLeft.x = 149;
-	rScrollUp.topLeft.y = 136;
-	rScrollUp.extent.x = 9;
-	rScrollUp.extent.y = 5;
-
-	rScrollDown.topLeft.x = 149;
-	rScrollDown.topLeft.y = 142;
-	rScrollDown.extent.x = 9;
-	rScrollDown.extent.y = 5;
-
-	rScrollLeft.topLeft.x = 148;
-	rScrollLeft.topLeft.y = 150;
-	rScrollLeft.extent.x = 5;
-	rScrollLeft.extent.y = 9;
-
-	rScrollRight.topLeft.x = 154;
-	rScrollRight.topLeft.y = 150;
-	rScrollRight.extent.x = 5;
-	rScrollRight.extent.y = 9;
-
-	rPlayGround.topLeft.x = 1;
-	rPlayGround.topLeft.y = 15;
-	rPlayGround.extent.x = 144;
-	rPlayGround.extent.y = 144;
 }
 
 
@@ -176,7 +156,7 @@ static Boolean hPocketCity(EventPtr event)
 		{
 			_UIGetFieldToBuildOn(event->screenX, event->screenY);
 		}
-		_UICheckScrollBarClick(event->screenX, event->screenY);
+		// check for other 'penclicks' here
 		break;
 	case penMoveEvent:
 		if (RctPtInRectangle(event->screenX, event->screenY, &rPlayGround))
@@ -238,14 +218,6 @@ static Boolean hPocketCity(EventPtr event)
 extern unsigned char UIGetSelectedBuildItem(void) { return nSelectedBuildItem; }
 
 
-void _UICheckScrollBarClick(int x, int y)
-{
-	if (RctPtInRectangle(x, y, &rScrollUp))	{ ScrollMap(0); }
-	else if (RctPtInRectangle(x, y, &rScrollRight))	{ ScrollMap(1); }
-	else if (RctPtInRectangle(x, y, &rScrollDown))	{ ScrollMap(2); }
-	else if (RctPtInRectangle(x, y, &rScrollLeft))	{ ScrollMap(3); }
-}
-
 void _UIGetFieldToBuildOn(int x, int y)
 {
 	RectangleType rect;
@@ -257,8 +229,8 @@ void _UIGetFieldToBuildOn(int x, int y)
 	{
 		for (j=0; j<visible_y; j++)
 		{
-			rect.topLeft.x = 1+i*TILE_SIZE;
-			rect.topLeft.y = 15+j*TILE_SIZE;
+			rect.topLeft.x = XOFFSET+i*TILE_SIZE;
+			rect.topLeft.y = YOFFSET+j*TILE_SIZE;
 			if (RctPtInRectangle(x,y,&rect))
 			{
 				BuildSomething(i+map_xpos,j+map_ypos);
@@ -309,12 +281,8 @@ extern void UIDrawBorder()
 
 	if (DoDrawing == 0) { return; }
 
-	bitmaphandle = DmGet1Resource(TBMP, bitmapID_ScrollBars);
-	bitmap = MemHandleLock(bitmaphandle);
-	WinDrawBitmap(bitmap, 160-12,160-24);
-	MemHandleUnlock(bitmaphandle);
-
-	_UIDrawRect(15,1,visible_y*TILE_SIZE,visible_x*TILE_SIZE);
+	// border
+	_UIDrawRect(YOFFSET,XOFFSET,visible_y*TILE_SIZE,visible_x*TILE_SIZE);
 	
 }
 
@@ -346,14 +314,14 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
 	WinSetDrawMode(winErase);
 	bitmaphandle = DmGet1Resource( TBMP, overlayID);
 	bitmap = MemHandleLock(bitmaphandle);
-	WinPaintBitmap(bitmap, xpos*TILE_SIZE+1, ypos*TILE_SIZE+15);
+	WinPaintBitmap(bitmap, xpos*TILE_SIZE+XOFFSET, ypos*TILE_SIZE+YOFFSET);
 	MemHandleUnlock(bitmaphandle);
 	
 	// now draw the 's'
 	WinSetDrawMode(winOverlay);
 	bitmaphandle = DmGet1Resource( TBMP , powerID);
 	bitmap = MemHandleLock(bitmaphandle);
-	WinPaintBitmap(bitmap, xpos*TILE_SIZE+1, ypos*TILE_SIZE+15);
+	WinPaintBitmap(bitmap, xpos*TILE_SIZE+XOFFSET, ypos*TILE_SIZE+YOFFSET);
 	MemHandleUnlock(bitmaphandle);
 
 	
@@ -374,7 +342,7 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
 
 	bitmaphandle = DmGet1Resource( TBMP , nGraphic + startID);
 	bitmap = MemHandleLock(bitmaphandle);
-	WinDrawBitmap(bitmap, xpos*TILE_SIZE+1, ypos*TILE_SIZE+15);
+	WinDrawBitmap(bitmap, xpos*TILE_SIZE+XOFFSET, ypos*TILE_SIZE+YOFFSET);
 	MemHandleUnlock(bitmaphandle);
 
 }
@@ -413,8 +381,6 @@ extern void UIDrawCredits(void)
 }
 
 
-
-
 extern void UISetTileSize(int size)
 {
 	/*
@@ -425,12 +391,33 @@ extern void UISetTileSize(int size)
 	5 = 16x16	8
 	6 = 32x32	4
 	*/
-	if (!(size >= 1 && size <= 6)) { return; }
+	if (!(size >= 5 && size <= 6)) { return; }
 
-	visible_x = 1<<(8-size);
-	visible_y = 1<<(8-size);
-	TILE_SIZE = 1<<(size-1);
+	switch (size)
+	{
+	case 5: // 16px
+		visible_x = 10;
+		visible_y = 8;
+		TILE_SIZE = 16;
+		XOFFSET = 0;
+		YOFFSET = 15;
+		break;
+	case 6: // 32px
+		visible_x = 5;
+		visible_y = 4;
+		TILE_SIZE = 32;
+		XOFFSET = 0;
+		YOFFSET = 15;
+		break;
+	}
+
+	rPlayGround.topLeft.x = XOFFSET;
+	rPlayGround.topLeft.y = YOFFSET;
+	rPlayGround.extent.x = TILE_SIZE*visible_x;
+	rPlayGround.extent.y = TILE_SIZE*visible_y;
+
 	RedrawAllFields();
+	UIDrawBorder();
 }
 
 

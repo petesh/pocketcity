@@ -26,7 +26,7 @@
 #define alertID_RomIncompatible			1001
 
 
-#define bitmapID_ScrollBars				2000
+//#define bitmapID_ScrollBars				2000 FREE FOR NEW USE!
 #define bitmapID_PowerLossOverlay		2001 // 32x32
 #define bitmapID_PowerLossOverlay2		2002 // 16x16
 
