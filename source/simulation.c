@@ -59,8 +59,8 @@ extern void Sim_DistributePower(void)
 void PowerMoveOnFromThisPoint(unsigned long pos)
 {
     // a recursive function
-    int cross = 0;
-    int direction = 0;
+    char cross = 0;
+    char direction = 0;
 
 
     do
@@ -130,8 +130,8 @@ int PowerNumberOfSquaresAround(unsigned long pos)
     // count fields that carry power
     // do not look behind map border
 
-    int retval=0;
-    int number=0;
+    char retval=0;
+    char number=0;
 
 
     if (PowerFieldCanCarry(PowerMoveOn(pos, 0))) { retval |= 0x10; number++; }
