@@ -1,0 +1,6 @@
+To compile for Nokia 9000/9110:
+ type make in the root folder of pocketcity
+
+
+To compile for PalmOS:
+ type make in the 'palm' folder
