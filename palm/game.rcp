@@ -120,7 +120,8 @@ MODAL
 BEGIN
     TITLE "New city"
     LABEL "Name: " AUTOID AT (3 20)
-    FIELD ID fieldID_newGameName AT (prevright+2 prevtop 120 20 ) UNDERLINED MAXCHARS 18
+    FIELD ID fieldID_newGameName AT (prevright+2 prevtop 120 20 ) UNDERLINED
+    MAXCHARS 18
     BUTTON "Create"     ID buttonID_FilesNewCreate     AT (2 prevbottom+5 AUTO AUTO)
     BUTTON "Cancel"    ID buttonID_FilesNewCancel    AT (prevright+4 prevtop AUTO AUTO)
 END
@@ -168,20 +169,37 @@ USABLE
 BEGIN
     TITLE "Build extra stuff"
 
-    LIST "Bulldoze - $5" "Residential -$50" "Commercial -$50" "Industrial -$50" "Road -$20" 
-         "Power Plant -$3000" "Nuclear Plant -$10000" "Power Line -$5" "Tree -$10" "Water -$200" 
-         "Fire Station -$700" "**Police Station -$700"
+    LIST "Bulldozer" "Residential" "Commercial" "Industrial" "Road" 
+         "Power Plant" "Nuclear Plant" "Power Line" "Tree" "Water" 
+         "Fire Station" "Police Station" "Military Base"
          /* insert extra stuff here */
-         ID listID_extraBuildList AT (1 18 158 121) USABLE 
+         ID listID_extraBuildList AT (1 18 158 77) USABLE 
+    FIELD ID labelID_extraBuildDescription AT (prevleft prevbottom+2 158 50)
+    MULTIPLELINES NONEDITABLE
 
-    BUTTON "Select"     ID buttonID_extraBuildSelect     AT (2 prevbottom+5 AUTO AUTO) BOLDFRAME
+    BUTTON "Select"     ID buttonID_extraBuildSelect     AT (2 146 AUTO AUTO) BOLDFRAME
     BUTTON "Cancel"     ID buttonID_extraBuildCancel     AT (prevright+4 prevtop AUTO AUTO)
     BUTTON "F" ID buttonID_extraBuildFireMen     AT (prevright+4 prevtop 12 AUTO)
     BUTTON "P" ID buttonID_extraBuildPolice      AT (prevright+1 prevtop 12 AUTO)
     BUTTON "M" ID buttonID_extraBuildMilitary    AT (prevright+1 prevtop 12 AUTO)
 END
 
-
+STRINGTABLE ID strID_Descriptions
+    /* max is 4 lines */
+    ""
+    "Bulldozer\t\t\t\tPrice: $5\n\nClears land and removes defence units"
+    "Residential\t\t\tPrice: $50\n\nZones for inhabitance"
+    "Commercial\t\t\tPrice: $50\n\nZones for stores, offices and other commercial use"
+    "Industrial\t\t\t\tPrice: $50\n\nZones for factories"
+    "Road\t\t\t\tPrice: $20\n\nSims travel to and from work on roads"
+    "Power Plant\t\t\tPrice: $3.000\n\nProvides power for 100 zones"
+    "Nuclear Plant\t\t\tPrice: $10.000\n\nProvides power for 300 zones"
+    "Power Line\t\t\tPrice: $5\n\nCarries power from one place to another"
+    "Tree\t\t\t\tPrice: $10\n\nSims love this green stuff"
+    "Water\t\t\t\tPrice: $200\n\nAdd an extra element to your city"
+    "Fire Station\t\t\tPrice: $700\n\nProvides fire fighters in case of an emergency"
+    "Police Station\t\t\tPrice: $700\n\nProvides police units in case of an emergency"
+    "Military Base\t\t\tPrice: $10.000\n\nProvides military units in case of an emergency"
 
 
 ALERT ID alertID_errorOutOfMemory

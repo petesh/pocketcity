@@ -131,6 +131,8 @@ extern void UIWriteLog(char * s);
 #define buttonID_extraBuildFireMen      1016
 #define buttonID_extraBuildPolice       1017
 #define buttonID_extraBuildMilitary     1018
+#define labelID_extraBuildDescription   1019
+#define strID_Descriptions              1020
 
 
 

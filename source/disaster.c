@@ -68,21 +68,25 @@ extern void DoRandomDisaster(void)
             UIWriteLog(temp);
             UIWriteLog("\n");
 #endif
-            if (random < 10) {
+            if (random < 10 && BuildCount[COUNT_FIRE] == 0) {
                 if (BurnField(x,y,0)) {
                     UIDisplayError(ERROR_FIRE_OUTBREAK);
+                    Goto(x,y);
                 }
-            } else if (random < 15) {
+            } else if (random < 15 && objects[OBJ_MONSTER].active == 0) {
                 if (CreateMonster(x,y)) {
                     UIDisplayError(ERROR_MONSTER);
+                    Goto(x,y);
                 }
-            } else if (random < 17) {
+            } else if (random < 17 && objects[OBJ_DRAGON].active == 0) {
                 if (CreateDragon(x,y)) {
                     UIDisplayError(ERROR_DRAGON);
+                    Goto(x,y);
                 }
             } else if (random < 19) {
                 if (MeteorDisaster(x,y)) {
                     UIDisplayError(ERROR_METEOR);
+                    Goto(x,y);
                 }
             }
             UnlockWorld();
@@ -100,7 +104,7 @@ extern int UpdateDisasters(void)
 
     LockWorld();
     LockWorldFlags();
-    for (j=0; j<mapsize*mapsize; j++) { SetWorldFlags(j, GetWorldFlags(j) & 0xfc); } // clear used flag
+    for (j=0; j<mapsize*mapsize; j++) { SetWorldFlags(j, GetWorldFlags(j) & 0xfd); } // clear used flag
     for (i=0; i<mapsize; i++) {
         for (j=0; j<mapsize; j++) {
             type = GetWorld(WORLDPOS(i,j));

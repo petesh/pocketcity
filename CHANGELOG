@@ -15,10 +15,11 @@ Kean Pedersen:
   + Naming of savegames
   + Quick list on calculator button
   + Bridges (not over homemade water on purpose)
-  + 16bpp greyscale
+  + 16bpp greyscale (too dark at the moment, though)
   + A real monster :D (actually two of them)
   + Fire fighters, police, and military added
-  + Fire Stations
+  + Fire Stations, police stations and military bases
+  + A new seperated list of buildings (instead of the dropdown menu)
   * Fire/disasters now spreads at it own rate - pause won't help (!)
   * Cleaned compiler warnings
   * Uses less stackspace in recursive function (should fix the FE)

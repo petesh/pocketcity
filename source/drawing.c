@@ -15,6 +15,16 @@ void SetUpGraphic(void)
     UISetUpGraphic();
 }
 
+extern void Goto(int x, int y)
+{
+    map_xpos = x-(visible_x/2);
+    map_ypos = y-(visible_y/2);
+    if (map_ypos < 0) { map_ypos = 0; }
+    if (map_ypos > mapsize-visible_y) { map_ypos = mapsize - visible_y; }
+    if (map_xpos < 0) { map_xpos = 0; }
+    if (map_xpos > mapsize-visible_x) { map_xpos = mapsize - visible_x; }
+    RedrawAllFields();
+}
 
 extern void RedrawAllFields(void)
 {

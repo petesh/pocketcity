@@ -7,12 +7,18 @@ PROGNAME = "Pocket City"
 PROGTOKEN = PCit
 PRCTARGETS = pcity pcity-grey pcity-color
 
-.PHONY: all debug clean
+.PHONY: all debug clean cheat
 
 ##################
 ### make all #####
 ##################
 all: $(addsuffix .prc,$(PRCTARGETS))
+
+##################
+### make cheat ###
+##################
+cheat: CFLAGS += -DCHEAT
+cheat: debug
 
 ##################
 ### make debug ###

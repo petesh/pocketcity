@@ -51,6 +51,9 @@ void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth);
 void _PalmInit(void);
 void UIDoQuickList(void);
 void UIPopUpExtraBuildList(void);
+void CleanUpExtraBuildForm(void);
+FieldType * UpdateDescription(int sel);
+    
 
 void _UIGetFieldToBuildOn(int x, int y);
 Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags);
@@ -205,6 +208,8 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
         WinDeleteWindow(winZones,0);
         WinDeleteWindow(winMonsters,0);
         WinDeleteWindow(winUnits,0);
+        MemPtrFree(worldPtr);
+        MemPtrFree(worldFlagsPtr);
     }
 
     return 0;
@@ -360,7 +365,12 @@ static Boolean hPocketCity(EventPtr event)
                         // change this to whatever testing you're doing ;)
                         // just handy with a 'trigger' button for testing
                         // ie. disaters
+#ifdef CHEAT
+                        credits += 100000;
+#endif
+#ifdef DEBUG
 			            MeteorDisaster(20,20);
+#endif
                         handled = 1;
                         break;
                     case menuitemID_removeDefence:
@@ -482,6 +492,7 @@ void UIPopUpExtraBuildList(void)
 
     ftList = FrmInitForm(formID_extraBuild);
     FrmSetEventHandler(ftList, hExtraList);
+    UpdateDescription(0);
     switch (FrmDoDialog(ftList)) 
     {
     case buttonID_extraBuildSelect:
@@ -499,9 +510,38 @@ void UIPopUpExtraBuildList(void)
     default:
         break;        
     }
+    CleanUpExtraBuildForm();
     UIUpdateBuildIcon();
     FrmDeleteForm(ftList);
 }
+
+FieldType * UpdateDescription(int sel)
+{
+    char * temp = MemPtrNew(256);
+    UInt16 index = FrmGetObjectIndex(FrmGetFormPtr(formID_extraBuild),labelID_extraBuildDescription);
+    FieldType * ctl = FrmGetObjectPtr(FrmGetFormPtr(formID_extraBuild),index);
+    
+    SysStringByIndex(strID_Descriptions,
+            sel,
+            temp,
+            256);
+
+    FldSetTextPtr(ctl, temp);
+    FldRecalculateField(ctl, true);
+    return ctl;
+
+}
+
+void CleanUpExtraBuildForm(void)
+{
+    FormPtr form = FrmGetFormPtr(formID_extraBuild);
+    void * ptr = (void*)FldGetTextPtr(FrmGetObjectPtr(
+                form,FrmGetObjectIndex(form,labelID_extraBuildDescription)));
+    if (ptr != 0) {
+        MemPtrFree(ptr);
+    }
+}
+
 
 static Boolean hExtraList(EventPtr event)
 {
@@ -513,18 +553,32 @@ static Boolean hExtraList(EventPtr event)
         case frmOpenEvent:
             game_in_progress = 0;
             form = FrmGetActiveForm();
+            UIWriteLog("open\n");
             FrmDrawForm(form);
             handled = 1;
             break;      
         case frmCloseEvent:
+            UIWriteLog("frmcloseeven\n");
             break;      
+        case lstSelectEvent:
+            if ((event->data.lstSelect.listID) == listID_extraBuildList) {
+                // clear old mem
+                FormPtr form = FrmGetActiveForm();
+                void * ptr = (void*)FldGetTextPtr(FrmGetObjectPtr(
+                            form,FrmGetObjectIndex(form,labelID_extraBuildDescription)));
+                FldDrawField(UpdateDescription(event->data.lstSelect.selection));
+                if (ptr != 0) {
+                    MemPtrFree(ptr);
+                }
+                handled = 1;
+            }
+            break;
         case keyDownEvent:
-            UIWriteLog("Key down\n");
             switch (event->data.keyDown.chr)
             {
                 case vchrCalc:
-                    /* close the quicksheet - simulate we pushed the bulldozer */
-                    CtlHitControl(FrmGetObjectPtr(FrmGetActiveForm(),FrmGetObjectIndex(FrmGetActiveForm(),buttonID_extraBuildCancel)));
+                    CtlHitControl(FrmGetObjectPtr(FrmGetActiveForm(),
+                                FrmGetObjectIndex(FrmGetActiveForm(),buttonID_extraBuildCancel)));
                     handled = 1;
                     break;
             }

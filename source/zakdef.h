@@ -28,8 +28,10 @@
 #define TYPE_FIRE2              64
 #define TYPE_FIRE3              65
 #define TYPE_REAL_WATER         66
-#define TYPE_CRATER		67
+#define TYPE_CRATER             67
 #define TYPE_FIRE_STATION       23
+#define TYPE_POLICE_STATION     24
+#define TYPE_MILITARY_BASE      25
 #define TYPE_POWER_PLANT        60
 #define TYPE_NUCLEAR_PLANT      61
 #define TYPE_WASTE              62

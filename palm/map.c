@@ -17,12 +17,7 @@ extern Boolean hMap(EventPtr event)
         case penDownEvent:
             if (event->screenX >= 1  && event->screenX <= mapsize+1 &&
                 event->screenY >= 17 && event->screenY <= mapsize+17) {
-                map_xpos = event->screenX-1-(visible_x/2);
-                map_ypos = event->screenY-17-(visible_y/2);
-                if (map_ypos < 0) { map_ypos = 0; }
-                if (map_ypos > mapsize-visible_y) { map_ypos = mapsize - visible_y; }
-                if (map_xpos < 0) { map_xpos = 0; }
-                if (map_xpos > mapsize-visible_x) { map_xpos = mapsize - visible_x; }
+                Goto(event->screenX-1, event->screenY-17);
                 FrmGotoForm(formID_pocketCity);
                 handled = 1;
             }

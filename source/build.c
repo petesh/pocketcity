@@ -58,6 +58,12 @@ extern void BuildSomething(int xpos, int ypos)
         case BUILD_FIRE_STATION:
             Build_Generic(xpos, ypos, BUILD_COST_FIRE_STATION, TYPE_FIRE_STATION);
             break;
+        case BUILD_POLICE_STATION:
+            Build_Generic(xpos, ypos, BUILD_COST_POLICE_STATION, TYPE_POLICE_STATION);
+            break;
+        case BUILD_MILITARY_BASE:
+            Build_Generic(xpos, ypos, BUILD_COST_MILITARY_BASE, TYPE_MILITARY_BASE);
+            break;
         case BUILD_DEFENCE_FIRE:     // fall through
         case BUILD_DEFENCE_POLICE:   // fall through
         case BUILD_DEFENCE_MILITARY:
@@ -200,6 +206,8 @@ extern void Build_Destroy(int xpos, int ypos)
     BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE2);
     BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE3);
     BuildCount[COUNT_FIRE_STATIONS] -= (type == TYPE_FIRE_STATION);
+    BuildCount[COUNT_POLICE_STATIONS] -= (type == TYPE_POLICE_STATION);
+    BuildCount[COUNT_MILITARY_BASES] -= (type == TYPE_MILITARY_BASE);
     updatePowerGrid = 1; // to make sure the powergrid is uptodate
     if (type == 81 || type == TYPE_REAL_WATER) {
         // A bridge turns into real_water when detroyed
@@ -228,6 +236,8 @@ void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nT
             BuildCount[COUNT_POWERPLANTS] += (nType == TYPE_POWER_PLANT);
             BuildCount[COUNT_NUCLEARPLANTS] += (nType == TYPE_NUCLEAR_PLANT);
             BuildCount[COUNT_FIRE_STATIONS] += (nType == TYPE_FIRE_STATION);
+            BuildCount[COUNT_POLICE_STATIONS] += (nType == TYPE_POLICE_STATION);
+            BuildCount[COUNT_MILITARY_BASES] += (nType == TYPE_MILITARY_BASE);
         } else {
             UIDisplayError(ERROR_OUT_OF_MONEY);
         }
