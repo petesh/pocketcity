@@ -1,6 +1,8 @@
 #include "../source/zakdef.h"
 
 // global vars from simcity.c
+#define SGTYP   'DATA'
+#define SGNAME  "PCitySave"
 extern short int game_in_progress;
 extern MemPtr worldPtr;
 extern MemPtr worldFlagsPtr;
