@@ -10,7 +10,7 @@ extern "C" {
 void newgame_handler(void);
 void savegameas_handler(void);
 void savegame_handler(void);
-void opengame_handler(gpointer data, guint action, GtkWidget *w);
+void opengame_handler(void);
 
 #ifdef __cplusplus
 }
