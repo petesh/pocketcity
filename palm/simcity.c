@@ -286,7 +286,7 @@ EventLoop(void)
 	UInt16 err;
 
 	for (;;) {
-		EvtGetEvent(&event, 1);
+		EvtGetEvent(&event, (Int32)100);
 		if (event.eType == appStopEvent) break;
 
 		if (event.eType == keyDownEvent)

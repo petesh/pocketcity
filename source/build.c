@@ -774,16 +774,16 @@ Build_Rail(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 		welem_t tobuil = 0;
 		switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos))) {
 		case Z_POWERLINE: /* straight power line - Horizontal */
-			tobuil = Z_RAILPOWER_RHOR;
-			break;
-		case Z_POWERLINE+1: /* Straight power line - Vertical */
 			tobuil = Z_RAILPOWER_RVER;
 			break;
+		case Z_POWERLINE+1: /* Straight power line - Vertical */
+			tobuil = Z_RAILPOWER_RHOR;
+			break;
 		case Z_PIPE_START: /* Straight water pipe - Horizontal */
-			tobuil = Z_RAILPIPE_RHOR;
+			tobuil = Z_RAILPIPE_RVER;
 			break;
 		case Z_PIPE_START+1: /* Straight water pipe - Vertical */
-			tobuil = Z_RAILPIPE_RVER;
+			tobuil = Z_RAILPIPE_RHOR;
 			break;
 		case Z_ROAD_START: /* Straight road - Horizontal */
 			tobuil = Z_RAILOVROAD_RVER;
