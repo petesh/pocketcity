@@ -70,6 +70,7 @@ StackPush(Stacky *sp, long value)
 long
 StackPop(Stacky *sp)
 {
+    assert(sp->sp != NULL);
     if (sp->sp >= sp->bp) {
         assert(sp->sp != NULL && sp->bp != NULL);
         return (*sp->sp--);
@@ -95,7 +96,8 @@ StackIsEmpty(Stacky *sp)
 void
 StackDoEmpty(Stacky *sp)
 {
-    sp->sp = sp->bp - 1;
+    if (sp->sp != NULL)
+        sp->sp = sp->bp - 1;
 }
 
 /*
