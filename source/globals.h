@@ -12,6 +12,7 @@ extern int tax;
 extern int TILE_SIZE;
 extern short updatePowerGrid;
 extern short unsigned int SIM_GAME_LOOP_SECONDS;
+extern char cityname[20];
 
 
 extern void LongToString(signed long value, char* out);
