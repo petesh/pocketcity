@@ -17,42 +17,22 @@ AppConfig_t gameConfig = {
     DEFAULT_APPCONFIG
 };
 
-int GetCiffer(int number, signed long value);
-
-int
-GetCiffer(int number, signed long value)
-{
-    if (value < 0) { value = 0-value; }
-
-    switch(number) {
-        case 10: return (value/1000000000);
-        case 9: return (value%1000000000/100000000);
-        case 8: return (value%100000000/10000000);
-        case 7: return (value%10000000/1000000);
-        case 6: return (value%1000000/100000);
-        case 5: return (value%100000/10000);
-        case 4: return (value%10000/1000);
-        case 3: return (value%1000/100);
-        case 2: return (value%100/10);
-        case 1: return (value%10);
-    }
-    return 0;
-
-
-}
-
-char*
-GetDate(char * temp)
+/*
+ * Get the date in the game
+ * XXX: deal with phenomenally big dates
+ */
+char *
+GetDate(char *temp)
 {
     char year[10];
     char months[]="JanFebMarAprMayJunJulAugSepOctNovDec";
 
-    temp[0] = months[(game.TimeElapsed%12)*3];
-    temp[1] = months[(game.TimeElapsed%12)*3+1];
-    temp[2] = months[(game.TimeElapsed%12)*3+2];
+    temp[0] = months[(game.TimeElapsed % 12) * 3];
+    temp[1] = months[(game.TimeElapsed % 12) * 3 + 1];
+    temp[2] = months[(game.TimeElapsed % 12) * 3 + 2];
     temp[3] = ' ';
 
-    sprintf(year, "%ld", (long)(game.TimeElapsed/12)+2000);
+    sprintf(year, "%ld", (long)(game.TimeElapsed / 12) + 2000);
     temp[4] = year[0];
     temp[5] = year[1];
     temp[6] = year[2];
@@ -62,6 +42,10 @@ GetDate(char * temp)
     return (char*)temp;
 }
 
+/*
+ * find a key in an array.
+ * Array is an array of possibly structs with key as the first element
+ */
 void *
 getIndexOf(char *ary, int addit, int key)
 {
@@ -72,3 +56,42 @@ getIndexOf(char *ary, int addit, int key)
     }
     return (0);
 }
+
+/*
+ * Get the disaster level setting of the game
+ */
+UInt8
+GetDisasterLevel(void)
+{
+    return (game.diff_disaster & 0xF);
+}
+
+/*
+ * Set The disaster Level of the game
+ */
+void
+SetDisasterLevel(UInt8 value)
+{
+    game.diff_disaster &= 0xf0;
+    game.diff_disaster |= ((value & 0x0f) << 4);
+}
+
+/*
+ * Get the difficulty level of the game
+ */
+UInt8
+GetDifficultyLevel(void)
+{
+    return ((game.diff_disaster >> 4) & 0xF);
+}
+
+/*
+ * Set the difficulty level of the game
+ */
+void
+SetDifficultyLevel(UInt8 value)
+{
+    game.diff_disaster &= 0xf;
+    game.diff_disaster |= ((value & 0x0f) << 4);
+}
+

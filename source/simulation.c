@@ -75,7 +75,11 @@ static void AddNeighbors(unsigned long pos);
  */
 static void DoDistribute(int grid);
 
-extern void
+/*
+ * Distribute to the grids.
+ * Does all the grids needed
+ */
+void
 Sim_Distribute(void)
 {
     if (NeedsUpdate(GRID_POWER)) {
@@ -88,6 +92,9 @@ Sim_Distribute(void)
     }
 }
 
+/*
+ * Do a grid distribution for the grid(s) specified
+ */
 void
 Sim_Distribute_Specific(int gridonly)
 {
@@ -103,6 +110,9 @@ Sim_Distribute_Specific(int gridonly)
     }
 }
 
+/*
+ * Check if the node is a power plant (Nuclear/Coal)
+ */
 static int
 IsItAPowerPlant(unsigned char point, unsigned char flags __attribute__((unused)))
 {
@@ -113,6 +123,10 @@ IsItAPowerPlant(unsigned char point, unsigned char flags __attribute__((unused))
     }
 }
 
+/*
+ * Check if the node is a Water Pump.
+ * It is a usable water pump if it has power.
+ */
 static int
 IsItAWaterPump(unsigned char point, unsigned char flags)
 {
@@ -132,6 +146,9 @@ static int SourceTotal;
 static int NodesTotal;
 static int NodesSupplied;
 
+/*
+ * Set the supplied bit for the point specified
+ */
 static void
 SetSupplied(unsigned long point)
 {
@@ -139,6 +156,9 @@ SetSupplied(unsigned long point)
     OrWorldFlags(point, flagToSet);
 }
 
+/*
+ * Add source to the grid.
+ */
 int
 SupplyIfPlant(unsigned long pos, unsigned char point, unsigned char status)
 {
@@ -160,6 +180,9 @@ SupplyIfPlant(unsigned long pos, unsigned char point, unsigned char status)
     return (pt);
 }
 
+/*
+ * Do Distribution of the grid (water/power)
+ */
 static void
 DoDistribute(int grid)
 {
@@ -198,13 +221,8 @@ DoDistribute(int grid)
                 DistributeUnvisited();
 		/* unpowered points are removed */
     		StackDoEmpty(needSourceList);
-#if defined(DEBUG)
-    		{ char op[80]; sprintf(op, "Grid#%d Supplied Nodes: %d/%d "
-                  " SrcRemain: %d/%d\n", grid,
-                  NodesSupplied, NodesTotal,
-                  SourceLeft, SourceTotal);
-		UIWriteLog(op); }
-#endif
+		WriteLog("Grid#%d Supplied Nodes: %d/%d SrcRemain: %d/%d\n",
+		    grid, NodesSupplied, NodesTotal, SourceLeft, SourceTotal);
     		SourceLeft = SourceTotal = 0;
 		NodesSupplied = NodesTotal = 0;
             }
@@ -216,6 +234,9 @@ DoDistribute(int grid)
     StackDelete(unvisitedNodes);
 }
 
+/*
+ * Distribute power to the unvisited list.
+ */
 static void
 DistributeUnvisited(void)
 {
@@ -252,6 +273,9 @@ nextneighbor:
     };
 }
 
+/*
+ * Add all the neighbors to this node to the unvisited list.
+ */
 static void
 AddNeighbors(unsigned long pos)
 {
@@ -289,7 +313,8 @@ Carries(unsigned long pos)
 }
 
 /* gives a status of the situation around us */
-int DistributeNumberOfSquaresAround(unsigned long pos)
+int
+DistributeNumberOfSquaresAround(unsigned long pos)
 {
     /* return:
      * 0001 00xx if up
@@ -344,7 +369,11 @@ DistributeMoveOn(unsigned long pos, dirType direction)
     return pos;
 }
 
-int ExistsNextto(unsigned long int pos, unsigned char what)
+/*
+ * Check that the node is next to a node of a certain type
+ */
+int
+ExistsNextto(unsigned long int pos, unsigned char what)
 {
     if (GetWorld(pos-GetMapSize())==what && !(pos < GetMapSize())) { return 1; }
     if (GetWorld(pos+1)==what && !((pos+1) >= GetMapMul())) { return 1; }
@@ -364,7 +393,11 @@ typedef struct {
 
 ZoneScore zones[256];
 
-void FindZonesForUpgrading()
+/*
+ * Find a bunch of zones and decide to upgrade/downgrade them
+ */
+void
+FindZonesForUpgrading(void)
 {
     int i;
     long randomZone;
@@ -384,30 +417,27 @@ void FindZonesForUpgrading()
     }
 }
 
+unsigned int counter=0;
 
 /*
-    The score finding routine is divided into small
-    bits of 10 zones per run.
-    This is to free the programflow to take care of
-    user interaction - in general, all functions
-    in the simulation part should complete in under 3/4 second,
-    or the user might see the program as being slow.
-
-    Still wondering why there's no support for multitaskning in PalmOS...
-    */
-
-unsigned int counter=0;
-int FindScoreForZones()
+ * The score finding routine is divided into small bits of 10 zones per run.
+ * This is to free the programflow to take care of user interaction.
+ * All functions in the simulation part should complete in under 3/4 second,
+ * or the user might see the program as being slow.
+ */
+int
+FindScoreForZones(void)
 {
     int i;
     long score;
     counter += 20;
-    for (i = counter-20; i < (signed)counter; i++)
-    {
-        if (i>=256) { counter = 0; return 0; } /* this was the last zone! */
+    for (i = counter-20; i < (signed)counter; i++) {
+        if (i >= 256) {
+		counter = 0;
+		return (0);
+	}
 
         if (zones[i].used == 1) {
-            
             score = GetZoneScore(zones[i].pos);
             if (score != -1) {
                 zones[i].score = score;
@@ -418,27 +448,28 @@ int FindScoreForZones()
             }
         }
     }
-    return 1; /* there's still more zones that need a score. */
+    return (1); /* there's still more zones that need a score. */
 }
 
-
-void UpgradeZones()
+/*
+ * Upgrade the best zones
+ * XXX: this is an O(n^2) algorithm. It should be O(2n) at mo.st
+ */
+void
+UpgradeZones(void)
 {
-    int i,j,topscorer;
+    int i, j, topscorer;
     long topscore;
-
-    int downCount = 11*10+30;
-    int upCount = (0-8)*10+250;
+    int downCount = 11 * 10 + 30;
+    int upCount = (0 - 8) * 10 + 250;
 
     /* upgrade the bests */
-    for (i=0; i<256 && i<upCount; i++)
-    {
+    for (i = 0; i < 256 && i < upCount; i++) {
         topscore = 0;
         topscorer = -1;
 
         /* find the one with max points */
-        for (j=0; j<256; j++)
-        {
+        for (j = 0; j < 256; j++) {
             if (zones[j].score > topscore && zones[j].used == 1) {
                 topscore = zones[j].score;
                 topscorer = j;
@@ -455,14 +486,12 @@ void UpgradeZones()
     }
 
     /* downgrade the worst */
-    for (i=0; i<256 && i<downCount; i++)
-    {
+    for (i = 0; i < 256 && i < downCount; i++) {
         topscore = -1;
         topscorer = -1;
 
         /* find the one with min points */
-        for (j=0; j<256; j++)
-        {
+        for ( j = 0; j < 256; j++) {
             if (zones[j].score < topscore && zones[j].used == 1) {
                 topscore = zones[j].score;
                 topscorer = j;
@@ -479,44 +508,40 @@ void UpgradeZones()
     }
 }
 
-
-
+/*
+ * Downgrade the zone at the position specified
+ */
 static void
 DowngradeZone(unsigned long pos)
 {
     int type;
-    LockWorld();
 
+    LockWorld();
     type = GetWorld(pos);
-    if (type >= TYPE_COMMERCIAL_MIN && type <= TYPE_COMMERCIAL_MAX)
-    {
+    if (type >= TYPE_COMMERCIAL_MIN && type <= TYPE_COMMERCIAL_MAX) {
         SetWorld(pos, (type == TYPE_COMMERCIAL_MIN) ? ZONE_COMMERCIAL : type-1);
         vgame.BuildCount[COUNT_COMMERCIAL]--;
-    }
-    else if (type >= TYPE_RESIDENTIAL_MIN && type <= TYPE_RESIDENTIAL_MAX)
-    {
+    } else if (type >= TYPE_RESIDENTIAL_MIN && type <= TYPE_RESIDENTIAL_MAX) {
         SetWorld(pos, (type == TYPE_RESIDENTIAL_MIN) ? ZONE_RESIDENTIAL :
           type-1);
         vgame.BuildCount[COUNT_RESIDENTIAL]--;
-    }
-    else if (type >= TYPE_INDUSTRIAL_MIN && type <= TYPE_INDUSTRIAL_MAX)
-    {
+    } else if (type >= TYPE_INDUSTRIAL_MIN && type <= TYPE_INDUSTRIAL_MAX) {
         SetWorld(pos, (type == TYPE_INDUSTRIAL_MIN) ? ZONE_INDUSTRIAL : type-1);
         vgame.BuildCount[COUNT_INDUSTRIAL]--;
     }
-
     UnlockWorld();
 }
 
+/*
+ * Upgrade the zone a the position
+ */
 static void
 UpgradeZone(unsigned long pos)
 {
     int type;
 
     LockWorld();
-
     type = GetWorld(pos);
-
     if (type == ZONE_COMMERCIAL || (type >= TYPE_COMMERCIAL_MIN &&
           type <= (TYPE_COMMERCIAL_MAX - 1))) {
         SetWorld(pos, (type == ZONE_COMMERCIAL) ? TYPE_COMMERCIAL_MIN : type+1);
@@ -534,21 +559,92 @@ UpgradeZone(unsigned long pos)
     UnlockWorld();
 }
 
+/*
+ * Walk the road, looking for things at the end
+ * XXX: actually do this
+ */
 static int
 DoTheRoadTrip(unsigned long startPos)
 {
     return (1); /* for now */
 }
 
+/*
+ * Describe the zone at the point specified
+ * Crap: has strings, localization issues.
+ * XXX: No strings.
+ */
+/*
+void
+describeZone(UInt8 zone, struct zoneTypeValue *ztv)
+{
+    ztv->value = 0;
+    ztv->pollution = 0;
+    ztv-> crime = 0;
+    ztv->description[0] = '\0';
+    if (zone == TYPE_DIRT)
+        sprintf(ztv->description, "Dirt");
+    if (zone == TYPE_COMMERCIAL)
+        sprintf(ztv->description, "Commercial - seeded");
+    if (zone == TYPE_RESIDENTIAL)
+        sprintf(ztv->description, "Residential - seeded");
+    if (zone == TYPE_INDUSTRIAL)
+        sprintf(ztv->description, "Industrial - seeded");
 
+    if (zone >= TYPE_COMMERCIAL_MIN && elt <= TYPE_COMMERCIAL_MAX) {
+        sprintf(ztv->description, "Commercial");
+        ztv->value = zone - TYPE_COMMERCIAL_MIN;
+    }
+    if (zone >= TYPE_RESIDENTIAL_MIN && elt <= TYPE_RESIDENTIAL_MAX) {
+        sprintf(ztv->description, "Residential");
+        ztv->value = zone - TYPE_RESIDENTIAL_MIN;
+    }
+    if (zone >= TYPE_INDUSTRIAL_MIN && elt <= TYPE_INDUSTRIAL_MAX) {
+        sprintf(ztv->description, "Residential");
+        ztv->value = zone - TYPE_INDUSTRIAL_MIN;
+    }
+    if (zone == TYPE_TREE) {
+        sprintf(ztv->description, "Tree");
+    }
+    if (zone == TYPE_WATER) {
+        sprintf(ztv->description, "Water");
+    }
+    if (zone == TYPE_REAL_WATER)
+        sprintf(ztv->description, "Real Water");
+    if (zone == TYPE_POWERROAD_1 || elt == TYPE_POWERROAD_2)
+        sprintf(ztv->description, "Power/Road combination");
+    if (zone == TYPE_POWER_LINE)
+        sprintf(ztv->description, "Power Line");
+    if (zone == TYPE_POWER_PLANT)
+        sprintf(ztv->description, "Coal Power Plant");
+    if (zone == TYPE_NUCLEAR_PLANT)
+        sprintf(ztv->description, "Nuclear Power Plant");
+    if (zone == TYPE_WASTE)
+        sprintf(ztv->description, "Wasteland");
+    if (zone == TYPE_FIRE_1 || zone == TYPE_FIRE_2 || zone == TYPE_FIRE_3)
+        sprintf(ztv->description, "Fire!");
+    if (zone == TYPE_FIRE_STATION)
+        sprintf(ztv->description, "Fire Station");
+    if (zone == TYPE_POLICE_STATION)
+        sprintf(ztv->description, "Police Station");
+    if (zone == TYPE_MILITARY_BASE)
+        sprintf(ztv->description, "Military Base");
+    if (zone == TYPE_WATER_PIPE)
+        sprintf(ztv->description, "Water Pipe");
+    if (zone == TYPE_WATER_PIPE)
+        sprintf(ztv->description, "Water Pipe");
+
+}
+*/
+
+/*
+ * Get the score for this zone.
+ * Returns -1 if the zone needs to be downgraded because of a lack of
+ * water/power.
+ */
 long
 GetZoneScore(unsigned long pos)
 {
-    /*
-     * return -1 to make this zone be downgraded _right now_
-     * (ie. if missing things as power or roads)
-     */
-
     long score = -1; /* I'm evil to begin with */
     int x = pos % GetMapSize();
     int y = pos / GetMapSize();
@@ -634,7 +730,9 @@ unlock_ret:
     return (score);
 }
 
-
+/*
+ * Get the score for the zone specified.
+ */
 int
 GetScoreFor(unsigned char iamthis, unsigned char what)
 {
@@ -681,7 +779,11 @@ GetScoreFor(unsigned char iamthis, unsigned char what)
     return 0;
 }
 
-
+/*
+ * Get a zone on the world.
+ * Must be one of the Residential / Industrial /commercial zones
+ * XXX: remove the magic numbers
+ */
 unsigned long
 GetRandomZone()
 {
@@ -704,70 +806,83 @@ GetRandomZone()
     return -1;
 }
 
+/*
+ * Get a number for the budget.
+ */
 long
 BudgetGetNumber(BudgetNumber type)
 {
     long ret = 0;
     switch (type) {
-        case bnResidential:
-            ret = (long)vgame.BuildCount[COUNT_RESIDENTIAL]
-                    * INCOME_RESIDENTIAL
-                    * game.tax/100;
-            break;
-        case bnCommercial:
-            ret = (long)vgame.BuildCount[COUNT_COMMERCIAL]
-                    * INCOME_COMMERCIAL
-                    * game.tax/100;
-            break;
-        case bnIndustrial:
-            ret = (long)vgame.BuildCount[COUNT_INDUSTRIAL]
-                    * INCOME_INDUSTRIAL
-                    * game.tax/100;
-            break;
-        case bnTraffic:
-            ret = (long)(vgame.BuildCount[COUNT_ROADS] * UPKEEP_ROAD
-                    * game.upkeep[UPKEEPS_TRAFFIC])/100;
-            break;
-        case bnPower:
-            ret = (long)((vgame.BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE +
-                    vgame.BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT +
-                    vgame.BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT)
-                    * game.upkeep[UPKEEPS_POWER])/100;
-            break;
-        case bnDefence:
-            ret = (long)((vgame.BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS +
-                     vgame.BuildCount[COUNT_POLICE_STATIONS]*UPKEEP_POLICE_STATIONS +
-                     vgame.BuildCount[COUNT_MILITARY_BASES]*UPKEEP_MILITARY_BASES)
-                    * game.upkeep[UPKEEPS_DEFENCE])/100;
-            break;
-        case bnCurrentBalance:
-            ret = game.credits;
-            break;
-        case bnChange:
-            ret = (long)BudgetGetNumber(bnResidential)
-                  + BudgetGetNumber(bnCommercial)
-                  + BudgetGetNumber(bnIndustrial)
-                  - BudgetGetNumber(bnTraffic)
-                  - BudgetGetNumber(bnPower)
-                  - BudgetGetNumber(bnDefence);
-            break;
-        case bnNextMonth:
-            ret = (long)BudgetGetNumber(bnCurrentBalance) +
-                  BudgetGetNumber(bnChange);
-            break;
+    case bnResidential:
+        ret = (long)vgame.BuildCount[COUNT_RESIDENTIAL] *
+            INCOME_RESIDENTIAL * game.tax/100;
+        break;
+    case bnCommercial:
+        ret = (long)vgame.BuildCount[COUNT_COMMERCIAL] *
+            INCOME_COMMERCIAL * game.tax/100;
+        break;
+    case bnIndustrial:
+        ret = (long)vgame.BuildCount[COUNT_INDUSTRIAL] *
+            INCOME_INDUSTRIAL * game.tax/100;
+        break;
+    case bnTraffic:
+        ret = (long)(vgame.BuildCount[COUNT_ROADS] * UPKEEP_ROAD *
+            game.upkeep[UPKEEPS_TRAFFIC])/100;
+        break;
+    case bnPower:
+        ret = (long)((vgame.BuildCount[COUNT_POWERLINES] *
+                UPKEEP_POWERLINE +
+                vgame.BuildCount[COUNT_NUCLEARPLANTS] *
+                UPKEEP_NUCLEARPLANT +
+                vgame.BuildCount[COUNT_POWERPLANTS] *
+                UPKEEP_POWERPLANT) *
+            game.upkeep[UPKEEPS_POWER])/100;
+        break;
+    case bnDefence:
+        ret = (long)((vgame.BuildCount[COUNT_FIRE_STATIONS] *
+                UPKEEP_FIRE_STATIONS +
+                vgame.BuildCount[COUNT_POLICE_STATIONS] *
+                UPKEEP_POLICE_STATIONS +
+                vgame.BuildCount[COUNT_MILITARY_BASES] *
+                UPKEEP_MILITARY_BASES)
+            * game.upkeep[UPKEEPS_DEFENCE])/100;
+        break;
+    case bnCurrentBalance:
+        ret = game.credits;
+        break;
+    case bnChange:
+        ret = (long)BudgetGetNumber(bnResidential)
+            + BudgetGetNumber(bnCommercial)
+            + BudgetGetNumber(bnIndustrial)
+            - BudgetGetNumber(bnTraffic)
+            - BudgetGetNumber(bnPower)
+            - BudgetGetNumber(bnDefence);
+        break;
+    case bnNextMonth:
+        ret = (long)BudgetGetNumber(bnCurrentBalance) +
+            BudgetGetNumber(bnChange);
+        break;
     }
-
-    return ret;
+    return (ret);
 }
 
-void DoTaxes()
+/*
+ * Add money because of taxes
+ */
+void
+DoTaxes()
 {
     game.credits += BudgetGetNumber(bnResidential) +
                     BudgetGetNumber(bnCommercial) +
                     BudgetGetNumber(bnIndustrial);
 }
 
-void DoUpkeep()
+/*
+ * Take away money because of upkeep costs
+ */
+void
+DoUpkeep()
 {
     unsigned long upkeep;
 
@@ -779,7 +894,7 @@ void DoUpkeep()
         game.credits -= upkeep;
         return;
     }
-    UIWriteLog("*** Negative Cashflow\n");
+    WriteLog("*** Negative Cashflow\n");
     game.credits = 0;
     
     /* roads */
@@ -790,73 +905,77 @@ void DoUpkeep()
     DoNastyStuffTo(TYPE_FIRE_STATION, 10);
     DoNastyStuffTo(TYPE_POLICE_STATION, 12);
     DoNastyStuffTo(TYPE_MILITARY_BASE, 35);
-    
 }
 
-extern int Sim_DoPhase(int nPhase)
+/*
+ * Perform a phase of the simulation
+ * XXX: break into separate functions and a jump table.
+ */
+int
+Sim_DoPhase(int nPhase)
 {
-    switch (nPhase)
-    {
-        case 1:
-            if (NeedsUpdate(GRID_POWER)) {
-                UIWriteLog("Simulation phase 1 - power grid\n");
-                Sim_Distribute_Specific(GRID_POWER);
-                ClearUpdate(GRID_POWER);
-            }
-            nPhase =2;
-            break;
-        case 2:
-            if (NeedsUpdate(GRID_WATER)) {
-                UIWriteLog("Simulation phase 2 - water grid\n");
-                Sim_Distribute_Specific(GRID_WATER);
-                ClearUpdate(GRID_WATER);
-            }
-            nPhase = 3;
-            break;
-        case 3:
-            UIWriteLog("Simulation phase 3 - Find zones for upgrading\n");
-            FindZonesForUpgrading();
-            nPhase=4;
-	    /* this can't be below */
-            UIWriteLog("Simulation phase 4 - Find score for zones\n");
-            break;
-        case 4:
-            if (FindScoreForZones() == 0) {
-                nPhase=5;
-            }
-            break;
-        case 5:
-            UIWriteLog("Simulation phase 5 - Upgrade Zones\n");
-            UpgradeZones();
-            nPhase=6;
-            break;
-        case 6:
-            UIWriteLog("Simulation phase 6 - Update disasters\n");
-            /* UpdateDisasters(); */
-            DoRandomDisaster();
-            nPhase = 7;
-            break;
-        case 7:
-            UIWriteLog("Simulation phase 7 - Economics\n");
-            DoTaxes();
-            game.TimeElapsed++;
-            nPhase=0;
-            UIInitDrawing();
-            UIDrawCredits();
-            UIDrawPop();
-            UICheckMoney();
-            DoUpkeep();
-            UIFinishDrawing();
-            break;
+    switch (nPhase) {
+    case 1:
+        if (NeedsUpdate(GRID_POWER)) {
+            WriteLog("Simulation phase 1 - power grid\n");
+            Sim_Distribute_Specific(GRID_POWER);
+            ClearUpdate(GRID_POWER);
+        }
+        nPhase = 2;
+        break;
+    case 2:
+        if (NeedsUpdate(GRID_WATER)) {
+            WriteLog("Simulation phase 2 - water grid\n");
+            Sim_Distribute_Specific(GRID_WATER);
+            ClearUpdate(GRID_WATER);
+        }
+        nPhase = 3;
+        break;
+    case 3:
+        WriteLog("Simulation phase 3 - Find zones for upgrading\n");
+        FindZonesForUpgrading();
+        nPhase = 4;
+        /* this can't be below */
+        WriteLog("Simulation phase 4 - Find score for zones\n");
+        break;
+    case 4:
+        if (FindScoreForZones() == 0)
+            nPhase = 5;
+        break;
+    case 5:
+        WriteLog("Simulation phase 5 - Upgrade Zones\n");
+        UpgradeZones();
+        nPhase = 6;
+        break;
+    case 6:
+        WriteLog("Simulation phase 6 - Update disasters\n");
+        /* UpdateDisasters(); */
+        DoRandomDisaster();
+        nPhase = 7;
+        break;
+    case 7:
+        WriteLog("Simulation phase 7 - Economics\n");
+        DoTaxes();
+        game.TimeElapsed++;
+        nPhase = 0;
+        UIInitDrawing();
+        UIDrawCredits();
+        UIDrawPop();
+        UICheckMoney();
+        DoUpkeep();
+        UIFinishDrawing();
+        break;
     }
-
-    return nPhase;
+    
+    return (nPhase);
 }
 
-extern void
+/*
+ * Updates the BuildCount array after a load game
+ */
+void
 UpdateVolatiles(void)
 {
-    /* Updates the BuildCount array after a load game */
     long p;
 
     LockWorld();
@@ -873,8 +992,11 @@ UpdateVolatiles(void)
         if (IsRoad(elt)) vgame.BuildCount[COUNT_ROADS]++;
         if (elt == TYPE_TREE) vgame.BuildCount[COUNT_TREES]++;
         if (elt == TYPE_WATER) vgame.BuildCount[COUNT_WATER]++;
-        if (elt == TYPE_POWERROAD_2 || elt == TYPE_POWERROAD_1 ||
-          elt == TYPE_POWER_LINE) vgame.BuildCount[COUNT_POWERLINES]++;
+        if (elt == TYPE_POWERROAD_2 || elt == TYPE_POWERROAD_1) {
+            vgame.BuildCount[COUNT_POWERLINES]++;
+            vgame.BuildCount[COUNT_ROADS]++;
+        }
+        if (elt == TYPE_POWER_LINE) vgame.BuildCount[COUNT_POWERLINES]++;
         if (elt == TYPE_POWER_PLANT) vgame.BuildCount[COUNT_POWERPLANTS]++;
         if (elt == TYPE_NUCLEAR_PLANT)
             vgame.BuildCount[COUNT_NUCLEARPLANTS]++;
@@ -888,6 +1010,13 @@ UpdateVolatiles(void)
         if (elt == TYPE_MILITARY_BASE)
             vgame.BuildCount[COUNT_MILITARY_BASES]++;
         if (elt == TYPE_WATER_PIPE) vgame.BuildCount[COUNT_WATERPIPES]++;
+        if (elt == TYPE_WATERROAD_1 || elt == TYPE_WATERROAD_2) {
+            vgame.BuildCount[COUNT_WATERPIPES]++;
+            vgame.BuildCount[COUNT_ROADS]++;
+        }
+        if (elt == TYPE_ROAD)
+            vgame.BuildCount[COUNT_ROADS]++;
+
         if (elt == TYPE_WATER_PUMP) vgame.BuildCount[COUNT_WATER_PUMPS]++; 
     }
     UnlockWorld();

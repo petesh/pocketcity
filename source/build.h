@@ -18,6 +18,8 @@ typedef enum {
     Be_Fire_Station,
     Be_Police_Station,
     Be_Military_Base,
+    Be_Query,
+    /* Here begins OFFSET_EXTRA */
     /* Defense items are bigger. */
     Be_Defence_Fire,
     Be_Defence_Police,

@@ -61,15 +61,22 @@ typedef enum {
     dtLeft
 } dirType;
 
+struct zoneTypeValue {
+    char        description[255];
+    UInt8       value;
+    UInt8       pollution;
+    UInt8       crime;
+};
+
 /*
  * these might be used here, but
  * the graphic slot is still free for other
  * uses and are used for the water/powerloss
  * overlay at the moment
  */
+#define TYPE_POWER_LINE         5
 #define TYPE_WATER_PIPE         8
 #define TYPE_ROAD               4
-#define TYPE_POWER_LINE         5
 #define TYPE_NOT_USED           9
 
 #define TYPE_POWERROAD_1        6
@@ -216,24 +223,25 @@ typedef struct _game_struct05 {
     UInt16          gameLoopSeconds;    /* Speed */
     Int8            cityname[20];       /* Name of city */
     UInt8           upkeep[3];          /* upkeep %ages for bits */
-    UInt8           disaster_level;     /* rate of disasters */
+    UInt8           diff_disaster;      /* rate of disasters */
     DefenceUnit     units[10];          /* Defence Units */
     MoveableObject  objects[10];        /* Special objects */
 } GameStruct05;
 
 /* Desired new version */
 typedef struct _game_struct06 {
-    Int8                version[4];
-    UInt8               mapsize;
-    Int8                bigendian;
-    Int8                map_xpos;
-    Int8                map_ypos;
-    Int32               credits;
-    UInt32              TimeElapsed;
-    UInt8               tax;
-    UInt8               gameLoopSeconds;
-    Int8                cityname[20];
-    UInt8               disaster_level;
+    Int8                version[4];     /* version of game */
+    UInt8               mapsize;        /* size of map, it's a square */
+    Int8                bigendian;      /* Do I really need this? */
+    Int8                map_xpos;       /* position on screen that's visible */
+    Int8                map_ypos;       /* Position on screen that's visible */
+    Int32               credits;        /* amount of money we've got. */
+    UInt32              TimeElapsed;    /* number of months since 00 */
+    UInt8               tax;            /* tax rate */
+    UInt8               gameLoopSeconds;/* speed of game */
+    UInt8               diff_disaster;  /* merge of difficulty and disaster */
+    UInt8               auto_bulldoze;  /* are we auto-bulldozing ... could be merged with previous field */
+    Int8                cityname[20];   /* Name of city */
     /* howsat ? */
     UInt16              defenceUnitCount;
     UInt16              moveableObjectCount;

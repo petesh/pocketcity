@@ -56,9 +56,9 @@ void MapHasJumped(void);
 unsigned long GetRandomNumber(unsigned long max);
 void UISetTileSize(int size);
 #ifdef DEBUG
-void UIWriteLog(char*);
+void WriteLog(char*, ...);
 #else
-#define UIWriteLog(x)
+#define WriteLog(...)
 #endif
 
 #if defined(__cplusplus)

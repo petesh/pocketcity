@@ -21,14 +21,20 @@ unsigned short int GetDefenceValue(int xpos, int ypos);
 unsigned short int ContainsDefence(int x, int y);
 void MonsterCheckSurrounded(int i);
 void CreateMeteor(int x, int y, int size);
-        
-extern void DoNastyStuffTo(int type, unsigned int probability)
+
+/*
+ * Do nasty things to a location.
+ * based on the probability which is normalized from 0 - 100
+ */
+void
+DoNastyStuffTo(int type, unsigned int probability)
 {
     /* nasty stuff means: turn it into wasteland */
     long unsigned int randomTile;
     int i,x,y;
 
-    if (GetRandomNumber(probability) != 0) { return; } /* nothing happened :( */
+    if (GetRandomNumber(probability) != 0)
+        return;
 
     LockWorld();
     for (i=0; i<50; i++) {
@@ -46,16 +52,20 @@ extern void DoNastyStuffTo(int type, unsigned int probability)
     return;
 }
 
+/*
+ * Do a random disaster.
+ */
 void
 DoRandomDisaster(void)
 {
     unsigned long randomTile;
     int i,x,y, type, random;
-#ifdef DEBUG
-    char temp[10];
-#endif
+    int disaster_level;
+
+    disaster_level = GetDisasterLevel();
     /* for those who can't handle the game (truth?) */
-    if (game.disaster_level == 0) { return; }
+    if (disaster_level == 0)
+        return;
 
     LockWorld();
 
@@ -67,14 +77,9 @@ DoRandomDisaster(void)
             type != TYPE_CRATER) {
             x = randomTile % GetMapSize();
             y = randomTile / GetMapSize();
-	    /* TODO: should depend on difficulty */
-            random = GetRandomNumber((4-game.disaster_level) * 1000);
-#ifdef DEBUG
-            sprintf(temp, "%d", random);
-            UIWriteLog("Random disaster: ");
-            UIWriteLog(temp);
-            UIWriteLog("\n");
-#endif
+            /* TODO: should depend on difficulty */
+            random = GetRandomNumber((4-disaster_level) * 1000);
+            WriteLog("Random Disaster: %d", random);
             if (random < 10 && vgame.BuildCount[COUNT_FIRE] == 0) {
                 DoSpecificDisaster(diFireOutbreak);
             } else if (random < 15 && game.objects[OBJ_MONSTER].active == 0) {
@@ -91,6 +96,9 @@ DoRandomDisaster(void)
     UnlockWorld();
 }
 
+/*
+ * Deliberately cause a disaster.
+ */
 void
 DoSpecificDisaster(erdiType disaster)
 {
@@ -130,6 +138,9 @@ DoSpecificDisaster(erdiType disaster)
     }
 }
 
+/*
+ * Make sure the disasters are still happening
+ */
 int
 UpdateDisasters(void)
 {
@@ -170,9 +181,14 @@ UpdateDisasters(void)
     return retval;
 }
 
-void CreateWaste(int x, int y)
+/*
+ * Turn the zone into slag
+ */
+void
+CreateWaste(int x, int y)
 {
     int type;
+
     LockWorld();
     type = GetWorld(WORLDPOS(x,y));
     Build_Destroy(x,y);
@@ -190,15 +206,26 @@ void CreateWaste(int x, int y)
     }
 }
 
-void FireSpread(int x, int y) 
+/*
+ * Cause a fire to spread out from the point chosen
+ */
+void
+FireSpread(int x, int y) 
 {
-    if (x > 0) { BurnField(x-1,y,0); }
-    if (x < GetMapSize()-1) { BurnField(x+1,y,0); }
-    if (y > 0) { BurnField(x,y-1,0); }
-    if (y < GetMapSize()-1) { BurnField(x,y+1,0); }
+    if (x > 0)
+        BurnField(x-1,y,0);
+    if (x < GetMapSize()-1)
+        BurnField(x+1,y,0);
+    if (y > 0)
+        BurnField(x,y-1,0);
+    if (y < GetMapSize()-1)
+        BurnField(x,y+1,0);
 }
 
-
+/*
+ * burn the field specified.
+ * Can be forced to burn.
+ */
 int
 BurnField(int x, int y, int forceit)
 {
@@ -208,20 +235,18 @@ BurnField(int x, int y, int forceit)
     LockWorldFlags();
     type = GetWorld(WORLDPOS(x,y));
     if ((forceit != 0 &&
-         type != TYPE_BRIDGE &&
-         type != TYPE_REAL_WATER)
-        ||
+            type != TYPE_BRIDGE &&
+            type != TYPE_REAL_WATER) ||
         (type != TYPE_FIRE1 &&
-        type != TYPE_FIRE2 &&
-        type != TYPE_FIRE3 &&
-        type != TYPE_DIRT  &&
-        type != TYPE_WASTE &&
-        type != TYPE_WATER &&
-        type != TYPE_REAL_WATER &&
-        type != TYPE_CRATER &&
-        type != TYPE_BRIDGE &&
-        ContainsDefence(x,y) == 0)) {
-
+         type != TYPE_FIRE2 &&
+         type != TYPE_FIRE3 &&
+         type != TYPE_DIRT  &&
+         type != TYPE_WASTE &&
+         type != TYPE_WATER &&
+         type != TYPE_REAL_WATER &&
+         type != TYPE_CRATER &&
+         type != TYPE_BRIDGE &&
+         ContainsDefence(x,y) == 0)) {
         Build_Destroy(x,y);
         SetWorld(WORLDPOS(x,y), TYPE_FIRE1);
         SetScratch(WORLDPOS(x,y));
@@ -229,19 +254,21 @@ BurnField(int x, int y, int forceit)
         vgame.BuildCount[COUNT_FIRE]++;
         UnlockWorldFlags();
         UnlockWorld();
-        return 1;
+        return (1);
     }
     UnlockWorldFlags();
     UnlockWorld();
-    return 0;
+    return (0);
 }
 
-
+/*
+ * Create a monster at the location specified.
+ */
 int
 CreateMonster(int x, int y)
 {
-    /* return true on success, false on error */
     int type;
+
     LockWorld();
     type = GetWorld(WORLDPOS(x,y));
     UnlockWorld();
@@ -251,16 +278,19 @@ CreateMonster(int x, int y)
         game.objects[OBJ_MONSTER].dir = GetRandomNumber(8);
         game.objects[OBJ_MONSTER].active = 1;
         DrawField(x,y);
-        return 1;
+        return (1);
     }
-    return 0;
+    return (0);
 }
 
+/*
+ * Create a dragon at the location.
+ */
 int
 CreateDragon(int x, int y)
 {
-    /* return true on success, false on error */
     int type;
+
     LockWorld();
     type = GetWorld(WORLDPOS(x,y));
     UnlockWorld();
@@ -270,23 +300,29 @@ CreateDragon(int x, int y)
         game.objects[OBJ_DRAGON].dir = GetRandomNumber(8);
         game.objects[OBJ_DRAGON].active = 1;
         DrawField(x,y);
-        return 1;
+        return (1);
     }
-    return 0;
+    return (0);
 }
 
-
+/*
+ * Check if a monster is surrounded by defensive units.
+ */
 void
 MonsterCheckSurrounded(int i) 
 {
-    if (GetDefenceValue(game.objects[i].x,game.objects[i].y) >= 11 ||
-	GetRandomNumber(50) < 2) {
+    if (GetDefenceValue(game.objects[i].x, game.objects[i].y) >= 11 ||
+        GetRandomNumber(50) < 2) {
         game.objects[i].active = 0; /* kill the sucker */
-        UIWriteLog("killing a monster\n");
+        WriteLog("killing a monster\n");
     }
 }
 
-unsigned short int GetDefenceValue(int xpos, int ypos)
+/*
+ * Get the value of the defence fields around this point
+ */
+unsigned short int
+GetDefenceValue(int xpos, int ypos)
 {
     /* police = 2 */
     /* firemen = 3 */
@@ -295,41 +331,55 @@ unsigned short int GetDefenceValue(int xpos, int ypos)
     ContainsDefence(xpos+1, ypos)+
     ContainsDefence(xpos+1, ypos+1)+
     ContainsDefence(xpos+1, ypos-1)+
-    ContainsDefence(xpos,ypos+1)+
-    ContainsDefence(xpos,ypos-1)+
-    ContainsDefence(xpos-1,ypos)+
-    ContainsDefence(xpos-1,ypos+1)+
-    ContainsDefence(xpos-1,ypos+1);
+    ContainsDefence(xpos, ypos+1)+
+    ContainsDefence(xpos, ypos-1)+
+    ContainsDefence(xpos-1, ypos)+
+    ContainsDefence(xpos-1, ypos+1)+
+    ContainsDefence(xpos-1, ypos+1);
     return def;
 }
 
-unsigned short int ContainsDefence(int x, int y)
+/*
+ * check if the node has a defence position within it.
+ * If it does, return the value of that defence.
+ */
+unsigned short int
+ContainsDefence(int x, int y)
 {
     int i;
-    for (i=0; i<NUM_OF_UNITS; i++) {
+
+    for (i = 0; i < NUM_OF_UNITS; i++) {
         if (game.units[i].x == x &&
             game.units[i].y == y &&
             game.units[i].active != 0) {
             switch(game.units[i].type) {
-                case DuPolice: return 2;
-                case DuFireman: return 3;
-                case DuMilitary: return 6;
-                default: return 0;
+            case DuPolice:
+                return (2);
+            case DuFireman:
+                return (3);
+            case DuMilitary:
+                return (6);
+            default:
+                return (0);
             }
         }
     }
-    return 0;
+    return (0);
 }
 
-extern void MoveAllObjects(void)
-{
-    int i,x,y;
-    for (i=0; i<NUM_OF_OBJECTS; i++) {
-        if (game.objects[i].active != 0) {
 
+/*
+ * Move all the elements around the screen.
+ */
+void
+MoveAllObjects(void)
+{
+    int i, x, y;
+
+    for (i = 0; i < NUM_OF_OBJECTS; i++) {
+        if (game.objects[i].active != 0) {
             /* hmm, is this thing destructive? */
             if (i == OBJ_DRAGON) {
-                /* sure it is :D */
                 if (!BurnField(game.objects[i].x, game.objects[i].y,1)) {
                     CreateWaste(game.objects[i].x, game.objects[i].y);
                 }
@@ -343,61 +393,61 @@ extern void MoveAllObjects(void)
             x = game.objects[i].x; /* save old position */
             y = game.objects[i].y;
 
-            switch(GetRandomNumber(OBJ_CHANCE_OF_TURNING))
-            { /* should we let it turn? */
-                case 1: /* yes, clockwise */
-                    game.objects[i].dir = (game.objects[i].dir+1)%8;
-                    break;
-                case 2: /* yes, counter-clockwise */
-                    game.objects[i].dir = (game.objects[i].dir+7)%8;
-                    break;
-                default: break; 
+            switch (GetRandomNumber(OBJ_CHANCE_OF_TURNING)) {
+            case 1: /* yes, clockwise */
+                game.objects[i].dir = (game.objects[i].dir+1)%8;
+                break;
+            case 2: /* yes, counter-clockwise */
+                game.objects[i].dir = (game.objects[i].dir+7)%8;
+                break;
+            default:
+                break; 
             }
             /* now move it a nod */
-            switch(game.objects[i].dir) { /* first up/down */
-                case 0: /* up */
-                case 1: /* up-right */
-                case 7: /* up-left */
-                    if (game.objects[i].y > 0) {
-                        game.objects[i].y--;
-                    } else {
-                        game.objects[i].dir = 4;
-                    }
-                    break;
-                case 3: /* down-right */
-                case 4: /* down */
-                case 5: /* down-left */
-                    if (game.objects[i].y < GetMapSize()-1) { 
-                        game.objects[i].y++; 
-                    } else {
-                        game.objects[i].dir = 0;
-                    }
-                    break;
-                default:
-                    break;
+            switch (game.objects[i].dir) { /* first up/down */
+            case 0: /* up */
+            case 1: /* up-right */
+            case 7: /* up-left */
+                if (game.objects[i].y > 0) {
+                    game.objects[i].y--;
+                } else {
+                    game.objects[i].dir = 4;
+                }
+                break;
+            case 3: /* down-right */
+            case 4: /* down */
+            case 5: /* down-left */
+                if (game.objects[i].y < GetMapSize()-1) { 
+                    game.objects[i].y++; 
+                } else {
+                    game.objects[i].dir = 0;
+                }
+                break;
+            default:
+                break;
             }
 
-            switch(game.objects[i].dir) { /* then left/right */
-                case 1: /* up-right */
-                case 2: /* right */
-                case 3: /* down-right */
-                    if (game.objects[i].x < GetMapSize()-1) { 
-                        game.objects[i].x++; 
-                    } else {
-                        game.objects[i].dir = 6;
-                    }
-                    break;
-                case 5: /* down-left */
-                case 6: /* left */
-                case 7: /* up-left */
-                    if (game.objects[i].x > 0) { 
-                        game.objects[i].x--; 
-                    } else {
-                        game.objects[i].dir = 2;
-                    }
-                    break;
-                default:
-                    break;
+            switch (game.objects[i].dir) { /* then left/right */
+            case 1: /* up-right */
+            case 2: /* right */
+            case 3: /* down-right */
+                if (game.objects[i].x < GetMapSize()-1) { 
+                    game.objects[i].x++; 
+                } else {
+                    game.objects[i].dir = 6;
+                }
+                break;
+            case 5: /* down-left */
+            case 6: /* left */
+            case 7: /* up-left */
+                if (game.objects[i].x > 0) { 
+                    game.objects[i].x--; 
+                } else {
+                    game.objects[i].dir = 2;
+                }
+                break;
+            default:
+                break;
             }
             DrawCross(x, y); /* draw where it came from (erase it) */
             DrawField(game.objects[i].x, game.objects[i].y); /* draw object */
@@ -405,28 +455,39 @@ extern void MoveAllObjects(void)
     }
 }
 
-extern int MeteorDisaster(int x, int y)
+/*
+ * We've had a meteor strike on the map at that location.
+ */
+int
+MeteorDisaster(int x, int y)
 {
     int k;
-    k = GetRandomNumber(3)+1;
+
+    k = GetRandomNumber(3) + 1;
     CreateMeteor(x,y,k);
     return 1;
 }
 
-void CreateMeteor(int x, int y, int size)
+/*
+ * Create a waste zone for the meteor.
+ */
+void
+CreateMeteor(int x, int y, int size)
 {
-    int i,j;
+    int i, j;
+
     LockWorld();
     UILockScreen();
-    for (i=x-size; i<=x+size; i++) {
-        for (j=y-size; j<=y+size; j++) {
+    for (i = x - size; i <= x + size; i++) {
+        for (j = y - size; j <= y + size; j++) {
             if (i >= 0 && i < GetMapSize() && j >= 0 && j < GetMapSize()) {
                 if (GetRandomNumber(5) < 2) {
                     if (GetWorld(WORLDPOS(i,j)) != TYPE_REAL_WATER) {
                         CreateWaste(i,j);
                     }
                 } else if (GetRandomNumber(5) < 4) {
-                    if (GetWorld(WORLDPOS(i,j)) != TYPE_REAL_WATER && GetWorld(WORLDPOS(i,j)) != TYPE_WATER) {
+                    if (GetWorld(WORLDPOS(i,j)) != TYPE_REAL_WATER &&
+                        GetWorld(WORLDPOS(i,j)) != TYPE_WATER) {
                         BurnField(i,j,1);
                     }
                 }
