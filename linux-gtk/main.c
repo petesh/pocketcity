@@ -225,17 +225,9 @@ void SetUpMainWindow(void)
 
     // setup the toolbox
     {
-        char labels[] = "Bu\0Ro\0Po\0"
-                        "Re\0Co\0In\0"
-                        "Tr\0Wa\0WP\0"
-                        "PP\0NP\0Wa\0"
-                        "FS\0PS\0MB\0"
-                        "  \0  \0  \0"
-                        "DF\0DP\0DM\0"
-                        "  \0  \0  \0"
-                        "  \0  \0  \0"
-                        "  \0  \0  \0";
+        GtkWidget *button_image;
         int i;
+        char image_path[40];
         gint actions[] = { BUILD_BULLDOZER,BUILD_ROAD,BUILD_POWER_LINE,
                             BUILD_ZONE_RESIDENTIAL,BUILD_ZONE_COMMERCIAL,BUILD_ZONE_INDUSTRIAL,
                             BUILD_TREE,BUILD_WATER,BUILD_WATER_PIPE,
@@ -248,8 +240,13 @@ void SetUpMainWindow(void)
                             -1,-1,-1 };
                             
         for (i=0; i<30; i++) {
-            if (*(labels+i*3) == ' ') { continue; }
-            button = gtk_button_new_with_label(labels+i*3);
+            if (actions[i] == -1) { continue; }
+            
+            button = gtk_button_new();
+            sprintf(image_path,"graphic/icons/interface_%02i.xpm",i);
+            button_image = gtk_image_new_from_file(image_path);
+            gtk_container_add(GTK_CONTAINER(button), button_image);
+            
             g_signal_connect(G_OBJECT(button),"clicked",
                 G_CALLBACK(toolbox_callback), GINT_TO_POINTER(actions[i]));
             gtk_table_attach_defaults(GTK_TABLE(toolbox), button, (i%3), (i%3)+1, (i/3), (i/3)+1);
