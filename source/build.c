@@ -681,6 +681,8 @@ Build_Road(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			tobuil = Z_RAILOVROAD_RVER;
 			break;
 		}
+		if (tobuil == 0)
+			goto leaveme;
 		if (SpendMoney(toSpend)) {
 			setWorldAndFlag(WORLDPOS(xpos, ypos), tobuil, 0);
 			DrawCross(xpos, ypos, 1, 1);
@@ -790,6 +792,8 @@ Build_Rail(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			tobuil = Z_RAILOVROAD_RHOR;
 			break;
 		}
+		if (tobuil == 0)
+			goto leaveme;
 		if (SpendMoney(toSpend)) {
 			setWorldAndFlag(WORLDPOS(xpos, ypos), tobuil, 0);
 			DrawCross(xpos, ypos, 1, 1);
@@ -914,6 +918,8 @@ Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			tobuil = Z_RAILPOWER_RVER;
 			break;
 		}
+		if (tobuil == 0)
+			goto leaveme;
 		if (SpendMoney(toSpend)) {
 			setWorldAndFlag(WORLDPOS(xpos, ypos), tobuil, 0);
 			DrawCross(xpos, ypos, 1, 1);
@@ -923,6 +929,7 @@ Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			UIProblemNotify(peOutOfMoney);
 		}
 	}
+leaveme:
 	UnlockZone(lz_world);
 	return (rv);
 }
@@ -979,6 +986,8 @@ Build_WaterPipe(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			elt = Z_POWER_WATER_PVER;
 			break;
 		}
+		if (elt == 0)
+			goto leaveme;
 		if (SpendMoney(toSpend)) {
 			setWorldAndFlag(WORLDPOS(xpos, ypos), elt, 0);
 			DrawCross(xpos, ypos, 1, 1);
@@ -988,6 +997,7 @@ Build_WaterPipe(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 			UIProblemNotify(peOutOfMoney);
 		}
 	}
+leaveme:
 	UnlockZone(lz_world);
 	return (rv);
 }
