@@ -8,7 +8,7 @@ DTARGETS=dlores dpalm5 dsony cheat
 
 .PHONY: %-nextdir
 .NOTPARALLEL:
-.PRECIOUS: %.stm %.rcp
+.PRECIOUS: %.stm
 
 # Resource PDBs (graphical; non-language)
 DEPTHS := bw twobit grey color merged
@@ -52,6 +52,8 @@ DSTAMP := $(shell date "+%Y/%m/%d@%H:%M")
 
 all: all-nextdir $(TARGETS)
 debug: debug-nextdir $(DTARGETS)
+nearlylive: all-nextdir
+dist: all-nextdir
 
 $(TARGETS) $(DTARGETS): VER $(COLORTARGETS)
 	$(MAKE) $(MAKEFLAGS) -f Makefile-dowork BINARY=$(BINNAME) \
@@ -93,10 +95,9 @@ DISTFILES=../INSTALL ../CHANGELOG ../COPYING ../GAMEHINTS ../README
 # This is the first target listed; hence it is the default target.
 full: $(TARGETS)
 
-dist nearlylive: $(NDTARGETS)
+dist nearlylive: all-nextdir $(NDTARGETS)
 	@mkdir -p $(DDIR)
-	@cp $(DISTFILES) *.pdb $(DDIR)
-	@ cp $$I/*.prc $(DDIR)
+	@cp $(DISTFILES) *.pdb *.prc $(DDIR)
 	@tar cvf - $(DDIR) | gzip -9c >$(DDIR).tar.gz
 	@zip -9R $(DDIR).zip $(DDIR)/*
 	@rm -rf $(DDIR)
