@@ -4,6 +4,11 @@
 #define ERROR_OUT_OF_MEMORY		1
 #define ERROR_OUT_OF_MONEY		2
 
+#define SPEED_SLOW          15
+#define SPEED_MEDIUM        10
+#define SPEED_FAST          5
+#define SPEED_TURBO         1
+#define SPEED_PAUSED        0
 
 
 #define ZONE_COMMERCIAL			1
@@ -23,7 +28,4 @@
 #define INDUSTRIAL_UNDEVEL			9
 
 #define WORLDPOS(x,y)			((x)+(y)*mapsize)
-
-
-short unsigned int SIM_GAME_LOOP_SECONDS;
 

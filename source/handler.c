@@ -13,7 +13,7 @@ extern void ZakMain(void)
 	InitWorld();
 	ResizeWorld(mapsize*mapsize);
 	SetUpGraphic();
-    SIM_GAME_LOOP_SECONDS = 9999999;
+    SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
 }
 
 

@@ -45,7 +45,6 @@ BEGIN
 	MENUITEM "Turbo"   menuID_TurboSpeed
 	MENUITEM SEPARATOR
 	MENUITEM "Pause" menuID_PauseSpeed
-	MENUITEM "Unpause" menuID_UnPauseSpeed
   END
 END
 
@@ -80,4 +79,10 @@ begin
         message "You're running low on money!!"
         buttons "Uh-oh!"
 end
+
+BITMAP ID bitmapID_SpeedPaused         "graphic/speed_paused.bmp" COMPRESS
+BITMAP ID bitmapID_SpeedSlow           "graphic/speed_slow.bmp" COMPRESS
+BITMAP ID bitmapID_SpeedNormal         "graphic/speed_normal.bmp" COMPRESS
+BITMAP ID bitmapID_SpeedFast           "graphic/speed_fast.bmp" COMPRESS
+BITMAP ID bitmapID_SpeedUltra          "graphic/speed_ultra.bmp" COMPRESS
 

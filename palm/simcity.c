@@ -22,7 +22,6 @@ short int lowShown = 0;
 short int noShown = 0;
 short int oldROM = 0;
 short int building = 0;
-short int tempSpeed;
 
 UInt32 timeStamp = 0;
 short simState = 0;
@@ -98,7 +97,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 			if (FrmDispatchEvent(&event)) continue;
 
 			// the almighty homemade >>"multithreader"<<
-            if (building == 0) 
+            if (building == 0 && SIM_GAME_LOOP_SECONDS != SPEED_PAUSED)
             {
                 if (simState == 0)
                 {
@@ -145,7 +144,6 @@ void _PalmInit(void)
 
 static Boolean hPocketCity(EventPtr event)
 {
-	UInt32 timeTemp;
 	FormPtr form;
 	int handled = 0;
 
@@ -158,10 +156,22 @@ static Boolean hPocketCity(EventPtr event)
 		handled = 1;
 		break;
 	case penDownEvent:
-		if (RctPtInRectangle(event->screenX, event->screenY, &rPlayGround))
-		{
+        if (RctPtInRectangle(event->screenX, event->screenY, &rPlayGround)) {
+            // click was on the playground
 			_UIGetFieldToBuildOn(event->screenX, event->screenY);
-		}
+        } else if (event->screenX >= 150 && event->screenY >= 150) {
+            // click was on change speed
+            switch (SIM_GAME_LOOP_SECONDS)
+            {
+                case SPEED_PAUSED:
+                    SIM_GAME_LOOP_SECONDS = SPEED_MEDIUM;
+                    break;
+                default:
+                    SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
+                    break;
+            }
+            UIDrawPop();
+        }
 		// check for other 'penclicks' here
 		break;
 	case penMoveEvent:
@@ -185,75 +195,29 @@ static Boolean hPocketCity(EventPtr event)
 			switch (event->data.menu.itemID)
 			{
 			case menuID_SlowSpeed:
-				SIM_GAME_LOOP_SECONDS = 15;
-				tempSpeed = SIM_GAME_LOOP_SECONDS;
-				timeTemp = TimGetSeconds();
-				if (timeTemp >= timeStamp+SIM_GAME_LOOP_SECONDS)
-				{
-				simState = 1;
-				timeStamp = timeTemp;
-				}
+				SIM_GAME_LOOP_SECONDS = SPEED_SLOW;
 				UIDrawPop();
 				handled = 1;
 				break;
 			case menuID_MediumSpeed:
-				SIM_GAME_LOOP_SECONDS = 10;
-				tempSpeed = SIM_GAME_LOOP_SECONDS;
-				timeTemp = TimGetSeconds();
-				if (timeTemp >= timeStamp+SIM_GAME_LOOP_SECONDS)
-				{
-				simState = 1;
-				timeStamp = timeTemp;
-				}
+				SIM_GAME_LOOP_SECONDS = SPEED_MEDIUM;
 				UIDrawPop();
 				handled = 1;
 				break;
 			case menuID_FastSpeed:
-				SIM_GAME_LOOP_SECONDS = 5;
-				tempSpeed = SIM_GAME_LOOP_SECONDS;
-				timeTemp = TimGetSeconds();
-				if (timeTemp >= timeStamp+SIM_GAME_LOOP_SECONDS)
-				{
-				simState = 1;
-				timeStamp = timeTemp;
-				}
+				SIM_GAME_LOOP_SECONDS = SPEED_FAST;
 				UIDrawPop();
 				handled = 1;
 				break;
 			case menuID_TurboSpeed:
-				SIM_GAME_LOOP_SECONDS = 0;
-				tempSpeed = SIM_GAME_LOOP_SECONDS;
-				timeTemp = TimGetSeconds();
-				if (timeTemp >= timeStamp+SIM_GAME_LOOP_SECONDS)
-				{
-				simState = 1;
-				timeStamp = timeTemp;
-				}
+				SIM_GAME_LOOP_SECONDS = SPEED_TURBO;
 				UIDrawPop();
 				handled = 1;
 				break;
 			case menuID_PauseSpeed:
-				tempSpeed = SIM_GAME_LOOP_SECONDS;
-				SIM_GAME_LOOP_SECONDS = 9999999;
-				timeTemp = TimGetSeconds();
-				if (timeTemp >= timeStamp+SIM_GAME_LOOP_SECONDS)
-				{
-				simState = 1;
-				timeStamp = timeTemp;
-				}
+				SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
 				UIDrawPop();
 				handled = 1;
-				break;
-			case menuID_UnPauseSpeed:
-				SIM_GAME_LOOP_SECONDS = tempSpeed;
-				timeTemp = TimGetSeconds();
-				if (timeTemp >= timeStamp+SIM_GAME_LOOP_SECONDS)
-				{
-					simState = 1;
-					timeStamp = timeTemp;
-				}
-				UIDrawPop();
-                                handled = 1;
 				break;
 			}
 		}
@@ -284,9 +248,7 @@ static Boolean hPocketCity(EventPtr event)
 		}
         default:
             break;
-
 	}
-
 	
 	return handled;
 }
@@ -457,37 +419,18 @@ extern void UIDrawCredits(void)
 
 extern void UIDrawPop(void)
 {
-	short unsigned int speed = SIM_GAME_LOOP_SECONDS;
-	char temp[40];
+	char temp[50];
+	MemHandle  bitmaphandle;
+	BitmapPtr  bitmap;
 	RectangleType rect;
+
     if (DoDrawing == 0) { return; }
-    if(speed == 15) {
-	    StrPrintF(temp, "(%02u,%02u) Pop: %9li           Slow",
+
+    
+	StrPrintF(temp, "(%02u,%02u) Pop: %-9li",
         	    map_xpos,
 	            map_ypos,
 	            (BuildCount[COUNT_RESIDENTIAL]*25));
-    } else if(speed == 10) {
-	char temp[40];
-	StrPrintF(temp, "(%02u,%02u) Pop: %9li             Medium",
-    	          map_xpos,
-    	          map_ypos,
-    	          (BuildCount[COUNT_RESIDENTIAL]*25));
-    } else if(speed == 5) {
-	StrPrintF(temp, "(%02u,%02u) Pop: %9li              Fast",
-    	          map_xpos,
-    	          map_ypos,
-    	          (BuildCount[COUNT_RESIDENTIAL]*25));
-    } else if(speed == 0) {
-    	StrPrintF(temp, "(%02u,%02u) Pop: %9li             Turbo",
-    	          map_xpos,
-    	          map_ypos,
-    	          (BuildCount[COUNT_RESIDENTIAL]*25));
-    } else if(speed == 9999999) {
-    	StrPrintF(temp, "(%02u,%02u) Pop: %9li            Paused",
-    	          map_xpos,
-    	          map_ypos,
-    	          (BuildCount[COUNT_RESIDENTIAL]*25));
-    }	                              	                              
     	                              
     	                              
 	rect.topLeft.x = 3;
@@ -497,6 +440,12 @@ extern void UIDrawPop(void)
 	
 	WinEraseRectangle(&rect,0);
     WinDrawChars((char*)temp,StrLen(temp),3,148);
+
+    
+	bitmaphandle = DmGet1Resource( TBMP, bitmapID_SpeedPaused + SIM_GAME_LOOP_SECONDS);
+	bitmap = MemHandleLock(bitmaphandle);
+	WinPaintBitmap(bitmap, 150,150);
+	MemHandleUnlock(bitmaphandle);
 }
 
 extern void UICheckMoney(void)

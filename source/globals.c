@@ -11,7 +11,7 @@ long unsigned int TimeElapsed=0; // months since Jan 2000
 
 short updatePowerGrid = 1;
 
-
+short unsigned int SIM_GAME_LOOP_SECONDS = 0;
 
 
 #ifdef __palmos__

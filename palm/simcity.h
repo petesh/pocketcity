@@ -1,3 +1,4 @@
+#include "../source/zakdef.h"
 #define formID_pocketCity				1000
 
 #define menuID_pocketCity				1000
@@ -11,9 +12,8 @@
 #define menuID_FastSpeed				1054
 #define menuID_TurboSpeed				1055
 #define menuID_PauseSpeed				1056
-#define menuID_UnPauseSpeed				1057
 
-#define poplabel					1055
+#define poplabel			    		1055
 
 #define menuitemID_buildBulldoze		1100
 #define menuitemID_buildResidential		1101
@@ -29,8 +29,16 @@
 
 #define alertID_errorOutOfMemory		1000
 #define alertID_RomIncompatible			1001
-#define alertID_outMoney			1002
-#define alertID_lowFunds			1003
+#define alertID_outMoney		    	1002
+#define alertID_lowFunds			    1003
+
+// the jumps in these defines makes coding easier
+#define bitmapID_SpeedPaused			3000
+#define bitmapID_SpeedSlow  			3015
+#define bitmapID_SpeedNormal			3010
+#define bitmapID_SpeedFast	    		3005
+#define bitmapID_SpeedUltra		    	3001
+
 
 
 //#define bitmapID_ScrollBars				2000 FREE FOR NEW USE!
