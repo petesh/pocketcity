@@ -12,7 +12,6 @@
 #define menuID_pocketCity                1000
 #define menuID_budget                    1001
 #define menuID_map                       1002
-#define menuID_files                     1003
 
 #define menuitemID_loadGame              1001
 #define menuitemID_saveGame              1002
@@ -127,10 +126,6 @@
 #define buttonID_FilesNew               1361
 #define buttonID_FilesLoad              1362
 #define buttonID_FilesDelete            1363
-// menu for files
-#define menuitemID_FilesNew             1360
-#define menuitemID_FilesOpen            1361
-#define menuitemID_FilesDelete          1362
 
 // controls for files=>new
 #define fieldID_newGameName             1010
