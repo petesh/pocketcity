@@ -8,6 +8,7 @@
 #include <globals.h>
 #include <drawing.h>
 #include <resCompat.h>
+#include <palmutils.h>
 #include <sections.h>
 
 static void DrawMap(void) MAP_SECTION;

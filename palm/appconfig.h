@@ -9,12 +9,13 @@ typedef enum ButtonEvent {
     BeRight,
     BePopup,
     BeMap,
+    BePassthrough
 #ifdef SONY_CLIE
+    ,
     BeJogUp,
     BeJogDown,
-    BeJogRelease,
+    BeJogRelease
 #endif
-    BePassthrough
 } ButtonEvent;
 
 typedef enum buttonKeys {
@@ -24,13 +25,13 @@ typedef enum buttonKeys {
     BkHardDown,
     BkToDo,
     BkMemo,
+    BkCalc,
+    BkFind,
 #ifdef SONY_CLIE
     BkJogUp,
     BkJogDown,
     BkJogRelease,
 #endif
-    BkCalc,
-    BkFind,
     BkEnd /* Unused */
 } ButtonKey;
 
@@ -48,14 +49,14 @@ typedef struct _PalmAppConfig_01 {
 typedef PalmAppConfig_01_t PlatformAppConfig;
 
 #ifdef SONY_CLIE
-#define SONYEV BeJogUp, BeJogDown, BeJogRelease,
+#define SONYEV , BeJogUp, BeJogDown, BeJogRelease
 #else
 #define SONYEV
 #endif
 
 #define DEFAULT_APPCONFIG       { \
     { BePassthrough, BeLeft, BeUp, BeDown, BeRight, BePassthrough, \
-      SONYEV BePopup, BeMap } \
+      BePopup, BeMap SONYEV } \
 }
 
 #endif /* _APPCONFIG_H */

@@ -3,12 +3,6 @@
 
 #include <PalmTypes.h>
 #include <Window.h>
-Boolean canColor(UInt16 nbits);
-Err changeDepthRes(UInt32 ncolors);
-Err restoreDepthRes(void);
-UInt32 getDepth(void);
-UInt32 GetCreatorID(void);
-
 #ifdef SONY_CLIE
 #include <Font.h>
 #include <FontSelect.h>

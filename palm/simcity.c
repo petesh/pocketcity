@@ -16,6 +16,7 @@
 #include <simulation.h>
 #include <disaster.h>
 #include <resCompat.h>
+#include <palmutils.h>
 #include <simcity_resconsts.h>
 
 #ifdef DEBUG
@@ -56,6 +57,7 @@ static Boolean hQuickList(EventPtr event);
 static Boolean hExtraList(EventPtr event);
 static Boolean hOptions(EventPtr event);
 static Boolean hButtonConfig(EventPtr event);
+
 static void _PalmInit(void);
 static void _PalmFini(void);
 static void buildSilkList(void);
@@ -570,13 +572,14 @@ DoAbout(void)
     MemPtr vs = NULL;
     MemHandle bh;
     MemPtr bs = NULL;
+    const char *qq = "??";
 
     vh = DmGetResource('tver', 1);
     if (vh != NULL) vs = MemHandleLock(vh);
-    if (vh == NULL) vs = "Unknown Version";
+    if (vh == NULL) vs = (MemPtr)qq;
     bh = DmGetResource('tSTR', StrID_build);
     if (bh != NULL) bs = MemHandleLock(bh);
-    if (bh == NULL) bs = "Unknown Build Time";
+    if (bh == NULL) bs = (MemPtr)qq;
     FrmCustomAlert(alertID_about, vs, bs, NULL);
     if (vh) {
         MemPtrUnlock(vs);
@@ -609,11 +612,19 @@ UIPopUpExtraBuildList(void)
 {
     FormType * ftList;
     int sfe;
+    static Char **lp;
+    UInt16 poplen;
 
     ftList = FrmInitForm(formID_extraBuild);
     FrmSetEventHandler(ftList, hExtraList);
+    lp = FillStringList(strID_Items, &poplen);
+    LstSetListChoices(FrmGetObjectPtr(ftList, FrmGetObjectIndex(ftList, listID_extraBuildList)), lp, poplen);
+
     UpdateDescription(0);
     sfe = FrmDoDialog(ftList);
+
+    FreeStringList(lp);
+
     switch (sfe) {
     case buttonID_extraBuildSelect:
         /* List entries must match entries in BuildCodes 0 .. */
@@ -641,16 +652,38 @@ UIPopUpExtraBuildList(void)
     FrmDeleteForm(ftList);
 }
 
-FieldType * UpdateDescription(int sel)
+FieldType *
+UpdateDescription(int sel)
 {
+    Int16 cost;
     char * temp = MemPtrNew(256);
-    UInt16 index = FrmGetObjectIndex(FrmGetFormPtr(formID_extraBuild),
-      labelID_extraBuildDescription);
-    FieldType * ctl = FrmGetObjectPtr(FrmGetFormPtr(formID_extraBuild), index);
+    Int16 *ch;
+    MemHandle mh;
+    FormType *fp;
+    FieldType * ctl;
+
+    fp = FrmGetFormPtr(formID_extraBuild);
+    ctl = FrmGetObjectPtr(fp, FrmGetObjectIndex(fp, labelID_extraBuildDescription));
 
     SysStringByIndex(strID_Descriptions, sel, temp, 256);
     FldSetTextPtr(ctl, temp);
     FldRecalculateField(ctl, true);
+
+    mh = DmGet1Resource('wrdl', wdlID_Costs);
+    if (mh != NULL) {
+        ch = MemHandleLock(mh);
+        cost = ch[sel+1];
+        MemHandleUnlock(mh);
+        DmReleaseResource(mh);
+    } else {
+        cost = -1;
+    }
+    temp = MemPtrNew(16);
+    ctl = FrmGetObjectPtr(fp, FrmGetObjectIndex(fp, labelID_extraBuildPrice));
+    StrPrintF(temp, "%d", cost);
+    FldSetTextPtr(ctl, temp);
+    FldRecalculateField(ctl, true);
+
     return ctl;
 }
 
@@ -662,7 +695,6 @@ void CleanUpExtraBuildForm(void)
     if (ptr != 0)
         MemPtrFree(ptr);
 }
-
 
 static Boolean
 hExtraList(EventPtr event)
@@ -679,7 +711,7 @@ hExtraList(EventPtr event)
         handled = 1;
         break;
     case frmCloseEvent:
-        UIWriteLog("frmcloseeven\n");
+        UIWriteLog("frmcloseevent\n");
         break;
     case lstSelectEvent:
         if ((event->data.lstSelect.listID) == listID_extraBuildList) {
@@ -687,9 +719,13 @@ hExtraList(EventPtr event)
             FormPtr form = FrmGetActiveForm();
             void * ptr = (void*)FldGetTextPtr(FrmGetObjectPtr(form,
                   FrmGetObjectIndex(form, labelID_extraBuildDescription)));
+            void * ptr2 = (void*)FldGetTextPtr(FrmGetObjectPtr(form,
+                  FrmGetObjectIndex(form, labelID_extraBuildPrice)));
             FldDrawField(UpdateDescription(event->data.lstSelect.selection));
             if (ptr != 0)
                 MemPtrFree(ptr);
+            if (ptr2 != 0)
+                MemPtrFree(ptr2);
             handled = 1;
         }
         break;
@@ -838,14 +874,6 @@ static Boolean hOptions(EventPtr event)
     return (handled);
 }
 
-static const char *bc_Choices[] = { "Ignore",
-	"Up", "Down", "Left", "Right",
-	"Pop Up", "Map",
-#ifdef SONY_CLIE
-	"Jog Up", "Jog Down", "Jog Swap",
-#endif
-	"Default" };
-#define BC_CHOICELEN (sizeof(bc_Choices)/sizeof(bc_Choices[0]))
 static const struct bc_chelts {
     UInt16 popup;
     UInt16 list;
@@ -857,13 +885,13 @@ static const struct bc_chelts {
     { List_HrDn_Popup, List_HrDn, BkHardDown },
     { List_ToDo_Popup, List_ToDo, BkToDo },
     { List_Memo_Popup, List_Memo, BkMemo },
+    { List_Calc_Popup, List_Calc, BkCalc },
+    { List_Find_Popup, List_Find, BkFind },
 #ifdef SONY_CLIE
     { List_JogUp_Popup, List_JogUp, BkJogUp },
     { List_JogDn_Popup, List_JogDn, BkJogDown },
     { List_JogOut_Popup, List_JogOut, BkJogRelease },
 #endif
-    { List_Calc_Popup, List_Calc, BkCalc },
-    { List_Find_Popup, List_Find, BkFind },
     { 0, 0, 0 }
 };
 
@@ -874,23 +902,29 @@ static Boolean hButtonConfig(EventPtr event)
     ButtonKey bk;
     int handled = 0;
     static char okHit = 0;
+    static char **Popups;
 
     switch (event->eType) {
-    case frmOpenEvent:
+    case frmOpenEvent: {
+        Int16 poplen;
+
         form = FrmGetActiveForm();
         FrmDrawForm(form);
         okHit = 0;
+
         /* do the buttons */
         for (bk = BkCalendar; bc_elts[bk].popup != 0; bk++) {
             ListType *lp;
+            Popups = FillStringList(StrID_Popups, &poplen);
             CtlSetLabel(FrmGetObjectPtr(form, FrmGetObjectIndex(form, bc_elts[bk].popup)),
-              bc_Choices[gameConfig.pc.keyOptions[bk]]);
+              Popups[gameConfig.pc.keyOptions[bk]]);
             lp = FrmGetObjectPtr(form, FrmGetObjectIndex(form, bc_elts[bk].list));
-            LstSetListChoices(lp, (Char **)bc_Choices, BC_CHOICELEN);
+            LstSetListChoices(lp, (Char **)Popups, poplen);
             LstSetSelection(lp, gameConfig.pc.keyOptions[bk]);
         }
         handled = 1;
         break;
+                       }
     case frmCloseEvent:
         if (okHit) {
             form = FrmGetActiveForm();
@@ -898,6 +932,7 @@ static Boolean hButtonConfig(EventPtr event)
                 gameConfig.pc.keyOptions[bk] =
                     LstGetSelection(FrmGetObjectPtr(form, FrmGetObjectIndex(form, bc_elts[bk].list)));
             }
+            FreeStringList(Popups);
         }
         RestoreSpeed()
         break;
@@ -1712,6 +1747,15 @@ HardButtonEvent(ButtonKey key)
     case BeRight:
         ScrollMap(dtRight);
         break;
+    case BePopup:
+	UIDoQuickList();
+	break;
+    case BeMap:
+	SaveSpeed();
+	FrmGotoForm(formID_map);
+	break;
+    case BePassthrough:
+        return (0);
 #ifdef SONY_CLIE
     case BeJogUp:
 	if (!IsDrawWindowMostOfScreen()) return (1);
@@ -1733,15 +1777,6 @@ HardButtonEvent(ButtonKey key)
 	UIDrawLoc();
 	break;
 #endif
-    case BePopup:
-	UIDoQuickList();
-	break;
-    case BeMap:
-	SaveSpeed();
-	FrmGotoForm(formID_map);
-	break;
-    case BePassthrough:
-        return (0);
     default:
         break;
     }
@@ -1758,13 +1793,13 @@ static struct _silkKeys {
 	{ vchrHard2, BkAddress },
 	{ vchrHard3, BkToDo },
 	{ vchrHard4, BkMemo },
+	{ vchrFind, BkFind },
+	{ 1, BkCalc },
 #ifdef SONY_CLIE
 	{ vchrJogUp, BkJogUp },
 	{ vchrJogDown, BkJogDown },
 	{ vchrJogRelease, BkJogRelease },
 #endif
-	{ vchrFind, BkFind },
-	{ 1, BkCalc },
 	{ 0, 0 }
 };
 

@@ -17,6 +17,7 @@
 #include <handler.h>
 #include <simulation.h>
 #include <resCompat.h>
+#include <palmutils.h>
 
 void _UIUpdateSaveGameList(void);
 void _UICreateNewSaveGame(void);

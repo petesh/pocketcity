@@ -171,8 +171,11 @@
 #define buttonID_extraBuildPolice       1017
 #define buttonID_extraBuildMilitary     1018
 
-#define labelID_extraBuildDescription   1019
-#define strID_Descriptions              1020
+#define labelID_extraBuildPrice         1019
+#define labelID_extraBuildDescription   1020
+#define strID_Descriptions              1021
+#define strID_Items                     1022
+#define wdlID_Costs                     1023
 
 #define bitmapID_zones      1600
 #define bitmapID_monsters   1601
@@ -187,6 +190,7 @@
 
 #define StrID_tips   1021
 #define StrID_build   1022
+#define StrID_Popups    1023
 
 #define List_Cal        2500
 #define List_Cal_Popup  2501
