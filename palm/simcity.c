@@ -225,12 +225,14 @@ static Boolean hPocketCity(EventPtr event)
                          if (FrmAlert(alertID_loadGame) == 0) {
                              UILoadGame();
 			     DrawGame(1);
+			     FrmAlert(alertID_gameLoaded);
                          }
                          handled = 1;
                          break;
                     case menuitemID_saveGame:
                          if (FrmAlert(alertID_saveGame) == 0) {
                              UISaveGame();
+                             FrmAlert(alertID_gameSaved);
                          }
                          handled = 1;
                          break;
@@ -737,6 +739,8 @@ void UILoadGame(void)
             UnlockWorld();
             // update the power grid:
             Sim_DistributePower();
+        } else {
+        	FrmAlert(alertID_invalidSaveVersion);
         }
         MemHandleUnlock(rec);
     }
