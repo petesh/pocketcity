@@ -4,6 +4,8 @@ ICONFAMILY "graphic/pcity.bmp" "" "" "graphic/pcity-color.bmp"
 SMALLICONFAMILY "graphic/pcitysmall.bmp" "" "" "graphic/pcitysmall-color.bmp"
 LAUNCHERCATEGORY ID 1000 "Games"
 
+#include "langs.rcp"
+
 FORM ID formID_pocketCity AT ( 0 0 160 160 )
 NOFRAME
 USABLE
@@ -14,43 +16,43 @@ END
 
 MENU ID menu_pocketCity
 BEGIN
-  PULLDOWN "Game"
+  PULLDOWN "M_GAME"
   BEGIN
-    MENUITEM "New/Load..."                      menuitemID_loadGame
-	MENUITEM "Save"                             menuitemID_saveGame "s"
-	MENUITEM "Budget"                           menuitemID_Budget "b"
-	MENUITEM "Map"                              menuitemID_Map "m"
+    MENUITEM "M_NEWLOAD"                menuitemID_loadGame
+	MENUITEM "SAVE"                 menuitemID_saveGame "s"
+	MENUITEM "BUDGET"               menuitemID_Budget "b"
+	MENUITEM "MAP"                  menuitemID_Map "m"
 	MENUITEM SEPARATOR
 /* DEBUG>> */
-	MENUITEM "Test"                             menuitemID_Funny
+	MENUITEM "TEST"                 menuitemID_Funny
 /* <<DEBUG */
-	MENUITEM "Settings"                      menuitemID_Configuration
-	MENUITEM "Buttons"                      menuitemID_Buttons
+	MENUITEM "SETTINGS"           	menuitemID_Configuration
+	MENUITEM "BUTTONS"		menuitemID_Buttons
   END
-  PULLDOWN "Build"
+  PULLDOWN "M_BUILD"
   BEGIN
-	MENUITEM "Remove defence"               mi_removeDefence
-	MENUITEM "List..."                      gi_buildExtra "i"
+	MENUITEM "REMOVEDEF"		mi_removeDefence
+	MENUITEM "FROMLIST"             gi_buildExtra "i"
 	MENUITEM SEPARATOR
-	MENUITEM "Fire"				mi_CauseFire
-	MENUITEM "Meltdown(NYI)"		mi_CauseMeltDown
-	MENUITEM "Mo'zilla"			mi_CauseMonster
-	MENUITEM "Dragon"			mi_CauseDragon
-	MENUITEM "Meteor"			mi_CauseMeteor
+	MENUITEM "FIRE"			mi_CauseFire
+	MENUITEM "MELTDOWN"	        mi_CauseMeltDown
+	MENUITEM "MONSTER"		mi_CauseMonster
+	MENUITEM "DRAGON"		mi_CauseDragon
+	MENUITEM "METEOR"		mi_CauseMeteor
   END
-  PULLDOWN "Speed"
+  PULLDOWN "M_SPEED"
   BEGIN
-	MENUITEM "Slow"                         menuID_SlowSpeed
-	MENUITEM "Medium"                       menuID_MediumSpeed
-	MENUITEM "Fast"                         menuID_FastSpeed
-	MENUITEM "Turbo"                        menuID_TurboSpeed
+	MENUITEM "SLOW"                         menuID_SlowSpeed
+	MENUITEM "MEDIUM"                       menuID_MediumSpeed
+	MENUITEM "FAST"                         menuID_FastSpeed
+	MENUITEM "TURBO"                        menuID_TurboSpeed
 	MENUITEM SEPARATOR
-	MENUITEM "Pause"                        menuID_PauseSpeed
+	MENUITEM "PAUSE"                        menuID_PauseSpeed
   END
-  PULLDOWN "Help"
+  PULLDOWN "M_HELP"
   BEGIN
-	MENUITEM "Tips"				menuitemID_tips
-	MENUITEM "About"			menuitemID_about
+	MENUITEM "TIPS"				menuitemID_tips
+	MENUITEM "ABOUT"			menuitemID_about
   END
 END
 
@@ -60,95 +62,60 @@ USABLE
 NOSAVEBEHIND
 MENUID menu_budget
 BEGIN
-    TITLE "Budget"
-    POPUPTRIGGER "Budget" ID listID_shifter_popup
+    TITLE "T_BUDGET"
+    POPUPTRIGGER "BUDGET" ID listID_shifter_popup
 	AT (100 1 auto auto) LEFTANCHOR
     LIST 
-        "Budget" "Map"
+        "BUDGET" "MAP"
         ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 2
 
     POPUPLIST ID listID_shifter_popup listID_shifter
-    LABEL "Income" AUTOID AT (CENTER 16)
-    LABEL "Residential" AUTOID AT (0 PrevBottom)
+    LABEL "INCOME" AUTOID AT (CENTER 16)
+    LABEL "RESIDENTIAL" AUTOID AT (0 PrevBottom)
     LABEL "-" labelID_budget_res AT (115 PrevTop)
-    LABEL "Commercial" AUTOID AT (0 PrevBottom)
+    LABEL "COMMERCIAL" AUTOID AT (0 PrevBottom)
     LABEL "-" labelID_budget_com AT (115 PrevTop)
-    LABEL "Industrial" AUTOID AT (0 PrevBottom)
+    LABEL "INDUSTRIAL" AUTOID AT (0 PrevBottom)
     LABEL "-" labelID_budget_ind AT (115 PrevTop)
 
 
-    LABEL "Expenses" AUTOID AT (CENTER PrevBottom)
+    LABEL "EXPENSES" AUTOID AT (CENTER PrevBottom)
     
-    LABEL "Traffic" AUTOID AT (0 PrevBottom)
+    LABEL "TRAFFIC" AUTOID AT (0 PrevBottom)
     FIELD ID fieldID_budget_tra AT (60 prevtop 20 auto) 
         EDITABLE UNDERLINED MAXCHARS 3 NUMERIC RIGHTALIGN
     LABEL "%" AUTOID AT (prevright prevtop)
     LABEL "-" labelID_budget_tra AT (115 PrevTop)
     
-    LABEL "Power" AUTOID AT (0 PrevBottom)
+    LABEL "POWER" AUTOID AT (0 PrevBottom)
     FIELD ID fieldID_budget_pow AT (60 prevtop 20 auto) 
         EDITABLE UNDERLINED MAXCHARS 3 NUMERIC RIGHTALIGN
     LABEL "%" AUTOID AT (prevright prevtop)
     LABEL "-" labelID_budget_pow AT (115 PrevTop)
     
-    LABEL "Defense" AUTOID AT (0 PrevBottom)
+    LABEL "DEFENCE" AUTOID AT (0 PrevBottom)
     FIELD ID fieldID_budget_def AT (60 prevtop 20 auto) 
         EDITABLE UNDERLINED MAXCHARS 3 NUMERIC RIGHTALIGN
     LABEL "%" AUTOID AT (prevright prevtop)
     LABEL "-" labelID_budget_def AT (115 PrevTop)
 
 
-    LABEL "Total" AUTOID AT (CENTER PrevBottom)
-    LABEL "Current balance" AUTOID AT (0 PrevBottom)
+    LABEL "TOTAL" AUTOID AT (CENTER PrevBottom)
+    LABEL "CURRBAL" AUTOID AT (0 PrevBottom)
     LABEL "-" labelID_budget_now AT (115 PrevTop)
-    LABEL "Change" AUTOID AT (0 PrevBottom)
+    LABEL "BALDELTA" AUTOID AT (0 PrevBottom)
     LABEL "-" labelID_budget_tot AT (115 PrevTop)
-    LABEL "Next month's balance" AUTOID AT (0 PrevBottom)
+    LABEL "NEXTMONTHBAL" AUTOID AT (0 PrevBottom)
     LABEL "-" labelID_budget_bal AT (115 PrevTop)
 END
 
 MENU ID menu_budget
 BEGIN
-  PULLDOWN "Budget"
+  PULLDOWN "BUDGET"
   BEGIN
-	MENUITEM "Back"                        menuitemID_BudgetBack
+	MENUITEM "BACKTOGAME"                  menuitemID_BudgetBack
   END
 END
-
-FORM ID formID_options AT ( 0 0 160 160 )
-NOFRAME
-NOSAVEBEHIND
-USABLE
-BEGIN
-    TITLE "Game Options"
-    /* disasters - some people wants to adjust the frequency */
-    LABEL "Disasters:" AUTOID AT (RIGHT@60 18)
-    PUSHBUTTON "Off" ID buttonID_dis_off
-	AT (PREVRIGHT+4 PREVTOP AUTO AUTO) GROUP 1
-    PUSHBUTTON "I"   ID buttonID_dis_one
-	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
-    PUSHBUTTON "II"  ID buttonID_dis_two
-	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
-    PUSHBUTTON "III" ID buttonID_dis_three
-	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
-
-    LABEL "Difficulty:" AUTOID AT (RIGHT@60 PREVBOTTOM+4)
-    PUSHBUTTON "Easy" ID buttonID_Easy
-	AT (PREVRIGHT+4 PREVTOP AUTO AUTO) GROUP 2
-    PUSHBUTTON "Medium" ID buttonID_Medium
-	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 2
-    PUSHBUTTON "Hard" ID buttonID_Hard
-	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 2
-
-    LABEL "Auto Bulldoze:" AUTOID AT (RIGHT@60 PREVBOTTOM+4)
-
-    CHECKBOX "" ID checkboxID_autobulldoze
-	AT (PREVRIGHT+1 PREVTOP AUTO AUTO) RIGHTANCHOR
-
-    BUTTON "OK" ID buttonID_OK AT (2 146 AUTO AUTO)
-    BUTTON "Cancel" ID buttonID_Cancel AT (PREVRIGHT+4 PREVTOP AUTO AUTO)
-END
-
 
 FORM ID formID_map AT ( 0 0 160 160 )
 NOFRAME
@@ -161,34 +128,69 @@ BEGIN
      * it is drawn directly onto the screen in map.c 
      */
     
-    TITLE "Map"
+    TITLE "T_MAP"
 
     /* formchangers */
-    POPUPTRIGGER "Map" ID listID_shifter_popup AT (100 1 auto auto) LEFTANCHOR
+    POPUPTRIGGER "MAP" ID listID_shifter_popup AT (100 1 auto auto) LEFTANCHOR
     LIST
-        "Budget" "Map"
+        "BUDGET" "MAP"
         ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 2
     POPUPLIST ID listID_shifter_popup listID_shifter
 END
 
 MENU ID menu_map
 BEGIN
-  PULLDOWN "Map"
+  PULLDOWN "MAP"
   BEGIN
-	MENUITEM "Back"                        menuitemID_MapBack
+	MENUITEM "BACKTOGAME"                        menuitemID_MapBack
   END
 END
+
+FORM ID formID_options AT ( 0 0 160 160 )
+NOFRAME
+NOSAVEBEHIND
+USABLE
+BEGIN
+    TITLE "T_OPTIONS"
+    /* disasters - some people wants to adjust the frequency */
+    LABEL "L_DISASTERS" AUTOID AT (RIGHT@60 18)
+    PUSHBUTTON "OFF" ID buttonID_dis_off
+	AT (PREVRIGHT+4 PREVTOP AUTO AUTO) GROUP 1
+    PUSHBUTTON "ROMAN_ONE"   ID buttonID_dis_one
+	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
+    PUSHBUTTON "ROMAN_TWO"  ID buttonID_dis_two
+	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
+    PUSHBUTTON "ROMAN_THREE" ID buttonID_dis_three
+	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
+
+    LABEL "L_DIFFICULTY" AUTOID AT (RIGHT@60 PREVBOTTOM+4)
+    PUSHBUTTON "EASY" ID buttonID_Easy
+	AT (PREVRIGHT+4 PREVTOP AUTO AUTO) GROUP 2
+    PUSHBUTTON "MEDIUM" ID buttonID_Medium
+	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 2
+    PUSHBUTTON "HARD" ID buttonID_Hard
+	AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 2
+
+    LABEL "L_AUTO_BULL" AUTOID AT (RIGHT@60 PREVBOTTOM+4)
+
+    CHECKBOX "" ID checkboxID_autobulldoze
+	AT (PREVRIGHT+1 PREVTOP AUTO AUTO) RIGHTANCHOR
+
+    BUTTON "OK" ID buttonID_OK AT (2 146 AUTO AUTO)
+    BUTTON "CANCEL" ID buttonID_Cancel AT (PREVRIGHT+4 PREVTOP AUTO AUTO)
+END
+
 
 FORM ID formID_files AT ( 0 0 160 160 )
 USABLE
 NOSAVEBEHIND
 BEGIN
-    TITLE "Pocket City Savegames"
+    TITLE "T_SAVEGAMES"
 
     LIST "" ID listID_FilesList AT (1 18 158 123) USABLE 
-    BUTTON "New" ID buttonID_FilesNew AT (2 prevbottom+5 AUTO AUTO)
-    BUTTON "Load" ID buttonID_FilesLoad AT (prevright+4 prevtop AUTO AUTO)
-    BUTTON "Delete" ID buttonID_FilesDelete AT (prevright+4 prevtop AUTO AUTO)
+    BUTTON "NEW" ID buttonID_FilesNew AT (2 prevbottom+5 AUTO AUTO)
+    BUTTON "LOAD" ID buttonID_FilesLoad AT (prevright+4 prevtop AUTO AUTO)
+    BUTTON "DELETE" ID buttonID_FilesDelete AT (prevright+4 prevtop AUTO AUTO)
 END
 
 FORM ID formID_filesNew AT ( 1 88 158 70 )
@@ -197,22 +199,22 @@ SAVEBEHIND
 MODAL
 DEFAULTBTNID buttonID_FilesNewCancel
 BEGIN
-    TITLE "New city"
+    TITLE "T_NEWCITY"
     FIELD ID fieldID_newGameName AT (54 18 92 AUTO ) UNDERLINED
         MAXCHARS 18 AUTOSHIFT
-    LABEL "Name:" AUTOID AT (RIGHT@PREVLEFT-6 PREVTOP)
+    LABEL "L_NAME" AUTOID AT (RIGHT@PREVLEFT-6 PREVTOP)
 
-    LABEL "Difficulty:" AUTOID AT (RIGHT@PREVRIGHT PREVBOTTOM+6)
-    PUSHBUTTON "Easy" ID buttonID_Easy
+    LABEL "L_DIFFICULTY" AUTOID AT (RIGHT@PREVRIGHT PREVBOTTOM+6)
+    PUSHBUTTON "EASY" ID buttonID_Easy
         AT (54 PREVTOP AUTO AUTO) GROUP 1
-    PUSHBUTTON "Medium" ID buttonID_Medium
+    PUSHBUTTON "MEDIUM" ID buttonID_Medium
         AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
-    PUSHBUTTON "Hard" ID buttonID_Hard
+    PUSHBUTTON "HARD" ID buttonID_Hard
         AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
 
-    BUTTON "Create" ID buttonID_FilesNewCreate
+    BUTTON "CREATE" ID buttonID_FilesNewCreate
         AT (4 prevbottom+6 AUTO AUTO)
-    BUTTON "Cancel" ID buttonID_FilesNewCancel
+    BUTTON "CANCEL" ID buttonID_FilesNewCancel
         AT (prevright+4 prevtop AUTO AUTO)
 
     GRAFFITISTATEINDICATOR AT ( 142 PREVTOP )
@@ -225,7 +227,7 @@ USABLE
 SAVEBEHIND
 MODAL
 BEGIN
-    TITLE "Quicklist"
+    TITLE "T_QUICKLIST"
     BUTTON "" ID gi_buildBulldoze AT (3 15 AUTO AUTO)
         NOFRAME GRAPHICAL LEFTANCHOR
         BITMAPID bitmapID_iconBulldoze SELECTEDBITMAPID bitmapID_iconPushed
@@ -294,43 +296,49 @@ FORM ID formID_extraBuild AT ( 0 0 160 160 )
 USABLE
 SAVEBEHIND
 BEGIN
-    TITLE "Build extra stuff"
+    TITLE "T_BUILDEXTRA"
     LIST ""
          ID listID_extraBuildList AT (1 18 158 77) USABLE
 
-	LABEL "Price: $" AUTOID AT (PREVLEFT PREVBOTTOM+2)
-	FIELD ID labelID_extraBuildPrice AT (PREVRIGHT PREVTOP 100 AUTO) NONEDITABLE
+	LABEL "L_PRICE_DOL" AUTOID AT (PREVLEFT PREVBOTTOM+2)
+	FIELD ID labelID_extraBuildPrice
+            AT (PREVRIGHT PREVTOP 100 AUTO) NONEDITABLE
 
     FIELD ID labelID_extraBuildDescription AT (1 prevbottom+2 158 30)
     MULTIPLELINES NONEDITABLE
 
-    BUTTON "Select"     ID buttonID_extraBuildSelect     AT (2 146 AUTO AUTO) BOLDFRAME
-    BUTTON "Cancel"     ID buttonID_extraBuildCancel     AT (prevright+4 prevtop AUTO AUTO)
-    BUTTON "F" ID buttonID_extraBuildFireMen     AT (prevright+4 prevtop 12 AUTO)
-    BUTTON "P" ID buttonID_extraBuildPolice      AT (prevright+4 prevtop 12 AUTO)
-    BUTTON "M" ID buttonID_extraBuildMilitary    AT (prevright+4 prevtop 12 AUTO)
+    BUTTON "SELECT"     ID buttonID_extraBuildSelect
+        AT (2 146 AUTO AUTO) BOLDFRAME
+    BUTTON "CANCEL"     ID buttonID_extraBuildCancel
+        AT (prevright+4 prevtop AUTO AUTO)
+    BUTTON "B_SINGLE_FIREMAN" ID buttonID_extraBuildFireMen
+        AT (prevright+4 prevtop 12 AUTO)
+    BUTTON "B_SINGLE_POLICE" ID buttonID_extraBuildPolice
+        AT (prevright+4 prevtop 12 AUTO)
+    BUTTON "B_SINGLE_MILITARY" ID buttonID_extraBuildMilitary
+        AT (prevright+4 prevtop 12 AUTO)
 END
 
 STRINGTABLE ID strID_Items
     ""
-	"Bulldozer"
-	"Residential"
-	"Commercial"
-	"Industrial"
-	"Road" 
-        "Power Plant"
-	"Nuclear Plant"
-	"Power Line"
-	"Water Pump"
- 	"Water Pipe"
-	"Tree"
-	"Water"
-	"Fire Station"
-	"Police Station"
-	"Military Base"
-	"Fire Unit"
-	"Police Unit"
-	"Military Unit"
+	"BULLDOZER"
+	"RESIDENTIAL"
+	"COMMERCIAL"
+	"INDUSTRIAL"
+	"ROAD" 
+        "PPLANT_COAL"
+	"PPLANT_NUCLEAR"
+	"LINE_POWER"
+	"PPUMP_WATER"
+ 	"PIPE_WATER"
+	"TREE"
+	"WATER"
+	"STATION_FIRE"
+	"STATION_POLICE"
+	"STATION_MILITARY"
+	"UNIT_FIRE"
+	"UNIT_POLICE"
+	"UNIT_MILITARY"
 
 WORDLIST ID wdlID_Costs
 BEGIN
@@ -357,224 +365,233 @@ END
 /* max is 4 lines */
 STRINGTABLE ID strID_Descriptions
     ""
-    "Clears land and removes defence units"
-    "Zones for inhabitants"
-    "Zones for stores, offices and other commercial use"
-    "Zones for factories"
-    "Sims travel to and from work on roads"
-    "Provides power for 100 zones"
-    "Provides power for 300 zones"
-    "Carries power from one place to another"
-    "Pumps water from the river. Must be placed next to the river to work"
-    "Transfers water from one place to another"
-    "Sims love this green stuff"
-    "Add an extra element to your city"
-    "Provides fire fighters in case of an emergency"
-    "Provides police units in case of an emergency"
-    "Provides military units in case of an emergency"
-    "Provides a unit to defend in case of fires"
-    "Provides a unit for crime fighting"
-    "Provides a unit for Defence from monsters"
+    "DESCRIPTION_BULLDOZER"
+    "DESCRIPTION_RESIDENTIAL"
+    "DESCRIPTION_COMMERCIAL"
+    "DESCRIPTION_INDUSTRIAL"
+    "DESCRIPTION_ROADS"
+    "DESCRIPTION_COALPLANT"
+    "DESCRIPTION_NUCLEARPLANT"
+    "DESCRIPTION_POWERLINE"
+    "DESCRIPTION_WATERPUMP"
+    "DESCRIPTION_WATERPIPE"
+    "DESCRIPTION_TREE"
+    "DESCRIPTION_MOREWATER"
+    "DESCRIPTION_STATION_FIRE"
+    "DESCRIPTION_STATION_POLICE"
+    "DESCRIPTION_STATION_MILITARY"
+    "DESCRIPTION_UNIT_FIRE"
+    "DESCRIPTION_UNIT_POLICE"
+    "DESCRIPTION_UNIT_MILITARY"
 
 FORM ID formID_DistribDetails AT ( 0 0 160 160 )
 USABLE
 NOSAVEBEHIND
 BEGIN
-    TITLE "Power/Water"
-    PUSHBUTTON "Overview" ID pb_dd_overview AT ( 5 16 50 AUTO ) GROUP 1
-    PUSHBUTTON "Power" ID pb_dd_power AT ( prevright prevtop 50 AUTO ) GROUP 1
-    PUSHBUTTON "Water" ID pb_dd_water AT ( prevright prevtop 50 AUTO ) GROUP 1
+    TITLE "T_DISTRIB_DETAILS"
+    PUSHBUTTON "OVERVIEW" ID pb_dd_overview AT ( 5 16 50 AUTO ) GROUP 1
+    PUSHBUTTON "POWER" ID pb_dd_power AT ( prevright prevtop 50 AUTO ) GROUP 1
+    PUSHBUTTON "WATER" ID pb_dd_water AT ( prevright prevtop 50 AUTO ) GROUP 1
 END
 
 FORM ID formID_ButtonConfig AT ( 0 0 160 160 )
 USABLE
 NOSAVEBEHIND
 BEGIN
-	TITLE "Configure Buttons"
+	TITLE "T_CONFIGURE_BUTTONS"
 
-	LABEL "Calendar" AUTOID AT ( 8 15 )
+	LABEL "CALENDAR" AUTOID AT ( 8 15 )
 	POPUPTRIGGER "" ID List_Cal_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
 	LIST "" ID List_Cal AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
 	POPUPLIST ID List_Cal_Popup List_Cal
-	LABEL "Address" AUTOID AT ( 8 PREVTOP+11 )
+	LABEL "ADDRESS" AUTOID AT ( 8 PREVTOP+11 )
 	POPUPTRIGGER "" ID List_Addr_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
 	LIST "" ID List_Addr AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
 	POPUPLIST ID List_Addr_Popup List_Addr
-	LABEL "Scroll Up" AUTOID AT ( 8 PREVTOP+11 )
+	LABEL "SCROLL_UP" AUTOID AT ( 8 PREVTOP+11 )
 	POPUPTRIGGER "" ID List_HrUp_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
 	LIST "" ID List_HrUp AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
 	POPUPLIST ID List_HrUp_Popup List_HrUp
-	LABEL "Scroll Down" AUTOID AT ( 8 PREVTOP+11 )
+	LABEL "SCROLL_DOWN" AUTOID AT ( 8 PREVTOP+11 )
 	POPUPTRIGGER "" ID List_HrDn_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
 	LIST "" ID List_HrDn AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
 	POPUPLIST ID List_HrDn_Popup List_HrDn
-	LABEL "To Do" AUTOID AT ( 8 PREVTOP+11 )
+	LABEL "TO_DO" AUTOID AT ( 8 PREVTOP+11 )
 	POPUPTRIGGER "" ID List_ToDo_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
 	LIST "" ID List_ToDo AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
 	POPUPLIST ID List_ToDo_Popup List_ToDo
-	LABEL "Memo" AUTOID AT ( 8 PREVTOP+11 )
+	LABEL "MEMO" AUTOID AT ( 8 PREVTOP+11 )
 	POPUPTRIGGER "" ID List_Memo_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
 	LIST "" ID List_Memo AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
 	POPUPLIST ID List_Memo_Popup List_Memo
 
-	LABEL "Calc" AUTOID AT ( 8 PREVTOP+11 )
+	LABEL "CALC" AUTOID AT ( 8 PREVTOP+11 )
 	POPUPTRIGGER "" ID List_Calc_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
 	LIST "" ID List_Calc AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
 	POPUPLIST ID List_Calc_Popup List_Calc
 
-	LABEL "Find" AUTOID AT ( 8 PREVTOP+11 )
+	LABEL "FIND" AUTOID AT ( 8 PREVTOP+11 )
 	POPUPTRIGGER "" ID List_Find_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
 	LIST "" ID List_Find AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
 	POPUPLIST ID List_Find_Popup List_Find
 
 /* HIRES>> */
-	LABEL "Jog Up" AUTOID AT ( 8 PREVTOP+11 )
+	LABEL "JOG_UP" AUTOID AT ( 8 PREVTOP+11 )
 	POPUPTRIGGER "" ID List_JogUp_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
 	LIST "" ID List_JogUp AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
 	POPUPLIST ID List_JogUp_Popup List_JogUp
 
-	LABEL "Jog Down" AUTOID AT ( 8 PREVTOP+11 )
+	LABEL "JOG_DOWN" AUTOID AT ( 8 PREVTOP+11 )
 	POPUPTRIGGER "" ID List_JogDn_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
 	LIST "" ID List_JogDn AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
 	POPUPLIST ID List_JogDn_Popup List_JogDn
 
-	LABEL "Jog Out" AUTOID AT ( 8 PREVTOP+11 )
+	LABEL "JOG_OUT" AUTOID AT ( 8 PREVTOP+11 )
 	POPUPTRIGGER "" ID List_JogOut_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
 	LIST "" ID List_JogOut AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
 	POPUPLIST ID List_JogOut_Popup List_JogOut
 /* <<HIRES */
 
 	BUTTON "OK" ID buttonID_OK AT ( 8 146 AUTO AUTO )
-	BUTTON "Cancel" ID buttonID_Cancel AT ( PREVRIGHT+4 PREVTOP AUTO AUTO )
+	BUTTON "CANCEL" ID buttonID_Cancel AT ( PREVRIGHT+4 PREVTOP AUTO AUTO )
 END
 
 FORM ID formID_Query AT (0 0 160 160)
 USABLE
 NOSAVEBEHIND
 BEGIN
-	TITLE "Zone Status"
+	TITLE "T_STATUS"
 
 	LABEL "-" labelID_zonetype AT ( 52 16 )
-	LABEL "Zone Type:"  AUTOID AT ( RIGHT@PREVLEFT-2 16 )
+	LABEL "L_ZONETYPE"  AUTOID AT ( RIGHT@PREVLEFT-2 16 )
 
 	BUTTON "OK" ID buttonID_OK AT ( RIGHT@154 146 AUTO AUTO )
 END
 
-
+/* Wait until translated to change this */
 STRING ID StrID_tips FILE "../GAMEHINTS"
 
 STRINGTABLE ID StrID_Popups
 	""
-	"Ignore"
-	"Up"
-	"Down"
-	"Left"
-	"Right"
-	"Pop Up"
-	"Map"
-	"Budget"
-	"Population"
-	"Default"
+	"IGNORE"
+	"UP"
+        "DOWN"
+    "LEFT"
+    "RIGHT"
+    "POP_UP"
+	"MAP"
+	"BUDGET"
+    "POPULATION"
+    "DEFAULT"
 /* HIRES>> */
-	"Up/Left"
-	"Down/Right"
-	"Toggle"
+    "UP_LEFT"
+    "DOWN_RIGHT"
+    "TOGGLE_UDLR"
 /* <<HIRES */
 
 ALERT ID alertID_errorOutOfMemory
 ERROR
 BEGIN
-  TITLE "Error"
-  MESSAGE "Out of memory"
-  BUTTONS "Damn"
+  TITLE "T_GAMENAME"
+  MESSAGE "OUTOFMEMORY"
+  BUTTONS "DAMN"
 END
 
 alert id alertID_RomIncompatible
-error
+ERROR
 begin
-  title "System Incompatible"
-  message "System Version 3.5 or greater is required to run this application\n\nYou can, however, try to run Pocket City anyway!"
-  buttons "Quit" "Try anyway"
+  title "T_SYSTEM_INCOMPATIBLE"
+  message "MSG_INCOMPATIBLE"
+  buttons "QUIT" "TRY_ANYHOW"
 end
 
 alert id alertID_outMoney
-error
+WARNING
 begin
-	title "Got Money?"
-	message "Got money? Nope, you don't!"
-	buttons "Nooo!"
+	title "T_GAMENAME"
+	message "MSG_OUTOFMONEY"
+	buttons "B_CRY"
 end
 
 alert id alertID_lowFunds
-error
+INFORMATION
 begin
-        title "Low Funds"
-        message "You're running low on money!!"
-        buttons "Uh-oh!"
+        title "T_GAMENAME"
+        message "MSG_LOWONMONEY"
+        buttons "B_UHOH"
 end
 
 ALERT ID alertID_loadGame
-ERROR
+CONFIRMATION
 BEGIN
-  TITLE "Save game?"
-  MESSAGE "Do you want to save your city?"
-  BUTTONS "Yes" "No" "Cancel"
+  TITLE "T_GAMENAME"
+  MESSAGE "MSG_SAVEBEFORELOAD"
+  BUTTONS "YES" "NO" "CANCEL"
 END
 
 ALERT ID alertID_saveGame
-ERROR
+CONFIRMATION
 BEGIN
-  TITLE "Save"
-  MESSAGE "Saving this city will overwrite your last save. Are you sure you want to do this?"
-  BUTTONS "Yes" "No"
+  TITLE "T_GAMENAME"
+  MESSAGE "MSG_SAVE_OVERWRITES"
+  BUTTONS "YES" "NO"
 END
 
 ALERT ID alertID_about
+INFORMATION
 HELPID StrID_tips
 BEGIN
-  TITLE "About Pocketcity"
-  MESSAGE "Pocketcity for Palm\n" \
-  "Made by Zakarun and various others\n" \
-  "Version: ^1\n" \
-  "Built on: ^2\n" \
-  "Web: pocketcity.sf.net\n"
-  BUTTONS "Close"
+  TITLE "T_ABOUT"
+  MESSAGE "MSG_ABOUT"
+  BUTTONS "OK"
 END
 
 ALERT ID alertID_invalidSaveVersion
+WARNING
 BEGIN
-  TITLE "Invalid Saved Game Version"
-  MESSAGE "The game you are attempting to load has an invalid save version number. It can not be loaded."
+  TITLE "T_GAMENAME"
+  MESSAGE "MSG_INVALIDVERSION"
   BUTTONS "OK"
 END
 
 /* This list needs to be in the same order as the disaster enumeration */
 STRINGTABLE ID st_disasters
 	""
-	"An Australian fire has broken out somewhere!"
-	"A power plant just exploded!"
-  	"Godzilla just came to town!"
-  	"A fire dragon wants to use your city as it's lair!"
-  	"A gigantic meteor has hit your city!"
+    "S_DISASTER_FIRE"
+    "S_DISASTER_EXPLOSION"
+    "S_DISASTER_GODZILLA"
+    "S_DISASTER_FIREDRAGON"
+    "S_DISASTER_METEOR"
 
 ALERT ID alertID_generic_disaster
+WARNING
 BEGIN
-  TITLE "Disaster"
+  TITLE "T_DISASTERSTRUCK"
   MESSAGE "^1"
-  BUTTONS "Uh-oh!"
+  BUTTONS "B_UHOH"
 END
 
 ALERT ID alertID_majorbad
+ERROR
 BEGIN
-    TITLE "Major Bad"
-    MESSAGE "I've been told to tell you that ^1 has happened. This is bad. I, as a program can't handle this. Quit ASAP!"
-    BUTTONS "Oh Well"
+    TITLE "T_MAJORBAD"
+    MESSAGE "MSG_SERIOUS"
+    BUTTONS "OH_WELL"
 END
 
 ALERT ID alertID_programmingNiggle
+ERROR
 BEGIN
-    TITLE "Programmer Error"
-    Message "There has been an error where '^1' has happened. It's not fatal, but you should report it. It happened at ^2"
-    BUTTON "Meh, Whatever"
+    TITLE "T_MINORERROR"
+    Message "MSG_MINORERROR"
+    BUTTON "MEH_WHATEVER"
+END
+
+ALERT ID alertID_tilesMissing
+ERROR
+BEGIN
+    TITLE "T_TILESMISSING"
+    MESSAGE "M_TILESMISSING"
+    BUTTON "OK"
 END
 

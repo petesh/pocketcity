@@ -1,0 +1,227 @@
+TRANSLATION "EN"
+BEGIN
+    "T_GAMENAME" = "Pocket City"
+
+    "M_GAME"	= "Game"
+    "M_NEWLOAD"	= "New/Load"
+    "SAVE"	= "Save"
+    "BUDGET"	= "Budget"
+    "MAP"	= "Map"
+    "TEST"	= "Test"
+    "SETTINGS"	= "Settings"
+    "BUTTONS"   = "Buttons"
+
+    "M_BUILD"	= "Build"
+    "REMOVEDEF" = "Remove Defence"
+    "FROMLIST"      = "From List"
+    "FIRE"      = "Fire"
+    "MELTDOWN"  = "Meltdown(NYI)"
+    "MONSTER"   = "Mo'zilla"
+    "DRAGON"    = "Dragon"
+    "METEOR"    = "Meteor"
+
+    "M_SPEED"   = "Speed"
+    "SLOW"      = "Slow"
+    "MEDIUM"    = "Medium"
+    "FAST"      = "Fast"
+    "TURBO"     = "Turbo"
+    "PAUSE"     = "Pause"
+
+    "M_HELP"    = "Help"
+    "TIPS"      = "Tips"
+    "ABOUT"     = "About"
+
+    /* Budget Screen */
+    "T_BUDGET"  = "Budget Sheet"
+    "INCOME"    = "Income"
+    "EXPENSES"  = "Expenses"
+    "TRAFFIC"   = "Traffic"
+    "POWER"     = "Power"
+    "DEFENCE"   = "Defence"
+    "TOTAL"     = "Total"
+    "CURRBAL"   = "Current Balance"
+    "BALDELTA"    = "Change"
+    "NEXTMONTHBAL" = "Next Month's Balance"
+
+    /* Budget Menu */
+    "BACKTOGAME" = "Back to Game"
+
+    /* Map Screen */
+    "T_MAP"     = "Map Screen"
+
+    /* Common Strings */
+    "BUDGET"    = "Budget"
+    "MAP"       = "Map"
+    "RESIDENTIAL" = "Residential"
+    "COMMERCIAL" = "Commercial"
+    "INDUSTRIAL" = "Industrial"
+
+    "OK"        = "Ok"
+    "CANCEL"    = "Cancel"
+
+    /* Options Screen */
+    "T_OPTIONS" = "Game Options"
+    "L_DISASTERS" = "Disasters:"
+    "OFF"       = "Off"
+    "ROMAN_ONE"   = "I"
+    "ROMAN_TWO" = "II"
+    "ROMAN_THREE" = "III"
+    "L_DIFFICULTY" = "Difficulty:"
+    "EASY"      = "Easy"
+    "MEDIUM"    = "Medium"
+    "HARD"      = "Hard"
+
+    "L_AUTO_BULL" = "Auto Bulldoze:"
+
+    /* Savegames */
+    "T_SAVEGAMES"   = "PocketCity Savegames"
+
+    "NEW"       = "New"
+    "LOAD"      = "Load"
+    "DELETE"    = "Delete"
+
+    /* New City */
+    "T_NEWCITY" = "New City"
+    "L_NAME"    = "Name:"
+
+    "CREATE"    = "Create"
+
+    /* Quicklist */
+    "T_QUICKLIST" = "Quick List"
+
+    /* Build Extra */
+    "T_BUILDEXTRA" = "Build Extra Things"
+    "L_PRICE_DOL" = "Price: $"
+
+    "SELECT"    = "Select"
+
+    /* The single-character buttons at the bottom of the form for units */
+    "B_SINGLE_FIREMAN"  = "F"
+    "B_SINGLE_POLICE"   = "P"
+    "B_SINGLE_MILITARY" = "M"
+
+    /* Strings of items */
+    "BULLDOZER" = "Bulldozer"
+    "ROAD" = "Road"
+    "PPLANT_COAL" = "Coal Plant"
+    "PPLANT_NUCLEAR" = "Nuclear Plant"
+    "PPUMP_WATER" = "Water Pump"
+    "LINE_POWER" = "Power Line"
+    "PIPE_WATER" = "Water Pipe"
+    "TREE"  = "Tree"
+    "WATER" = "Water"
+    "STATION_FIRE" = "Fire_Station"
+    "STATION_POLICE" = "Police Station"
+    "STATION_MILITARY" = "Military Base"
+    "UNIT_FIRE" = "Fire Unit"
+    "UNIT_POLICE" = "Police Unit"
+    "UNIT_MILITARY" = "Military Unit"
+
+    /* Text of Items */
+    "DESCRIPTION_BULLDOZER" = "Clears the land and removes defence units"
+    "DESCRIPTION_RESIDENTIAL" = "Zones where people can live, for inhabitants"
+    "DESCRIPTION_COMMERCIAL" = "Zones where shops, malls and offices are build"
+    "DESCRIPTION_INDUSTRIAL" = "Zones for factories and chemical plants"
+    "DESCRIPTION_ROADS" = "Zones to allow sims to get to and from other zones"
+    "DESCRIPTION_COALPLANT" = "Provides electrical power for up to 100 zones"
+    "DESCRIPTION_MUCLEARPLANT" = "Provides electrical power for up to 300 zones"
+    "DESCRIPTION_POWERLINE" = "Carries power from one place to another"
+    "DESCRIPTION_WATERPUMP" = "Pumps water from the river. Must be placed next to the river to work"
+    "DESCRIPTION_WATERPIPE" = "Transfers water from one place to another"
+    "DESCRIPTION_TREE" = "Sims love this green stuff"
+    "DESCRIPTION_MOREWATER" = "Add more water to your city"
+    "DESCRIPTION_STATION_FIRE" = "Allows for the creation of Fire units in an emergency"
+    "DESCRIPTION_STATION_POLICE" = "Allows for the creation of Police units in an emergency"
+    "DESCRIPTION_STATION_MILITARY" = "Allows for the creation of Military units in an emergency"
+    "DESCRIPTION_UNIT_FIRE" = "A unit that fights fires, preventing their spread"
+    "DESCRIPTION_UNIT_POLICE" = "A unit that fights crimes, reducing the crime level"
+    "DESCRIPTION_UNIT_MILITARY" = "A unit that fights monsters, stopping them from causing more damage"
+
+    /* Distribution Details form */
+    "T_DISTRIB_DETAILS"  = "Power/Water Distribution"
+    "OVERVIEW" = "Overview"
+
+    /* Button configuration */
+    "T_CONFIGURE_BUTTONS"    = "Configure Buttons"
+    "CALENDAR"      = "Calendar"
+    "ADDRESS"       = "Address"
+    "SCROLL_UP"     = "Scroll Up"
+    "SCROLL_DOWN"   = "Scroll Down"
+    "TO_DO"         = "To Do"
+    "MEMO"          = "Memo"
+    "CALC"          = "Calc"
+    "FIND"          = "Find"
+    "JOG_UP"        = "Jog Up"
+    "JOG_DOWN"      = "Jog Down"
+    "JOG_OUT"       = "Jog Out"
+
+    /* Query Form */
+    "T_STATUS"      = "Zone Status"
+    "L_ZONETYPE"    = "Zone Type:"
+
+    /* Popups for the button configuration */
+    "IGNORE"    = "Ignore"
+    "UP"        = "Up"
+    "DOWN" = "Down"
+    "LEFT" = "Left"
+    "RIGHT" = "Right"
+    "POP_UP" = "Pop Up"
+    "POPULATION" = "Population"
+    "DEFAULT" = "Default"
+    "UP_LEFT" = "Up/Left"
+    "DOWN_RIGHT" = "Down/Right"
+    "TOGGLE_UDLR" = "Toggle"
+
+    /* alerts */
+    "OUTOFMEMORY" = "Out Of Memory"
+    "DAMN"  = "Damn"
+
+    "T_SYSTEM_INCOMPATIBLE" = "System Incompatible"
+    "MSG_INCOMPATIBLE" = "System Version 3.5 or greater is required to run this application\n\nYou can, however, try to run Pocket City anyway!"
+    "QUIT" = "Quit"
+    "TRY_ANYHOW" = "Try Anyhow"
+
+    "MSG_OUTOFMONEY" = "Got Money? No you don't!"
+    "B_CRY" = "Noooo!"
+
+    "MSG_LOWONMONEY" = "You're running low on money!!"
+    "B_UHOH" = "Uh-oh!"
+
+    "MSG_SAVEBEFORELOAD" = "Do you want to save your city before loading a new one?"
+    "YES" = "Yes"
+    "NO" = "No"
+
+    "MSG_SAVE_OVERWRITES" = "Saving this city will overwrite your last save. Are you sure you want to do this?"
+
+    "T_ABOUT" = "About Pocket City"
+    "MSG_ABOUT" = "Pocketcity for Palm\n" \
+                  "Made by Zakarun and various others\n" \
+                  "Version: ^1\n" \
+                  "Built on: ^2\n" \
+                  "Web: pocketcity.sf.net\n"
+
+    "MSG_INVALIDVERSION" = "" \
+            "The game you are attempting to load is not the same save game " \
+            "version as the one used by this release. It can not be loaded."
+
+    "S_DISASTER_FIRE" = "An Australian fire has broken out somewhere!"
+    "S_DISASTER_EXPLOSION" = "A power plant just exploded!"
+    "S_DISASTER_GODZILLA" = "Godzilla just came to town!"
+    "S_DISASTER_FIREDRAGON" = "A fire dragon wants to use your city as it's lair!"
+    "S_DISASTER_METEOR" = "A gigantic meteor has hit your city!"
+
+    "T_DISASTERSTRUCK" = "A disaster has struck"
+
+    "T_MAJORBAD" = "Serious Error"
+    "MSG_SERIOUS" = "^1 has happened. This program can't recover from this. Quit ASAP!"
+    "OH_WELL" = "Oh Well"
+
+    "T_MINORERROR" = "Programming Error"
+    "MSG_MINORERROR" = "There has been an error where '^1' has happened. It's not fatal, but you should report it. It happened at ^2"
+    "MEH_WHATEVER" = "Meh, Whatever"
+
+    "T_TILESMISSING" = "Tiles Not Found"
+    "M_TILESMISSING" = "There is no tile database found on this device " \
+        "Please add one of the .pdb files and try again"
+
+END
