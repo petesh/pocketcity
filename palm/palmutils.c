@@ -30,9 +30,9 @@ UInt16
 isZireOld(void)
 {
 	UInt32 vcl;
-	static UInt16 rv = ~0U;
+	static UInt16 rv = 3;
 
-	if (rv != ~0U)
+	if (rv != 3)
 		return (rv);
 	if ((FtrGet(sysFtrCreator, sysFtrNumOEMCompanyID, &vcl) == 0) &&
 	    (vcl == 'Palm') &&

@@ -1,7 +1,7 @@
 # A file of all the images so the .rcp files can be auto-generated.
 # the format is:
 # ID|b/w bitmap|4 bit bitmap|Grey bitmap|256 bit color bitmap
-bitmapID_zones|graphic/zones_16x16-bw.bmp||graphic/zones_16x16-grey.bmp|graphic/zones_16x16-color.bmp
+bitmapID_zones|../graphic/tile-16x16-bw.bmp||../graphic/tile-16x16-grey.bmp|../graphic/tile-16x16-color.bmp
 bitmapID_monsters|graphic/monsters_16x16-bw.bmp||graphic/monsters_16x16-grey.bmp|graphic/monsters_16x16-color.bmp
 bitmapID_units|graphic/units_16x16-bw.bmp||graphic/units_16x16-grey.bmp|graphic/units_16x16-color.bmp
 bitmapID_Speed|graphic/speed-bw.bmp||graphic/speed-color.bmp|graphic/speed-color.bmp

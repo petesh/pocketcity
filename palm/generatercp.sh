@@ -24,7 +24,7 @@ EOM
 densities=72
 colors=
 gtid=
-while getopts "c:d:D" opt; do
+while getopts "c:d:DHh?" opt; do
 	case $opt in
 	d)
 		trydens=

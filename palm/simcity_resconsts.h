@@ -199,6 +199,10 @@
 #define	strID_Items 1022
 #define	wdlID_Costs 1023
 #define strID_Months 1024
+#define strID_densities 1025
+#define strID_values 1026
+#define strID_crime 1027
+#define strID_pollution 1028
 
 #define	bitmapID_zones 1600
 #define	bitmapID_monsters 1601
@@ -242,6 +246,14 @@
 
 /* Controls for the Query Form */
 #define	labelID_zonetype 1001
+#define labelID_zonevalue 1002
+#define labelID_zonedensity 1003
+#define	labelID_pollution 1004
+#define labelID_crimelevel 1005
+#define labelID_ispowered 1006
+#define labelID_iswatered 1007
+#define labelID_carrypower 1008
+#define labelID_carrywater 1009
 
 /* Resource Strings */
 #define	resstrings_base	4096
@@ -249,6 +261,31 @@
 #define	si_empty_land	1
 #define	si_power_line	2
 #define	si_road		3
-#define	si_real_water	4
+#define	si_realwater	4
 #define	si_forest	5
 #define	si_maprender	6
+#define	si_fakewater	7
+#define	si_faketree	8
+#define	si_pump		9
+#define	si_waste	10
+#define	si_fire		11
+#define	si_crater	12
+#define	si_pipe		13
+#define	si_powerline	14
+#define	si_powerwater	15
+#define	si_commercialslum	16
+#define	si_residentialslum	17
+#define	si_industrialslum	18
+#define	si_coalplant	19
+#define	si_nuclearplant	20
+#define	si_firestation	21
+#define	si_policedept	22
+#define	si_armybase	23
+#define	si_commercial	24
+#define	si_residential	25
+#define	si_industrial	26
+#define	si_powerroad	27
+#define	si_piperoad	28
+#define si_bridge	29
+#define si_carries	30
+#define si_needs	31

@@ -29,13 +29,32 @@ typedef enum {
 extern "C" {
 #endif
 
-#include <appconfig.h>
+#include <zakdef.h>
 
 void Sim_Distribute(void);
 void Sim_Distribute_Specific(Int16 type);
 Int16 Sim_DoPhase(Int16 nPhase);
 Int32 BudgetGetNumber(BudgetNumber type);
 void UpdateVolatiles(void);
+UInt32 getPopulation(void);
+
+Int16 IsRoad(welem_t x);
+Int16 IsRoadPower(welem_t x);
+Int16 IsRoadPipe(welem_t x);
+Int16 IsPowerWater(welem_t x);
+
+Int16 ZoneValue(welem_t x);
+Int16 IsPipe(welem_t x);
+Int16 IsBridge(welem_t x);
+Int16 IsPowerLine(welem_t x);
+Int16 IsRoadPower(welem_t x);
+Int16 IsWaterPipe(welem_t x);
+Int16 IsRoadWater(welem_t x);
+Int16 IsBridge(welem_t x);
+Int16 IsZone(welem_t x, zoneType nType);
+
+Int16 CarryPower(welem_t x);
+Int16 CarryWater(welem_t x);
 
 #ifdef __cplusplus
 }

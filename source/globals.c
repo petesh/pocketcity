@@ -14,6 +14,24 @@
 #include <mem_compat.h>
 #include <ui.h>
 
+/*!
+ * \brief contains the mapping of a field in the statistics to a counter code
+ * 
+ * this is used to produce the graphs.
+ * As all the values in the BuildCount array are 32bit values and all the
+ * statistic items are 16 bit values an amount of shifting is done to the
+ * build count value once it exceeds the maximum 16bit value
+ */
+stat_to_value statvalues[] = {
+	{ st_cashflow, bc_cashflow },
+	{ st_pollution, bc_pollution },
+	{ st_crime, bc_crime },
+	{ st_residential, bc_value_residential },
+	{ st_commercial, bc_value_commercial }, 
+	{ st_industrial, bc_value_industrial },
+	{ st_tail, 0 }
+};
+
 /*! \brief this is the central game struct */
 GameStruct game;
 /*! \brief  This is the volatile game structure (memoizing to reduce op/s) */
@@ -39,8 +57,8 @@ GetDate(char *temp)
 {
 	char month[10];
 
-	sprintf(temp, "%s %ld", getMonthString(game.TimeElapsed % 12, month, 9),
-	    (long)(game.TimeElapsed / 12) + 2000);
+	sprintf(temp, "%s %ld", getMonthString(getMonthsElapsed() % 12,
+	    month, 9), (long)(getMonthsElapsed() / 12) + 2000);
 	return ((char *)temp);
 }
 
@@ -72,7 +90,7 @@ getIndexOf(char *ary, Int16 addit, Int16 key)
 UInt8
 GetDisasterLevel(void)
 {
-	return (game.diff_disaster & 0xF);
+	return (GG.diff_disaster & 0xF);
 }
 
 /*!
@@ -82,8 +100,8 @@ GetDisasterLevel(void)
 void
 SetDisasterLevel(UInt8 value)
 {
-	game.diff_disaster &= 0xf0;
-	game.diff_disaster |= (value & 0x0f);
+	GG.diff_disaster &= 0xf0;
+	GG.diff_disaster |= (value & 0x0f);
 }
 
 /*!
@@ -93,7 +111,7 @@ SetDisasterLevel(UInt8 value)
 UInt8
 GetDifficultyLevel(void)
 {
-	return ((game.diff_disaster >> 4) & 0x0f);
+	return ((GG.diff_disaster >> 4) & 0x0f);
 }
 
 /*!
@@ -103,8 +121,8 @@ GetDifficultyLevel(void)
 void
 SetDifficultyLevel(UInt8 value)
 {
-	game.diff_disaster &= 0x0f;
-	game.diff_disaster |= ((value & 0x0f) << 4);
+	GG.diff_disaster &= 0x0f;
+	GG.diff_disaster |= ((value & 0x0f) << 4);
 }
 
 /*!

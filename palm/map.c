@@ -19,10 +19,6 @@
 #include <palmutils.h>
 #include <sections.h>
 
-static void DrawMap(void) MAP_SECTION;
-static void RenderMaps(void) MAP_SECTION;
-static void freemaps(void) MAP_SECTION;
-
 typedef enum e_map_type { mt_fullpaint = 1, mt_overlay } map_type;
 
 typedef enum e_map_entries {
@@ -35,6 +31,11 @@ typedef struct scr_map {
 	WinHandle	handle;	/* handle for map painting */
 	map_type	type;	/* overlay | normal map */
 } scr_map_t;
+
+static void DrawMap(void) MAP_SECTION;
+static void RenderMaps(void) MAP_SECTION;
+static void freemaps(void) MAP_SECTION;
+static void AddMap(WinHandle handle, map_type type, map_entry code) MAP_SECTION;
 
 /* Map structures ... it's a cheap ass array. 0 .. me_end-1 */
 map_entry currmap;
@@ -81,9 +82,9 @@ hMap(EventPtr event)
 	switch (event->eType) {
 	case penDownEvent:
 		if (event->screenX >= StartX &&
-		    event->screenX <= (GetMapSize() + StartX) &&
+		    event->screenX <= (GetMapWidth() + StartX) &&
 		    event->screenY >= StartY &&
-		    event->screenY <= (GetMapSize() + StartY)) {
+		    event->screenY <= (GetMapHeight() + StartY)) {
 			Int16 x = event->screenX - StartX;
 			Int16 y = event->screenY - StartY;
 			Goto(x, y);
@@ -139,10 +140,10 @@ static void
 DrawMap(void)
 {
 	const RectangleType rect = {
-		{ StartX, StartY }, { GetMapSize(), GetMapSize() }
+		{ StartX, StartY }, { GetMapWidth(), GetMapHeight() }
 	};
 	const RectangleType grect = {
-		{ 0, 0 }, { GetMapSize(), GetMapSize() }
+		{ 0, 0 }, { GetMapWidth(), GetMapHeight() }
 	};
 
 	map_entry entry = currmap;
@@ -191,7 +192,7 @@ RenderMaps(void)
 	StrPrintF(perc, "%d%%", 0);
 	WinPaintChars(perc, StrLen(perc), 20, 40);
 
-	wh = WinCreateOffscreenWindow(GetMapSize(), GetMapSize(),
+	wh = WinCreateOffscreenWindow(GetMapWidth(), GetMapHeight(),
 	    screenFormat, &e);
 	if (e != errNone) {
 		return;
@@ -236,31 +237,31 @@ RenderMaps(void)
 		}
 	}
 
-	for (posits.y = 0; posits.y < GetMapSize(); posits.y++) {
+	for (posits.y = 0; posits.y < GetMapHeight(); posits.y++) {
 		if (IsNewROM() && (posits.y & 0xF) == 0xF) {
 			int prc = (int)(( (long)posits.y * 100 ) /
-			    GetMapSize());
+			    GetMapHeight());
 			StrPrintF(perc, "%d%%", prc);
 			WinPaintChars(perc, StrLen(perc), 20, 40);
 		}
-		for (posits.x = 0; posits.x < GetMapSize(); posits.x++) {
+		for (posits.x = 0; posits.x < GetMapWidth(); posits.x++) {
 			int wt = GetWorld(WORLDPOS(posits.x, posits.y));
 			if (inited >= 1) {
 				switch (wt) {
-				case TYPE_DIRT:
+				case Z_DIRT:
 					cc = 0;
 					break;
-				case TYPE_WATER:
-				case TYPE_REAL_WATER:
+				case Z_FAKEWATER:
+				case Z_REALWATER:
 					cc = entries[0];
 					break;
-				case ZONE_RESIDENTIAL:
+				case Z_RESIDENTIAL_SLUM:
 					cc = entries[1];
 					break;
-				case ZONE_COMMERCIAL:
+				case Z_COMMERCIAL_SLUM:
 					cc = entries[2];
 					break;
-				case ZONE_INDUSTRIAL:
+				case Z_INDUSTRIAL_SLUM:
 					cc = entries[3];
 					break;
 				default:
@@ -272,7 +273,7 @@ RenderMaps(void)
 			if (addr != NULL) {
 				switch (depth) {
 				case 1:
-					if (wt == TYPE_DIRT) {
+					if (wt == Z_DIRT) {
 						*addr &=
 						    (unsigned char)
 						    ~(1U << shift);

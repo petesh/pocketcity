@@ -99,7 +99,6 @@ static void SetDeferDrawing(void);
 static void SetDrawing(void);
 static UInt8 IsDeferDrawing(void);
 
-void UIDrawPop(void);
 void UIDrawSpeed(void);
 
 void *
@@ -285,11 +284,11 @@ EventLoop(void)
 		if (IsBuilding()) continue;
 
 		/* the almighty homemade >>"multithreader"<< */
-		if (game.gameLoopSeconds != SPEED_PAUSED) {
+		if (getLoopSeconds() != SPEED_PAUSED) {
 			if (simState == 0) {
 				timeTemp = TimGetSeconds();
 				if (timeTemp >=
-				    timeStamp + game.gameLoopSeconds) {
+				    timeStamp + getLoopSeconds()) {
 					simState = 1;
 					timeStamp = timeTemp;
 				}
@@ -308,7 +307,7 @@ EventLoop(void)
 		 */
 
 		if (GetDifficultyLevel() == 0 &&
-		    game.gameLoopSeconds == SPEED_PAUSED) {
+		    getLoopSeconds() == SPEED_PAUSED) {
 			continue;
 		}
 
@@ -346,19 +345,17 @@ EventLoop(void)
 }
 
 /*
- * Handles, dimensions and resourceID's of the bitmaps
+ * Handles and resourceID's of the bitmaps
  */
 static const struct _bmphandles {
 	WinHandle *handle;
-	const Coord width, height;
 	const DmResID resourceID;
 } handles[] = {
-	/* space for 64*2=128 zones */
-	{ &winZones, 1024, 32, (DmResID)bitmapID_zones },
-	{ &winMonsters, 128, 64, (DmResID)bitmapID_monsters },
-	{ &winUnits, 48, 32, (DmResID)bitmapID_units },
-//XXX:	{ &winButtons, 48, 32, (DmResID)bitmapID_buttons },
-	{ &winSpeeds, 5*10, 10, (DmResID)bitmapID_Speed }
+	{ &winZones, (DmResID)bitmapID_zones },
+	{ &winMonsters, (DmResID)bitmapID_monsters },
+	{ &winUnits, (DmResID)bitmapID_units },
+//XXX:	{ &winButtons, (DmResID)bitmapID_buttons },
+	{ &winSpeeds, (DmResID)bitmapID_Speed }
 };
 
 static DmOpenRef _refTiles;
@@ -377,6 +374,8 @@ _PalmInit(void)
 	WinHandle	privhandle;
 	UInt16		prefSize;
 	Int16		rv = 0;
+	Coord		width;
+	Coord		height;
 
 	timeStamp = TimGetSeconds();
 	timeStampDisaster = timeStamp;
@@ -424,7 +423,7 @@ _PalmInit(void)
 
 	/* create an offscreen window, and copy the zones to be used later */
 	for (i = 0; i < (sizeof (handles) / sizeof (handles[0])); i++) {
-		bitmaphandle = DmGetResource('Tbmp', handles[i].resourceID);
+		bitmaphandle = DmGetResource(TBMP, handles[i].resourceID);
 		if (bitmaphandle == NULL) {
 			WriteLog("could not get bitmap handle[%d:%ld]\n",
 			    (int)i, (long)handles[i].resourceID);
@@ -439,9 +438,10 @@ _PalmInit(void)
 			rv = 5;
 			goto returnWV;
 		}
+		BmpGetDimensions(bitmap, &width, &height, NULL);
 
-		privhandle = _WinCreateOffscreenWindow(handles[i].width,
-		    handles[i].height, nativeFormat, (UInt16 *)&err);
+		privhandle = _WinCreateOffscreenWindow(width,
+		    height, nativeFormat, (UInt16 *)&err);
 		if (err != errNone) {
 			/* TODO: alert user, and quit program */
 			WriteLog("Offscreen window for zone[%d] failed\n",
@@ -604,27 +604,27 @@ DoPCityMenuProcessing(UInt16 itemID)
 		/* next menu ... speed */
 
 	case menuID_SlowSpeed:
-		game.gameLoopSeconds = SPEED_SLOW;
+		setLoopSeconds(SPEED_SLOW);
 		UIDrawSpeed();
 		handled = true;
 		break;
 	case menuID_MediumSpeed:
-		game.gameLoopSeconds = SPEED_MEDIUM;
+		setLoopSeconds(SPEED_MEDIUM);
 		UIDrawSpeed();
 		handled = true;
 		break;
 	case menuID_FastSpeed:
-		game.gameLoopSeconds = SPEED_FAST;
+		setLoopSeconds(SPEED_FAST);
 		UIDrawSpeed();
 		handled = true;
 		break;
 	case menuID_TurboSpeed:
-		game.gameLoopSeconds = SPEED_TURBO;
+		setLoopSeconds(SPEED_TURBO);
 		UIDrawSpeed();
 		handled = true;
 		break;
 	case menuID_PauseSpeed:
-		game.gameLoopSeconds = SPEED_PAUSED;
+		setLoopSeconds(SPEED_PAUSED);
 		UIDrawSpeed();
 		handled = true;
 		break;
@@ -715,9 +715,9 @@ hPocketCity(EventPtr event)
 		break;
 	case penUpEvent:
 		SetNotBuilding();
-		timeStamp = TimGetSeconds()-game.gameLoopSeconds+2;
+		timeStamp = TimGetSeconds() - getLoopSeconds() + 2;
 		/* so the simulation routine won't kick in right away */
-		timeStampDisaster = timeStamp-game.gameLoopSeconds+1;
+		timeStampDisaster = timeStamp - getLoopSeconds() + 1;
 		handled = true;
 		break;
 	case menuEvent:
@@ -747,10 +747,10 @@ DoAbout(void)
 	MemPtr bs = NULL;
 	const UInt8 *qq = (const UInt8 *)"??";
 
-	vh = DmGetResource('tver', 1);
+	vh = DmGetResource(TVER, 1);
 	if (vh != NULL) vs = MemHandleLock(vh);
 	if (vh == NULL) vs = (MemPtr)qq;
-	bh = DmGetResource('tSTR', StrID_build);
+	bh = DmGetResource(TSTR, StrID_build);
 	if (bh != NULL) bs = MemHandleLock(bh);
 	if (bh == NULL) bs = (MemPtr)qq;
 	FrmCustomAlert(alertID_about, (const Char *)vs, (const Char *)bs, NULL);
@@ -1099,13 +1099,13 @@ BUILD_STATEBITACCESSOR(6, SetDrawing, SetDeferDrawing, IsDeferDrawing, static)
  * Helps reduce the externally visible state,
  * and allows the query to run without having too much global access.
  */
-static UInt8 __clicker;
+static UInt32 __clicker;
 
 /*
  * Get the item clicked on the main form last.
  */
-UInt8
-GetItemClicked()
+UInt32
+GetPositionClicked()
 {
 	return (__clicker);
 }
@@ -1115,7 +1115,7 @@ GetItemClicked()
  * Saves having to re-lookup the location in the WorldMap.
  */
 void
-SetItemClicked(UInt8 item)
+SetPositionClicked(UInt32 item)
 {
 	__clicker = item;
 }
@@ -1134,10 +1134,10 @@ _UIGetFieldToBuildOn(Int16 x, Int16 y)
 	rect.topLeft.y = YOFFSET;
 
 	if (RctPtInRectangle(x, y, &rect)) {
-		UInt32 xpos = (x - XOFFSET) / vgame.tileSize + game.map_xpos;
-		UInt32 ypos = (y - YOFFSET) / vgame.tileSize + game.map_ypos;
+		UInt32 xpos = (x - XOFFSET) / vgame.tileSize + getMapXPos();
+		UInt32 ypos = (y - YOFFSET) / vgame.tileSize + getMapYPos();
 		LockWorld();
-		SetItemClicked(GetWorld(WORLDPOS(xpos, ypos)));
+		SetPositionClicked(WORLDPOS(xpos, ypos));
 		UnlockWorld();
 		if (UIGetSelectedBuildItem() != Be_Query)
 			BuildSomething(xpos, ypos);
@@ -1311,19 +1311,17 @@ UIDrawCursor(Int16 xpos __attribute__ ((unused)),
  * This specifies the overlay. The icon itself is tile pixels before this.
  * \param xpos the x position on the area to paint
  * \param ypos the y position on the area to paint
- * \param tilex the tile's x position (in tiles)
- * \param tiley the tile's y position (in tiles)
  */
 void
-UIDrawLossIcon(Int16 xpos, Int16 ypos, Int16 tilex, Int16 tiley)
+UIDrawLossIcon(Int16 xpos, Int16 ypos, welem_t elem)
 {
 	RectangleType rect;
 
 	if (IsDeferDrawing())
 		return;
 
-	rect.topLeft.x = (Coord)tilex * vgame.tileSize;
-	rect.topLeft.y = (Coord)tiley * vgame.tileSize;
+	rect.topLeft.x = (Coord)(elem % HORIZONTAL_TILESIZE) * vgame.tileSize;
+	rect.topLeft.y = (Coord)(elem / HORIZONTAL_TILESIZE) * vgame.tileSize;
 	rect.extent.x = vgame.tileSize;
 	rect.extent.y = vgame.tileSize;
 
@@ -1345,24 +1343,22 @@ UIDrawLossIcon(Int16 xpos, Int16 ypos, Int16 tilex, Int16 tiley)
  * \brief Draw the water loss icon on a field.
  * 
  * The Field has already been determined to not have water.
- * \todo the '5' here is a magic number, fix it
  */
 void
 UIDrawWaterLoss(Int16 xpos, Int16 ypos)
 {
-	UIDrawLossIcon(xpos, ypos, 5, 0);
+	UIDrawLossIcon(xpos, ypos, Z_WATER_OUT_MASK);
 }
 
 /*!
  * \brief Draw a power loss icon for the field.
  * 
  * The field has already been determined to not have power
- * \todo the '5' here is a magic number, fix it
  */
 void
 UIDrawPowerLoss(Int16 xpos, Int16 ypos)
 {
-	UIDrawLossIcon(xpos, ypos, 9, 0);
+	UIDrawLossIcon(xpos, ypos, Z_POWER_OUT_MASK);
 }
 
 /*!
@@ -1425,15 +1421,15 @@ UIDrawSpecialObject(Int16 i, Int16 xpos, Int16 ypos)
  * Paint the location on screen with the field.
  */
 void
-UIDrawField(Int16 xpos, Int16 ypos, UInt8 nGraphic)
+UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic)
 {
 	RectangleType rect;
 
 	if (IsDeferDrawing())
 		return;
 
-	rect.topLeft.x = (nGraphic % 64) * vgame.tileSize;
-	rect.topLeft.y = (nGraphic / 64) * vgame.tileSize;
+	rect.topLeft.x = (nGraphic % HORIZONTAL_TILESIZE) * vgame.tileSize;
+	rect.topLeft.y = (nGraphic / HORIZONTAL_TILESIZE) * vgame.tileSize;
 	rect.extent.x = vgame.tileSize;
 	rect.extent.y = vgame.tileSize;
 
@@ -1454,6 +1450,7 @@ UIScrollMap(dirType direction)
 	WinHandle screen;
 	RectangleType rect;
 	int to_x, to_y, i;
+	Int16 mapx, mapy;
 
 	if (IsDeferDrawing())
 		return;
@@ -1479,22 +1476,21 @@ UIScrollMap(dirType direction)
 	LockWorld();
 	UIInitDrawing();
 
+	mapy = getMapYPos();
+	mapx = getMapXPos();
 	if (direction == 1 || direction == 3) {
-		for (i = game.map_ypos;
-		    i < vgame.visible_y + game.map_ypos; i++) {
-			DrawFieldWithoutInit(game.map_xpos +
+		for (i = mapy; i < vgame.visible_y + mapy; i++) {
+			DrawFieldWithoutInit(mapx +
 			    (vgame.visible_x - 1) * (direction == 1), i);
 		}
 	} else {
-		for (i = game.map_xpos;
-		    i < vgame.visible_x + game.map_xpos; i++) {
-			DrawFieldWithoutInit(i, game.map_ypos +
+		for (i = mapx; i < vgame.visible_x + mapx; i++) {
+			DrawFieldWithoutInit(i, mapy +
 			    (vgame.visible_y - 1) * (direction == 2));
 		}
 	}
 
-	UIDrawCursor(vgame.cursor_xpos - game.map_xpos,
-	    vgame.cursor_ypos - game.map_ypos);
+	UIDrawCursor(vgame.cursor_xpos - mapx, vgame.cursor_ypos - mapy);
 	UIDrawCredits();
 	UIDrawPop();
 
@@ -1733,11 +1729,11 @@ UIDrawCredits(void)
 	if (IsDeferDrawing())
 		return;
 
-	StrPrintF(temp, "$: %ld", game.credits);
+	StrPrintF(temp, "$: %ld", getCredits());
 	UIDrawItem(CREDITSLOC, temp);
 #ifdef HRSUPPORT
 	if (isHires()) {
-		bitmapHandle = DmGetResource('Tbmp', bitmapID_coin);
+		bitmapHandle = DmGetResource(TBMP, bitmapID_coin);
 		if (bitmapHandle == NULL)
 			return;
 		bitmap = MemHandleLock(bitmapHandle);
@@ -1769,7 +1765,7 @@ UIDrawLoc(void)
 #ifdef HRSUPPORT
 	if (isHires()) {
 		StrPrintF(temp, "%02u,%02u", game.map_xpos, game.map_ypos);
-		bitmapHandle = DmGetResource('Tbmp', bitmapID_loca);
+		bitmapHandle = DmGetResource(TBMP, bitmapID_loca);
 		if (bitmapHandle == NULL)
 			return;
 		bitmap = MemHandleLock(bitmapHandle);
@@ -1780,11 +1776,11 @@ UIDrawLoc(void)
 		DmReleaseResource(bitmapHandle);
 	} else
 #endif
-		StrPrintF(temp, "(%02u,%02u)", game.map_xpos, game.map_ypos);
+		StrPrintF(temp, "(%02u,%02u)", getMapXPos(), getMapYPos());
 
 #ifdef SONY_CLIE
 	if (IsSony()) {
-		bitmapHandle = DmGetResource('Tbmp', bitmapID_updn + jog_lr);
+		bitmapHandle = DmGetResource(TBMP, bitmapID_updn + jog_lr);
 		/* place at rt - (12 + 8), 1 */
 		if (bitmapHandle) {
 			bitmap = MemHandleLock(bitmapHandle);
@@ -1813,7 +1809,7 @@ UIUpdateBuildIcon(void)
 	if (IsDeferDrawing())
 		return;
 
-	bitmaphandle = DmGetResource('Tbmp',
+	bitmaphandle = DmGetResource(TBMP,
 	    bitmapID_iconBulldoze + (((nSelectedBuildItem <= Be_Extra)) ?
 	    nSelectedBuildItem : OFFSET_EXTRA));
 
@@ -1864,7 +1860,7 @@ UIDrawPop(void)
 	if (IsDeferDrawing())
 		return;
 
-	StrPrintF(temp, "Pop: %lu", vgame.BuildCount[bc_residential] * 150);
+	StrPrintF(temp, "Pop: %lu", getPopulation());
 	UIDrawItem(POPLOC, temp);
 	UIDrawLoc();
 	UIDrawSpeed();
@@ -1873,7 +1869,7 @@ UIDrawPop(void)
 		MemHandle bitmapHandle;
 		BitmapPtr bitmap;
 		
-		bitmapHandle = DmGetResource('Tbmp', bitmapID_popu);
+		bitmapHandle = DmGetResource(TBMP, bitmapID_popu);
 		if (bitmapHandle == NULL)
 			return;
 		bitmap = MemHandleLock(bitmapHandle);
@@ -1895,14 +1891,14 @@ UIDrawPop(void)
 void
 UICheckMoney(void)
 {
-	if (game.credits == 0) {
+	if (getCredits() == 0) {
 		if (!IsOutShown()) {
 			FrmAlert(alertID_outMoney);
 			SetOutShown();
 		} else {
 			return;
 		}
-	} else if ((game.credits <= 1000) || (game.credits == 1000)) {
+	} else if (getCredits() <= 1000) {
 		if (!IsLowShown()) {
 			FrmAlert(alertID_lowFunds);
 			SetLowShown();
@@ -1930,7 +1926,7 @@ LockWorld()
 {
 	if (++lockWorldCount == 1) {
 		if (worldHandle != NULL) {
-			WriteLog("Locking\n");
+			/*WriteLog("Locking\n");*/
 			worldPtr = MemHandleLock(worldHandle);
 		}
 	}
@@ -1943,7 +1939,7 @@ UnlockWorld()
 		worldHandle = MemPtrRecoverHandle(worldPtr);
 	}
 	if (--lockWorldCount == 0) {
-		WriteLog("UnLocking\n");
+		/*WriteLog("UnLocking\n");*/
 		MemPtrUnlock(worldPtr);
 		worldPtr = NULL;
 	}
@@ -2002,7 +1998,7 @@ speedOffset(void)
 	UInt16 i;
 
 	for (i = 0; i < (sizeof (speedslist) / sizeof (speedslist[0])); i++) {
-		if (game.gameLoopSeconds == speedslist[i].from) {
+		if (getLoopSeconds() == speedslist[i].from) {
 			return (i);
 		}
 	}
@@ -2015,8 +2011,8 @@ cycleSpeed(void)
 	UInt16 i;
 
 	for (i = 0; i < (sizeof (speedslist) / sizeof (speedslist[0])); i++) {
-		if (speedslist[i].from == game.gameLoopSeconds) {
-			game.gameLoopSeconds = speedslist[i].to;
+		if (speedslist[i].from == getLoopSeconds()) {
+			setLoopSeconds(speedslist[i].to);
 			break;
 		}
 	}
@@ -2202,7 +2198,7 @@ drawToolBitmaps(Coord startx, Coord starty, Coord spacing)
 	UInt32 id;
 
 	for (id = bitmapID_iconBulldoze; id <= bitmapID_iconExtra; id++) {
-		hBitmap = DmGetResource('Tbmp', id);
+		hBitmap = DmGetResource(TBMP, id);
 		if (hBitmap == NULL) continue;
 		pBitmap = MemHandleLock(hBitmap);
 		if (pBitmap == NULL) {

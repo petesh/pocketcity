@@ -11,8 +11,8 @@ RC = pilrc
 RCFLAGS = -q
 
 OPTFLAGS = -O2
-WARNFLAGS = -W -Wall -Werror -fconserve-space
-INCLUDES = -I . -I ../source
+WARNFLAGS = -W -Wall -Werror -Wno-multichar
+INCLUDES = -I . -I ../source -I ../graphic
 DEFINES = -D$(PLATFORM)
 
 CFLAGS = $(OPTFLAGS) $(WARNFLAGS) $(DEFINES) $(INCLUDES)

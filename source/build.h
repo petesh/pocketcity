@@ -8,6 +8,7 @@
 #if !defined(_BUILD_H_)
 #define	_BUILD_H_
 
+#include <zakdef.h>
 #include <appconfig.h>
 
 /*!
@@ -74,7 +75,7 @@ typedef enum {
 extern "C" {
 #endif
 
-void Build_Bulldoze(Int16 xpos, Int16 ypos, UInt16 _unused);
+void Build_Bulldoze(Int16 xpos, Int16 ypos, welem_t _unused);
 void BuildSomething(Int16 xpos, Int16 ypos);
 void Build_Destroy(Int16 xpos, Int16 ypos);
 void CreateFullRiver(void);

@@ -56,7 +56,7 @@ void UIScrollMap(dirType direction);
 void _UIDrawRect(Int16 nTop, Int16 nLeft, Int16 nHeight, Int16 nWidth);
 
 
-void UIDrawField(Int16 xpos, Int16 ypos, UInt8 nGraphic);
+void UIDrawField(Int16 xpos, Int16 ypos, welem_t nGraphic);
 void UIDrawSpecialObject(Int16 i, Int16 xpos, Int16 ypos);
 void UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos);
 void UIDrawCursor(Int16 xpos, Int16 ypos);
@@ -69,18 +69,16 @@ Int16 ResizeWorld(UInt32 size);
 UInt8 LockedWorld(void);
 void LockWorld(void);
 void UnlockWorld(void);
-UInt8 GetWorld(UInt32 pos);
-void SetWorld(UInt32 pos, UInt8 value);
-UInt8 LockedWorldFlags(void);
+welem_t GetWorld(UInt32 pos);
+void SetWorld(UInt32 pos, welem_t value);
 
 void PurgeWorld(void);
 
-UInt8 GetWorldFlags(UInt32 pos);
-void SetWorldFlags(UInt32 pos, UInt8 value);
-void OrWorldFlags(UInt32 pos, UInt8 value);
-void AndWorldFlags(UInt32 pos, UInt8 value);
+selem_t GetWorldFlags(UInt32 pos);
+void SetWorldFlags(UInt32 pos, selem_t value);
+void OrWorldFlags(UInt32 pos, selem_t value);
+void AndWorldFlags(UInt32 pos, selem_t value);
 void MapHasJumped(void);
-
 
 UInt32 GetRandomNumber(UInt32 max);
 void UISetTileSize(Int16 size);

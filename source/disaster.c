@@ -50,8 +50,8 @@ DoNastyStuffTo(Int16 type, UInt16 probability)
 		randomTile = GetRandomNumber(MapMul());
 		if (GetWorld(randomTile) == type) {
 			/* wee, let's destroy something */
-			x = randomTile % GetMapSize();
-			y = randomTile / GetMapSize();
+			x = randomTile % GetMapWidth();
+			y = randomTile / GetMapWidth();
 			CreateWaste(x, y);
 			break;
 		}
@@ -79,14 +79,14 @@ DoRandomDisaster(void)
 	for (i = 0; i < 100; i++) { /* 100 tries to hit a useful tile */
 		randomTile = GetRandomNumber(MapMul());
 		type = GetWorld(randomTile);
-		if (type != TYPE_DIRT &&
-			type != TYPE_REAL_WATER &&
-			type != TYPE_CRATER) {
-			x = randomTile % GetMapSize();
-			y = randomTile / GetMapSize();
+		if (type != Z_DIRT &&
+			type != Z_REALWATER &&
+			type != Z_CRATER) {
+			x = randomTile % GetMapWidth();
+			y = randomTile / GetMapHeight();
 			/* TODO: should depend on difficulty */
-			random = GetRandomNumber((4 - disaster_level) * 1000);
-			WriteLog("Random Disaster: %d", (int)random);
+			random = GetRandomNumber(1000 / disaster_level);
+			WriteLog("Random Disaster: %d\n", (int)random);
 			if (random < 10 && vgame.BuildCount[bc_fire] == 0) {
 				DoSpecificDisaster(diFireOutbreak);
 			} else if (random < 15 &&
@@ -119,8 +119,8 @@ DoSpecificDisaster(erdiType disaster)
 
 	while (i++ < 400 && ce == 0) {
 		randomTile = GetRandomNumber(MapMul());
-		x = randomTile % GetMapSize();
-		y = randomTile / GetMapSize();
+		x = randomTile % GetMapWidth();
+		y = randomTile / GetMapHeight();
 
 		switch (disaster) {
 		case diFireOutbreak:
@@ -163,12 +163,12 @@ UpdateDisasters(void)
 
 	LockWorld();
 	ClearScratch();
-	for (i = 0; i < GetMapSize(); i++) {
-		for (j = 0; j < GetMapSize(); j++) {
+	for (i = 0; i < GetMapHeight(); i++) {
+		for (j = 0; j < GetMapWidth(); j++) {
 			type = GetWorld(WORLDPOS(i, j));
 			/* already looked at this one? */
 			if (GetScratch(WORLDPOS(i, j)) == 0) {
-				if (type == TYPE_FIRE2) {
+				if (type == Z_FIRE2) {
 					retval = 1;
 					if (GetRandomNumber(5) != 0) {
 						/* are there any defences */
@@ -176,14 +176,14 @@ UpdateDisasters(void)
 							FireSpread(i, j);
 						}
 						SetWorld(WORLDPOS(i, j),
-						    TYPE_FIRE3);
+						    Z_FIRE3);
 					} else {
 						CreateWaste(i, j);
 					}
-				} else if (type == TYPE_FIRE1) {
+				} else if (type == Z_FIRE1) {
 					retval = 1;
-					SetWorld(WORLDPOS(i, j), TYPE_FIRE2);
-				} else if (type == TYPE_FIRE3) {
+					SetWorld(WORLDPOS(i, j), Z_FIRE2);
+				} else if (type == Z_FIRE3) {
 					retval = 1;
 					CreateWaste(i, j);
 				}
@@ -202,20 +202,20 @@ UpdateDisasters(void)
 void
 CreateWaste(Int16 x, Int16 y)
 {
-	int type;
+	welem_t node;
 
 	LockWorld();
-	type = GetWorld(WORLDPOS(x, y));
+	node = GetWorld(WORLDPOS(x, y));
 	Build_Destroy(x, y);
-	if (type == TYPE_REAL_WATER || type == TYPE_BRIDGE) {
+	if (node == Z_REALWATER || IsBridge(node)) {
 		UnlockWorld();
 		return;
 	}
-	SetWorld(WORLDPOS(x, y), TYPE_WASTE);
+	SetWorld(WORLDPOS(x, y), Z_WASTE);
 	vgame.BuildCount[bc_waste]++;
-	DrawCross(x, y);
+	DrawCross(x, y, 1, 1);
 	UnlockWorld();
-	if (type == TYPE_POWER_PLANT || type == TYPE_NUCLEAR_PLANT)  {
+	if (node == Z_COALPLANT || node == Z_NUCLEARPLANT)  {
 		UIDisplayError(diPlantExplosion);
 		FireSpread(x, y);
 	}
@@ -231,11 +231,11 @@ FireSpread(Int16 x, Int16 y)
 {
 	if (x > 0)
 		BurnField(x - 1, y, 0);
-	if (x < GetMapSize() - 1)
+	if (x < GetMapWidth() - 1)
 		BurnField(x + 1, y, 0);
 	if (y > 0)
 		BurnField(x, y - 1, 0);
-	if (y < GetMapSize() - 1)
+	if (y < GetMapHeight() - 1)
 		BurnField(x, y + 1, 0);
 }
 
@@ -250,27 +250,27 @@ FireSpread(Int16 x, Int16 y)
 Int16
 BurnField(Int16 x, Int16 y, Int16 forceit)
 {
-	int type;
+	welem_t node;
 	int rv = 0;
 
 	LockWorld();
-	type = GetWorld(WORLDPOS(x, y));
-	if ((forceit != 0 && type != TYPE_BRIDGE &&
-	    type != TYPE_REAL_WATER) ||
-	    (type != TYPE_FIRE1 &&
-	    type != TYPE_FIRE2 &&
-	    type != TYPE_FIRE3 &&
-	    type != TYPE_DIRT &&
-	    type != TYPE_WASTE &&
-	    type != TYPE_WATER &&
-	    type != TYPE_REAL_WATER &&
-	    type != TYPE_CRATER &&
-	    type != TYPE_BRIDGE &&
+	node = GetWorld(WORLDPOS(x, y));
+	if ((forceit != 0 && node != Z_BRIDGE &&
+	    node != Z_REALWATER) ||
+	    (node != Z_FIRE1 &&
+	    node != Z_FIRE2 &&
+	    node != Z_FIRE3 &&
+	    node != Z_DIRT &&
+	    node != Z_WASTE &&
+	    node != Z_FAKEWATER &&
+	    node != Z_REALWATER &&
+	    node != Z_CRATER &&
+	    node != Z_BRIDGE &&
 	    ContainsDefence(x, y) == 0)) {
 		Build_Destroy(x, y);
-		SetWorld(WORLDPOS(x, y), TYPE_FIRE1);
+		SetWorld(WORLDPOS(x, y), Z_FIRE1);
 		SetScratch(WORLDPOS(x, y));
-		DrawCross(x, y);
+		DrawCross(x, y, 1, 1);
 		vgame.BuildCount[bc_fire]++;
 		rv = 1;
 	}
@@ -287,12 +287,12 @@ BurnField(Int16 x, Int16 y, Int16 forceit)
 Int16
 CreateMonster(Int16 x, Int16 y)
 {
-	int type;
+	welem_t node;
 	int rv = 0;
 
 	LockWorld();
-	type = GetWorld(WORLDPOS(x, y));
-	if (type != TYPE_REAL_WATER && type != TYPE_CRATER) {
+	node = GetWorld(WORLDPOS(x, y));
+	if (node != Z_REALWATER && node != Z_CRATER) {
 		game.objects[obj_monster].x = x;
 		game.objects[obj_monster].y = y;
 		game.objects[obj_monster].dir = GetRandomNumber(8);
@@ -313,12 +313,12 @@ CreateMonster(Int16 x, Int16 y)
 Int16
 CreateDragon(Int16 x, Int16 y)
 {
-	int type;
+	welem_t node;
 	int rv = 0;
 
 	LockWorld();
-	type = GetWorld(WORLDPOS(x, y));
-	if (type != TYPE_REAL_WATER && type != TYPE_CRATER) {
+	node = GetWorld(WORLDPOS(x, y));
+	if (node != Z_REALWATER && node != Z_CRATER) {
 		game.objects[obj_dragon].x = x;
 		game.objects[obj_dragon].y = y;
 		game.objects[obj_dragon].dir = GetRandomNumber(8);
@@ -356,7 +356,7 @@ GetDefenceValue(Int16 xpos, Int16 ypos)
 	/* police = 2 */
 	/* firemen = 3 */
 	/* military = 6 */
-	short int def =
+	UInt16 def =
 	    ContainsDefence(xpos + 1, ypos) +
 	    ContainsDefence(xpos + 1, ypos + 1) +
 	    ContainsDefence(xpos + 1, ypos - 1) +
@@ -452,7 +452,7 @@ MoveAllObjects(void)
 			case 4: /* down */
 			case 5: /* down-left */
 				if (game.objects[i].y <
-				    (UInt16)(GetMapSize()-1)) {
+				    (UInt16)(GetMapHeight()-1)) {
 					game.objects[i].y++;
 				} else {
 					game.objects[i].dir = 0;
@@ -467,7 +467,7 @@ MoveAllObjects(void)
 			case 2: /* right */
 			case 3: /* down-right */
 				if (game.objects[i].x <
-				    (UInt16)(GetMapSize()-1)) {
+				    (UInt16)(GetMapWidth()-1)) {
 					game.objects[i].x++;
 				} else {
 					game.objects[i].dir = 6;
@@ -486,7 +486,7 @@ MoveAllObjects(void)
 				break;
 			}
 			LockWorld();
-			DrawCross(x, y); /* (erase it) */
+			DrawCross(x, y, 1, 1); /* (erase it) */
 			DrawField(game.objects[i].x, game.objects[i].y);
 			UnlockWorld();
 		}
@@ -524,18 +524,18 @@ CreateMeteor(Int16 x, Int16 y, Int16 size)
 	UILockScreen();
 	for (i = x - size; i <= x + size; i++) {
 		for (j = y - size; j <= y + size; j++) {
-			if (i >= 0 && i < GetMapSize() && j >= 0 &&
-			    j < GetMapSize()) {
+			if (i >= 0 && i < GetMapWidth() && j >= 0 &&
+			    j < GetMapHeight()) {
 				if (GetRandomNumber(5) < 2) {
 					if (GetWorld(WORLDPOS(i, j)) !=
-					    TYPE_REAL_WATER) {
+					    Z_REALWATER) {
 						CreateWaste(i, j);
 					}
 				} else if (GetRandomNumber(5) < 4) {
 					if (GetWorld(WORLDPOS(i, j)) !=
-					    TYPE_REAL_WATER &&
+					    Z_REALWATER &&
 					    GetWorld(WORLDPOS(i, j)) !=
-					    TYPE_WATER) {
+					    Z_FAKEWATER) {
 						BurnField(i, j, 1);
 					}
 				}
@@ -543,7 +543,7 @@ CreateMeteor(Int16 x, Int16 y, Int16 size)
 		}
 	}
 	Build_Destroy(x, y);
-	SetWorld(WORLDPOS(x, y), TYPE_CRATER);
+	SetWorld(WORLDPOS(x, y), Z_CRATER);
 	UnlockWorld();
 	UIUnlockScreen();
 	RedrawAllFields();

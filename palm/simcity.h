@@ -4,14 +4,17 @@
 #include <zakdef.h>
 
 /* global vars from simcity.c */
+#define MK4(A,B,C,D)	(((A) << 12) | ((B) << 8) | ((C) << 4) | (D))
 #define	SGTYP   'DATA'
 #define	TILEDBTYPE 'tidb'
+#define TBMP	'Tbmp'
+#define TVER	'tver'
+#define TSTR	'tSTR'
 #define	SGNAME  "PCitySave"
 
 extern MemPtr worldPtr;
-extern MemPtr worldFlagsPtr;
 
-UInt8 GetItemClicked(void);
+UInt32 GetPositionClicked(void);
 /* For the 'dialogs' */
 void PauseGame(void);
 void ResumeGame(void);

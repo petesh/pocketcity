@@ -10,13 +10,31 @@
 
 #include <appconfig.h>
 
+/*! \brief the number of statistics held for a year/decade */
+#define	STATS_PER	4
+
+/*! \brief number of years/decades kept */
+#define STATS_COUNT	10
+
+/*! \brief number of entries in array */
+#define STAT_ENTRIES	(STATS_PER * STATS_COUNT)
+
 /*! \brief bitmask for anding off when setting/getting world flags */
 #define	FLAGS_ANDMASK	0x00ff
 /*! \brief shift value for getting/setting world flags */
 #define FLAGS_SHIFTVALUE	0x8
 /*! \brief bitmask for anding off when setting/getting world pointer */
 #define WORLD_ANDMASK	0xff00
-/* There is ho shift value for the world field */
+/* There is no shift value for the world field */
+
+#define	MAX_UINT16	(~(UInt16)0)
+/*! \brief value for normalizing the cashflow within the range */
+#define OFFSET_FOR_CASHFLOW_BC	(1UL<<31)
+/*! \brief this offset is 1/2 the value of an unsigned int16 */
+#define OFFSET_FOR_CASHFLOW_STAT	((~(Uint16)0) >> 1)
+
+/*! \brief this is the mask for setting the cashflow value */
+#define	CASHFLOW_STATMASK	(0xffff)
 
 /*! \brief how often the disasters are updated - in seconds */
 #define	SIM_GAME_LOOP_DISASTER  2
@@ -36,86 +54,35 @@
  * here's the meaning of the
  * bytes in WorldFlags[]
  */
-/*! \brief the mapping of dirt to the world map */
-#define	TYPE_DIRT		0
-/*! \brief unoccupied commercial zone mapping */
-#define	ZONE_COMMERCIAL		1
-/*! \brief unoccupied residential zone mapping */
-#define	ZONE_RESIDENTIAL	2
-/*! \brief unoccupied commercial zone mapping */
-#define	ZONE_INDUSTRIAL		3
 
 /*
- * these might be used here, but
- * the graphic slot is still free for other
- * uses and are used for the water/powerloss
- * overlay at the moment
- */
-/*! \brief map item is a road */
-#define	TYPE_ROAD		4
-/*! \brief map item is a power line */
-#define	TYPE_POWER_LINE		5
-/*! \brief map item is power line intersecting a road (horizontal) */
-#define	TYPE_POWERROAD_1	6
-/*! \brief map item is power line intersecting a road (vertical) */
-#define	TYPE_POWERROAD_2	7
-/*! \brief map item is water pipe */
-#define	TYPE_WATER_PIPE		8
-/*! \brief map item is unused */
-#define	TYPE_NOT_USED		9
+ * This begins the description of how the tile/status system works in practice.
+ * 
+ * Zones are assigned a base 'type' which determines their basic make-up. Some
+ * tiles can possess no more state than 'it is'. That means that the value
+ * of the tile at that location maps onto the underlying zone in a one-to-one
+ * fashion. The value may not actually map to the tile in question.
+ * 
+ * This is not the case for most other tiles. These tiles possess a 'value'
+ * which is a value from 0-16. This is actually 4 sets of 4 values. Each of
+ * the sets corresponds to the differing densities, each of the values to the
+ * corresponding 'value' of the zone.
+ * 
+ * Getting the icons is accomplished using the 'GetSpecialGraphic()' call which
+ * is in the drawing.c file.
+ * 
+ * All the definitions below are intended to provide the backing definitions
+ * that actually are used in the program.
+ * 
+ * Anything beginning with Z_ is a zone entry
+ *
+ * Everything has been moved to the generated tileheader.h file
+ */ 
 
-/*! \brief map item is a tree */
-#define	TYPE_TREE		21
-/*! \brief map item is lake water */
-#define	TYPE_WATER		22
-/*! \brief map item is a fire station */
-#define	TYPE_FIRE_STATION	23
-/*! \brief map item is a police station */
-#define	TYPE_POLICE_STATION	24
-/*! \brief map item is a military base */
-#define	TYPE_MILITARY_BASE	25
-/*! \brief map item is a water pump */
-#define	TYPE_WATER_PUMP		26
-/* 27 .. 30 are unused, but match CarryWater! Note this! */
-/* 30..39 commercial */
-/*! \brief minimum valued commercial zone */
-#define	TYPE_COMMERCIAL_MIN	30
-/*! \brief maximum valued commercial zone */
-#define	TYPE_COMMERCIAL_MAX	39
-/* 40..49 residential */
-/*! \brief minimum valued residential zone */
-#define	TYPE_RESIDENTIAL_MIN	40
-/*! \brief maximum valued residential zone */
-#define	TYPE_RESIDENTIAL_MAX	49
-/* 50..59 industrial */
-/*! \brief minimum valued industrial zone */
-#define	TYPE_INDUSTRIAL_MIN	50
-/*! \brief maximum valued industrial zone */
-#define	TYPE_INDUSTRIAL_MAX	59
+/*! \brief the number of tiles that are stored laterally on a 'tilestripe' */
+#define	HORIZONTAL_TILESIZE	32
 
-/*! \brief a single zoned coal power plant */
-#define	TYPE_POWER_PLANT	60
-/*! \brief a single zoned nuclear power plant */
-#define	TYPE_NUCLEAR_PLANT	61
-/*! \brief wasteland */
-#define	TYPE_WASTE		62
-/*! \brief fire type (1) */
-#define	TYPE_FIRE1		63
-/*! \brief fire type (2) */
-#define	TYPE_FIRE2		64
-/*! \brief fire type (3) */
-#define	TYPE_FIRE3		65
-/*! \brief Natural water */
-#define	TYPE_REAL_WATER		66
-/*! \brief crater - caused by meteor */
-#define	TYPE_CRATER		67
-/*! \brief bridge over water (horizontal?) */
-#define	TYPE_WATERROAD_1	68
-/*! \brief bridge over water (vertical?) */
-#define	TYPE_WATERROAD_2	69
-
-/*! \brief bridge (direction?) */
-#define	TYPE_BRIDGE		81
+#include <tileheader.h>
 
 /* Supply units per plant */
 /*! \brief number of power units supplied by a coal power plant */
@@ -203,16 +170,22 @@
 /*! \brief save game version */
 #define	SAVEGAMEVERSION	 "PC06"
 
+#define GG	game
 /*! \brief get the map size */
-#define	GetMapSize() (game.mapsize)
+#define	GetMapWidth() (GG.mapx)
+
+/*! \brief get the map height */
+#define GetMapHeight() (GG.mapy)
 /*!
  * \brief set the map size
  *
  * Does not allocate any extra memory.
  * \param x the new map size
  */
-#define	SetMapSize(x) { game.mapsize = (x); \
-	vgame.mapmul = game.mapsize * game.mapsize; \
+#define	SetMapSize(X,Y) { \
+	GG.mapx = (X); \
+	GG.mapy = (Y); \
+	vgame.mapmul = GG.mapx * GG.mapy; \
 	vgame.world_size = vgame.mapmul << 1; \
 }
 
@@ -226,18 +199,18 @@
  * \brief add a grid to be updated
  * \param T the grid to add
  */
-#define	AddGridUpdate(T)		(game.gridsToUpdate |= T)
+#define	AddGridUpdate(T)		(GG.gridsToUpdate |= T)
 /*!
  * \brief Check if a grid need updating
  * \param T the grid to check
  * \return whether the grid need updating
  */
-#define	NeedsUpdate(T)		  (game.gridsToUpdate & T)
+#define	NeedsUpdate(T)		  (GG.gridsToUpdate & T)
 /*!
  * \brief Clear the need to update a sertain grid.
  * \param T the grid to clear
  */
-#define	ClearUpdate(T)		  (game.gridsToUpdate &= ~T)
+#define	ClearUpdate(T)		  (GG.gridsToUpdate &= ~T)
 
 /*!
  * \brief get the position of a map location in the world array
@@ -245,18 +218,50 @@
  * \param y the y position
  * \return the position in the array
  */
-#define	WORLDPOS(x, y)	((x) + (y) * (GetMapSize()))
+#define	WORLDPOS(x, y)	((x) + (y) * (GetMapWidth()))
 
 /*! \brief save the current speed, and change the speed to paused */
 #define	SaveSpeed()			 { \
-	vgame.oldLoopSeconds = game.gameLoopSeconds; \
-	game.gameLoopSeconds = SPEED_PAUSED; \
+	vgame.oldLoopSeconds = GG.gameLoopSeconds; \
+	GG.gameLoopSeconds = SPEED_PAUSED; \
 }
 
 /*! \brief restore the saved game speed */
 #define	RestoreSpeed()		  { \
-	game.gameLoopSeconds = vgame.oldLoopSeconds; \
+	GG.gameLoopSeconds = vgame.oldLoopSeconds; \
 }
+
+/*! \brief get the number of months that have elapsed in the game */
+#define	getMonthsElapsed()	(GG.TimeElapsed >> 2)
+
+#define getMapXPos()	(GG.map_xpos)
+#define setMapXPos(x)	GG.map_xpos = (x)
+#define getMapYPos()	(GG.map_ypos)
+#define setMapYPos(y)	GG.map_ypos = (y)
+#define getLoopSeconds()	(GG.gameLoopSeconds)
+#define setLoopSeconds(L)	GG.gameLoopSeconds = (L)
+#define getCredits()	(GG.credits)
+#define setCredits(C)	GG.credits = (C)
+#define incCredits(V)	GG.credits += (V)
+#define decCredits(V)	GG.credits -= (V)
+#define getUpkeep(K)	(GG.upkeep[K])
+#define setUpkeep(K,V)	GG.upkeep[K] = (V)
+#define getStatistics(K)	(&(GG.statistics[K]))
+#define setTimeElapsed(X)	GG.TimeElapsed = (X)
+#define incrementTimeElapsed(X)	GG.TimeElapsed += (X)
+#define setGameVersion(V)	strncpy(GG.version, V, 4)
+#define	setTax(T)	GG.tax = (T)
+#define	getTax()	(GG.tax)
+#define setAutoBulldoze(V)	GG.auto_bulldoze = (V)
+#define getAutoBulldoze()	(GG.auto_bulldoze)
+
+/* Typedefs */
+
+/*! \brief the type of the world elements */
+typedef UInt8	welem_t;
+
+/*! \brief the type of the world status flags */
+typedef UInt8	selem_t;
 
 /*!
  * \brief the possible errors/warnings.
@@ -280,7 +285,7 @@ typedef enum erdiType_en {
 /*! \brief zone identification for scoring */
 typedef enum {
 	ztWhat = 0, /*!< Unknown Zone */
-	ztCommercial, /*!< Commercial Zone */
+	ztCommercial = Z_COMMERCIAL_SLUM, /*!< Commercial Zone - connivant */
 	ztResidential, /*!< Residential Zone */
 	ztIndustrial /*!< Industrial Zone */
 } zoneType;
@@ -301,24 +306,70 @@ struct zoneTypeValue {
 	UInt8	crime; /*!< Crime level of the zone */
 };
 
+/*!
+ * \brief the statistics structure.
+ * 
+ * This is used by the simulation to record the varoius values for use in the
+ * graph screen.
+ *
+ * The items are obtained using the buildcount array, so we need a mapping of
+ * the items in the build count array to the entries in the statistics array
+ */
+typedef enum {
+	st_cashflow = 0, /*!< History information about cashflow */
+	st_pollution, /*!< History information about pollution */
+	st_crime, /*!< History information about crime */
+	st_residential, /*!< Histroy information about residential averages */
+	st_commercial, /*!< History information about commercial values */
+	st_industrial, /*!< History information about industrial values */
+	st_tail /*!< tail ender, for allocating the array */
+} StatisticItem;
+
+/*!
+ * \brief the structure containing graphical history
+ * 
+ * the entries are logarithmically scaled.
+ * We have: 4 entries per year for the first 10 years
+ * Then we have: 4 entries per decade for the next 100 years
+ */
+typedef struct _history {
+	 /*! values from last ten years */
+	UInt16		last_ten[STATS_COUNT];
+	/*! values from last century */
+	UInt16		last_century[STATS_COUNT];
+} stat_item;
+
+/*! \note Once a tree/forest becomes adjacent to an occupied area it becomes
+ * part of the 'natural' forest
+ */
 /*! \brief elements for the BuildCount[] array */
 typedef enum {
-	bc_residential = 0, /*!< count of residential units */
-	bc_commercial, /*!< count of commercial units */
-	bc_industrial, /*!< count of industrial units */
-	bc_roads, /*!< count of roads */
-	bc_trees, /*!< count of trees */
-	bc_water, /*!< count of water */
+	bc_count_residential = 0, /*!< count of residential areas */
+	bc_value_residential, /*!< values of residential units */
+	bc_count_commercial, /*!< count of the commercial units */
+	bc_value_commercial, /*!< value of commercial units */
+	bc_count_industrial, /*!< count of industrial units */
+	bc_value_industrial, /*!< value of industrial units */
+	bc_count_roads, /*!< count of roads */
+	bc_value_roads, /*!< value of roads */
+	bc_count_trees, /*!< count of trees/forests/parks */
+	bc_value_trees, /*!< value of trees/forests/parks (unnatural) */
+	bc_water, /*!< count of water (unnatural) */
 	bc_coalplants, /*!< count of coal power plants */
 	bc_nuclearplants, /*!< count of nuclear power plants */
 	bc_powerlines, /*!< count of power lines */
-	bc_waste, /*!< count of wasteland zones */
-	bc_fire, /*!< count of fire elements */
-	bc_fire_stations, /*!< count of fire station */
-	bc_police_stations, /*!< count of police stations */
-	bc_military_bases, /*!< count of military bases */
+	bc_waterpumps, /*!< count of water pumps */
 	bc_waterpipes, /*!< count of water pipes */
-	bc_waterpumps /*!< count of water pumps */
+	bc_waste, /*!< count of wasteland zones */
+	bc_radioactive, /*< count of radioactive areas */
+	bc_fire, /*!< count of fire elements */
+	bc_fire_stations, /*!< count of fire stations */
+	bc_police_departments, /*!< count of police stations */
+	bc_military_bases, /*!< count of military bases */
+	bc_cashflow, /*!< cashflow value */
+	bc_pollution, /*!< pollution valuation */
+	bc_crime, /*!< Criminal level */
+	bc_tail		/*!< tail ender */
 } BuildCount;
 
 /*! \brief a moveable item on the map */
@@ -334,8 +385,11 @@ typedef enum {
 	obj_monster = 0, /*!< 'zilla */
 	obj_dragon, /*!< Fire dragon */
 	obj_chopper, /*!< Helicopter */
+	obj_plane, /*!< Aeroplane */
 	obj_ship, /*!< a boat to wander up & down the river */
-	obj_train /*!< a train */
+	obj_train, /*!< a train */
+	obj_power, /*!< the invisible power-supply fairy */
+	obj_water  /*!< The invisible water-supply fairy */
 } Objects;
 
 /*! \brief The type of a defence unit */
@@ -366,17 +420,9 @@ typedef enum {
 	ue_tail /*!< Tail ender, for allocating the array in game structure */
 } UpkeepEntries;
 
-/*!
- * \brief the central game structure.
- *
- * This is the central game struct only one of this exists at a time
- * and is called 'game'. This entire struct will be saved between games.
- *
- * Anything with an underscore will be removed later on.
- */
-
+/*! \brief Structure kept around for historic purposes */
 typedef struct _game_struct05 {
-	Int8		version[4]; /*!< Version code of savegame */
+	UInt8		version[4]; /*!< Version code of savegame */
 	UInt8		mapsize;	/*!< The size of each axis of the map */
 	Int16		_visible_x;	/*!< deprecated */
 	Int16		_visible_y;	/*!< deprecated */
@@ -398,25 +444,43 @@ typedef struct _game_struct05 {
 	MoveableObject  objects[NUM_OF_OBJECTS]; /*!< Special objects */
 } GameStruct05;
 
-typedef struct _game_struct06 {
-	Int8		version[4];	/* version of game */
-	UInt8		mapsize;	/* size of map, it's a square */
-	Int8		bigendian;	/* Do I really need this? */
-	Int8		map_xpos;	/* position on screen that's visible */
-	Int8		map_ypos;	/* Position on screen that's visible */
-	Int32		credits;	/* amount of money we've got. */
-	UInt32		TimeElapsed;	/* number of months since 00 */
-	UInt8		tax;		/* tax rate */
-	UInt8		gameLoopSeconds; /* speed of game */
-	UInt8		diff_disaster;  /* merge of difficulty and disaster */
-	UInt8		auto_bulldoze;  /* are we auto-bulldozing */
-	Int8		cityname[20];   /* Name of city */
-	/* howsat ? */
-	UInt16		defenceUnitCount;
-	UInt16		moveableObjectCount;
-	/* DefenceUnit		*units; */
-	/* MoveableObject	 *objects; */
+/*!
+ * \brief the central game structure.
+ *
+ * This is the central game struct only one of this exists at a time
+ * and is called 'game'. This entire struct will be saved between games.
+ *
+ * Anything with an underscore will be removed later on.
+ */
+typedef struct _game_struct06a {
+	UInt8	version[4];	/*!< version of game */
+	UInt8	mapx;		/*!< size of map on the X-axis */
+	UInt8	mapy;		/*!< size of the map on the Y-axis */
+	Int8	map_xpos;	/*!< X-position on screen that's visible */
+	Int8	map_ypos;	/*!< Y-position on screen that's visible */
+	Int32	credits;	/*!< amount of money we've got. */
+	UInt32	TimeElapsed;	/*!< number of half-months since 00 */
+	UInt8	tax;		/*!< tax rate */
+	UInt8	gameLoopSeconds; /*!< speed of game */
+	UInt8	diff_disaster;  /*!< merge of difficulty and disaster */
+	UInt8	auto_bulldoze;  /*!< are we auto-bulldozing */
+	Int8	cityname[20];   /*!< Name of city */
+	UInt8	upkeep[ue_tail];	/*!< upkeep %ages for bits */
+	UInt8	gridsToUpdate;	/*!< Grids to be updated on next grid cycle */
+
+	UInt16	evaluation;	/*!< Evaluation level of the mayor */
+
+	stat_item statistics[st_tail]; /*!< statistics */
+	DefenceUnit	units[NUM_OF_UNITS]; /*!< active units */
+	MoveableObject	objects[NUM_OF_OBJECTS]; /*!< active objects */
 } GameStruct06;
+
+typedef struct _stat_to_value {
+	StatisticItem	item;	/*!< Item we are concerned with */
+	BuildCount	offset; /*!< Offset into object */
+} stat_to_value;
+
+extern stat_to_value statvalues[];
 
 /*
  * Followed by:
@@ -425,22 +489,19 @@ typedef struct _game_struct06 {
  */
 
 /*! \brief currently supported save game version */
-typedef GameStruct05 GameStruct;
+typedef GameStruct06	GameStruct;
 
-/* crap! */
-typedef struct _psuCount {
-	struct _psuCount *next;
-	int gridType;
-} psuCount;
 
-/*! \brief volatile game structure
+/*!
+ * \brief volatile game structure
  *
- * items that are needed during the execution of the game, but not needed
+ * Items that are needed during the execution of the game, but not needed
  * for persistence.
  */
 typedef struct _vgame_struct {
 	UInt16		mapmul;	/*!< x*y */
-	long unsigned	BuildCount[bc_waterpumps]; /*!< count of elements */
+	UInt32		prior_credit; /*!< last month's credit value */
+	long unsigned	BuildCount[bc_tail]; /*!< count of elements */
 	unsigned char	tileSize;	/*!< size of a tile */
 	unsigned short	oldLoopSeconds;	/*!< last selected speed - for pause */
 	int		visible_x;	/*!< visible tiles on the X */

@@ -78,7 +78,7 @@ setupOptions(void)
 	CtlSetValue((ControlPtr)GetObjectPtr(form, buttonID_Easy + tval), 1);
 
 	CtlSetValue((ControlPtr)GetObjectPtr(form, checkboxID_autobulldoze),
-	    game.auto_bulldoze ? 1 : 0);
+	    getAutoBulldoze() ? 1 : 0);
 	return (form);
 }
 
@@ -111,8 +111,8 @@ saveOptions(void)
 	} else if (CtlGetValue((ControlPtr)GetObjectPtr(form, buttonID_Hard))) {
 		SetDifficultyLevel(2);
 	}
-	game.auto_bulldoze = CtlGetValue((ControlPtr)GetObjectPtr(form,
-	    checkboxID_autobulldoze));
+	setAutoBulldoze(CtlGetValue((ControlPtr)GetObjectPtr(form,
+	    checkboxID_autobulldoze)));
 }
 
 

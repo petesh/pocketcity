@@ -8,7 +8,7 @@ DTARGETS=dlores dpalm5 dsony cheat
 
 .PHONY: %-nextdir
 .NOTPARALLEL:
-.PRECIOUS: %.stm
+.PRECIOUS: %.stm %.rcp
 
 # Resource PDBs (graphical; non-language)
 DEPTHS := bw twobit grey color merged

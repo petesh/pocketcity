@@ -45,7 +45,6 @@ void EndHiresFontDraw(void);
 #define	isHires() (false)
 #define	canHires() (false)
 
-#define	scaleEvent(t)
 #define highDensityFeatureSet()	(0)
 #define scaleEvent(e)
 #define StartHiresDraw()

@@ -14,7 +14,9 @@
 #include <sys/types.h>
 #include <inttypes.h>
 #include <strings.h>
+#include <mem_compat.h>
 
+/*
 static Int8
 read_int8(int fd)
 {
@@ -58,98 +60,142 @@ write_int32(int fd, Int32 value)
 	write_int16(fd, (value >> 16) & 0xffff);
 	write_int16(fd, value & 0xffff);
 }
+*/
+
+static void *
+map_int8(int fd, void *val)
+{
+	(void) read(fd, val, 1);
+	return ((char *)val + 1);
+}
+
+static void *
+map_int16(int fd, void *val)
+{
+	Int8 by[2];
+	read(fd, by, 2);
+	*(Int16 *)val = (by[0] << 8 | by[1]);
+	return ((char *)val + 2);
+}
+
+static void *
+map_int32(int fd, void *val)
+{
+	Int8 by[4];
+	read(fd, by, 4);
+	*(Int32 *)val = (by[0] << 24 | by[1] << 16 | by[2] << 8 | by[3]);
+	return ((char *)val + 4);
+}
 
 static void
 read_palmstructure(GameStruct *new, int fd)
 {
 	int i;
+	int j;
+	void *ptr = new;
 
 	bzero(new, sizeof (*new));
-	read(fd, new->version, 4);
-	new->mapsize = read_int8(fd);
-	read_int8(fd);
-	/* skip visibles 2xint16 */
-	read_int32(fd);
-	new->map_xpos = read_int16(fd);
-	new->map_ypos = read_int16(fd);
-	/* skip cursor */
-	read_int32(fd);
-	new->credits = read_int32(fd);
-	/* build count */
+	for (i = 0; i < 4; i++)
+		ptr = map_int8(fd, ptr);
+	ptr = map_int8(fd, ptr);
+	ptr = map_int8(fd, ptr);
+	ptr = map_int16(fd, ptr);
+	ptr = map_int16(fd, ptr);
+	ptr = map_int32(fd, ptr);
+	ptr = map_int32(fd, ptr);
+	ptr = map_int8(fd, ptr);
+	ptr = map_int8(fd, ptr);
+	ptr = map_int8(fd, ptr);
+	ptr = map_int8(fd, ptr);
+	read(fd, ptr, CITYNAMELEN);
+	ptr = (char *)ptr + CITYNAMELEN;
+	ptr = map_int8(fd, ptr);
+	ptr = map_int8(fd, ptr);
+	ptr = map_int8(fd, ptr);
+	ptr = map_int16(fd, ptr);
+	ptr = map_int8(fd, ptr);
+	ptr = map_int8(fd, ptr);
 	i = 0;
-	while (i++ < 20)
-		read_int32(fd);
-	new->TimeElapsed = read_int32(fd);
-	new->tax = read_int8(fd);
-	new->auto_bulldoze = read_int8(fd);
-	/* hole for name ?? */
-	read_int16(fd);
-	read(fd, new->cityname, CITYNAMELEN);
-	new->upkeep[0] = read_int8(fd);
-	new->upkeep[1] = read_int8(fd);
-	new->upkeep[2] = read_int8(fd);
-	new->diff_disaster = read_int8(fd);
-	i = 0;
-	while (i < 10) {
-		new->units[i].x = read_int16(fd);
-		new->units[i].y = read_int16(fd);
-		new->units[i].active = read_int16(fd);
-		new->units[i].type = read_int16(fd);
+	while (i < si_tail) {
+		for (j = 0; j < STATS_COUNT; j++) {
+			ptr = map_int16(fd, ptr);
+		}
+		for (j = 0; j < STATS_COUNT; j++) {
+			ptr = map_int16(fd, ptr);
+		}
 		i++;
 	}
 	i = 0;
-	while (i < 10) {
-		new->objects[i].x = read_int16(fd);
-		new->objects[i].y = read_int16(fd);
-		new->objects[i].dir = read_int16(fd);
-		new->objects[i].active = read_int16(fd);
+	while (i < NUM_OF_UNITS) {
+		ptr = map_int16(fd, ptr);
+		ptr = map_int16(fd, ptr);
+		ptr = map_int16(fd, ptr);
+		ptr = map_int16(fd, ptr);
+		i++;
+	}
+	i = 0;
+	while (i < NUM_OF_OBJECTS) {
+		ptr = map_int16(fd, ptr);
+		ptr = map_int16(fd, ptr);
+		ptr = map_int16(fd, ptr);
+		ptr = map_int16(fd, ptr);
 		i++;
 	}
 }
 
+/*
 static void
 write_palmstructure(GameStruct *new, int fd)
 {
 	int i;
+	int j;
 
-	write(fd, new->version, 4);
-	write_int8(fd, new->mapsize);
-	write_int8(fd, 0);
-	write_int32(fd, 0); /* visibles */
-	write_int16(fd, new->map_xpos);
-	write_int16(fd, new->map_ypos);
-	write_int32(fd, 0); /* cursor */
-	write_int32(fd, new->credits);
+	write(fd, new->gsi.version, 4);
+	write_int8(fd, new->gsi.mapx);
+	write_int8(fd, new->gsi.mapy);
+	write_int16(fd, new->gsi.map_xpos);
+	write_int16(fd, new->gsi.map_ypos);
+	write_int32(fd, new->gsi.credits);
+	write_int32(fd, new->gsi.TimeElapsed);
+	write_int8(fd, new->gsi.tax);
+	write_int8(fd, new->gsi.gameLoopSeconds);
+	write_int8(fd, new->gsi.diff_disaster);
+	write_int8(fd, new->gsi.auto_bulldoze);
+	write(fd, new->gsi.cityname, CITYNAMELEN);
+	write_int8(fd, new->gsi.upkeep[0]);
+	write_int8(fd, new->gsi.upkeep[1]);
+	write_int8(fd, new->gsi.upkeep[2]);
+	write_int16(fd, new->gsi.evaluation);
+	write_int8(fd, new->gsi.c_units);
+	write_int8(fd, new->gsi.c_objects);
 	i = 0;
-	while(i++ < 20)
-		write_int32(fd, 0);
-	write_int32(fd, new->credits);
-	write_int8(fd, new->tax);
-	write_int8(fd, new->auto_bulldoze);
-	write_int16(fd, 0);
-	write(fd, new->cityname, CITYNAMELEN);
-	write_int8(fd, new->upkeep[0]);
-	write_int8(fd, new->upkeep[1]);
-	write_int8(fd, new->upkeep[2]);
-	write_int8(fd, new->diff_disaster);
-	i = 0;
-	while(i++ < 10) {
-		write_int16(fd, new->units[i].x);
-		write_int16(fd, new->units[i].y);
-		write_int16(fd, new->units[i].active);
-		write_int16(fd, new->units[i].type);
+	while (i < si_tail) {
+		for (j = 0; j < STATS_COUNT; j++) {
+			write_int16(fd, new->gsi.statistics[i].last_ten[j]);
+		}
+		for (j = 0; j < STATS_COUNT; j++) {
+			write_int16(fd, new->gsi.statistics[i].last_century[j]);
+		}
 		i++;
 	}
 	i = 0;
-	while (i++ < 10) {
-		write_int16(fd, new->objects[i].x);
-		write_int16(fd, new->objects[i].y);
-		write_int16(fd, new->objects[i].dir);
-		write_int16(fd, new->objects[i].active);
+	while (i < new->gsi.c_units) {
+		 write_int16(fd, new->units[i].x);
+		 write_int16(fd, new->units[i].y);
+		 write_int16(fd, new->units[i].active);
+		 write_int16(fd, new->units[i].type);
 		i++;
 	}
-
+	i = 0;
+	while (i < new->gsi.c_objects) {
+		 write_int16(fd, new->objects[i].x);
+		 write_int16(fd, new->objects[i].y);
+		 write_int16(fd, new->objects[i].dir);
+		 write_int16(fd, new->objects[i].active);
+		i++;
+	}
 }
+*/
 
 int
 open_filename(char *sel, int palm)
@@ -233,7 +279,7 @@ save_filename(char *sel, int palm)
 	/* God, I love to write all my vars at one time */
 	/* using a struct :D */
 	if (palm != 0) {
-		write_palmstructure(&game, fd);
+		//write_palmstructure(&game, fd);
 		return (0);
 	}
 	ret = write(fd, (void*)&game, sizeof (GameStruct));
