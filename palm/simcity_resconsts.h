@@ -90,9 +90,9 @@
 #define alertID_about                    1004
 #define alertID_loadGame                 1006
 #define alertID_saveGame                 1007
-#define alertID_invalidSaveVersion	     1008
-#define alertID_gameSaved		         1009
-#define alertID_gameLoaded		         1010
+#define alertID_invalidSaveVersion       1008
+//#define alertID_<reuse me>	         1009
+//#define alertID_<reuse me>	         1010
 #define alertID_fireOutBreak             1011
 #define alertID_plantExplosion           1012
 #define alertID_monster                  1013

@@ -31,7 +31,8 @@ char * pArray[50];
 short int savegame_index = 0;
 #define LASTGAME        ((UInt16)~0)
 
-void _UIUpdateSaveGameList(void)
+void
+_UIUpdateSaveGameList(void)
 {
     DmOpenRef db;
     UInt16 index = 0;
@@ -94,7 +95,8 @@ _UICleanSaveGameList(void)
 }
 
 
-void _UICreateNewSaveGame(void)
+void
+_UICreateNewSaveGame(void)
 {
     Err err = 0;
     DmOpenRef db;
@@ -145,7 +147,8 @@ void _UICreateNewSaveGame(void)
     }
 }
 
-int _UILoadFromList(void)
+int
+_UILoadFromList(void)
 {
     FormPtr form = FrmGetFormPtr(formID_files);
     int index = LstGetSelection(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)));
@@ -156,7 +159,8 @@ int _UILoadFromList(void)
     }
 }
 
-void _UIDeleteFromList(void)
+void
+_UIDeleteFromList(void)
 {
     FormPtr form = FrmGetFormPtr(formID_files);
     int index = LstGetSelection(FrmGetObjectPtr(form,
@@ -167,7 +171,8 @@ void _UIDeleteFromList(void)
 }
 
 
-extern void UIClearAutoSaveSlot(void)
+extern void
+UIClearAutoSaveSlot(void)
 {
     DmOpenRef db;
     MemHandle rec;
@@ -189,7 +194,8 @@ extern void UIClearAutoSaveSlot(void)
     DmCloseDatabase(db);
 }
 
-void UIResetViewable(void)
+void
+UIResetViewable(void)
 {
     /* The UI part is responsible for setting
      * the visible_x/y vars
@@ -197,25 +203,28 @@ void UIResetViewable(void)
      * tile is 16 * 16
      * we reserve nothing on the x axis, but 2 tiles on the y
      */
-    vgame.visible_x = sWidth / 16;
-    vgame.visible_y = (sHeight / 16) - 2;
+    vgame.tileSize = 16;
+    vgame.visible_x = sWidth / vgame.tileSize;
+    vgame.visible_y = (sHeight / vgame.tileSize) - 2;
 }
 
-void UINewGame(void)
+void
+UINewGame(void)
 {
-    UIResetViewable();
     SetupNewGame();
+    UIResetViewable();
     game_in_progress = 1;
 }
 
 
-extern int UILoadAutoGame(void)
+extern int
+UILoadAutoGame(void)
 {
     return UILoadGame(0);
 }
 
-
-void UIDeleteGame(UInt16 index)
+void
+UIDeleteGame(UInt16 index)
 {
     // saves the game in slot 0
     DmOpenRef db;
@@ -233,9 +242,8 @@ void UIDeleteGame(UInt16 index)
     DmCloseDatabase(db);
 }
 
-
-
-int UILoadGame(UInt16 index)
+int
+UILoadGame(UInt16 index)
 {
     DmOpenRef db;
     MemHandle rec;
@@ -260,12 +268,10 @@ int UILoadGame(UInt16 index)
             LockWorld();
             MemMove((void*)&game, pTemp, sizeof(GameStruct));
             MemMove(worldPtr, pTemp+sizeof(GameStruct), GetMapMul());
-            UIResetViewable();
             UnlockWorld();
             // update the power and water grid:
-            UpdateVolatiles();
-            Sim_Distribute(0);
-            Sim_Distribute(1);
+            PostLoadGame();
+            UIResetViewable();
             loaded = 1;
         } else if (StrNCompare("PCNO", (char*)pTemp,4) == 0) {
             // flagged to be an empty save game
@@ -287,12 +293,14 @@ int UILoadGame(UInt16 index)
     return loaded;
 }
 
-extern void UISaveGameToIndex(void)
+extern void
+UISaveGameToIndex(void)
 {
     UISaveGame(savegame_index);
 }
 
-extern void UISaveGame(UInt16 index)
+extern void
+UISaveGame(UInt16 index)
 {
     // saves the game in slot 0
     Err err = 0;
@@ -448,5 +456,3 @@ hFiles(EventPtr event)
 
     return handled;
 }
-
-

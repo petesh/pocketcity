@@ -260,7 +260,7 @@ ZoneScore zones[256];
 void FindZonesForUpgrading()
 {
     int i;
-    long signed int randomZone;
+    long randomZone;
 
     int max = GetMapSize()*3;
     if (max > 256) { max = 256; }
@@ -293,7 +293,7 @@ unsigned int counter=0;
 int FindScoreForZones()
 {
     int i;
-    long signed int score;
+    long score;
     counter += 20;
     for (i=counter-20; i<counter; i++)
     {
@@ -318,7 +318,7 @@ int FindScoreForZones()
 void UpgradeZones()
 {
     int i,j,topscorer;
-    long signed topscore;
+    long topscore;
 
     int downCount = 11*10+30;
     int upCount = (0-8)*10+250;
@@ -374,7 +374,7 @@ void UpgradeZones()
 
 
 
-void DowngradeZone(long unsigned pos)
+void DowngradeZone(unsigned long pos)
 {
     int type;
     LockWorld();
@@ -399,7 +399,7 @@ void DowngradeZone(long unsigned pos)
     UnlockWorld();
 }
 
-void UpgradeZone(long unsigned pos)
+void UpgradeZone(unsigned long pos)
 {
     int type;
 
@@ -420,24 +420,20 @@ void UpgradeZone(long unsigned pos)
     UnlockWorld();
 }
 
-
-
-
-
-int DoTheRoadTrip(long unsigned int startPos)
+int DoTheRoadTrip(unsigned long startPos)
 {
     return 1; // for now
 }
 
 
-signed long GetZoneScore(long unsigned int pos)
+signed long GetZoneScore(unsigned long pos)
 {
     // return -1 to make this zone be downgraded _right now_ (ie. if missing things as power or roads)
 
-    signed long score = 0;
+    long score = 0;
     int x = pos % GetMapSize();
     int y = pos / GetMapSize();
-    signed int i,j;
+    int i, j;
     int bRoad = 0;
     int type = 0;
 
@@ -455,7 +451,7 @@ signed long GetZoneScore(long unsigned int pos)
         // see if there's actually enough residential population to support
         // a new zone of ind or com
 
-        long signed int availPop = 
+        long availPop = 
                 (vgame.BuildCount[COUNT_RESIDENTIAL]*25)
                 - (vgame.BuildCount[COUNT_COMMERCIAL]*25 +
                 vgame.BuildCount[COUNT_INDUSTRIAL]*25);
@@ -468,7 +464,7 @@ signed long GetZoneScore(long unsigned int pos)
         // the surrounding world - this would bring more potential residents
         // into our little city
 
-        long signed int availPop = 
+        long availPop = 
                 ((game.TimeElapsed*game.TimeElapsed)/35+30)
                 - (vgame.BuildCount[COUNT_RESIDENTIAL]);
         if (availPop <= 0) { UnlockWorld(); return -1; } // hmm - need more children
@@ -522,7 +518,7 @@ signed int GetScoreFor(unsigned char iamthis, unsigned char what)
 
 long unsigned int GetRandomZone()
 {
-    long unsigned int pos = 0;
+    unsigned long pos = 0;
     int i;
     unsigned char type;
 
@@ -541,37 +537,37 @@ long unsigned int GetRandomZone()
     return -1;
 }
 
-extern signed long int BudgetGetNumber(int type)
+extern long BudgetGetNumber(int type)
 {
-    signed long int ret = 0;
+    long ret = 0;
     switch (type) {
         case BUDGET_RESIDENTIAL:
-            ret = vgame.BuildCount[COUNT_RESIDENTIAL]
+            ret = (long)vgame.BuildCount[COUNT_RESIDENTIAL]
                     * INCOME_RESIDENTIAL
                     * game.tax/100;
             break;
         case BUDGET_COMMERCIAL:
-            ret = vgame.BuildCount[COUNT_COMMERCIAL]
+            ret = (long)vgame.BuildCount[COUNT_COMMERCIAL]
                     * INCOME_COMMERCIAL
                     * game.tax/100;
             break;
         case BUDGET_INDUSTRIAL:
-            ret = vgame.BuildCount[COUNT_INDUSTRIAL]
+            ret = (long)vgame.BuildCount[COUNT_INDUSTRIAL]
                     * INCOME_INDUSTRIAL
                     * game.tax/100;
             break;
         case BUDGET_TRAFFIC:
-            ret = (vgame.BuildCount[COUNT_ROADS] * UPKEEP_ROAD
+            ret = (long)(vgame.BuildCount[COUNT_ROADS] * UPKEEP_ROAD
                     * game.upkeep[UPKEEPS_TRAFFIC])/100;
             break;
         case BUDGET_POWER:
-            ret = ((vgame.BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE +
+            ret = (long)((vgame.BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE +
                     vgame.BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT +
                     vgame.BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT)
                     * game.upkeep[UPKEEPS_POWER])/100;
             break;
         case BUDGET_DEFENCE:
-            ret = ((vgame.BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS +
+            ret = (long)((vgame.BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS +
                      vgame.BuildCount[COUNT_POLICE_STATIONS]*UPKEEP_POLICE_STATIONS +
                      vgame.BuildCount[COUNT_MILITARY_BASES]*UPKEEP_MILITARY_BASES)
                     * game.upkeep[UPKEEPS_DEFENCE])/100;
@@ -580,7 +576,7 @@ extern signed long int BudgetGetNumber(int type)
             ret = game.credits;
             break;
         case BUDGET_CHANGE:
-            ret = BudgetGetNumber(BUDGET_RESIDENTIAL)
+            ret = (long)BudgetGetNumber(BUDGET_RESIDENTIAL)
                   + BudgetGetNumber(BUDGET_COMMERCIAL)
                   + BudgetGetNumber(BUDGET_INDUSTRIAL)
                   - BudgetGetNumber(BUDGET_TRAFFIC)
@@ -588,7 +584,7 @@ extern signed long int BudgetGetNumber(int type)
                   - BudgetGetNumber(BUDGET_DEFENCE);
             break;
         case BUDGET_NEXT_MONTH:
-            ret = BudgetGetNumber(BUDGET_CURRENT_BALANCE) +
+            ret = (long)BudgetGetNumber(BUDGET_CURRENT_BALANCE) +
                   BudgetGetNumber(BUDGET_CHANGE);
             break;
     }
@@ -605,7 +601,7 @@ void DoTaxes()
 
 void DoUpkeep()
 {
-    long unsigned int upkeep;
+    unsigned long upkeep;
 
     upkeep = BudgetGetNumber(BUDGET_TRAFFIC) +
              BudgetGetNumber(BUDGET_POWER) +
@@ -696,7 +692,6 @@ UpdateVolatiles(void)
     int y;
 
     LockWorld();
-    vgame.tileSize = 16;
 
     for (y = 0; y < GetMapSize(); y++)
         for (x = 0; x < GetMapSize(); x++) {

@@ -3,7 +3,7 @@
 // this is the central game struct
 GameStruct game;
 // This is the volatile game structure (memoizing to reduce op/s)
-vGameStruct vgame = { 0, GRID_ALL };
+vGameStruct vgame;
 
 int GetCiffer(int number, signed long value);
 

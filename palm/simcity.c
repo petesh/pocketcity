@@ -473,7 +473,6 @@ static Boolean hPocketCity(EventPtr event)
             case menuitemID_saveGame:
                 if (FrmAlert(alertID_saveGame) == 0) {
                     UISaveGameToIndex();
-                    FrmAlert(alertID_gameSaved);
                 }
                 handled = 1;
                 break;

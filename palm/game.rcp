@@ -297,21 +297,6 @@ BEGIN
   BUTTONS "OK"
 END
 
-ALERT ID alertID_gameSaved
-BEGIN
-  TITLE "Game Saved"
-  MESSAGE "Game saved..."
-  BUTTONS "OK"
-END
-
-ALERT ID alertID_gameLoaded
-BEGIN
-  TITLE "Game Loaded"
-  MESSAGE "Game loaded..."
-  BUTTONS "OK"
-END
-
-
 ALERT ID alertID_fireOutBreak
 BEGIN
   TITLE "Disaster"

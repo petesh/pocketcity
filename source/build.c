@@ -223,9 +223,9 @@ static const struct _costMappings {
   unsigned long int cost;
   int count;
 } genericMappings[] = {
-  { ZONE_RESIDENTIAL, BUILD_COST_ZONE, COUNT_RESIDENTIAL },
-  { ZONE_INDUSTRIAL, BUILD_COST_ZONE, COUNT_COMMERCIAL },
-  { ZONE_COMMERCIAL, BUILD_COST_ZONE, COUNT_INDUSTRIAL },
+  { ZONE_RESIDENTIAL, BUILD_COST_ZONE, -1 },
+  { ZONE_INDUSTRIAL, BUILD_COST_ZONE, -1 },
+  { ZONE_COMMERCIAL, BUILD_COST_ZONE, -1 },
   { TYPE_POWER_PLANT, BUILD_COST_POWER_PLANT, -1 },
   { TYPE_NUCLEAR_PLANT, BUILD_COST_NUCLEAR_PLANT, COUNT_POWERPLANTS },
   { TYPE_WATER, BUILD_COST_WATER, COUNT_WATER },
@@ -264,7 +264,6 @@ Build_Generic(int xpos, int ypos, unsigned int type)
         } else {
             UIDisplayError(ERROR_OUT_OF_MONEY);
         }
-
     }
     UnlockWorld();
 }

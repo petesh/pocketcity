@@ -16,13 +16,21 @@
 
 gchar * savegamename;
 
+void
+UIResetViewable(void)
+{
+    vgame.tileSize = 16;
+    vgame.visible_x = 320/ vgame.tileSize;
+    vgame.visible_y = 240/ vgame.tileSize;
+}
 
 void open_filename(GtkFileSelection *sel, gpointer data)
 {
     int fd, ret;
     char tempversion[4];
     
-    savegamename = (gchar*)gtk_file_selection_get_filename(GTK_FILE_SELECTION(data));
+    savegamename = (gchar*)gtk_file_selection_get_filename(
+      GTK_FILE_SELECTION(data));
     g_print("Opening save game from %s\n", savegamename);
     
     fd = open(savegamename, O_RDONLY);
@@ -31,31 +39,31 @@ void open_filename(GtkFileSelection *sel, gpointer data)
         return;
     }
     // first of all, check the savegame version
-    ret = read(fd,(void*)tempversion,4);
+    ret = read(fd, (void*)tempversion, 4);
     if (ret == -1) {
         perror("read version"); // TODO: make this nicer
         return;
     }
-    if (strncmp(tempversion,SAVEGAMEVERSION,4) != 0) {
+    if (strncmp(tempversion, SAVEGAMEVERSION, 4) != 0) {
         g_print("Wrong save game format - aborting\n");
         return;
     }
     // version was ok, rewind the file
-    lseek(fd,0,SEEK_SET);
+    lseek(fd, 0, SEEK_SET);
     
     // God, I love to read all my vars at one time
-    // using a struct :D
-    ret = read(fd,(void*)&game,sizeof(GameStruct));
+    // using a struct :D ... unfortunately horribly unportable
+    ret = read(fd, (void *)&game, sizeof(GameStruct));
     if (ret == -1) {
         perror("read game"); // TODO: make this nicer
         return;
     } else if (ret != sizeof(GameStruct)) {
-        g_print("Whoops, couldn't read full lenght of game\n");
+        g_print("Whoops, couldn't read full length of game\n");
         return;
     }
 
     // and now the great worldPtr :D
-    ret = read(fd,(void*)worldPtr, GetMapMul());
+    ret = read(fd, (void *)worldPtr, GetMapMul());
     if (ret == -1) {
         perror("read world"); // TODO: make this nicer
         return;
@@ -70,11 +78,10 @@ void open_filename(GtkFileSelection *sel, gpointer data)
     }
 
     // update the screen with the new game
-    Sim_Distribute(0);
-    Sim_Distribute(1);
+    UIResetViewable();
+    PostLoadGame();
     DrawGame(1);
     MapHasJumped();
-    
 }
 
 extern void UIOpenGame(GtkWidget *w, gpointer data)
@@ -96,9 +103,7 @@ extern void UIOpenGame(GtkWidget *w, gpointer data)
 extern void UINewGame(GtkWidget *w, gpointer data)
 {
     SetupNewGame();
-    vgame.visible_x = 320/16;
-    vgame.visible_y = 240/16;
-    vgame.tileSize = 16;
+    UIResetViewable();
     game.gameLoopSeconds = SPEED_FAST;
 }
 
@@ -124,7 +129,6 @@ extern void UISaveGameAs(GtkWidget *w, gpointer data)
             "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
             
     gtk_widget_show(GTK_WIDGET(fileSel));
-
 }
 
 extern void UISaveGame(GtkWidget *w, gpointer data)
@@ -132,7 +136,7 @@ extern void UISaveGame(GtkWidget *w, gpointer data)
     int fd, ret;
     
     if (savegamename == NULL) {
-        UISaveGameAs(NULL,0);
+        UISaveGameAs(NULL, 0);
         return;
     }
     g_print("Saving game as %s...\n", savegamename);
@@ -144,22 +148,22 @@ extern void UISaveGame(GtkWidget *w, gpointer data)
     }
     // God, I love to write all my vars at one time
     // using a struct :D
-    ret = write(fd,(void*)&game,sizeof(GameStruct));
+    ret = write(fd, (void*)&game, sizeof(GameStruct));
     if (ret == -1) {
         perror("write game"); // TODO: make this nicer
         return;
     } else if (ret != sizeof(GameStruct)) {
-        g_print("Whoops, couldn't write full lenght of game\n");
+        g_print("Whoops, couldn't write full length of game\n");
         return;
     }
 
     // and now the great worldPtr :D
-    ret = write(fd,(void*)worldPtr, GetMapMul());
+    ret = write(fd, (void*)worldPtr, GetMapMul());
     if (ret == -1) {
         perror("write world"); // TODO: make this nicer
         return;
     } else if (ret != GetMapMul()) {
-        g_print("Whoops, couldn't write full lenght of world\n");
+        g_print("Whoops, couldn't write full length of world\n");
         return;
     }
     
@@ -167,5 +171,4 @@ extern void UISaveGame(GtkWidget *w, gpointer data)
         perror("close"); // TODO: make this nicer
         return;
     }
-
 }
