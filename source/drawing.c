@@ -30,16 +30,16 @@ SetUpGraphic(void)
 void
 Goto(Int16 x, Int16 y)
 {
-	Int16 nx = x - (vgame.visible_x / 2);
-	Int16 ny = y - (vgame.visible_y / 2);
+	Int16 nx = x - (getVisibleX() / 2);
+	Int16 ny = y - (getVisibleY() / 2);
 	if (nx < 0)
 		nx = 0;
-	if (nx > (getMapWidth() - vgame.visible_x))
-		nx = getMapWidth() - vgame.visible_x;
+	if (nx > (getMapWidth() - getVisibleX()))
+		nx = getMapWidth() - getVisibleX();
 	if (ny < 0)
 		ny = 0;
-	if (ny > (getMapHeight() - vgame.visible_y))
-		ny = getMapHeight() - vgame.visible_y;
+	if (ny > (getMapHeight() - getVisibleY()))
+		ny = getMapHeight() - getVisibleY();
 	setMapXPos(nx);
 	setMapYPos(ny);
 	RedrawAllFields();
@@ -60,9 +60,11 @@ RedrawAllFields(void)
 	LockZone(lz_world);
 	UIInitDrawing();
 	UILockScreen();
-	for (i = getMapXPos(); i < vgame.visible_x + getMapXPos(); i++) {
+	UIDrawPlayArea();
+
+	for (i = getMapXPos(); i < getVisibleX() + getMapXPos(); i++) {
 		for (j = getMapYPos();
-		    j < vgame.visible_y + getMapYPos();
+		    j < getVisibleY() + getMapYPos();
 		    j++) {
 			DrawFieldWithoutInit(i, j);
 		}
@@ -97,13 +99,13 @@ ScrollDisplay(dirType direction)
 			moved = 0;
 		break;
 	case dtRight:
-		if (getMapXPos() <= (getMapWidth() - 1 - vgame.visible_x))
+		if (getMapXPos() <= (getMapWidth() - 1 - getVisibleX()))
 			setMapXPos(getMapXPos() + 1);
 		else
 			moved = 0;
 		break;
 	case dtDown:
-		if (getMapYPos() <= (getMapHeight() - 1 - vgame.visible_y))
+		if (getMapYPos() <= (getMapHeight() - 1 - getVisibleY()))
 			setMapYPos(getMapYPos() + 1);
 		else
 			moved = 0;
@@ -143,14 +145,14 @@ MoveCursor(dirType direction)
 	case dtRight:
 		if (vgame.cursor_xpos < (getMapWidth() - 1))
 			vgame.cursor_xpos++;
-		if ((vgame.cursor_xpos > getMapXPos() + vgame.visible_x-1) &&
+		if ((vgame.cursor_xpos > getMapXPos() + getVisibleX()-1) &&
 			vgame.cursor_xpos < getMapWidth())
 			ScrollDisplay(direction);
 		break;
 	case dtDown:
 		if (vgame.cursor_ypos < (getMapHeight() - 1))
 			vgame.cursor_ypos++;
-		if ((vgame.cursor_ypos > getMapYPos() + vgame.visible_y-1) &&
+		if ((vgame.cursor_ypos > getMapYPos() + getVisibleY()-1) &&
 			vgame.cursor_ypos < getMapHeight())
 			ScrollDisplay(direction);
 		break;
@@ -224,6 +226,9 @@ next:
  * ONLY call this function if you make sure to call
  * UIInitDrawing and UIFinishDrawing in the caller
  * Also remember to call (Un)lockWorld (2 functions)
+ *
+ * This function will not try to draw outside the bounds of the
+ * current city.
  * \param xpos horizontal position
  * \param ypos vertical position
  */
@@ -237,12 +242,9 @@ DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 	Int16 mapx = getMapXPos();
 	Int16 mapy = getMapYPos();
 
-	if (xpos < mapx ||
-		xpos >= mapx + vgame.visible_x ||
-		ypos < mapy ||
-		ypos >= mapy + vgame.visible_y) {
+	if (xpos < 0 || ypos < 0 || xpos >= getMapWidth() ||
+	    ypos >= getMapHeight())
 		return;
-	}
 
 	worldpos = WORLDPOS(xpos, ypos);
 	getWorldAndFlag(worldpos, &content, &flag);
