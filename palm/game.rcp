@@ -158,7 +158,6 @@ END
 FORM ID formID_files AT ( 0 0 160 160 )
 USABLE
 NOSAVEBEHIND
-MENUID menuID_files
 BEGIN
     TITLE "Pocket City Savegames"
 
@@ -180,17 +179,6 @@ BEGIN
     MAXCHARS 18
     BUTTON "Create"     ID buttonID_FilesNewCreate     AT (2 prevbottom+5 AUTO AUTO)
     BUTTON "Cancel"    ID buttonID_FilesNewCancel    AT (prevright+4 prevtop AUTO AUTO)
-END
-
-
-MENU ID menuID_files
-BEGIN
-    PULLDOWN "Files"
-    BEGIN
-        MENUITEM "New"                      menuitemID_FilesNew
-        MENUITEM "Load"                     menuitemID_FilesOpen
-        MENUITEM "Delete"                   menuitemID_FilesDelete
-    END
 END
 
 BITMAP ID bitmapID_iconPushed "graphic/icon_pushed.bmp" COMPRESS
