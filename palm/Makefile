@@ -1,4 +1,4 @@
-VERSION = 0.13
+VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 CC = m68k-palmos-gcc
 CFLAGS = -O2 -Wall -DPALM
 LDLIBS =
@@ -67,8 +67,13 @@ grcs.stm: simcity
 
 # for all
 game.stm: game.rcp
-	pilrc -q game.rcp temp
+	pilrc -q -D game.rcp temp
 	echo touching>$@
+
+version.stm: ../CHANGELOG
+	@echo "VERSION 1 \"$(VERSION)\"" > version.rcp
+	@pilrc -q version.rcp temp
+	@echo touching>$@
 
 # This will take care of all *.rcp
 # the files must be called this:
@@ -131,11 +136,12 @@ mg/:
 
 # dist
 DDIR=pcity-palm_$(VERSION)
+
 dist: all hires
 	@mkdir -p $(DDIR)
 	@cp ../Changelog ../Copying ../Gamehints ../Readme *.prc $(DDIR)
-	tar cvzf $(DDIR).tar.gz $(DDIR)
-	zip -9R $(DDIR).zip $(DDIR)/*
+	@tar cvzf $(DDIR).tar.gz $(DDIR)
+	@zip -9R $(DDIR).zip $(DDIR)/*
 	@rm -rf $(DDIR)
 #
 # make clean 

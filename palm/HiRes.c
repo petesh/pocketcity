@@ -183,20 +183,20 @@ _WinScreenMode(WinScreenModeOperation op, UInt32 *width,
 void
 _WinEraseRectangle(RectangleType *r, UInt16 cornerDiam)
 {
-  if (hires)
-    HRWinEraseRectangle(hires, r, cornerDiam);
-  else
-    WinEraseRectangle(r, cornerDiam);
+    if (hires)
+        HRWinEraseRectangle(hires, r, cornerDiam);
+    else
+        WinEraseRectangle(r, cornerDiam);
 }
 
 void
 _WinDrawBitmap(BitmapPtr bmp, Coord x, Coord y)
 {
-  if (hires) {
-    HRWinDrawBitmap(hires, bmp, x, y);
-  } else {
-    WinDrawBitmap(bmp, x, y);
-  }
+    if (hires) {
+        HRWinDrawBitmap(hires, bmp, x, y);
+    } else {
+        WinDrawBitmap(bmp, x, y);
+    }
 }
 
 WinHandle _WinCreateOffscreenWindow (Coord width, Coord height,
