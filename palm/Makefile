@@ -10,11 +10,10 @@
 ###############################################################################
 
 CC = m68k-palmos-gcc
-
-CCFLAGS = -g
+CCFLAGS = -O2 -Wall
 
 pcity.prc:  bin.stm grcs.stm zones.stm
-        build-prc pcity.prc "Pocket City" PCit *.grc *.bin
+	build-prc pcity.prc "Pocket City" PCit *.grc *.bin
 
 bin.stm: simcity.rcp
 	pilrc simcity.rcp
@@ -26,8 +25,8 @@ zones.stm: zones.rcp
 
 
 grcs.stm: simcity
-        m68k-palmos-obj-res simcity
-        echo touching>grcs.stm
+	m68k-palmos-obj-res simcity
+	echo touching>grcs.stm
 
 
 #the linker - don't forget to add new objects here
