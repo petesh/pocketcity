@@ -83,14 +83,14 @@
 
 
 BITMAPFAMILY ID bitmapID_DirtBmp2               "graphic/16x16/dirt.bmp" "" "" "graphic/16x16-color/dirt.bmp" COMPRESS
-BITMAP ID bitmapID_CommZone2                    "graphic/16x16/c_00.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_CommZone2              "graphic/16x16/c_00.bmp" "" "" "graphic/16x16-color/c_00.bmp" COMPRESS
 BITMAPFAMILY ID bitmapID_ResZone2               "graphic/16x16/r_00.bmp" "" "" "graphic/16x16-color/r_00.bmp" COMPRESS
-BITMAP ID bitmapID_IndZone2                     "graphic/16x16/i_00.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_IndZone2               "graphic/16x16/i_00.bmp" "" "" "graphic/16x16-color/i_00.bmp" COMPRESS
 	
 BITMAPFAMILY ID bitmapID_PowerRoadUpDown2       "graphic/16x16/powerroad1.bmp" "" "" "graphic/16x16-color/powerroad1.bmp" COMPRESS
 BITMAPFAMILY ID bitmapID_PowerRoadLeftRight2    "graphic/16x16/powerroad2.bmp" "" "" "graphic/16x16-color/powerroad2.bmp" COMPRESS	
-BITMAP ID bitmapID_PowerLoss2                   "graphic/16x16/powerloss.bmp" COMPRESS
-BITMAP ID bitmapID_PowerLossOverlay2            "graphic/16x16/powerloss2.bmp" COMPRESS
+BITMAPFAMILY ID bitmapID_PowerLoss2             "graphic/16x16/powerloss.bmp"  "" "" "graphic/16x16-color/powerloss.bmp"  COMPRESS
+BITMAPFAMILY ID bitmapID_PowerLossOverlay2      "graphic/16x16/powerloss2.bmp" "" "" "graphic/16x16-color/powerloss2.bmp" COMPRESS
 //BITMAP ID bitmapID_CursorBmp2			"graphic/16x16/something.bmp" COMPRESS	
 
 BITMAPFAMILY ID bitmapID_RoadLeftRight2         "graphic/16x16/road01.bmp" "" "" "graphic/16x16-color/road01.bmp" COMPRESS
