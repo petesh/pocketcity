@@ -76,13 +76,23 @@ typedef struct {
  * into the filename
  */
 static void
-open_afile(GtkFileSelection *sel, gpointer data)
+open_afile(GtkObject *sel, gpointer data)
 {
 	fsh_data *dat = (fsh_data *)data;
-	g_print("sel = %p; dat->file_sel = %p\n", sel, dat->file_sel);
 	doOpen((gchar *)gtk_file_selection_get_filename(
 		    GTK_FILE_SELECTION(dat->file_sel)),
 	    GPOINTER_TO_INT(dat->data));
+}
+
+/*!
+ * \brief free the widget and the data pointer
+ */
+static void
+free_object(GtkObject *obj, gpointer data)
+{
+	fsh_data *dat = (fsh_data *)data;
+	gtk_widget_destroy(dat->file_sel);
+	g_free(dat);
 }
 
 /*!
@@ -96,21 +106,21 @@ OpenGame(GtkWidget *w __attribute__((unused)), gpointer data)
 {
 	fsh_data *handler = g_malloc(sizeof (fsh_data));
 
-	handler.file_sel = gtk_file_selection_new("Select saved game to open");
-	handler.data = data;
+	handler->file_sel = gtk_file_selection_new("Select saved game to open");
+	handler->data = data;
 
 	g_signal_connect(GTK_OBJECT(
-		    GTK_FILE_SELECTION(handler.file_sel)->ok_button),
-	    "clicked", G_CALLBACK(open_afile), (gpointer)&handler);
+		    GTK_FILE_SELECTION(handler->file_sel)->ok_button),
+	    "clicked", G_CALLBACK(open_afile), (gpointer)handler);
 
-	g_signal_connect_swapped(
-	    GTK_OBJECT(GTK_FILE_SELECTION(handler.file_sel)->ok_button),
-	    "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)&handler);
-	g_signal_connect_swapped(
-	    GTK_OBJECT(GTK_FILE_SELECTION(handler.file_sel)->cancel_button),
-	    "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)&handler);
+	g_signal_connect(
+	    GTK_OBJECT(GTK_FILE_SELECTION(handler->file_sel)->ok_button),
+	    "clicked", G_CALLBACK(free_object), (gpointer)handler);
+	g_signal_connect(
+	    GTK_OBJECT(GTK_FILE_SELECTION(handler->file_sel)->cancel_button),
+	    "clicked", G_CALLBACK(free_object), (gpointer)handler);
 
-	gtk_widget_show(GTK_WIDGET(handler.file_sel));
+	gtk_widget_show(GTK_WIDGET(handler->file_sel));
 }
 
 /*!
