@@ -72,21 +72,17 @@ static void AddNeighbors(unsigned long pos);
  *  How to recreate:
  *      call the distribution routine... it knows how to do each type
  */
-static void DoDistribute(int grid, int pc);
+static void DoDistribute(int grid);
 
 extern void
 Sim_Distribute(void)
 {
-    int pc;
     if (NeedsUpdate(GRID_POWER)) {
-        pc = (vgame.BuildCount[COUNT_POWERPLANTS] +
-          vgame.BuildCount[COUNT_NUCLEARPLANTS]);
-        DoDistribute(GRID_POWER, pc);
+        DoDistribute(GRID_POWER);
         ClearUpdate(GRID_POWER);
     }
     if (NeedsUpdate(GRID_WATER)) {
-        pc = vgame.BuildCount[COUNT_WATER_PUMPS];
-        DoDistribute(GRID_WATER, pc);
+        DoDistribute(GRID_WATER);
         ClearUpdate(GRID_WATER);
     }
 }
@@ -94,24 +90,20 @@ Sim_Distribute(void)
 void
 Sim_Distribute_Specific(int gridonly)
 {
-    int pc;
     if (gridonly == 0) gridonly = GRID_ALL;
 
     if (NeedsUpdate(GRID_POWER) && (gridonly & GRID_POWER)) {
-        pc = (vgame.BuildCount[COUNT_POWERPLANTS] +
-          vgame.BuildCount[COUNT_NUCLEARPLANTS]);
-        DoDistribute(GRID_POWER, pc);
+        DoDistribute(GRID_POWER);
         ClearUpdate(GRID_POWER);
     }
     if (NeedsUpdate(GRID_WATER) && (gridonly & GRID_WATER)) {
-        pc = vgame.BuildCount[COUNT_WATER_PUMPS];
-        DoDistribute(GRID_WATER, pc);
+        DoDistribute(GRID_WATER);
         ClearUpdate(GRID_WATER);
     }
 }
 
 static int
-IsItAPowerPlant(unsigned char point, unsigned char flags)
+IsItAPowerPlant(unsigned char point, unsigned char flags __attribute__((unused)))
 {
     switch (point) {
     case TYPE_POWER_PLANT: return (SUPPLY_POWER_PLANT);
@@ -168,7 +160,7 @@ SupplyIfPlant(unsigned long pos, unsigned char point, unsigned char status)
 }
 
 static void
-DoDistribute(int grid, int pc)
+DoDistribute(int grid)
 {
     /* type == GRID_POWER | GRID_POWER */
     unsigned long i, j;
@@ -409,7 +401,7 @@ int FindScoreForZones()
     int i;
     long score;
     counter += 20;
-    for (i=counter-20; i<counter; i++)
+    for (i = counter-20; i < (signed)counter; i++)
     {
         if (i>=256) { counter = 0; return 0; } /* this was the last zone! */
 
@@ -782,7 +774,7 @@ void DoUpkeep()
              BudgetGetNumber(bnPower) +
              BudgetGetNumber(bnDefence);
 
-    if (upkeep <= game.credits) {
+    if (upkeep <= (unsigned long)game.credits) {
         game.credits -= upkeep;
         return;
     }

@@ -58,10 +58,11 @@ extern void BuildSomething(int xpos, int ypos)
 
 #ifdef PALM
     ErrFatalDisplayIf(
-      item >= (sizeof (buildStructure)/ sizeof (buildStructure[0])),
+      item >= (sizeof (buildStructure) / sizeof (buildStructure[0])),
           "UI item out of range");
 #else
-    assert(item < (sizeof (buildStructure)/ sizeof (buildStructure[0])));
+    assert((unsigned)item <
+	(sizeof (buildStructure) / sizeof (buildStructure[0])));
 #endif
 
     be->func(xpos, ypos, be->type);
@@ -93,17 +94,31 @@ extern void RemoveAllDefence(void)
 static void
 Build_Defence(int xpos, int ypos, unsigned int type)
 {
-    int oldx, oldy, i, sel=-1,newactive=1,e,s,m,nCounter;
-    nCounter = ((type == DuPolice) ? COUNT_POLICE_STATIONS :
-      (type == DuFireman ? COUNT_FIRE_STATIONS :
-       COUNT_MILITARY_BASES));
-    if (vgame.BuildCount[nCounter] == 0) { return; } /* no special building */
-    s = ((type == DuPolice) ? DEF_POLICE_START : (type == DuFireman ? DEF_FIREMEN_START : DEF_MILITARY_START));
-    e = ((type == DuPolice) ? DEF_POLICE_END : (type == DuFireman ? DEF_FIREMEN_END : DEF_MILITARY_END));
-    /* make sure we can't make too many objects */
-    m = ((e-s)+1 < vgame.BuildCount[nCounter]/3) ? e : 
-        vgame.BuildCount[nCounter]/3+s;
+    int oldx;
+    int oldy;
+    int i;
+    int sel=-1;
+    int newactive=1;
+    int end;
+    int start;
+    int max;
+    int nCounter;
 
+    /* XXX: this is here to make sure not too many of any item are created */
+    nCounter = ((type == DuPolice) ? COUNT_POLICE_STATIONS :
+      (type == DuFireman ? COUNT_FIRE_STATIONS : COUNT_MILITARY_BASES));
+
+    if (vgame.BuildCount[nCounter] == 0) { return; } /* no special building */
+
+    start = ((type == DuPolice) ? DEF_POLICE_START :
+	(type == DuFireman ? DEF_FIREMEN_START : DEF_MILITARY_START));
+    end = ((type == DuPolice) ? DEF_POLICE_END :
+	(type == DuFireman ? DEF_FIREMEN_END : DEF_MILITARY_END));
+
+    /* make sure we can't make too many objects */
+    max = ((unsigned)((end-start)+1) <
+	(unsigned)(vgame.BuildCount[nCounter]/3)) ? end :
+	(int)(vgame.BuildCount[nCounter]/3 + start);
 
     /* first remove all defence on this tile */
     for (i=0; i<NUM_OF_UNITS; i++) {
@@ -117,7 +132,7 @@ Build_Defence(int xpos, int ypos, unsigned int type)
     }
 
     /* find an empty slot for the new defence unit */
-    for (i=s; i<=m; i++) {
+    for (i = start; i <= max; i++) {
         if (game.units[i].active == 0) {
             sel = i;
             break;
@@ -125,7 +140,7 @@ Build_Defence(int xpos, int ypos, unsigned int type)
     }
     if (sel == -1) {
         /* none found - start from the beginning */
-        for (i=s; i<=m; i++) {
+        for (i = start; i <= max; i++) {
             if (game.units[i].active == 1) {
                 sel = i;
                 newactive=2;
@@ -137,15 +152,15 @@ Build_Defence(int xpos, int ypos, unsigned int type)
     }
     if (sel == -1) {
         /* if STILL none found - then it's number 0 */
-        for (i=s; i<=m; i++) {
+        for (i = start; i <= max; i++) {
             if (game.units[i].active != 0) {
                 game.units[i].active = 1;
             }
         }
-        sel = s;
+        sel = start;
         newactive=2;
     }
-        
+
     oldx = game.units[sel].x;
     oldy = game.units[sel].y;
 
@@ -158,9 +173,8 @@ Build_Defence(int xpos, int ypos, unsigned int type)
     DrawCross(xpos, ypos);
 }
 
-
 extern void
-Build_Bulldoze(int xpos, int ypos, unsigned int _type)
+Build_Bulldoze(int xpos, int ypos, unsigned int _type __attribute__((unused)))
 {
     int type;
     LockWorld();
@@ -241,7 +255,7 @@ static const struct _costMappings {
 void
 Build_Generic(int xpos, int ypos, unsigned int type)
 {
-    struct _costMappings *cmi = (struct _costMappings *)arIndex(
+    struct _costMappings *cmi = (struct _costMappings *)getIndexOf(
       (char *)&genericMappings[0], sizeof (genericMappings[0]), type);
     LockWorld();
 #ifdef PALM
@@ -271,7 +285,7 @@ Build_Generic(int xpos, int ypos, unsigned int type)
 
 
 void
-Build_Road(int xpos, int ypos, unsigned int type)
+Build_Road(int xpos, int ypos, unsigned int type __attribute__((unused)))
 {
     int old;
     LockWorld();
@@ -340,7 +354,7 @@ Build_Road(int xpos, int ypos, unsigned int type)
 }
 
 static void
-Build_PowerLine(int xpos, int ypos, unsigned int type)
+Build_PowerLine(int xpos, int ypos, unsigned int type __attribute__((unused)))
 {
     int old;
     LockWorld();
@@ -382,7 +396,7 @@ Build_PowerLine(int xpos, int ypos, unsigned int type)
 }
 
 static void
-Build_WaterPipe(int xpos, int ypos, unsigned int type)
+Build_WaterPipe(int xpos, int ypos, unsigned int type __attribute__((unused)))
 {
     int old;
     LockWorld();
@@ -426,7 +440,7 @@ Build_WaterPipe(int xpos, int ypos, unsigned int type)
 static int
 SpendMoney(unsigned long howMuch)
 {
-    if (howMuch > game.credits) { return 0; }
+    if (howMuch > (unsigned long)game.credits) { return 0; }
 
     game.credits -= howMuch;
 

@@ -1,9 +1,9 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
-#include "../source/simulation.h"
-#include "../source/zakdef.h"
-#include "../source/globals.h"
-#include "main.h"
+#include <simulation.h>
+#include <zakdef.h>
+#include <globals.h>
+#include <main.h>
 
 GtkWidget *dlg=0;
 GtkWidget *lres,*lcom,*lind,*lpow,*ltra,*ldef,*lbal,*lcha,*lnex;

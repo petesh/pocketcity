@@ -63,7 +63,7 @@ GetDate(char * temp)
 }
 
 void *
-arIndex(char *ary, int addit, int key)
+getIndexOf(char *ary, int addit, int key)
 {
     while (*(int *)ary) {
         if (key == *(int *)ary)

@@ -7,12 +7,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "main.h"
-#include "savegame.h"
-#include "../source/globals.h"
-#include "../source/handler.h"
-#include "../source/ui.h"
-#include "../source/simulation.h"
+#include <main.h>
+#include <savegame.h>
+#include <globals.h>
+#include <handler.h>
+#include <ui.h>
+#include <simulation.h>
 
 gchar * savegamename;
 

@@ -13,7 +13,7 @@
  * the possible errors/warnings
  * Make Sure they don't intersect, there's one place where they meet
  */
-typedef enum {
+typedef enum erdiType_en {
 	enOutOfMemory = 1,
 	enOutOfMoney,
 	diFireOutbreak = 80,
@@ -197,7 +197,7 @@ enum DefenceUnitTypes {
 
 typedef struct _game_struct05 {
     Int8            version[4];
-    Int8            mapsize;            /* The size of each axis of the map */
+    UInt8           mapsize;            /* The size of each axis of the map */
     Int16           _visible_x;         /* deprecated */
     Int16           _visible_y;         /* deprecated */
     Int16           map_xpos;           /* start visible x axis */
@@ -220,7 +220,7 @@ typedef struct _game_struct05 {
 /* Desired new version */
 typedef struct _game_struct06 {
     Int8                version[4];
-    Int8                mapsize;
+    UInt8               mapsize;
     Int8                bigendian;
     Int8                map_xpos;
     Int8                map_ypos;
@@ -245,7 +245,7 @@ typedef struct _psuCount {
 } psuCount;
 
 typedef struct _vgame_struct {
-    int                 mapmul;
+    UInt16              mapmul;
     int                 gridsToUpdate;
     long unsigned       BuildCount[20];     /* count of elements */
     unsigned char       tileSize;           /* for math */

@@ -4,16 +4,16 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "main.h"
-#include "savegame.h"
-#include "budget.h"
-#include "../source/ui.h"
-#include "../source/handler.h"
-#include "../source/drawing.h"
-#include "../source/globals.h"
-#include "../source/build.h"
-#include "../source/simulation.h"
-#include "../source/disaster.h"
+#include <main.h>
+#include <savegame.h>
+#include <budget.h>
+#include <ui.h>
+#include <handler.h>
+#include <drawing.h>
+#include <globals.h>
+#include <build.h>
+#include <simulation.h>
+#include <disaster.h>
 
 
 GtkWidget *drawingarea;

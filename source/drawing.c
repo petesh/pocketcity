@@ -255,9 +255,10 @@ GetSpecialGraphicNumber(unsigned long pos, int nType)
         case 0: /* roads */
         case 2: /* bridge */
             if (pos >= GetMapSize()) a = IsRoad(GetWorld(pos - GetMapSize()));
-            if (pos < (GetMapMul()) - GetMapSize())
+            if (pos < (unsigned long)(GetMapMul() - GetMapSize()))
                 c = IsRoad(GetWorld(pos + GetMapSize()));
-            if (pos % GetMapSize() < (GetMapSize() - 1))
+            if ((unsigned long)(pos % GetMapSize()) <
+		(unsigned long)(GetMapSize() - 1))
                 b = IsRoad(GetWorld(pos+1));
             if (pos % GetMapSize() > 0) d = IsRoad(GetWorld(pos-1));
             /* 81 for bridge, 0 for normal road */
@@ -266,9 +267,9 @@ GetSpecialGraphicNumber(unsigned long pos, int nType)
         case 1:    /* power lines */
             if (pos >= GetMapSize())
                 a = CarryPower(GetWorld(pos - GetMapSize()));
-            if (pos < GetMapMul() - GetMapSize())
+            if (pos < (unsigned long)(GetMapMul() - GetMapSize()))
                 c = CarryPower(GetWorld(pos + GetMapSize()));
-            if (pos % GetMapSize() < GetMapSize() - 1)
+            if (pos % GetMapSize() < (unsigned long)(GetMapSize() - 1))
                 b = CarryPower(GetWorld(pos+1));
             if (pos % GetMapSize() > 0) d = CarryPower(GetWorld(pos-1));
             nAddMe = 70;
@@ -276,9 +277,9 @@ GetSpecialGraphicNumber(unsigned long pos, int nType)
         case 3: /* water pipe */
             if (pos >= GetMapSize())
                 a = CarryWater(GetWorld(pos - GetMapSize()));
-            if (pos < GetMapMul() - GetMapSize())
+            if (pos < (unsigned long)(GetMapMul() - GetMapSize()))
                 c = CarryWater(GetWorld(pos + GetMapSize()));
-            if (pos % GetMapSize() < GetMapSize() - 1)
+            if (pos % GetMapSize() < (unsigned long)(GetMapSize() - 1))
                 b = CarryWater(GetWorld(pos+1));
             if (pos % GetMapSize() > 0) d = CarryWater(GetWorld(pos-1));
             nAddMe = 92;

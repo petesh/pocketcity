@@ -1,3 +1,6 @@
+#if !defined(_BUILD_H_)
+#define _BUILD_H_
+
 /* the BUILD_* fits the defines in simcity.h (palm) */
 typedef enum {
     Be_Bulldozer = 0,
@@ -43,3 +46,5 @@ extern void Build_Destroy(int xpos, int ypos);
 extern void CreateFullRiver(void);
 extern void CreateForests(void);
 extern void RemoveAllDefence(void);
+
+#endif /* _BUILD_H_ */

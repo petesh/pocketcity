@@ -1,7 +1,7 @@
 #if !defined(_DRAWING_H_)
 #define _DRAWING_H_
 
-#include "zakdef.h"
+#include <zakdef.h>
 
 void SetUpGraphic(void);
 void RedrawAllFields(void);

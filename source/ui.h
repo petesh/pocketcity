@@ -1,10 +1,13 @@
-#if !defined(_UI_H_)
-#define _UI_H_
+#if !defined(_UI_H)
+#define _UI_H
 
-#include "zakdef.h"
+#include <zakdef.h>
 
 #define MSG_QUESTION_REALLY_QUIT        1
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 int UIDisplayError(erdiType nError);
 void UIInitDrawing(void);
@@ -56,4 +59,8 @@ void UIWriteLog(char*);
 #define UIWriteLog(x)
 #endif
 
-#endif /* _UI_H_ */
+#if defined(__cplusplus)
+}
+#endif
+
+#endif /* _UI_H */
