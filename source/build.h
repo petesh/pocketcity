@@ -23,3 +23,5 @@
 extern void BuildSomething(int xpos, int ypos);
 extern void Build_Bulldoze(int xpos, int ypos);
 extern void Build_Destroy(int xpos, int ypos);
+extern void CreateFullRiver(void);
+extern void CreateForests(void);

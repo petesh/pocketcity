@@ -64,7 +64,8 @@ extern void Build_Bulldoze(int xpos, int ypos)
     if (type != TYPE_DIRT &&
         type != TYPE_FIRE1 &&
         type != TYPE_FIRE2 &&
-        type != TYPE_FIRE3)
+        type != TYPE_FIRE3 &&
+        type != TYPE_REAL_WATER)
     {
         if (SpendMoney(BUILD_COST_BULLDOZER))
         {
@@ -244,4 +245,78 @@ int SpendMoney(unsigned long howMuch)
     UIDrawCredits();
     UIFinishDrawing();
     return 1;
+}
+
+
+
+
+extern void CreateFullRiver(void)
+{
+    int i,j,k,width;
+
+    width = GetRandomNumber(5)+5;
+    j = GetRandomNumber(100);
+    LockWorld();
+    
+    for (i=0; i<mapsize; i++)
+    {
+        for (k=j; k<width+j; k++) {
+            if (k > 0 && k < mapsize) {
+                SetWorld(WORLDPOS(i,k),TYPE_REAL_WATER);
+            }
+        }
+
+        switch (GetRandomNumber(3)) {
+            case 0: if (width >  5) { width--; } break;
+            case 1: if (width < 15) { width++; } break;
+            default: break;
+        }
+        switch (GetRandomNumber(4)) {
+            case 0: if (j > 0)       { j--; } break;
+            case 1: if (j < mapsize) { j++; } break;
+            default: break;
+        }
+    }
+    UnlockWorld();
+}
+
+
+extern void CreateForests(void)
+{
+    int i,j,k;
+    unsigned long int pos;
+    j = GetRandomNumber(6)+7;
+    for (i=0; i<j; i++) {
+        k = GetRandomNumber(6)+8;
+        pos = GetRandomNumber(mapsize*mapsize);
+        CreateForest(pos, k);
+    }
+
+}
+
+void CreateForest(long unsigned int pos, int size)
+{
+    int x,y,i,j,s;
+    x = pos % mapsize;
+    y = pos / mapsize;
+    LockWorld();
+    i = x;
+    j = y;
+
+    for (i=x-size; i<=x+size; i++) {
+        for (j=y-size; j<=y+size; j++) {
+            if (i >= 0 && i < mapsize && j >= 0 && j < mapsize) {
+                if (GetWorld(WORLDPOS(i,j)) == TYPE_DIRT) {
+                    s = ((y>j) ? (y-j) : (j-y)) +
+                        ((x>i) ? (x-i) : (i-x));
+                    if (GetRandomNumber(s) < 2) {
+                        SetWorld(WORLDPOS(i,j), TYPE_TREE);
+                        BuildCount[COUNT_TREES]++;
+                    }
+                }
+            }
+        }
+    }
+
+    UnlockWorld();
 }

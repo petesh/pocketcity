@@ -21,6 +21,7 @@
 #define TYPE_FIRE1              63
 #define TYPE_FIRE2              64
 #define TYPE_FIRE3              65
+#define TYPE_REAL_WATER         66
 #define TYPE_POWER_PLANT        60
 #define TYPE_NUCLEAR_PLANT      61
 #define TYPE_WASTE              62

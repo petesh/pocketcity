@@ -10,6 +10,7 @@
 #include "../source/handler.h"
 #include "../source/globals.h"
 #include "../source/simulation.h"
+#include <string.h>
 
 MemHandle worldHandle;
 MemHandle worldFlagsHandle;
@@ -984,5 +985,7 @@ void UINewGame(void)
     mapsize = 100;
     ResizeWorld(mapsize*mapsize);
     SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
+    CreateFullRiver();
+    CreateForests();
     DrawGame(1);
 }

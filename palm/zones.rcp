@@ -25,6 +25,7 @@ BITMAP ID bitmapID_RoadRightLeftUp2       "graphic/16x16/road10.bmp"    COMPRESS
 BITMAP ID bitmapID_RoadCross2             "graphic/16x16/road11.bmp"    COMPRESS
 BITMAP ID bitmapID_TreeBmp2               "graphic/16x16/tree.bmp"    COMPRESS
 BITMAP ID bitmapID_WaterBmp2              "graphic/16x16/water.bmp"    COMPRESS
+BITMAP ID bitmapID_RealWaterBmp2              "graphic/16x16/water.bmp"    COMPRESS
 BITMAP ID bitmapID_Fire1_2                "graphic/16x16/fire1.bmp"    COMPRESS
 BITMAP ID bitmapID_Fire2_2                "graphic/16x16/fire2.bmp"    COMPRESS
 BITMAP ID bitmapID_Fire3_2                "graphic/16x16/fire3.bmp"    COMPRESS

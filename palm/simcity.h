@@ -226,6 +226,7 @@
 #define bitmapID_Fire1_2                1263
 #define bitmapID_Fire2_2                1264
 #define bitmapID_Fire3_2                1265
+#define bitmapID_RealWaterBmp2          1266
 
 #define bitmapID_PowerLeftRight2        1270
 #define bitmapID_PowerUpDown2           1271
