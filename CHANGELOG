@@ -18,6 +18,8 @@ Version 0.16dev
   + Query tool.
   * Better Pause / Freeze logic for dialogs.
   * mycity == autosave city
+  * code and tiles are in separate programs (pdb, prc)
+  * Start of globalization work
 
 Version 0.15
   * patch # 648260 Make greyscale work on HandEra 330
