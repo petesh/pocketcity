@@ -1,0 +1,22 @@
+******************************
+**      Changelog for       **
+**        PocketCity        **
+** http://pocketcity.sf.net **
+******************************
+Legend:
+ '+' = added feature
+ '*' = bug fix
+ '-' = removed feature
+
+Version 0.07
+============
+Kean Pedersen:
+  - Removed the 32x32 tiles, was too ugly/bit/unused
+
+Aaron Kill (new developer):
+  + Alert to notify when you don't have enough money to build an item
+  + Alert to notify when you have 1000 or less credits
+  + Alert to notify when you have 0 credits
+  + Speed control
+  + Population display
+  + Taxes paid each month
