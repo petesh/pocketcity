@@ -107,13 +107,12 @@ extern int UpdateDisasters(void)
 
     LockWorld();
     LockWorldFlags();
-    for (j=0; j< GetMapMul(); j++) { // clear used flag
-        SetWorldFlags(j, GetWorldFlags(j) & ~SCRATCHBIT);
-    }
+    NewScratch();
+    ClearScratch();
     for (i=0; i<GetMapSize(); i++) {
         for (j=0; j<GetMapSize(); j++) {
             type = GetWorld(WORLDPOS(i,j));
-            if ((GetWorldFlags(WORLDPOS(i,j)) & SCRATCHBIT) == 0) { // already looked at this one?
+            if (GetScratch(WORLDPOS(i,j)) == 0) { // already looked at this one?
                 if (type == TYPE_FIRE2) {
                     retval = 1;
                     if (GetRandomNumber(5) != 0) {
@@ -136,6 +135,7 @@ extern int UpdateDisasters(void)
     }
     UnlockWorldFlags();
     UnlockWorld();
+    FreeScratch();
     return retval;
 }
 
@@ -192,8 +192,7 @@ extern int BurnField(int x, int y, int forceit)
 
         Build_Destroy(x,y);
         SetWorld(WORLDPOS(x,y), TYPE_FIRE1);
-        SetWorldFlags(WORLDPOS(x,y),
-          GetWorldFlags(WORLDPOS(x,y)) | SCRATCHBIT); // set used flag
+        SetScratch(WORLDPOS(x,y));
         DrawCross(x,y);
         vgame.BuildCount[COUNT_FIRE]++;
         UnlockWorldFlags();

@@ -75,7 +75,6 @@ PostLoadGame(void)
     memset((void *)&vgame.BuildCount, 0, sizeof(vgame.BuildCount));
     vgame.gridsToUpdate = GRID_ALL;
     SetMapSize(GetMapSize());
-    Sim_Distribute(0);
-    Sim_Distribute(1);
     UpdateVolatiles();
+    Sim_Distribute();
 }

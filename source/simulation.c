@@ -6,47 +6,62 @@
 #include "handler.h"
 #include "disaster.h"
 #include "simulation.h"
+#include "stack.h"
+#if defined(PALM)
+#include <MemoryMgr.h>
+#include <unix_stdio.h>
+#include <unix_string.h>
+#include <unix_stdlib.h>
+#include <StringMgr.h>
+#else
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#endif
 
-int powerleft = 0;
-char distributetype = 0;
-
-void DistributeMoveOnFromThisPoint(unsigned long pos);
 void DoTaxes(void);
 void DoUpkeep(void);
-unsigned long DistributeMoveOn(unsigned long pos, int direction);
 int DistributeNumberOfSquaresAround(unsigned long pos);
 int DistributeFieldCanCarry(unsigned long pos);
 
-int ExistsNextto(unsigned long int pos, unsigned char what);
+int ExistsNextto(unsigned long pos, unsigned char what);
 
 void UpgradeZones(void);
-void UpgradeZone(long unsigned pos);
-void DowngradeZone(long unsigned pos);
-int DoTheRoadTrip(long unsigned int startPos);
-signed long GetZoneScore(long unsigned int pos);
+static void UpgradeZone(unsigned long pos);
+static void DowngradeZone(unsigned long pos);
+static int DoTheRoadTrip(unsigned long startPos);
+static unsigned long DistributeMoveOn(unsigned long pos, dirType direction);
+static void DistributeUnvisited(void);
+
+signed long GetZoneScore(unsigned long pos);
 signed int GetScoreFor(unsigned char iamthis, unsigned char what);
 long unsigned int GetRandomZone(void);
 void FindZonesForUpgrading(void);
 int FindScoreForZones(void);
+static void AddNeighbors(unsigned long pos);
 
-/* The power grid is updated using a recursive function, here's how it
- * basicly works:
- * 1: scan the playingfield for a power plant and start there
- * 2: move up (recursivly) from this plant, decrementing the powerleft var
- * and marking every touched zone so it won't get power twice.
- * 3: when there's no more power left, go back to 1 and scan for the next
- * power plant
+/*
+ * The power/water grid is updated using the following mechanism:
+ * 1: While there are more plants to consume do:
+ * a: While you can visit more points do:
+ * i: If it's a source then add it's donation to the supply
+ *      - if the 'to be powered' list has members then supply them
+ *      - go to step (1.a.iii)
+ * ii: if you've power then mark the point as visited, supplied & decrement
+ *      - otherwise put it on the 'to be powered' list
+ * iii: Find all the possible connections to visit and put them on the trip list
+ * b: Purge the 'to be powered list'; they can't be b/c of no connections
  *
  * The WorldFlag are used as a bitfield for this, every tile has a byte:
  *  8765 4321
  *  |||| |||`- 1 = this tile is powered
- *  |||| ||`-- used as a marked for "already been here" in several routines
- *  |||| |`--- 1 = this tile is watered
+ *  |||| ||`-- 1 = this tile is watered
+ *  |||| |`---
  *  |||| `----
  *  |||`------
  *  ||`-------
  *  |`--------
- *  `--------- 
+ *  `--------- 1 = Scratch / Visited
  *
  *  don't use any of the free flags without asking zakarun (thanks)
  *  please note that the flags are _not_ saved, they _must_ be able to be
@@ -54,132 +69,271 @@ int FindScoreForZones(void);
  *  10k larger (that's A LOT ;)
  *  
  *  How to recreate:
- *  1: call Sim_Distribute(0)
- *  2: no need (only used as a temporary var)
- *  3: call Sim_Distribute(1)
- *  4:
- *  5:
- *  6:
- *  7:
- *  8:
+ *      call the distribution routine... it knows how to do each type
  */
+static void DoDistribute(int grid, int pc);
 
-extern void Sim_Distribute(char type)
+//static unsigned char *usedtemp;
+void
+NewScratch(void)
 {
-    // type == 0: power
-    // type == 1: water
-    unsigned long i,j;
-    distributetype = type;
+    //usedtemp = malloc(GetMapMul() / 8);
+}
 
-    // reset powergrid - ie, clear flags 1 & 2
-    // or flags 1 & 3 for watergrid
-    LockWorldFlags();
-    for (j = 0; j < GetMapMul(); j++) {
-        SetWorldFlags(j, GetWorldFlags(j) & (type==TYPEPOWER?
-              ~(POWEREDBIT | SCRATCHBIT):~(WATEREDBIT | SCRATCHBIT)));
+void
+FreeScratch(void)
+{
+    //free(usedtemp);
+}
+
+int
+GetScratch(long i)
+{
+    return (GetWorldFlags(i) & SCRATCHBIT);
+    //return (*(usedtemp + (i >> 8)) & (1 << (i - 1)));
+}
+
+void
+SetScratch(long i)
+{
+    OrWorldFlags(i, SCRATCHBIT);
+    //*(usedtemp + (i >> 8)) |= 1 << (i - 1);
+}
+
+void
+ClearScratch(void)
+{
+    unsigned long i = 0;
+    while (i < GetMapMul())
+	AndWorldFlags(i++, (unsigned char)~SCRATCHBIT);
+    //memset(usedtemp, 0, GetMapMul() / 8);
+}
+
+extern void
+Sim_Distribute(void)
+{
+    int pc;
+    //NewScratch();
+    if (NeedsUpdate(GRID_POWER)) {
+        //ClearScratch();
+        pc = (vgame.BuildCount[COUNT_POWERPLANTS] +
+          vgame.BuildCount[COUNT_NUCLEARPLANTS]);
+        DoDistribute(GRID_POWER, pc);
+        ClearUpdate(GRID_POWER);
     }
+    if (NeedsUpdate(GRID_WATER)) {
+        //ClearScratch();
+        pc = vgame.BuildCount[COUNT_WATER_PUMPS];
+        DoDistribute(GRID_WATER, pc);
+        ClearUpdate(GRID_WATER);
+    }
+    //FreeScratch();
+}
+
+void
+Sim_Distribute_Specific(int gridonly)
+{
+    int pc;
+    //NewScratch();
+    if (gridonly == 0) gridonly = GRID_ALL;
+
+    if (NeedsUpdate(GRID_POWER) && (gridonly & GRID_POWER)) {
+        //ClearScratch();
+        pc = (vgame.BuildCount[COUNT_POWERPLANTS] +
+          vgame.BuildCount[COUNT_NUCLEARPLANTS]);
+        DoDistribute(GRID_POWER, pc);
+        ClearUpdate(GRID_POWER);
+    }
+    if (NeedsUpdate(GRID_WATER) && (gridonly & GRID_WATER)) {
+        //ClearScratch();
+        pc = vgame.BuildCount[COUNT_WATER_PUMPS];
+        DoDistribute(GRID_WATER, pc);
+        ClearUpdate(GRID_WATER);
+    }
+    //FreeScratch();
+}
+
+static int
+IsItAPowerPlant(unsigned char point, unsigned char flags)
+{
+    switch (point) {
+    case TYPE_POWER_PLANT: return (SUPPLY_POWER_PLANT);
+    case TYPE_NUCLEAR_PLANT: return (SUPPLY_NUCLEAR_PLANT);
+    default: return (0);
+    }
+}
+
+static int
+IsItAWaterPump(unsigned char point, unsigned char flags)
+{
+    if ((point == TYPE_WATER_PUMP) && (flags & POWEREDBIT))
+      return (SUPPLY_WATER_PUMP);
+    return (0);
+}
+
+static int (*DoesCarry)(unsigned char);
+static int (*IsPlant)(unsigned char, unsigned char);
+
+static void *needSourceList;
+static void *unvisitedNodes;
+static char flagToSet;
+static int SourceLeft;
+static int SourceTotal;
+static int NodesTotal;
+static int NodesSupplied;
+
+static void
+SetSupplied(unsigned long point)
+{
+    NodesSupplied++;
+    OrWorldFlags(point, flagToSet);
+}
+
+int
+SupplyIfPlant(unsigned long pos, unsigned char point, unsigned char status)
+{
+    int pt;
+    if (!(pt= IsPlant(point, status))) return (0);
+    SetSupplied(pos);
+    SetScratch(pos);
+    NodesTotal++;
+    SourceLeft += pt;
+    SourceTotal += pt;
+    if (!StackIsEmpty(needSourceList)) {
+        while (SourceLeft && !StackIsEmpty(needSourceList)) {
+            pos = StackPop(needSourceList);
+            SourceLeft--;
+            NodesSupplied++;
+            SetSupplied(pos);
+        }
+    }
+    return (pt);
+}
+
+static void
+DoDistribute(int grid, int pc)
+{
+    // type == GRID_POWER: power
+    // type == GRID_WATER: water
+    unsigned long i, j;
+    char gw;
+
+    SourceLeft = 0;
+    SourceTotal = 0;
+    NodesTotal = 0;
+    NodesSupplied = 0;
+    needSourceList = StackNew();
+    unvisitedNodes = StackNew();
 
     // Step 1: Find all the powerplants and move out from there
+    if (grid == GRID_POWER) {
+        IsPlant = &IsItAPowerPlant;
+        DoesCarry = &CarryPower;
+        flagToSet = POWEREDBIT;
+    } else {
+        IsPlant = &IsItAWaterPump;
+        DoesCarry = &CarryWater;
+        flagToSet = WATEREDBIT;
+    }
+
     LockWorld(); // this lock locks for ALL power subs
+    LockWorldFlags();
+    for (j = 0; j < GetMapMul(); j++)
+	AndWorldFlags(j, ~(flagToSet | SCRATCHBIT));
+
     for (i = 0; i < GetMapMul(); i++) {
-        if (GetWorld(i) == TYPE_POWER_PLANT 
-                || GetWorld(i) == TYPE_NUCLEAR_PLANT
-                || GetWorld(i) == TYPE_WATER_PUMP) { // is this a source?
-            powerleft=0;
-            if (distributetype == 0) {
-                if (GetWorld(i) == TYPE_POWER_PLANT)
-                    powerleft += 100; // if this is a plant 
-                if (GetWorld(i) == TYPE_NUCLEAR_PLANT)
-                    powerleft += 300; // we get more power
-            } else if (distributetype == 1) {
-                if (GetWorld(i) == TYPE_WATER_PUMP
-                && (GetWorldFlags(i) & POWEREDBIT) == 1 &&
-                ExistsNextto(i, TYPE_REAL_WATER))
-                    powerleft += 200; // pumps need power and REAL_WATER
-            }
-
-            // begin the distribution
-            DistributeMoveOnFromThisPoint(i);
-
-            // prepare for next round
-            for (j = 0; j < GetMapMul(); j++) {
-                SetWorldFlags(j, GetWorldFlags(j) & ~SCRATCHBIT); 
+        gw = GetWorld(i);
+        if (!GetScratch(i)) {
+            if (SupplyIfPlant(i, gw, GetWorldFlags(i))) {
+                AddNeighbors(i);
+                DistributeUnvisited();
+		// Next disconnected points are removed
+    		StackDoEmpty(needSourceList);
+#if defined(DEBUG)
+    		{ char op[30]; sprintf(op, "g[%d] %d/%d [ %d / %d]\n",
+    		    grid, NodesSupplied, NodesTotal, SourceLeft, SourceTotal);
+		UIWriteLog(op); }
+#endif
+    		SourceLeft = SourceTotal = 0;
+		NodesSupplied = NodesTotal = 0;
             }
         }
     }
     UnlockWorld();
     UnlockWorldFlags();
+    StackDelete(needSourceList);
+    StackDelete(unvisitedNodes);
 }
 
-void DistributeMoveOnFromThisPoint(unsigned long pos)
+static void
+DistributeUnvisited(void)
 {
-    // a recursive function
-    // pos: here we start, all fields will be powered from here
-    char cross = 0;
-    char direction = 0;
+    // was a recursive function; not any more...
+    unsigned long pos;
+    unsigned char flag;
 
-    do {
-        if (((GetWorldFlags(pos) & POWEREDBIT) == 0 &&
-              distributetype == TYPEPOWER) ||
-            ((GetWorldFlags(pos) & WATEREDBIT) == 0 &&
-             distributetype == TYPEWATER)) {
-            /* if this field hasn't been powered, we need to "use" some power
+    while (!StackIsEmpty(unvisitedNodes)) {
+        pos = StackPop(unvisitedNodes);
+        flag = GetWorldFlags(pos);
+        if (SupplyIfPlant(pos, GetWorld(pos), flag)) {
+            goto nextneighbor;
+        }
+
+        if (SourceLeft && ((flag & flagToSet) == 0)) {
+            /*
+             * if this field hasn't been powered, we need to "use" some power
              * to move further along
              */
-            powerleft--;
+            SourceLeft--;
         }
 
         // do we have more power left?
-        if (powerleft < 1) { powerleft = 0; return; }
-        // now, set the two flags, to indicate
-        // 1: we've been here (look 4 lines above)
-        // 2: this field is now powered
-        SetWorldFlags(pos, GetWorldFlags(pos) |
-          (distributetype == TYPEPOWER ?
-           (POWEREDBIT | SCRATCHBIT) :
-           (WATEREDBIT | SCRATCHBIT))); 
+        if (SourceLeft <= 0)
+            StackPush(needSourceList, pos);
+        else
+            SetSupplied(pos);
 
+        // now, set the flags to indicate we've been here
+        SetScratch(pos);
 
+nextneighbor:
         // find the possible ways we can move on from here
-        // se the function for the "strange" returned bitfield
-        cross = DistributeNumberOfSquaresAround(pos);
+        AddNeighbors(pos);
+    };
+}
 
-        // if there's "no way out", return
-        if ((cross & 0x0f) == 0) { return; }
+static void
+AddNeighbors(unsigned long pos)
+{
+    char cross = DistributeNumberOfSquaresAround(pos);
 
+    // if there's "no way out", return
+    if ((cross & 0x0f) == 0) { return; }
 
-        if ((cross & 0x0f) == 1) {
-            // just a single way out
-            if ((cross & 0x10) == 0x10)	     { direction = 0; }
-            else if ((cross & 0x20) == 0x20) { direction = 1; }
-            else if ((cross & 0x40) == 0x40) { direction = 2; }
-            else if ((cross & 0x80) == 0x80) { direction = 3; }
-        } else {
-            // we are at a crossway
-            // initiate some recursive functions from here ;)
-            if ((cross & 0x10) == 0x10) { DistributeMoveOnFromThisPoint(pos-GetMapSize()); }
-            if ((cross & 0x20) == 0x20) { DistributeMoveOnFromThisPoint(pos+1); }
-            if ((cross & 0x40) == 0x40) { DistributeMoveOnFromThisPoint(pos+GetMapSize()); }
-            if ((cross & 0x80) == 0x80) { DistributeMoveOnFromThisPoint(pos-1); }
-            return;
-        }
+    NodesTotal += cross & 0x0f;
 
-        // and finally, update our new position
-        pos = DistributeMoveOn(pos, direction);
-
-    } while (DistributeFieldCanCarry(pos));
+    if ((cross & 0x10) == 0x10) {
+        StackPush(unvisitedNodes, pos-GetMapSize());
+    }
+    if ((cross & 0x20) == 0x20) {
+        StackPush(unvisitedNodes, pos+1);
+    }
+    if ((cross & 0x40) == 0x40) {
+        StackPush(unvisitedNodes, pos+GetMapSize());
+    }
+    if ((cross & 0x80) == 0x80) {
+        StackPush(unvisitedNodes, pos-1);
+    }
 }
 
 // note that this function is used internally in the power distribution
 // routine. Therefore it will return false for tiles we've already been at,
 // to avoid backtracking the route we came from.
-int DistributeFieldCanCarry(unsigned long pos)
+int
+Carries(unsigned long pos)
 {
-    if ((GetWorldFlags(pos) & SCRATCHBIT) == SCRATCHBIT) {
-        // already been here with this plant
-        return 0;
-    }
-    return distributetype==TYPEPOWER ? CarryPower(GetWorld(pos)) : CarryWater(GetWorld(pos));
+    if (GetScratch(pos)) return (0);
+    return (DoesCarry(GetWorld(pos)));
 }
 
 // gives a status of the situation around us
@@ -198,38 +352,39 @@ int DistributeNumberOfSquaresAround(unsigned long pos)
     char retval=0;
     char number=0;
 
-    if (DistributeFieldCanCarry(DistributeMoveOn(pos, 0))) { retval |= 0x10; number++; }
-    if (DistributeFieldCanCarry(DistributeMoveOn(pos, 1))) { retval |= 0x20; number++; }
-    if (DistributeFieldCanCarry(DistributeMoveOn(pos, 2))) { retval |= 0x40; number++; }
-    if (DistributeFieldCanCarry(DistributeMoveOn(pos, 3))) { retval |= 0x80; number++; }
+    if (Carries(DistributeMoveOn(pos, dtUp))) { retval |= 0x10; number++; }
+    if (Carries(DistributeMoveOn(pos, dtRight))) { retval |= 0x20; number++; }
+    if (Carries(DistributeMoveOn(pos, dtDown))) { retval |= 0x40; number++; }
+    if (Carries(DistributeMoveOn(pos, dtLeft))) { retval |= 0x80; number++; }
 
     retval |= number;
 
     return retval;
 }
 
-
-/* this function take a position and a direction and
+/*
+ * this function take a position and a direction and
  * moves the position in the direction, but won't move
- * behind map borders 
+ * behind map borders
  */
-unsigned long DistributeMoveOn(unsigned long pos, int direction)
+static unsigned long
+DistributeMoveOn(unsigned long pos, dirType direction)
 {
     switch (direction) {
-        case 0: // up
+        case dtUp: // up
             if (pos < GetMapSize()) { return pos; }
             pos -= GetMapSize();
             break;
-        case 1: // right
-            if ((pos+1) >= GetMapMul()) { return pos; }
+        case dtRight: // right
+            if ((pos%GetMapSize()+1) >= GetMapSize()) { return pos; }
             pos++;
             break;
-        case 2: // down
+        case dtDown: // down
             if ((pos+GetMapSize()) >= GetMapMul()) { return pos; }
             pos += GetMapSize();
             break;
-        case 3: //left
-            if (pos == 0) { return pos; }
+        case dtLeft: //left
+            if (pos%GetMapSize() == 0) { return pos; }
             pos--;
             break;
     }
@@ -244,7 +399,6 @@ int ExistsNextto(unsigned long int pos, unsigned char what)
     if (GetWorld(pos-1)==what && pos != 0) { return 1; }
     return 0;
 }
-
 
 
 ////////// Zones upgrade/downgrade //////////
@@ -374,32 +528,35 @@ void UpgradeZones()
 
 
 
-void DowngradeZone(unsigned long pos)
+static void
+DowngradeZone(unsigned long pos)
 {
     int type;
     LockWorld();
 
     type = GetWorld(pos);
-    if (type >= 30 && type <= 39)
+    if (type >= TYPE_COMMERCIAL_MIN && type <= TYPE_COMMERCIAL_MAX)
     {
-        SetWorld(pos, (type == 30) ? 1 : type-1);
+        SetWorld(pos, (type == TYPE_COMMERCIAL_MIN) ? ZONE_COMMERCIAL : type-1);
         vgame.BuildCount[COUNT_COMMERCIAL]--;
     }
-    else if (type >= 40 && type <= 49)
+    else if (type >= TYPE_RESIDENTIAL_MIN && type <= TYPE_RESIDENTIAL_MAX)
     {
-        SetWorld(pos, (type == 40) ? 2 : type-1);
+        SetWorld(pos, (type == TYPE_RESIDENTIAL_MIN) ? ZONE_RESIDENTIAL :
+          type-1);
         vgame.BuildCount[COUNT_RESIDENTIAL]--;
     }
-    else if (type >= 50 && type <= 59)
+    else if (type >= TYPE_INDUSTRIAL_MIN && type <= TYPE_INDUSTRIAL_MAX)
     {
-        SetWorld(pos, (type == 50) ? 3 : type-1);
+        SetWorld(pos, (type == TYPE_INDUSTRIAL_MIN) ? ZONE_INDUSTRIAL : type-1);
         vgame.BuildCount[COUNT_INDUSTRIAL]--;
     }
 
     UnlockWorld();
 }
 
-void UpgradeZone(unsigned long pos)
+static void
+UpgradeZone(unsigned long pos)
 {
     int type;
 
@@ -407,47 +564,65 @@ void UpgradeZone(unsigned long pos)
 
     type = GetWorld(pos);
 
-    if (type == 1 || (type >= 30 && type <= 38)) {
-        SetWorld(pos, (type == 1) ? 30 : type+1);
+    if (type == ZONE_COMMERCIAL || (type >= TYPE_COMMERCIAL_MIN &&
+          type <= (TYPE_COMMERCIAL_MAX - 1))) {
+        SetWorld(pos, (type == ZONE_COMMERCIAL) ? TYPE_COMMERCIAL_MIN : type+1);
         vgame.BuildCount[COUNT_COMMERCIAL]++;
-    } else if (type == 2 || (type >= 40 && type <= 48)) {
-        SetWorld(pos, (type == 2) ? 40 : type+1);
+    } else if (type == ZONE_RESIDENTIAL || (type >= TYPE_RESIDENTIAL_MIN &&
+          type <= (TYPE_RESIDENTIAL_MAX - 1))) {
+        SetWorld(pos, (type == ZONE_RESIDENTIAL) ? TYPE_RESIDENTIAL_MIN :
+          type+1);
         vgame.BuildCount[COUNT_RESIDENTIAL]++;
-    } else if (type == 3 || (type >= 50 && type <= 58)) {
-        SetWorld(pos, (type == 3) ? 50 : type+1);
+    } else if (type == ZONE_INDUSTRIAL || (type >= TYPE_INDUSTRIAL_MIN &&
+          type <= (TYPE_INDUSTRIAL_MAX - 1))) {
+        SetWorld(pos, (type == ZONE_INDUSTRIAL) ? TYPE_INDUSTRIAL_MIN : type+1);
         vgame.BuildCount[COUNT_INDUSTRIAL]++;
     }
     UnlockWorld();
 }
 
-int DoTheRoadTrip(unsigned long startPos)
+static int
+DoTheRoadTrip(unsigned long startPos)
 {
     return 1; // for now
 }
 
 
-signed long GetZoneScore(unsigned long pos)
+long
+GetZoneScore(unsigned long pos)
 {
-    // return -1 to make this zone be downgraded _right now_ (ie. if missing things as power or roads)
+    // return -1 to make this zone be downgraded _right now_
+    // (ie. if missing things as power or roads)
 
     long score = 0;
     int x = pos % GetMapSize();
     int y = pos / GetMapSize();
     int i, j;
     int bRoad = 0;
-    int type = 0;
+    zoneType type = 0;
 
     LockWorld();
-    type = GetWorld(pos); //temporary holder
-    type = ((IsZone(type, 1) != 0) ? 1 : ((IsZone(type,2) != 0) ? 2 : 3));
+    type = GetWorld(pos);
+    type = (IsZone(type, ztCommercial) ? ztCommercial :
+      (IsZone(type, ztResidential) ? ztResidential : ztIndustrial));
 
     LockWorldFlags();
-    if ((GetWorldFlags(pos) & 0x01) == 0) { UnlockWorldFlags(); UnlockWorld(); return -1; } // whoops, no power
-    if ((GetWorldFlags(pos) & 0x04) == 0) { UnlockWorldFlags(); UnlockWorld(); return -1; } // or no water :/  
+    if ((GetWorldFlags(pos) & POWEREDBIT) == 0) {
+        // whoops, no power
+        UnlockWorldFlags();
+        UnlockWorld();
+        return (-1);
+    }
+    if ((GetWorldFlags(pos) & WATEREDBIT) == 0) {
+        // or no water
+        UnlockWorldFlags();
+        UnlockWorld();
+        return -1;
+    }
     
     UnlockWorldFlags();
 
-    if (type != ZONE_RESIDENTIAL)  {
+    if (type != ztResidential)  {
         // see if there's actually enough residential population to support
         // a new zone of ind or com
 
@@ -455,22 +630,23 @@ signed long GetZoneScore(unsigned long pos)
                 (vgame.BuildCount[COUNT_RESIDENTIAL]*25)
                 - (vgame.BuildCount[COUNT_COMMERCIAL]*25 +
                 vgame.BuildCount[COUNT_INDUSTRIAL]*25);
-        if (availPop <= 0) { UnlockWorld(); return -1; } // whoops, missing population
+        if (availPop <= 0) { UnlockWorld(); return -1; } // pop is too low
 
-    } else if (type == ZONE_RESIDENTIAL) {
-        // the population can't skyrocket all at once, we need a cap
-        // somewhere - note, this should be fine tuned somehow
-        // A factor might be the number of (road/train/airplane) connections to
-        // the surrounding world - this would bring more potential residents
-        // into our little city
-
-        long availPop = 
+    } else if (type == ztResidential) {
+        /*
+         * the population can't skyrocket all at once, we need a cap
+         * somewhere - note, this should be fine tuned somehow
+         * A factor might be the number of (road/train/airplane) connections
+         * to the surrounding world - this would bring more potential
+         * residents into our little city
+         */
+        long availPop =
                 ((game.TimeElapsed*game.TimeElapsed)/35+30)
                 - (vgame.BuildCount[COUNT_RESIDENTIAL]);
         if (availPop <= 0) { UnlockWorld(); return -1; } // hmm - need more children
     }
 
-    if (type == ZONE_COMMERCIAL) {
+    if (type == ztCommercial) {
         // and what is a store without something to sell? therefore we need
         // enough industrial zones before commercial zones kick in ;)
 
@@ -485,9 +661,7 @@ signed long GetZoneScore(unsigned long pos)
     for (i=x-3; i<4+x; i++) {
         for (j=y-3; j<4+y; j++) {
             if (!(i<0 || i>=GetMapSize() || j<0 || j>=GetMapSize())) {
-                
                 score += GetScoreFor(type, GetWorld(WORLDPOS(i,j)));
-                
                 if (IsRoad(GetWorld(WORLDPOS(i,j))) && bRoad == 0) {
                     // can we reach all kinds of zones from here?
                     bRoad = DoTheRoadTrip(WORLDPOS(i,j));
@@ -502,16 +676,49 @@ signed long GetZoneScore(unsigned long pos)
 }
 
 
-signed int GetScoreFor(unsigned char iamthis, unsigned char what)
+int
+GetScoreFor(unsigned char iamthis, unsigned char what)
 {
-    if (IsZone(what,1)) { return iamthis==1?1:(iamthis==2?50:(iamthis==3?50:50)); } // com
-    if (IsZone(what,2)) { return iamthis==1?50:(iamthis==2?1:(iamthis==3?50:50)); } // res
-    if (IsZone(what,3)) { return iamthis==1?(0-25):(iamthis==2?(0-75):(iamthis==3?1:(0-50))); } // ind
-    if (IsRoad(what)  ) { return iamthis==1?75:(iamthis==2?50:(iamthis==3?75:66)); } // roads
-    if (what == TYPE_POWER_PLANT) { return iamthis==1?(0-75):(iamthis==2?(0-100):(iamthis==3?30:(0-75))); } // powerplant
-    if (what == TYPE_NUCLEAR_PLANT) { return iamthis==1?(0-150):(iamthis==2?(0-200):(iamthis==3?15:(0-175))); } // nuclearplant
-    if (what == TYPE_TREE) { return iamthis==1?50:(iamthis==2?85:(iamthis==3?25:50)); } // tree
-    if (what == TYPE_WATER||what == TYPE_REAL_WATER) { return iamthis==1?175:(iamthis==2?550:(iamthis==3?95:250)); } // water
+    if (IsZone(what, ztCommercial)) {
+        return (iamthis == ztCommercial) ? 1 :
+            ((iamthis == ztResidential) ? 50 :
+             ((iamthis == ztIndustrial) ? 50 : 50));
+    }
+    if (IsZone(what, ztResidential)) {
+        return (iamthis == ztCommercial) ? 50 :
+            ((iamthis == ztResidential) ? 1 :
+              ((iamthis == ztIndustrial) ? 50 : 50));
+    }
+    if (IsZone(what, ztIndustrial)) {
+        return (iamthis == ztCommercial) ? (-25) :
+            ((iamthis == ztResidential) ? (-75) :
+            ((iamthis == ztIndustrial) ? 1 : (-50)));
+    }
+    if (IsRoad(what)) {
+        return (iamthis == ztCommercial) ? 75 :
+          ((iamthis == ztResidential) ? 50 :
+          ((iamthis == ztIndustrial) ? 75 : 66));
+    }
+    if (what == TYPE_POWER_PLANT) {
+        return (iamthis == ztCommercial) ? (-75) :
+            ((iamthis == ztResidential) ? (-100) :
+            ((iamthis == ztIndustrial) ? 30 : (-75)));
+    }
+    if (what == TYPE_NUCLEAR_PLANT) {
+        return (iamthis == ztCommercial) ? (-150) :
+            ((iamthis == ztResidential) ? (-200) :
+            ((iamthis == ztIndustrial) ? 15 : (0-175)));
+    }
+    if (what == TYPE_TREE) {
+        return (iamthis == ztCommercial) ? 50 :
+            ((iamthis == ztResidential) ? 85 :
+            ((iamthis == ztIndustrial)? 25 : 50));
+    }
+    if ((what == TYPE_WATER) || (what == TYPE_REAL_WATER)) {
+        return (iamthis == ztCommercial) ? 175 :
+            ((iamthis == ztIndustrial) ? 550 :
+            ((iamthis == ztIndustrial) ? 95 : 250));
+    }
     return 0;
 }
 
@@ -615,13 +822,13 @@ void DoUpkeep()
     game.credits = 0;
     
     // roads
-    DoNastyStuffTo(TYPE_ROAD,1);
-    DoNastyStuffTo(TYPE_POWER_LINE,5);
-    DoNastyStuffTo(TYPE_POWER_PLANT,15);
-    DoNastyStuffTo(TYPE_NUCLEAR_PLANT,50);
-    DoNastyStuffTo(TYPE_FIRE_STATION,10);
-    DoNastyStuffTo(TYPE_POLICE_STATION,12);
-    DoNastyStuffTo(TYPE_MILITARY_BASE,35);
+    DoNastyStuffTo(TYPE_ROAD, 1);
+    DoNastyStuffTo(TYPE_POWER_LINE, 5);
+    DoNastyStuffTo(TYPE_POWER_PLANT, 15);
+    DoNastyStuffTo(TYPE_NUCLEAR_PLANT, 50);
+    DoNastyStuffTo(TYPE_FIRE_STATION, 10);
+    DoNastyStuffTo(TYPE_POLICE_STATION, 12);
+    DoNastyStuffTo(TYPE_MILITARY_BASE, 35);
     
 }
 
@@ -632,7 +839,7 @@ extern int Sim_DoPhase(int nPhase)
         case 1:
             if (NeedsUpdate(GRID_POWER)) {
                 UIWriteLog("Simulation phase 1 - power grid\n");
-                Sim_Distribute(0);
+                Sim_Distribute_Specific(GRID_POWER);
                 ClearUpdate(GRID_POWER);
             }
             nPhase =2;
@@ -640,7 +847,7 @@ extern int Sim_DoPhase(int nPhase)
         case 2:
             if (NeedsUpdate(GRID_WATER)) {
                 UIWriteLog("Simulation phase 2 - water grid\n");
-                Sim_Distribute(1);
+                Sim_Distribute_Specific(GRID_WATER);
                 ClearUpdate(GRID_WATER);
             }
             nPhase = 3;
@@ -688,42 +895,38 @@ extern void
 UpdateVolatiles(void)
 {
     // Updates the BuildCount array after a load game
-    int x;
-    int y;
+    long p;
 
     LockWorld();
 
-    for (y = 0; y < GetMapSize(); y++)
-        for (x = 0; x < GetMapSize(); x++) {
-            char elt = GetWorld(WORLDPOS(x,y));
-            // Gahd this is terrible. I need to fix it.
-            if (elt >= ZONE_COMMERCIAL*10+20 &&
-              elt <= ZONE_COMMERCIAL*20+29)
-                vgame.BuildCount[COUNT_COMMERCIAL] += elt%10 + 1;
-            if (elt >= ZONE_RESIDENTIAL*10+20 &&
-              elt <= ZONE_RESIDENTIAL*10+29)
-                vgame.BuildCount[COUNT_RESIDENTIAL] += elt%10 + 1;
-            if (elt >= ZONE_INDUSTRIAL*10+20 &&
-              elt <= ZONE_INDUSTRIAL*10+20)
-                vgame.BuildCount[COUNT_INDUSTRIAL] += elt%10 + 1;
-            if (IsRoad(elt)) vgame.BuildCount[COUNT_ROADS]++;
-            if (elt == TYPE_TREE) vgame.BuildCount[COUNT_TREES]++;
-            if (elt == TYPE_WATER) vgame.BuildCount[COUNT_WATER]++;
-            if (elt == TYPE_POWERROAD_2 || elt == TYPE_POWERROAD_1 ||
-              elt == TYPE_POWER_LINE) vgame.BuildCount[COUNT_POWERLINES]++;
-            if (elt == TYPE_POWER_PLANT || elt == TYPE_NUCLEAR_PLANT)
-                vgame.BuildCount[COUNT_POWERPLANTS]++;
-            if (elt == TYPE_WASTE) vgame.BuildCount[COUNT_WASTE]++;
-            if (elt == TYPE_FIRE1 || elt == TYPE_FIRE2 || elt == TYPE_FIRE3)
-                vgame.BuildCount[COUNT_FIRE]++;
-            if (elt == TYPE_FIRE_STATION)
-                vgame.BuildCount[COUNT_FIRE_STATIONS]++;
-            if (elt == TYPE_POLICE_STATION)
-                vgame.BuildCount[COUNT_POLICE_STATIONS]++;
-            if (elt == TYPE_MILITARY_BASE)
-                vgame.BuildCount[COUNT_MILITARY_BASES]++;
-            if (elt == TYPE_WATER_PIPE) vgame.BuildCount[COUNT_WATERPIPES]++;
-            if (elt == TYPE_WATER_PUMP) vgame.BuildCount[COUNT_WATER_PUMPS]++; 
-        }
+    for (p = 0; p < GetMapMul(); p++) {
+        char elt = GetWorld(p);
+        // Gahd this is terrible. I need to fix it.
+        if (elt >= TYPE_COMMERCIAL_MIN && elt <= TYPE_COMMERCIAL_MAX)
+            vgame.BuildCount[COUNT_COMMERCIAL] += elt%10 + 1;
+        if (elt >= TYPE_RESIDENTIAL_MIN && elt <= TYPE_RESIDENTIAL_MAX)
+            vgame.BuildCount[COUNT_RESIDENTIAL] += elt%10 + 1;
+        if (elt >= TYPE_INDUSTRIAL_MIN && elt <= TYPE_INDUSTRIAL_MAX)
+            vgame.BuildCount[COUNT_INDUSTRIAL] += elt%10 + 1;
+        if (IsRoad(elt)) vgame.BuildCount[COUNT_ROADS]++;
+        if (elt == TYPE_TREE) vgame.BuildCount[COUNT_TREES]++;
+        if (elt == TYPE_WATER) vgame.BuildCount[COUNT_WATER]++;
+        if (elt == TYPE_POWERROAD_2 || elt == TYPE_POWERROAD_1 ||
+          elt == TYPE_POWER_LINE) vgame.BuildCount[COUNT_POWERLINES]++;
+        if (elt == TYPE_POWER_PLANT) vgame.BuildCount[COUNT_POWERPLANTS]++;
+        if (elt == TYPE_NUCLEAR_PLANT)
+            vgame.BuildCount[COUNT_NUCLEARPLANTS]++;
+        if (elt == TYPE_WASTE) vgame.BuildCount[COUNT_WASTE]++;
+        if (elt == TYPE_FIRE1 || elt == TYPE_FIRE2 || elt == TYPE_FIRE3)
+            vgame.BuildCount[COUNT_FIRE]++;
+        if (elt == TYPE_FIRE_STATION)
+            vgame.BuildCount[COUNT_FIRE_STATIONS]++;
+        if (elt == TYPE_POLICE_STATION)
+            vgame.BuildCount[COUNT_POLICE_STATIONS]++;
+        if (elt == TYPE_MILITARY_BASE)
+            vgame.BuildCount[COUNT_MILITARY_BASES]++;
+        if (elt == TYPE_WATER_PIPE) vgame.BuildCount[COUNT_WATERPIPES]++;
+        if (elt == TYPE_WATER_PUMP) vgame.BuildCount[COUNT_WATER_PUMPS]++; 
+    }
     UnlockWorld();
 }

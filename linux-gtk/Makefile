@@ -5,7 +5,8 @@ CFLAGS = -O2 -Wall -DLINUX $(GFLAGS)
 GLFLAGS = `pkg-config --libs gtk+-2.0`
 LFLAGS = $(GLFLAGS)
 OBJECTS = main.o savegame.o budget.o \
-			handler.o build.o disaster.o drawing.o globals.o simulation.o
+	handler.o build.o disaster.o drawing.o globals.o simulation.o \
+	stack.o
 
 .PHONY: all debug clean
 

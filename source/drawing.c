@@ -2,6 +2,7 @@
 #include "zakdef.h"
 #include "globals.h"
 #include "drawing.h"
+#include "simulation.h"
 
 unsigned char GetGraphicNumber(long unsigned int pos);
 
@@ -171,11 +172,13 @@ extern void DrawFieldWithoutInit(int xpos, int ypos)
 
     UIDrawField(xpos-game.map_xpos, ypos-game.map_ypos, GetGraphicNumber(WORLDPOS(xpos,ypos)));
 
-    if ((GetWorldFlags(WORLDPOS(xpos,ypos)) & 0x01) == 0 && CarryPower(GetWorld(WORLDPOS(xpos, ypos)))) {
+    if ((GetWorldFlags(WORLDPOS(xpos,ypos)) & WATEREDBIT) == 0 &&
+	CarryPower(GetWorld(WORLDPOS(xpos, ypos)))) {
         UIDrawPowerLoss(xpos-game.map_xpos, ypos-game.map_ypos);
     }
     
-    if ((GetWorldFlags(WORLDPOS(xpos,ypos)) & 0x04) == 0 && CarryWater(GetWorld(WORLDPOS(xpos, ypos)))) {
+    if ((GetWorldFlags(WORLDPOS(xpos,ypos)) & POWEREDBIT) == 0 &&
+	CarryWater(GetWorld(WORLDPOS(xpos, ypos)))) {
         UIDrawWaterLoss(xpos-game.map_xpos, ypos-game.map_ypos);
     }
 
@@ -292,38 +295,42 @@ extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
 
 }
 
-/* some small usefull functions */
-extern int
+/* some small useful functions */
+int
 CarryPower(unsigned char x)
 {
     return (((x >= 1) && (x <= 7) && (x != 4)) ||
       ((x >= 23) && (x <= 61)) ? 1 : 0);
 }
 
-extern int
+int
 CarryWater(unsigned char x)
 {
     return (((x >= 1) && (x <= 3)) || ((x >= 23) && (x <= 61)) || (x == 68) ||
       (x == 69) || (x ==8) ? 1 : 0);
 }
 
-extern int
+int
 IsPowerLine(unsigned char x)
 {
     return ((x)>=5 && (x)<=7)  ?1:0;
 }
 
-extern int
+int
 IsRoad(unsigned char x)
 {
     return (((x == 4) || (x == 6) || (x == 7) || (x == 68) || (x == 69) ||
           (x == 81)) ? 1 : 0);
 }
 
-extern int
-IsZone(unsigned char x, int nType)
+// zone type
+int
+IsZone(unsigned char x, zoneType nType)
 {
-    if (x == nType) { return 1; }
+    if (x == nType) {
+        return (1);
+    }
     else if (x >= (nType*10+20) && x <= (nType*10+29)) { return (x%10)+1; }
     return 0;
 }
+

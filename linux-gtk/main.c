@@ -335,7 +335,7 @@ void SetUpMainWindow(void)
     gtk_widget_show(window);
 }
 
-extern void UISetUpGraphic(void)
+void UISetUpGraphic(void)
 {
     zones_bitmap = gdk_pixmap_create_from_xpm(drawingarea->window,
                                        &zones_mask,
@@ -352,7 +352,7 @@ extern void UISetUpGraphic(void)
 }
 
 
-extern int UIDisplayError(int nError) 
+int UIDisplayError(int nError) 
 {
     GtkWidget * dialog;
     char temp[100];
@@ -378,30 +378,30 @@ extern int UIDisplayError(int nError)
     return 0;
 }
 
-extern void UIInitDrawing(void)
+void UIInitDrawing(void)
 {
 }
 
-extern void UIFinishDrawing(void)
+void UIFinishDrawing(void)
 {
 }
 
-extern void UIUnlockScreen(void)
-{
-    // not used for this platform
-}
-
-extern void UILockScreen(void)
+void UIUnlockScreen(void)
 {
     // not used for this platform
 }
 
-extern void UIDrawBorder(void)
+void UILockScreen(void)
+{
+    // not used for this platform
+}
+
+void UIDrawBorder(void)
 {
     g_print("UIDrawBorder\n");
 }
 
-extern void UIDrawCredits(void)
+void UIDrawCredits(void)
 {
     char temp[23];
     sprintf(temp, "$: %ld", game.credits);
@@ -410,34 +410,34 @@ extern void UIDrawCredits(void)
     gtk_label_set_text((GtkLabel*)timelabel, temp);
 }
 
-extern void UIUpdateBuildIcon(void)
+void UIUpdateBuildIcon(void)
 {
     g_print("UIUpdateBuildIcon\n");
 }
 
-extern void UIGotoForm(int n)
+void UIGotoForm(int n)
 {
     g_print("UIGotoForm\n");
 }
 
-extern void UICheckMoney(void)
+void UICheckMoney(void)
 {
     g_print("UICheckMoney\n");
 }
 
-extern void UIScrollMap(int direction)
+void UIScrollMap(int direction)
 {
     // TODO: Optimize this as in the Palm port?
     //       (if nessasary)
     RedrawAllFields();
 }
 
-extern void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth)
+void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth)
 {
     g_print("_UIDrawRect\n");
 }
 
-extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
+void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
 {
     GdkGC *gc;
 
@@ -455,7 +455,7 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
     gdk_gc_destroy(gc);
 }
 
-extern void UIDrawSpecialObject(int i, int xpos, int ypos)
+void UIDrawSpecialObject(int i, int xpos, int ypos)
 {
     GdkGC *gc;
     gc = gdk_gc_new(drawingarea->window);
@@ -477,7 +477,7 @@ extern void UIDrawSpecialObject(int i, int xpos, int ypos)
     gdk_gc_destroy(gc);
 }
 
-extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
+void UIDrawSpecialUnit(int i, int xpos, int ypos)
 {
     GdkGC *gc;
     gc = gdk_gc_new(drawingarea->window);
@@ -499,12 +499,12 @@ extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
     gdk_gc_destroy(gc);
 }
 
-extern void UIDrawCursor(int xpos, int ypos)
+void UIDrawCursor(int xpos, int ypos)
 {
     // not used on this platform
 }
 
-extern void UIDrawPowerLoss(int xpos, int ypos)
+void UIDrawPowerLoss(int xpos, int ypos)
 {
     GdkGC *gc;
     gc = gdk_gc_new(drawingarea->window);
@@ -526,7 +526,7 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
     gdk_gc_destroy(gc);
 }
 
-extern void UIDrawWaterLoss(int xpos, int ypos)
+void UIDrawWaterLoss(int xpos, int ypos)
 {
     GdkGC *gc;
     gc = gdk_gc_new(drawingarea->window);
@@ -548,12 +548,12 @@ extern void UIDrawWaterLoss(int xpos, int ypos)
     gdk_gc_destroy(gc);
 }
 
-extern unsigned char UIGetSelectedBuildItem(void)
+unsigned char UIGetSelectedBuildItem(void)
 {
     return selectedBuildItem;
 }
 
-extern int InitWorld(void)
+int InitWorld(void)
 {
     worldPtr = malloc(10);
     worldFlagsPtr = malloc(10);
@@ -566,7 +566,7 @@ extern int InitWorld(void)
     return 1;
 }
 
-extern int ResizeWorld(long unsigned size)
+int ResizeWorld(unsigned long size)
 {
     worldPtr = realloc(worldPtr, size);
     worldFlagsPtr = realloc(worldFlagsPtr, size);
@@ -581,58 +581,82 @@ extern int ResizeWorld(long unsigned size)
     return 1;
 }
 
-extern void LockWorld(void)
+void
+LockWorld(void)
 {
     // not used on this platform
 }
 
-extern void UnlockWorld(void)
+void
+UnlockWorld(void)
 {
     // not used on this platform
 }
 
-extern unsigned char GetWorld(long unsigned int pos)
+unsigned char
+GetWorld(unsigned long pos)
 {
     if (pos > GetMapMul()) { return 0; }
     return ((char*)worldPtr)[pos];
 }
 
-extern void SetWorld(long unsigned int pos, unsigned char value)
+void
+SetWorld(unsigned long pos, unsigned char value)
 {
     if (pos > GetMapMul()) { return; }
     ((char*)worldPtr)[pos] = value;
 }
 
-extern void LockWorldFlags(void)
+void
+LockWorldFlags(void)
 {
     // not used on this platform
 }
 
-extern void UnlockWorldFlags(void)
+void
+UnlockWorldFlags(void)
 {
     // not used on this platform
 }
 
-extern unsigned char GetWorldFlags(long unsigned int pos)
+unsigned char
+GetWorldFlags(unsigned long pos)
 {
     if (pos > GetMapMul()) { return 0; }
     return ((char*)worldFlagsPtr)[pos];
 }
 
-extern void SetWorldFlags(long unsigned int pos, unsigned char value)
+void
+SetWorldFlags(unsigned long pos, unsigned char value)
 {
     if (pos > GetMapMul()) { return; }
     ((char*)worldFlagsPtr)[pos] = value;
 }
 
-extern unsigned long GetRandomNumber(unsigned long max)
+void
+AndWorldFlags(unsigned long pos, unsigned char value)
+{
+    if (pos > GetMapMul()) { return; }
+    ((char*)worldFlagsPtr)[pos] &= value;
+}
+
+void
+OrWorldFlags(unsigned long pos, unsigned char value)
+{
+    if (pos > GetMapMul()) { return; }
+    ((char*)worldFlagsPtr)[pos] |= value;
+}
+
+unsigned long
+GetRandomNumber(unsigned long max)
 {
     // se `man 3 rand` why I'm not using:
     // return (rand() % max)
     return (unsigned long)((float)max*rand()/(RAND_MAX+1.0));
 }
 
-extern void MapHasJumped(void)
+void
+MapHasJumped(void)
 {
     ((GtkAdjustment*)playscrollerh)->value = game.map_xpos+10;
     ((GtkAdjustment*)playscrollerv)->value = game.map_ypos+7;
@@ -641,12 +665,14 @@ extern void MapHasJumped(void)
 
 }
 
-extern void UISetTileSize(int size)
+void
+UISetTileSize(int size)
 {
     g_print("UISetTileSize\n");
 }
 
-extern void UIDrawPop(void) 
+void
+UIDrawPop(void) 
 {
     char temp[50];
     sprintf(temp, "(%02u,%02u) Population: %-9li",
@@ -659,12 +685,10 @@ extern void UIDrawPop(void)
 }
 
 #ifdef DEBUG
-extern void UIWriteLog(char* s)
+void UIWriteLog(char* s)
 {
     g_print(s); 
 }
-#else
-#define UIWriteLog(s)
 #endif
 
 

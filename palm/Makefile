@@ -2,8 +2,8 @@ VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 CC = m68k-palmos-gcc
 CFLAGS = -O2 -Wall -DPALM
 LDLIBS =
-OBJECTS = simcity.o handler.o drawing.o globals.o build.o simulation.o \
-	HiRes.o savegame.o disaster.o map.o budget.o
+OBJECTS = stack.o simcity.o handler.o drawing.o globals.o build.o \
+	simulation.o HiRes.o savegame.o disaster.o map.o budget.o
 PROGNAME = "Pocket City"
 PROGTOKEN = PCit
 PRCTARGETS = pcity pcity-grey pcity-color mg-pcity
@@ -98,7 +98,8 @@ pcitymain.stm: pcitymain.rcp
 # *-grey.rcp  => tempgrey/
 # *.rcp       => tempbw/
 
-%.stm: %.rcp simcity_resconsts.h
+# simcity_resconsts.h
+%.stm: %.rcp
 	pilrc -q $< temp$(if $(findstring -,$*),$(word 2, $(subst -, ,$*)),bw)
 	echo touching>$*.stm
 ####################################

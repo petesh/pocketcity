@@ -80,30 +80,29 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 {
     UInt16 error;
 
+    if (cmd != sysAppLaunchCmdNormalLaunch) return (0);
+
     error = RomVersionCompatible (
       sysMakeROMVersion(3, 5, 0, sysROMStageRelease, 0), launchFlags);
     if (error) return (error);
+
     UIWriteLog("Starting Pocket City\n");
+    _PalmInit();
+    PCityMain();
+    if (UILoadAutoGame()) {
+	FrmGotoForm(formID_pocketCity);
+    } else {
+	FrmGotoForm(formID_files);
+    }
+    
+    EventLoop();
 
-    if (cmd == sysAppLaunchCmdNormalLaunch) {
-        _PalmInit();
-        PCityMain();
-        if (UILoadAutoGame()) {
-            FrmGotoForm(formID_pocketCity);
-        } else {
-            FrmGotoForm(formID_files);
-        }
-
-        EventLoop();
-
-        if (game_in_progress) {
-            UISaveGame(0);
-        }
-
-        _PalmFini();
+    if (game_in_progress) {
+	UISaveGame(0);
     }
 
-    return 0;
+    _PalmFini();
+    return (0);
 }
 
 static void
@@ -539,10 +538,13 @@ static Boolean hPocketCity(EventPtr event)
             break;
 #ifdef SONY_CLIE
         case vchrJogUp:
+            UIWriteLog("up\n");
             if (jog_lr) ScrollMap(3); else ScrollMap(0); handled = 1; break;
         case vchrJogDown:
+            UIWriteLog("down\n");
             if (jog_lr) ScrollMap(1); else ScrollMap(2); handled = 1; break;
         case vchrJogRelease:
+            UIWriteLog("leggo my eggo\n");
             jog_lr = 1 - jog_lr; UIDrawLoc(); handled = 1; break;
 #endif
         }
@@ -1427,15 +1429,35 @@ extern int ResizeWorld(long unsigned size)
     return (1);
 }
 
-extern void MapHasJumped(void) { }
+void
+MapHasJumped(void)
+{
+}
 
 
-extern void LockWorld() { worldPtr = MemHandleLock(worldHandle); }
-extern void UnlockWorld() { MemHandleUnlock(worldHandle); }
-extern void LockWorldFlags() { worldFlagsPtr = MemHandleLock(worldFlagsHandle); }
-extern void UnlockWorldFlags() { MemHandleUnlock(worldFlagsHandle); }
+void LockWorld()
+{
+    worldPtr = MemHandleLock(worldHandle);
+}
 
-extern unsigned char
+void
+UnlockWorld() {
+    MemHandleUnlock(worldHandle);
+}
+
+void
+LockWorldFlags()
+{
+    worldFlagsPtr = MemHandleLock(worldFlagsHandle);
+}
+
+void
+UnlockWorldFlags()
+{
+    MemHandleUnlock(worldFlagsHandle);
+}
+
+unsigned char
 GetWorldFlags(long unsigned int pos)
 {
     // NOTE: LockWorld() MUST have been called before this is used!!!
@@ -1443,13 +1465,26 @@ GetWorldFlags(long unsigned int pos)
     return ((unsigned char*)worldFlagsPtr)[pos];
 }
 
-extern void
+void
 SetWorldFlags(long unsigned int pos, unsigned char value)
 {
     if (pos > GetMapMul()) { return; }
     ((unsigned char*)worldFlagsPtr)[pos] = value;
 }
 
+extern void
+OrWorldFlags(unsigned long pos, unsigned char value)
+{
+    if (pos > GetMapMul()) { return; }
+    ((unsigned char*)worldFlagsPtr)[pos] |= value;
+}
+
+extern void
+AndWorldFlags(unsigned long pos, unsigned char value)
+{
+    if (pos > GetMapMul()) { return; }
+    ((unsigned char*)worldFlagsPtr)[pos] &= value;
+}
 
 extern unsigned char
 GetWorld(unsigned long pos)
@@ -1477,7 +1512,7 @@ RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
     // See if we're on in minimum required version of the ROM or later.
     FtrGet(sysFtrCreator, sysFtrNumROMVersion, &romVersion);
 #ifdef DEBUG
-    LongToString(romVersion,(char*)temp);
+    StrPrintF(temp, "0x%lx", romVersion);
     UIWriteLog("Rom version: ");
     UIWriteLog(temp);
     UIWriteLog("\n");
@@ -1487,7 +1522,6 @@ RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
         if ((launchFlags &
               (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp)) ==
                 (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp)) {
-            //if (FrmAlert (alertID_RomIncompatible) == 1)
             if (romVersion > sysMakeROMVersion(3, 1, 0, 0, 0)) {
                 oldROM = 1;
                 return (0);
@@ -1580,7 +1614,7 @@ extern void UIWriteLog(char *s)
 {
     HostFILE * hf = NULL;
 
-    hf = HostFOpen("\\pcity.log", "a");
+    hf = HostFOpen("pcity.log", "a");
     if (hf) {
         HostFPrintF(hf, s);
         HostFClose(hf);

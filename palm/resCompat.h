@@ -12,7 +12,7 @@ UInt32 GetCreatorID(void);
 #ifdef SONY_CLIE
 #include <Font.h>
 #include <FontSelect.h>
-#include <SonyClie.h>
+#include <SonyCLIE.h>
 
 extern UInt32 sWidth;
 extern UInt32 sHeight;

@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ZAKDEF_H
-#define INCLUDE_ZAKDEF_H
+#if !defined(_ZAKDEF_H)
+#define _ZAKDEF_H
 
 /*
  * how often the disasters are
@@ -36,6 +36,19 @@
 #define ZONE_RESIDENTIAL        2
 #define ZONE_INDUSTRIAL         3
 
+typedef enum {
+    ztCommercial = 1,
+    ztResidential,
+    ztIndustrial
+} zoneType;
+
+typedef enum {
+    dtUp = 0,
+    dtRight,
+    dtDown,
+    dtLeft
+} dirType;
+
 /*
  * these might be used here, but
  * the graphic slot is still free for other
@@ -56,6 +69,16 @@
 #define TYPE_POLICE_STATION     24
 #define TYPE_MILITARY_BASE      25
 #define TYPE_WATER_PUMP         26
+// 30..39 commercial
+#define TYPE_COMMERCIAL_MIN     30
+#define TYPE_COMMERCIAL_MAX     39
+// 40..49 residential
+#define TYPE_RESIDENTIAL_MIN    40
+#define TYPE_RESIDENTIAL_MAX    49
+// 50..59 industrial
+#define TYPE_INDUSTRIAL_MIN     50
+#define TYPE_INDUSTRIAL_MAX     59
+
 #define TYPE_POWER_PLANT        60
 #define TYPE_NUCLEAR_PLANT      61
 #define TYPE_WASTE              62
@@ -85,6 +108,11 @@
 #define COUNT_MILITARY_BASES   13
 #define COUNT_WATERPIPES       14
 #define COUNT_WATER_PUMPS      15
+
+// Supply units per plant
+#define SUPPLY_POWER_PLANT      100
+#define SUPPLY_NUCLEAR_PLANT    300
+#define SUPPLY_WATER_PUMP       200
 
 // income per zone/level
 #define INCOME_RESIDENTIAL      25
@@ -200,6 +228,12 @@ typedef struct _game_struct06 {
 
 typedef GameStruct05 GameStruct;
 
+typedef struct _psuCount {
+    struct _psuCount *next;
+    int gridType;
+    
+} psuCount;
+
 typedef struct _vgame_struct {
     int                 _mapsize;
     int                 gridsToUpdate;
@@ -210,6 +244,7 @@ typedef struct _vgame_struct {
     int                 visible_y;          // ??
     int                 cursor_xpos;        // ??
     int                 cursor_ypos;        // ??
+
 } vGameStruct;
 
 #define SAVEGAMEVERSION     "PC05"
@@ -235,4 +270,4 @@ typedef struct _vgame_struct {
     game.gameLoopSeconds = vgame.gameLoopSeconds; \
 }
 
-#endif
+#endif /* _ZAKDEF_H */

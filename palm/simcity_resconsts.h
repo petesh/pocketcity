@@ -1,5 +1,3 @@
-#include "../source/zakdef.h"
-
 #define formID_pocketCity                1000
 #define formID_budget                    1001
 #define formID_map                       1002

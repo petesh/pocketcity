@@ -31,6 +31,7 @@ City development:
 * There must be at most 3 squares to the nearest road for a zone
 * The population is calculated from the total R - I/C doesn't count
 * The water pump must be placed next to the river in the game to work
+* Just about everything needs electricity... including water pumps
 
 Disasters:
 ==========
@@ -43,7 +44,8 @@ Disasters:
 * The monsters can be killed by 2 military units (place them next to it), or
   4 fire fighters.
 * The number of defence units depend on the number of fire stations, police
-  stations and military bases you have.
+  stations and military bases you have. If you've no bases then you can't
+  have units
 
 
 Misc:
