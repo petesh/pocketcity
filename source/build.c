@@ -88,7 +88,7 @@ void Build_Destroy(int xpos, int ypos)
 	BuildCount[COUNT_TREES] -= (type == 21);
 	BuildCount[COUNT_WATER] -= (type == 22);
 	BuildCount[COUNT_POWERPLANTS] -= (type == 60);
-	BuildCount[COUNT_POWERPLANTS] -= (type == 61)*5;
+	BuildCount[COUNT_POWERPLANTS] -= (type == 61)*2;
 	BuildCount[COUNT_POWERLINES] -= ((type == 7) || (type == 6) || (type == 5));
 	
 	SetWorld(WORLDPOS(xpos,ypos),0);
@@ -110,9 +110,6 @@ void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nT
 			if(nType == 60) {
 				BuildCount[COUNT_POWERPLANTS]++;
 			} else if(nType == 61) {
-				BuildCount[COUNT_POWERPLANTS]++;
-				BuildCount[COUNT_POWERPLANTS]++;
-				BuildCount[COUNT_POWERPLANTS]++;
 				BuildCount[COUNT_POWERPLANTS]++;
 				BuildCount[COUNT_POWERPLANTS]++;
 			} else if(nType == 2) {
