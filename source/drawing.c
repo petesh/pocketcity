@@ -153,6 +153,7 @@ DrawCross(UInt16 xpos, UInt16 ypos, UInt16 xsize, UInt16 ysize)
 	ty = ypos;
 	xpos -= 1;
 	UIInitDrawing();
+
 	while (xpos <= tx + xsize) {
 		ypos = ty - 1;
 		while (ypos <= ty + ysize) {

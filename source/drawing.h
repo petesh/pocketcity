@@ -45,6 +45,9 @@ EXPORT void DrawField(UInt16 xpos, UInt16 ypos);
 
 /*!
  * \brief Draw all zones around the point that is being painted.
+ *
+ * It is essential that you have locked the world and flags before calling this
+ * routine.
  * \param xpos horizontal position
  * \param ypos vertical position
  * \param xsize the size on the x-axis

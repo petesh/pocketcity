@@ -38,6 +38,7 @@ DoCommitmentNasties(void)
 {
 	int i;
 
+	LockZone(lz_world);
 	for (i = 0; i < 60 - getTax(); i++) {
 		UInt32 loc = GetRandomNumber(MapMul());
 		welem_t world = getWorld(GetRandomNumber(MapMul()));
@@ -52,6 +53,7 @@ DoCommitmentNasties(void)
 		    (GetRandomNumber(100) > getUpkeep(ue_power)))
 			Build_Destroy(x, y);
 	}
+	UnlockZone(lz_world);
 }
 
 void

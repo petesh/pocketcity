@@ -37,7 +37,7 @@ extern Coord sHeight;
 #define GETHEIGHT()	(sHeight)
 
 Boolean isDoubleOrMoreResolution(void);
-void scaleEvent(EventPtr event);
+void scalePoint(PointType *pt);
 UInt32 highDensityFeatureSet(void);
 Coord scaleCoord(Coord x);
 Coord normalizeCoord(Coord x);
@@ -75,7 +75,7 @@ void collapsePreRedraw(FormPtr form) HIRES_SECTION;
 
 #define highDensityFeatureSet()	(0)
 #define isDoubleOrMoreResolution() (0)
-#define scaleEvent(e)
+#define scalePoint(e)
 #define scaleCoord(x)	(x)
 #define normalizeCoord(X)	(X)
 #define StartHiresDraw()

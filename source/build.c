@@ -460,6 +460,8 @@ Build_Destroy(UInt16 xpos, UInt16 ypos)
 finish:
 	AddGridUpdate(GRID_ALL);
 
+	LockZone(lz_flags);
+
 	if (IsRoadBridge(type) || IsRailTunnel(type) || IsRealWater(type)) {
 		/* A bridge turns into real_water when detroyed */
 		setWorldAndFlag(WORLDPOS(xpos, ypos), Z_REALWATER, 0);
@@ -481,8 +483,8 @@ finish:
 		}
 	}
 
-	/* Locks the world flags itself */
 	DrawCross(xpos, ypos, x_destroy, y_destroy);
+	UnlockZone(lz_flags);
 }
 
 /*! \brief Mapping of zone to cost of building on a zone */

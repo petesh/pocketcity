@@ -270,7 +270,8 @@ typedef enum {
 } disaster_t;
 
 typedef enum {
-	seOutOfMemory = 1 /*!< out of memory error */
+	seOutOfMemory = 1, /*!< out of memory error */
+	seInvalidSaveGame /*!< invalid save game load was attempted */
 } syserror_t;
 
 typedef enum {
@@ -427,29 +428,16 @@ typedef enum {
 	ue_tail /*!< Tail ender, for allocating the array in game structure */
 } UpkeepEntries;
 
-/*! \brief Structure kept around for historic purposes */
-typedef struct _game_struct05 {
-	UInt8		version[4]; /*!< Version code of savegame */
-	UInt8		mapsize;	/*!< The size of each axis of the map */
-	Int16		_visible_x;	/*!< deprecated */
-	Int16		_visible_y;	/*!< deprecated */
-	Int16		map_xpos;	/*!< start visible x axis */
-	Int16		map_ypos;	/*!< start visible y axis */
-	Int16		_cursor_xpos;	/*!< Deprecated */
-	Int16		_cursor_ypos;	/*!< Deprecated */
-	Int32		credits;	/*!< amount of money */
-	UInt32		_BuildCount[20]; /*!< Deprecated */
-	UInt32		TimeElapsed;	/*!< Number of months past 00 */
-	UInt8		tax;		/*!< Tax rate */
-	UInt8		gas_bits;	/*!< do we auto-bulldoze?*/
-	UInt16		gameLoopSeconds; /*!< real seconds per game month */
-	Char		cityname[CITYNAMELEN]; /*!< Name of city */
-	UInt8		upkeep[ue_tail];	/*!< upkeep %ages for bits */
-	UInt8		diff_disaster;	/*!< rate of disasters */
-	UInt8		gridsToUpdate; /*!< grids to update next update loop */
-	DefenceUnit	units[NUM_OF_UNITS];	/*!< Defence Units */
-	MoveableObject  objects[NUM_OF_OBJECTS]; /*!< Special objects */
-} GameStruct05;
+/*!
+ * \brief desire elements
+ */
+typedef enum {
+	de_evaluation = 0,
+	de_residential,
+	de_commercial,
+	de_industrial,
+	de_end
+} desire_elts;
 
 /*!
  * \brief the central game structure.
@@ -476,7 +464,7 @@ typedef struct _game_struct06a {
 	UInt8	upkeep[ue_tail];	/*!< upkeep %ages for bits */
 	UInt8	gridsToUpdate;	/*!< Grids to be updated on next grid cycle */
 
-	UInt16	evaluation;	/*!< Evaluation level of the mayor */
+	Int16	desires[de_end];	/*!< desire elements (and evaluation) */
 
 	stat_item statistics[st_tail]; /*!< statistics */
 	DefenceUnit	units[NUM_OF_UNITS]; /*!< active units */

@@ -771,17 +771,21 @@ GetZoneScore(UInt32 pos)
 		goto unlock_ret;
 	}
 
+	/* XXX: Desires need updating in this loop */
+
 	if ((type == ztIndustrial) || (type == ztCommercial))  {
 		/*
 		 * see if there's actually enough residential population
 		 * to support a new zone of ind or com
 		 */
 
-		Int32 availPop = (Int32)((vgame.BuildCount[bc_value_residential]*25)
-		    - (vgame.BuildCount[bc_value_commercial]*25
-		    + vgame.BuildCount[bc_value_industrial]*25));
+		Int32 availPop =
+		    (Int32)((vgame.BuildCount[bc_value_residential])
+		    - (vgame.BuildCount[bc_value_commercial]
+		    + vgame.BuildCount[bc_value_industrial]));
 		/* pop is too low */
 		if (availPop <= 0) {
+			/* XXX: Increase desire of industrial || commercial */
 			WriteLog("Pop too low to promote ind || comm\n");
 			goto unlock_ret;
 		}
@@ -793,10 +797,12 @@ GetZoneScore(UInt32 pos)
 		 * connections to the surrounding world - this would
 		 * bring more potential residents into our little city
 		 */
-		Int32 availPop = (Int32)(((getMonthsElapsed() * getMonthsElapsed()) /
-		    35) + 30 - vgame.BuildCount[bc_value_residential]);
+		Int32 availPop = (Int32)(((getMonthsElapsed() *
+		    getMonthsElapsed()) / 35) + 30 -
+		    vgame.BuildCount[bc_value_residential]);
 		/* hmm - need more children */
 		if (availPop <= 0) {
+			/* XXX: increase desire of residential */
 			WriteLog("No People\n");
 			goto unlock_ret;
 		}
@@ -808,11 +814,13 @@ GetZoneScore(UInt32 pos)
 		 * enough industrial zones before commercial zones kick in.
 		 */
 
-		Int32 availGoods =(Int32)((vgame.BuildCount[bc_value_industrial] /
-		    3 * 2) - (vgame.BuildCount[bc_value_commercial]));
+		Int32 availGoods =
+		    (Int32)((vgame.BuildCount[bc_value_industrial] / 3 * 2) -
+		    (vgame.BuildCount[bc_value_commercial]));
 		/* darn, nothing to sell here */
 		if (availGoods <= 0) {
-			WriteLog("No Goods\n");
+			/* Increase desire of industrial */
+			WriteLog("Low Industrial\n");
 			goto unlock_ret;
 		}
 	}
@@ -1256,7 +1264,7 @@ UpdateCounters(void)
 	 *   Park areas subtract 'massive' pollution from the map
 	 *   Commercial zones do not add or subtract from the pollution
 	 */
-	 
+
 	 /*! \note
 	  * How we calculate the criminal level
 	  *   Residential areas contribute based on their value

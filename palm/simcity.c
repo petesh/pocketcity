@@ -33,6 +33,9 @@
 #include <logging.h>
 #include <locking.h>
 
+/* 5-way navigator support needs Palm (Specific) SDK */
+#include <PalmNavigator.h>
+
 #if defined(LOGGING)
 #include <HostControl.h>
 #endif
@@ -81,7 +84,7 @@ static Err RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags);
 static void EventLoop(void);
 static void cycleSpeed(void);
 static void DoAbout(void) LARD_SECTION;
-static void CheckTextClick(Coord x, Coord y);
+static Boolean CheckTextClick(Coord x, Coord y);
 static Int16 doKeyEvent(keyEvent key);
 static Int16 speedOffset(void);
 static void UISetSelectedBuildItem(BuildCode item);
@@ -323,30 +326,38 @@ EventLoop(void)
 
 	for (;;) {
 		EvtGetEvent(&event, (Int32)10);
-		if (event.eType == appStopEvent) break;
+		if (event.eType == appStopEvent)
+			break;
 
 		if (event.eType == keyDownEvent)
-			if (FrmDispatchEvent(&event)) continue;
+			if (FrmDispatchEvent(&event))
+				continue;
 
-		if (SysHandleEvent(&event)) continue;
+		if (SysHandleEvent(&event))
+			continue;
 
-		if (MenuHandleEvent((MenuBarType *)0, &event, &err)) continue;
+		if (MenuHandleEvent((MenuBarType *)0, &event, &err))
+			continue;
 
-		if (AppEvent(&event)) continue;
+		if (AppEvent(&event))
+			continue;
 
-		if (FrmDispatchEvent(&event)) continue;
+		if (FrmDispatchEvent(&event))
+			continue;
 
 		/*
 		 * if we're faffing around in the savegame dialogs then
 		 * we're not actually playing the game.
 		 */
-		if (!IsGameInProgress()) continue;
+		if (!IsGameInProgress())
+			continue;
 
 		/* Game is fully formally paused ? */
 		if (!IsGamePlaying())
 			continue;
 
-		if (IsBuilding()) continue;
+		if (IsBuilding())
+			continue;
 
 		if (IsScrolling()) {
 			if ((event.eType != keyDownEvent)) {
@@ -499,7 +510,7 @@ _PalmInit(void)
 	rPlayGround.topLeft.y = YOFFSET; /* Padding for the menubar */
 	rPlayGround.extent.x = normalizeCoord(GETWIDTH());
 	/* Space on the bottom */
-	rPlayGround.extent.y = normalizeCoord(GETHEIGHT() - 2*16);
+	rPlayGround.extent.y = normalizeCoord(GETHEIGHT() - 3*16);
 
 	/* section (4) */
 
@@ -611,57 +622,61 @@ DoLoadAlert(void)
 	}
 }
 
+static void
+SaveCheck(void)
+{
+	if (FrmAlert(alertID_saveGame) == 0) {
+		UISaveMyCity();
+	}
+}
+
+static void
+SaveBeam(void)
+{
+	UISaveMyCity();
+	BeamCityByName(game.cityname);
+}
+
 static Boolean
 DoPCityMenuProcessing(UInt16 itemID)
 {
-	Boolean handled = false;
+	Boolean handled = true;
 
 	switch (itemID) {
 		/* First menu ... game */
 	case menuitemID_loadGame:
 		DoLoadAlert();
-		handled = true;
 		break;
 	case menuitemID_saveGame:
-		if (FrmAlert(alertID_saveGame) == 0) {
-			UISaveMyCity();
-		}
-		handled = true;
+		SaveCheck();
 		break;
 	case menuitemID_Budget:
 		FrmGotoForm(formID_budget);
-		handled = true;
 		break;
 	case menuitemID_Map:
 		FrmGotoForm(formID_map);
-		handled = true;
 		break;
 	case menuitemID_Configuration:
 		FrmGotoForm(formID_options);
-		handled = true;
 		break;
 
 	case menuitemID_Buttons:
 		FrmGotoForm(formID_ButtonConfig);
-		handled = true;
 		break;
 
 	case menuitemID_ForceResupply:
 		AddGridUpdate(GRID_ALL);
-		handled = true;
 		break;
 
 		/* next menu ... build */
 
 	case mi_removeDefence:
 		RemoveAllDefence();
-		handled = true;
 		break;
 
 		/* for a reason ... */
 	case mi_buildExtra:
 		UIPopUpExtraBuildList();
-		handled = true;
 		break;
 
 	case mi_CauseFire:
@@ -671,7 +686,6 @@ DoPCityMenuProcessing(UInt16 itemID)
 	case mi_CauseMeteor:
 		DoSpecificDisaster((disaster_t)(itemID - mi_CauseFire +
 			    diFireOutbreak));
-		handled = true;
 		break;
 
 		/* next menu ... speed */
@@ -679,42 +693,34 @@ DoPCityMenuProcessing(UInt16 itemID)
 	case menuID_SlowSpeed:
 		setLoopSeconds(SPEED_SLOW);
 		addGraphicUpdate(gu_speed);
-		handled = true;
 		break;
 	case menuID_MediumSpeed:
 		setLoopSeconds(SPEED_MEDIUM);
 		addGraphicUpdate(gu_speed);
-		handled = true;
 		break;
 	case menuID_FastSpeed:
 		setLoopSeconds(SPEED_FAST);
 		addGraphicUpdate(gu_speed);
-		handled = true;
 		break;
 	case menuID_TurboSpeed:
 		setLoopSeconds(SPEED_TURBO);
 		addGraphicUpdate(gu_speed);
-		handled = true;
 		break;
 	case menuID_PauseSpeed:
 		setLoopSeconds(SPEED_PAUSED);
 		addGraphicUpdate(gu_speed);
-		handled = true;
 		break;
 
 		/* next menu ... help */
 
 	case menuitemID_about:
 		DoAbout();
-		handled = true;
 		break;
 	case menuitemID_tips:
 		FrmHelp(StrID_tips);
-		handled = true;
 		break;
 	case menuitemID_Beam:
-		UISaveMyCity();
-		BeamCityByName(game.cityname);
+		SaveBeam();
 		break;
 #if defined(CHEAT) || defined(DEBUG)
 	case menuitemID_Funny:
@@ -730,9 +736,11 @@ DoPCityMenuProcessing(UInt16 itemID)
 #if defined(DEBUG)
 		MeteorDisaster(20, 20);
 #endif
-		handled = true;
 		break;
 #endif
+	default:
+		handled = false;
+		break;
 	}
 	return (handled);
 }
@@ -773,17 +781,18 @@ doPocketCityOpen(FormPtr form)
  * This form performs all the updates to the main game screen.
  */
 static Boolean
-hPocketCity(EventPtr event)
+hPocketCity(EventPtr evp)
 {
 	FormPtr form;
 	Boolean handled = false;
-	PointType minimperc;
+	PointType location;
+	PointType newlocation;
 #if defined(HRSUPPORT)
 	Boolean redraw;
 	Int16 hOff = 0, vOff = 0;
 #endif
 
-	switch (event->eType) {
+	switch (evp->eType) {
 	case frmOpenEvent:
 		form = FrmGetActiveForm();
 		doPocketCityOpen(form);
@@ -793,38 +802,37 @@ hPocketCity(EventPtr event)
 		SetSilkResizable(NULL, false);
 		break;
 	case penDownEvent:
+		location.x = evp->screenX;
+		location.y = evp->screenY;
 		if (GETMINIMAPVISIBLE()) {
-			minimperc.x = event->screenX;
-			minimperc.y = event->screenY;
-
-			if (minimapIsTapped(&minimperc, &minimperc)) {
-				Goto((UInt16)minimperc.x,
-				    (UInt16)minimperc.y, 1);
+			if (minimapIsTapped(&location, &newlocation)) {
+				Goto((UInt16)newlocation.x,
+				    (UInt16)newlocation.y, 1);
 				handled = true;
 				break;
 			}
 		}
-		if (RctPtInRectangle(event->screenX, event->screenY,
-		    &rPlayGround)) {
-			scaleEvent(event);
+		if (RctPtInRectangle(location.x, location.y, &rPlayGround)) {
+			scalePoint(&location);
 			/* click was on the playground */
-			_UIGetFieldToBuildOn(event->screenX, event->screenY);
+			_UIGetFieldToBuildOn(location.x, location.y);
 			handled = true;
 			break;
 		}
-		scaleEvent(event);
-		if (event->screenY < 12) {
+		scalePoint(&location);
+		if (location.y < 12) {
 			handled = true;
-			if (event->screenX >= (GETWIDTH() - 12)) {
+			if (location.x >= (GETWIDTH() - 12)) {
 				/* click was on change speed */
 				cycleSpeed();
 				addGraphicUpdate(gu_speed);
 				break;
 			}
-			if (event->screenX < 12) {
+			if (location.x < 12) {
 				/* click was on toggle production */
 				if (nSelectedBuildItem == Be_Bulldozer) {
-					UISetSelectedBuildItem(nPreviousBuildItem);
+					UISetSelectedBuildItem(
+					    nPreviousBuildItem);
 				} else {
 					nPreviousBuildItem = nSelectedBuildItem;
 					UISetSelectedBuildItem(Be_Bulldozer);
@@ -834,19 +842,20 @@ hPocketCity(EventPtr event)
 			}
 #if defined(HRSUPPORT)
 			if (isHires())
-				toolBarCheck(event->screenX);
+				toolBarCheck(location.x);
 #endif
 			/* check for other 'penclicks' here */
 		}
 
-		CheckTextClick(event->screenX, event->screenY);
-
+		handled = CheckTextClick(location.x, location.y);
 		break;
 	case penMoveEvent:
-		scaleEvent(event);
-		if (RctPtInRectangle(event->screenX, event->screenY,
+		location.x = evp->screenX;
+		location.y = evp->screenY;
+		if (RctPtInRectangle(location.x, location.y,
 		    &rPlayGround)) {
-			_UIGetFieldToBuildOn(event->screenX, event->screenY);
+			scalePoint(&location);
+			_UIGetFieldToBuildOn(location.x, location.y);
 			SetBuilding();
 			handled = true;
 		}
@@ -859,11 +868,11 @@ hPocketCity(EventPtr event)
 		handled = true;
 		break;
 	case menuEvent:
-		WriteLog("Menu Item: %d\n", (int)event->data.menu.itemID);
-		handled = DoPCityMenuProcessing(event->data.menu.itemID);
+		WriteLog("Menu Item: %d\n", (int)evp->data.menu.itemID);
+		handled = DoPCityMenuProcessing(evp->data.menu.itemID);
 
 	case keyDownEvent:
-		handled = (Boolean)vkDoEvent(event->data.keyDown.chr);
+		handled = (Boolean)vkDoEvent(evp->data.keyDown.chr);
 		break;
 	case keyUpEvent:
 		handled = true;
@@ -1412,8 +1421,14 @@ UIProblemNotify(problem_t problem)
 void
 UISystemErrorNotify(syserror_t error)
 {
-	if (error == seOutOfMemory) {
+	switch (error) {
+	case seOutOfMemory:
 		FrmAlert(alertID_errorOutOfMemory);
+		break;
+	case seInvalidSaveGame:
+		FrmAlert(alertID_invalidSaveVersion);
+		break;
+	default:
 	}
 }
 
@@ -2042,12 +2057,12 @@ UICheckOnClick(Coord x, Coord y)
  * \param x the x location
  * \param y the y location
  */
-static void
+static Boolean
 CheckTextClick(Coord x, Coord y)
 {
 	int t = UICheckOnClick(x, y);
 	if (t == -1)
-		return;
+		return (0);
 	switch (t) {
 	case loc_date:
 		break;
@@ -2064,6 +2079,7 @@ CheckTextClick(Coord x, Coord y)
 	default:
 		break;
 	}
+	return (1);
 }
 
 void

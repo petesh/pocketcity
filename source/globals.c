@@ -329,6 +329,17 @@ andWorldFlags(UInt32 pos, selem_t value)
 }
 
 /*!
+ * \brief clear the bits chosen for the world flag
+ * \param pos the position on the map
+ * \param value the value to nand
+ */
+void
+clearWorldFlags(UInt32 pos, selem_t value)
+{
+	andWorldFlags(pos, ~value);
+}
+
+/*!
  * \brief or the value with the current location of the map world flags
  * \param pos the position on the map
  * \param value the value to or the current value with.

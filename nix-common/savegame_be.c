@@ -154,6 +154,7 @@ read_palmstructure(char *mem, GameStruct *new, char **map, char **flags)
 	int j;
 	char *ptr = (char *)new;
 	size_t map_size;
+	UInt32 foo;
 
 	printf("starting from: %p\n", mem);
 	bzero(new, sizeof (*new));
@@ -181,7 +182,10 @@ read_palmstructure(char *mem, GameStruct *new, char **map, char **flags)
 		new->upkeep[i] = *mem++;
 	new->gridsToUpdate = *mem++;
 
-	mem = mapm_int16(mem, (char *)&new->evaluation);
+	mem = mapm_int16(mem, (char *)&new->desires[de_evaluation]);
+	mem = mapm_int16(mem, (char *)&new->desires[de_residential]);
+	mem = mapm_int16(mem, (char *)&new->desires[de_commercial]);
+	mem = mapm_int16(mem, (char *)&new->desires[de_industrial]);
 	printf("stats starting at %p\n", mem);
 	i = 0;
 	while (i < st_tail) {
@@ -202,9 +206,9 @@ read_palmstructure(char *mem, GameStruct *new, char **map, char **flags)
 		mem = mapm_int16(mem, (char *)&new->units[i].y);
 		mem = mapm_int16(mem, (char *)&new->units[i].active);
 		mem = mapm_int16(mem, (char *)&new->units[i].type);
-		mem += 1;
 		i++;
 	}
+	printf("objects starting at %p\n", mem);
 	i = 0;
 	while (i < NUM_OF_OBJECTS) {
 		mem = mapm_int16(mem, (char *)&new->objects[i].x);
@@ -213,12 +217,17 @@ read_palmstructure(char *mem, GameStruct *new, char **map, char **flags)
 		mem = mapm_int16(mem, (char *)&new->objects[i].active);
 		i++;
 	}
+	mem = mapm_int32(mem, (char *)&foo);
+	printf("%lx\n", (long)foo);
 	map_size = sizeof (welem_t) * new->mapx * new->mapy;
 	ptr = malloc(map_size);
 	*map = ptr;
 	printf("map starting from: %p for %d\n", mem, map_size);
 	bcopy(mem, *map, new->mapx * new->mapy);
+	mem = mapm_int32(mem, (char *)&foo);
+	printf("%lx\n", (long)foo);
 	mem += new->mapx * new->mapy;
+	printf("status starting from: %p\n", mem);
 	//for (i = 0; i < new->mapx * new->mapy; ptr++, i++) {
 	//	mem = mapm_int8(mem, ptr);
 	//}
@@ -226,6 +235,9 @@ read_palmstructure(char *mem, GameStruct *new, char **map, char **flags)
 	ptr = malloc(map_size);
 	*flags = ptr;
 	UnpackBits(mem, ptr, 2, new->mapx * new->mapy);
+	for (i = 0; i < new->mapx * new->mapy; i++) {
+		clearWorldFlags(i, PAINTEDBIT);
+	}
 	return (mem);
 }
 
@@ -252,7 +264,10 @@ write_palmstructure(GameStruct *new, char *map, char *flags, int fd)
 	for (i = 0; i < ue_tail; i++)
 		write_int8(fd, new->upkeep[i]);
 	write_int8(fd, new->gridsToUpdate);
-	write_int16(fd, new->evaluation);
+	write_int16(fd, new->desires[de_evaluation]);
+	write_int16(fd, new->desires[de_residential]);
+	write_int16(fd, new->desires[de_commercial]);
+	write_int16(fd, new->desires[de_industrial]);
 	i = 0;
 	while (i < st_tail) {
 		for (j = 0; j < STATS_COUNT; j++) {
@@ -289,6 +304,7 @@ write_palmstructure(GameStruct *new, char *map, char *flags, int fd)
 		i++;
 	}
 
+	write_int32(fd, 0xffffffff);
 	setWorld(0, 0xff);
 	setWorldFlags(0, 0x3);
 	/* Now we write the map */
@@ -297,6 +313,7 @@ write_palmstructure(GameStruct *new, char *map, char *flags, int fd)
 	    (((sizeof (selem_t) * 8) / 2) - 1)) / ((sizeof (selem_t) * 8) / 2);
 	compres_buf = malloc(compres_size);
 	PackBits(flags, compres_buf, 2, new->mapx * new->mapy);
+	write_int32(fd, 0xffffffff);
 	(void) write(fd, compres_buf, compres_size);
 	free(compres_buf);
 }

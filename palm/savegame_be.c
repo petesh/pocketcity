@@ -20,9 +20,11 @@
 #include <mem_compat.h>
 #include <pack.h>
 #include <beam.h>
+#include <ui.h>
 
 #define	MAXSAVEGAMECOUNT	50
 #define	DEAD	"PCNO"
+#define MAGIC_GUARD		0xFFFFFFFF
 
 static int ReadCityRecord(MemHandle rec, GameStruct *gs,
     MemPtr *wp, MemPtr *fp) SAVE_SECTION;
@@ -136,7 +138,7 @@ UInt32
 saveGameSize(GameStruct *gs)
 {
 
-	UInt32 size = (sizeof (GameStruct) +
+	UInt32 size = (8 + sizeof (GameStruct) +
 	    gs->mapx * gs->mapy +
 	    ((gs->mapx * gs->mapy + ( (8 / 2) - 1)) / ( 8 / 2 )));
 	return (size);
@@ -155,6 +157,7 @@ ReadCityRecord(MemHandle rec, GameStruct *gs, MemPtr *wp, MemPtr *fp)
 {
 	char *ptemp;
 	int rv = -1;
+	UInt32 foo;
 
 	ptemp = (char *)MemHandleLock(rec);
 	if (ptemp == NULL)
@@ -166,16 +169,35 @@ ReadCityRecord(MemHandle rec, GameStruct *gs, MemPtr *wp, MemPtr *fp)
 		MemMove((void *)gs, ptemp, sizeof (GameStruct));
 		size = gs->mapx * gs->mapy;
 		ptemp += sizeof (GameStruct);
+		MemMove(&foo, ptemp, 4);
+		if (foo != MAGIC_GUARD) {
+			UISystemErrorNotify(seInvalidSaveGame);
+			goto leave_me;
+		}
+		ptemp += 4;
 		*wp = gRealloc(*wp, size);
+		if (*wp == NULL) {
+			UISystemErrorNotify(seOutOfMemory);
+			goto leave_me;
+		}
 		MemMove(*wp, ptemp, (Int32)size);
 		*fp = gRealloc(*fp, size);
+		if (*fp == NULL) {
+			UISystemErrorNotify(seOutOfMemory);
+			goto leave_me;
+		}
 		ptemp += size;
+		MemMove(&foo, ptemp, 4);
+		if (foo != MAGIC_GUARD) {
+			UISystemErrorNotify(seInvalidSaveGame);
+			goto leave_me;
+		}
+		ptemp += 4;
 		UnpackBits(ptemp, *fp, 2, (Int32)size);
 		MemMove(*fp, ptemp, (Int32)size);
 		rv = 0;
 	} else {
-		FrmAlert(alertID_invalidSaveVersion);
-		rv = -1;
+		UISystemErrorNotify(seInvalidSaveGame);
 	}
 
 leave_me:
@@ -196,18 +218,26 @@ WriteCityRecord(MemHandle rec, GameStruct *gs, MemPtr wp, MemPtr fp)
 	void *pRec;
 	void *pRec2;
 	UInt32 size;
+	UInt32 foo = MAGIC_GUARD;
+	UInt32 offset = 0;
 
 	pRec = MemHandleLock(rec);
 	/* write the header and some globals */
-	DmWrite(pRec, 0, gs, sizeof (GameStruct));
-	DmWrite(pRec, sizeof (GameStruct), (void *)wp,
+	DmWrite(pRec, offset, gs, sizeof (GameStruct));
+	offset += sizeof (GameStruct);
+	DmWrite(pRec, offset, (void *)&foo, 4);
+	offset += 4;
+	DmWrite(pRec, offset, (void *)wp,
 	    gs->mapx * gs->mapy);
+	offset += gs->mapx * gs->mapy;
+	DmWrite(pRec, offset, (void *)&foo, 4);
+	offset += 4;
 	size = (gs->mapx * gs->mapy + (((sizeof (selem_t) * 8) / 2) - 1)) /
 	    ((sizeof (selem_t) * 8) / 2);
 	pRec2 = gMalloc(size);
 	PackBits(fp, pRec2, 2, gs->mapx * gs->mapy);
-	DmWrite(pRec, sizeof (GameStruct) + gs->mapx * gs->mapy,
-	    (void *)pRec2, size);
+	DmWrite(pRec, offset, (void *)pRec2, size);
+	offset += size;
 	gFree(pRec2);
 	MemHandleUnlock(rec);
 }

@@ -120,6 +120,5 @@ $(OBJDIR)/%.o: %.c simcity_resconsts.h Makefile-include pcity.def
 # make clean 
 #
 clean:
-	rm -f *.stm .temp*/*.bin build*/* *.zip *.gz
-	rm -rf $(TEMPDIRS) .temp
-	rm -rf $(BUILDDIRS)
+	rm -f $(OBJDIR)/*.o $(OBJDIR)/*.s $(OBJDIR)/*.ld $(OBJDIR)/*.rcp \
+		$(OBJDIR)/*.prc $(OBJDIR)/$(BINARY)-??

@@ -17,6 +17,7 @@
 #include <PenInputMgr.h>
 #include <NotifyMgr.h>
 #include <SysEvtMgr.h>
+
 #include <logging.h>
 #include <simcity.h>
 
@@ -219,12 +220,13 @@ isHires(void)
 
 /*!
  * \brief scale the event pointer's location on screen
+ * \param pt the point to scale into the new coordinate set
  *
  * This allows us to check the location on screen in terms of the high
  * density coordinates set.
  */
 void
-scaleEvent(EventPtr event)
+scalePoint(PointType *pt)
 {
 	UInt32 mul;
 	if (isHires()) {
@@ -232,10 +234,8 @@ scaleEvent(EventPtr event)
 			mul = kDensityDouble;
 		else
 			mul = hdfs ? hdfs : kDensityLow;
-		event->screenX  = (Coord)((UInt32)event->screenX * mul /
-		    kDensityLow);
-		event->screenY = (Coord)((UInt32)event->screenY * mul /
-		    kDensityLow);
+		pt->x  = (Coord)((UInt32)pt->x * mul / kDensityLow);
+		pt->y = (Coord)((UInt32)pt->y * mul / kDensityLow);
 	}
 }
 

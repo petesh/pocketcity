@@ -58,17 +58,23 @@ all: all-nextdir $(TARGETS)
 nearlylive: all-nextdir
 dist: all-nextdir
 
+TARGETDIRPRE=standard debug palm5 debug-palm5 sony debug-sony cheat
+CLEANTARGETS=$(TARGETDIRPRE:%=purge-%)
+
 $(TARGETS) $(DTARGETS): VER $(COLORTARGETS)
 	$(MAKE) -f Makefile-dowork BINARY=$(BINNAME) \
 		OBJDIR=out-$(TDIR) BINPRE=$(TDIR) $@
 
-clean: clean-graphic
-	rm -rf *.ro $(BIN)-*.rcp *.pdb *.prc
-	rm -rf out-*
+clean: clean-graphic $(CLEANTARGETS)
+	rm -rf *.ro $(BIN)-*.rcp *.pdb *.zip *.gz .temp-*
 
 clean-%:
 	cd $(@:clean-%=%) && $(MAKE) clean
-	
+
+purge-%:
+	$(MAKE) -f Makefile-dowork OBJDIR=out-$(@:purge-%=%) \
+		BINARY=$(BINNAME) clean
+
 # Build Stamping
 
 VER: version.ro touch.ro
