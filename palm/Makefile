@@ -14,8 +14,7 @@ PRCTARGETS = pcity pcity-grey pcity-color
 ### make all #####
 ##################
 all: $(addsuffix .prc,$(PRCTARGETS))
-
-hires dhires: all hr-pcity.prc
+dhires hires: $(addsuffix .prc,$(addprefix sy-,$(PRCTARGETS)))
 
 ##################
 ### make cheat ###
@@ -44,9 +43,14 @@ pcity.prc: grcs.stm simcity.stm zones.stm game.stm
 	build-prc -o pcity.prc -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		*.grc tempbw/*.bin temp/*.bin
 
-hr-pcity.prc: hr/ hr/hr.stm zones-color.stm game.stm hricons.stm
+sy-pcity.prc: sy/ sy/sy.stm game.stm syicons.stm grcs.stm simcity.stm zones.stm
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
-		hr/*.grc tempcolor/*.bin temp/*.bin hr/*.bin
+		sy/*.grc tempbw/*.bin temp/*.bin
+
+sy-pcity-%.prc: sy/ sy/sy.stm game.stm syicons.stm grcs.stm \
+		simcity-%.stm zones-%.stm
+	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
+		sy/*.grc temp$*/*.bin temp/*.bin sy/*.bin
 
 #### binary resources
 grcs.stm: simcity
@@ -87,29 +91,29 @@ simcity.o: simcity.c simcity.h ../source/handler.h ../source/ui.h \
 # Hi res objects
 #
 
-HROBJECTS=$(addprefix hr/,$(OBJECTS))
+SYOBJECTS=$(addprefix sy/,$(OBJECTS))
 
-hr/:
+sy/:
 	@-[ -d "$@" ] || mkdir -p $@
 
-hr/simcity: $(HROBJECTS)
-	$(CC) $(HCFLAGS) $(CFLAGS) $(HROBJECTS) -o $@
+sy/simcity: $(SYOBJECTS)
+	$(CC) $(HCFLAGS) $(CFLAGS) $(SYOBJECTS) -o $@
 
-hr/simcity.o: simcity.c simcity.h ../source/handler.h ../source/ui.h \
+sy/simcity.o: simcity.c simcity.h ../source/handler.h ../source/ui.h \
 	../source/zakdef.h
 
-hr/%.o: ../source/%.c ../source/%.h ../source/zakdef.h ../source/ui.h
+sy/%.o: ../source/%.c ../source/%.h ../source/zakdef.h ../source/ui.h
 	$(CC) $(HCFLAGS) $(CFLAGS) -c $< -o $@
 
-hr/%.o: %.c
+sy/%.o: %.c
 	$(CC) $(HCFLAGS) $(CFLAGS) -c $< -o $@
 
-hr/hr.stm: hr/simcity
-	cd hr; m68k-palmos-obj-res simcity
-	echo touching>hr.stm
+sy/sy.stm: sy/simcity
+	cd sy; m68k-palmos-obj-res simcity
+	echo touching>sy.stm
 
-hricons.stm: hricons.rcp
-	pilrc -q hricons.rcp hr
+syicons.stm: hricons.rcp
+	pilrc -q hricons.rcp sy
 	echo touching>$@
 
 #
@@ -118,4 +122,4 @@ hricons.stm: hricons.rcp
 
 clean:
 	rm -f *.bin *.o *.grc *.stm simcity *.prc \
-		tempbw/*.bin tempcolor/*.bin temp/*.bin tempgrey/*.bin hr/*
+		tempbw/*.bin tempcolor/*.bin temp/*.bin tempgrey/*.bin sy/*

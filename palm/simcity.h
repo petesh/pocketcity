@@ -156,3 +156,6 @@ extern void UIWriteLog(char * s);
 #define bitmapID_popu   1701
 #define bitmapID_loca   1702
 
+#define bitmapID_updn   1703
+#define bitmapID_ltrt   1704
+

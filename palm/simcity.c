@@ -44,6 +44,9 @@ short simState = 0;
 short DoDrawing = 0;
 unsigned short XOFFSET = 0;
 unsigned short YOFFSET = 15;
+#ifdef SONY_CLIE
+UInt16 jog_lr = 0;
+#endif
 
 static Boolean hPocketCity(EventPtr event);
 static Boolean hQuickList(EventPtr event);
@@ -59,6 +62,7 @@ static void initTextPositions(void);
 
 static void _UIGetFieldToBuildOn(int x, int y);
 static Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags);
+extern void UIDrawLoc(void);
 
 UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 {
@@ -496,6 +500,14 @@ static Boolean hPocketCity(EventPtr event)
             ScrollMap(1);
             handled = 1;
             break;
+#ifdef SONY_CLIE
+        case vchrJogUp:
+            if (jog_lr) ScrollMap(3); else ScrollMap(0); handled = 1; break;
+        case vchrJogDown:
+            if (jog_lr) ScrollMap(1); else ScrollMap(2); handled = 1; break;
+        case vchrJogRelease:
+            jog_lr = 1 - jog_lr; UIDrawLoc(); handled = 1; break;
+#endif
         }
     default:
         break;
@@ -1034,55 +1046,78 @@ extern unsigned long GetRandomNumber(unsigned long max)
 
 /*
  * Layout (current|lores)
- * [Tool]             [date]            [Speed]
+ * [Tool]             [date]         [J][Speed]
  * [                                          ]
  * [            Play Area                     ]
  * [                                          ]
  * [money]            [pop]               [loc]
  *
  * Layout (current|hires)
+ * [tool]                            [J][Speed]
+ * [            Play Area                     ]
+ * [Date]    [Money]     [pop]            [loc]
+ *
+ * The J is for 'jog' item it's either uplt or ltrt
  */
 
-#define HALF ~((Coord)0)
-#define END ~((Coord)1)
+
 #define DATELOC 0
 #define CREDITSLOC 1
 #define POPLOC 2
 #define POSITIONLOC 3
 
+#define MIDX    1
+#define MIDY    2
+#define ENDX    4
+#define ENDY    8
+
 struct StatusPositions {
     RectangleType rect;
     PointType offset;
-    Coord lastwidth;
+    UInt32 extents;
 };
 
 // extent.x is filled in automatically
 
-#ifndef SONY_CLIE
-static struct StatusPositions positions[] = {
-    { { {HALF, 0}, {0, 0} }, { 0, 0 }, 0 },  // DATELOC
-    { { {0, END}, {0, 11} }, {0, 1}, 0 }, // CREDITSLOC
-    { { {HALF, END}, {0, 11} }, {0, 1}, 0 }, // POPLOC
-    { { {END, END}, {0, 11} }, {0, 1}, 0 }, // POSITIONLOC
-};
-
-#else
-static struct StatusPositions positions[] = {
-    { { {2, END}, {0, 11} }, { 0, 1 }, 0 },  // DATELOC
-    { { {80, END}, {0, 11} }, {0, 1}, 0 }, // CREDITSLOC
-    { { {160, END}, {0, 11} }, {0, 1}, 0 }, // POPLOC
-    { { {280, END}, {0, 11} }, {0, 1}, 0 }, // POSITIONLOC
+#ifdef SONY_CLIE
+static struct StatusPositions hrpositions[] = {
+    { { {2, 0}, {0, 11} }, { 0, 1 }, ENDY },  // DATELOC
+    { { {80, 0}, {0, 11} }, {0, 1}, ENDY }, // CREDITSLOC
+    { { {160, 0}, {0, 11} }, {0, 1}, ENDY }, // POPLOC
+    { { {280, 0}, {0, 11} }, {0, 1}, ENDY }, // POSITIONLOC
 };
 #endif
+static struct StatusPositions lrpositions[] = {
+    { { {0, 0}, {0, 11} }, { 0, 1 }, MIDX },  // DATELOC
+    { { {0, 0}, {0, 11} }, {0, 1}, ENDY }, // CREDITSLOC
+    { { {0, 0}, {0, 11} }, {0, 1}, MIDX | ENDY }, // POPLOC
+    { { {0, 0}, {0, 11} }, {0, 1}, ENDX | ENDY }, // POSITIONLOC
+};
+#ifdef SONY_CLIE
+static struct StatusPositions *
+posAt(int pos)
+{
+    static struct StatusPositions *sp = NULL;
+    if (sp != NULL) return (&(sp[pos]));
+    if (isHires())
+        sp = &(hrpositions[0]);
+    else
+        sp = &(lrpositions[0]);
+    return (&(sp[pos]));
+}
+#else
+#define posAt(x)        &(lrpositions[(x)])
+#endif
+#define MAXLOC          (sizeof (lrpositions) / sizeof (lrpositions[0]))
 
 // only the topLeft.y location is a 'constant'
 void
 initTextPositions(void)
 {
     int i;
-    for (i = 0; i < (sizeof (positions) / sizeof (positions[0])); i++) {
-        struct StatusPositions *pos = &(positions[i]);
-        if (pos->rect.topLeft.y == END)
+    for (i = 0; i < MAXLOC; i++) {
+        struct StatusPositions *pos = posAt(i);
+        if (pos->extents & ENDY)
             pos->rect.topLeft.y = sHeight -
                 (pos->rect.extent.y + pos->offset.y);
     }
@@ -1092,39 +1127,28 @@ void UIDrawItem(int location, char *text)
 {
     struct StatusPositions *pos;
     Int16 sl;
-    Coord wh;
-    ErrFatalDisplayIf((location < 0) ||
-      (location >= (sizeof (positions) / sizeof (positions[0]))),
-        "Location is too large");
-    pos = &positions[location];
-    wh = pos->rect.topLeft.x;
-    if (pos->lastwidth) {
-        pos->rect.extent.x = pos->lastwidth;
-        switch (wh) {
-        case HALF:
-            pos->rect.topLeft.x = (sWidth - pos->lastwidth) / 2 + pos->offset.x;
-            break;
-        case END:
-            pos->rect.topLeft.x = sWidth - pos->lastwidth - pos->offset.x;
-            break;
-        }
+    Coord tx;
+    ErrFatalDisplayIf((location < 0) || (location >= MAXLOC),
+      "Location is too large");
+    pos = posAt(location);
+    if (pos->rect.extent.x && pos->rect.extent.y) {
         _WinEraseRectangle(&(pos->rect), 0);
     }
 
     if (isHires())
         _FntSetFont(boldFont);
     sl = StrLen(text);
-    pos->lastwidth = FntCharsWidth(text, sl);
-    switch (wh) {
-    case HALF:
-        pos->rect.topLeft.x = (sWidth - pos->lastwidth) / 2 + pos->offset.x;
+    tx = FntCharsWidth(text, sl);
+    switch (pos->extents & (MIDX | ENDX)) {
+    case MIDX:
+        pos->rect.topLeft.x = (sWidth - tx) / 2 + pos->offset.x;
         break;
-    case END:
-        pos->rect.topLeft.x = sWidth - pos->lastwidth - pos->offset.x;
+    case ENDX:
+        pos->rect.topLeft.x = sWidth - (tx + pos->offset.x);
         break;
     }
+    pos->rect.extent.x = tx;
     _WinDrawChars(text, sl, pos->rect.topLeft.x, pos->rect.topLeft.y);
-    pos->rect.topLeft.x = wh;
     if (isHires())
         _FntSetFont(stdFont);
 }
@@ -1152,12 +1176,14 @@ extern void UIDrawCredits(void)
     StrPrintF(temp, "$: %ld", game.credits);
     UIDrawItem(CREDITSLOC, temp);
 #ifdef SONY_CLIE
-    bitmapHandle = DmGet1Resource(TBMP, bitmapID_coin);
-    if (bitmapHandle == NULL) return;
-    bitmap = MemHandleLock(bitmapHandle);
-    _WinDrawBitmap(bitmap, 68, sHeight - 11);
-    MemPtrUnlock(bitmap);
-    DmReleaseResource(bitmapHandle);
+    if (isHires()) {
+        bitmapHandle = DmGet1Resource(TBMP, bitmapID_coin);
+        if (bitmapHandle == NULL) return;
+        bitmap = MemHandleLock(bitmapHandle);
+        _WinDrawBitmap(bitmap, 68, sHeight - 11);
+        MemPtrUnlock(bitmap);
+        DmReleaseResource(bitmapHandle);
+    }
 #endif
     UIDrawDate();
 }
@@ -1173,15 +1199,29 @@ extern void UIDrawLoc(void)
     if (DoDrawing == 0) { return; }
 
 #ifdef SONY_CLIE
-    StrPrintF(temp, "%02u,%02u", game.map_xpos, game.map_ypos);
-    bitmapHandle = DmGet1Resource(TBMP, bitmapID_loca);
-    if (bitmapHandle == NULL) return;
-    bitmap = MemHandleLock(bitmapHandle);
-    _WinDrawBitmap(bitmap, 270, sHeight - 11);
-    MemPtrUnlock(bitmap);
-    DmReleaseResource(bitmapHandle);
-#else
-    StrPrintF(temp, "(%02u,%02u)", game.map_xpos, game.map_ypos);
+    if (isHires()) {
+        StrPrintF(temp, "%02u,%02u", game.map_xpos, game.map_ypos);
+        bitmapHandle = DmGet1Resource(TBMP, bitmapID_loca);
+        if (bitmapHandle == NULL) return;
+        bitmap = MemHandleLock(bitmapHandle);
+        _WinDrawBitmap(bitmap, 270, sHeight - 11);
+        MemPtrUnlock(bitmap);
+        DmReleaseResource(bitmapHandle);
+    } else
+#endif
+        StrPrintF(temp, "(%02u,%02u)", game.map_xpos, game.map_ypos);
+#ifdef SONY_CLIE
+    bitmapHandle = DmGet1Resource(TBMP, bitmapID_updn + jog_lr);
+    // place at rt - (12 + 8), 1
+    if (bitmapHandle) {
+        bitmap = MemHandleLock(bitmapHandle);
+        if (bitmap) {
+            _WinDrawBitmap(bitmap, sWidth - (12 + 8), 1);
+            MemPtrUnlock(bitmap);
+        }
+        DmReleaseResource(bitmapHandle);
+
+    }
 #endif
     UIDrawItem(POSITIONLOC, temp);
 }
@@ -1232,13 +1272,14 @@ extern void UIDrawPop(void)
     UIDrawLoc();
     UIDrawSpeed();
 #ifdef SONY_CLIE
-    bitmapHandle = DmGet1Resource(TBMP, bitmapID_popu);
-    if (bitmapHandle == NULL) return;
-    bitmap = MemHandleLock(bitmapHandle);
-    _WinDrawBitmap(bitmap, 146, sHeight - 11);
-    MemPtrUnlock(bitmap);
-    DmReleaseResource(bitmapHandle);
-#else
+    if (isHires()) {
+        bitmapHandle = DmGet1Resource(TBMP, bitmapID_popu);
+        if (bitmapHandle == NULL) return;
+        bitmap = MemHandleLock(bitmapHandle);
+        _WinDrawBitmap(bitmap, 146, sHeight - 11);
+        MemPtrUnlock(bitmap);
+        DmReleaseResource(bitmapHandle);
+    }
 #endif
 }
 

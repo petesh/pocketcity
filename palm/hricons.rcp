@@ -3,3 +3,6 @@
 BITMAPCOLOR ID bitmapID_coin	"graphic/icons-color/coin.bmp"
 BITMAPCOLOR ID bitmapID_popu	"graphic/icons-color/people.bmp"
 BITMAPCOLOR ID bitmapID_loca	"graphic/icons-color/location.bmp"
+
+BITMAP ID bitmapID_updn	"graphic/icons/updown.bmp"
+BITMAP ID bitmapID_ltrt	"graphic/icons/leftright.bmp"
