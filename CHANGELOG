@@ -15,7 +15,7 @@ Kean Pedersen:
   + Quick list on calculator button
   + Bridges (not over homemade water on purpose)
   + 16bpp greyscale
-  + A real monster :D
+  + A real monster :D (actually two of them)
   * Fire now spreads at it own rate - pause won't help
   * Cleaned compiler warnings
   * Uses less stackspace in recursive function (should fix the FE)

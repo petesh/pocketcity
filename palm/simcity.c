@@ -680,12 +680,15 @@ void _UIGetFieldToBuildOn(int x, int y)
 
 extern int UIDisplayError(int nError)
 {
+    // TODO: use FrmCustomAlert here for this stuff
     switch (nError)
     {
         case ERROR_OUT_OF_MEMORY: FrmAlert(alertID_errorOutOfMemory); break;
         case ERROR_OUT_OF_MONEY: FrmAlert(alertID_outMoney); break;
         case ERROR_FIRE_OUTBREAK: FrmAlert(alertID_fireOutBreak); break;
         case ERROR_PLANT_EXPLOSION: FrmAlert(alertID_plantExplosion); break;
+        case ERROR_MONSTER: FrmAlert(alertID_monster); break;
+        case ERROR_DRAGON: FrmAlert(alertID_dragon); break;
     }
     return 0;
 }
@@ -821,9 +824,11 @@ extern void UIScrollMap(int direction)
     WinHandle screen;
     RectangleType rect;
     int to_x, to_y, i;
+    
+    if (DoDrawing == 0) { return; }
 
     UILockScreen();
-
+    
     rect.topLeft.x = XOFFSET + TILE_SIZE*(direction == 1);
     rect.topLeft.y = YOFFSET + TILE_SIZE*(direction == 2);
     rect.extent.x = (visible_x - 1*(direction == 1 || direction == 3 )) * TILE_SIZE;

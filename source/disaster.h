@@ -3,4 +3,5 @@ extern void DoRandomDisaster();
 extern int UpdateDisasters();
 extern int BurnField(int x, int y);
 extern int CreateMonster(int x, int y);
+extern int CreateDragon(int x, int y);
 extern void MoveAllObjects(void);

@@ -1,17 +1,35 @@
-This is just a random collection of hints:
+
+This is just a random collection of hints!
+
 R = residential zones
 I = industrial zones
 C = commercial zones
 
+Gameplay:
+=========
 * Use the hardware keys to scroll the field (IE. up/down, address book and todo)
+* Tapping on the speed indicator will pause the game, tapping again will set the speed to "medium"
+* Tapping on the build icon will toggle bulldozer
+* Tapping on the map will jump to that position
+* Tapping on the "calculator" button will bring up a quick list
+
+
+City development:
+=================
 * R will VERY rarely settle next to I
 * I/C zones only grows if there are enough R (workers)
 * C will only grow if there are enough I (to produce goods)
 * There must be at most 3 squares to the nearest road for a zone
 * The population is calculated from the total R - I/C doesn't count
-* Tapping on the speed indicator will pause the game, tapping again will set the speed to "medium"
-* Tapping on the build icon will toggle bulldozer
-* Tapping on the map will jump to that position
-* Tapping on the "calculator" button will bring up a quick list
+
+Disasters:
+==========
+* Watch out for the monster and the dragon - they are NOT nice to you ;)
+* The fire spreads quickly. Hint: it cannot spread across clear land, so
+  use that bulldozer :)
+
+
+Misc:
+=====
 * In some versions there's a 'Test' menuoption under the 'File' menu - this
   is for testing and debugging. It should not be used.

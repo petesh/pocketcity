@@ -1,12 +1,12 @@
 #include "zakdef.h"
 
-extern int mapsize;
+extern char mapsize;
 extern int visible_x;
 extern int visible_y;
-extern int map_xpos;
-extern int map_ypos;
-extern int cursor_xpos;
-extern int cursor_ypos;
+extern char map_xpos;
+extern char map_ypos;
+extern char cursor_xpos;
+extern char cursor_ypos;
 extern long signed int credits;
 extern long unsigned int BuildCount[20];
 extern long unsigned int TimeElapsed;

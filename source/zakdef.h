@@ -9,6 +9,8 @@
 #define ERROR_OUT_OF_MONEY      2
 #define ERROR_FIRE_OUTBREAK     3
 #define ERROR_PLANT_EXPLOSION   4
+#define ERROR_MONSTER           5
+#define ERROR_DRAGON            6
 
 #define SPEED_SLOW              15
 #define SPEED_MEDIUM            10
@@ -33,6 +35,7 @@
 #define TYPE_TREE               21
 #define TYPE_POWER_LINE         5
 #define TYPE_ROAD               4
+#define TYPE_BRIDGE             81
 
 #define COUNT_RESIDENTIAL       0
 #define COUNT_COMMERCIAL        1
@@ -61,7 +64,7 @@
 
 
 // moveable objects
-#define NUM_OF_OBJECTS          1
+#define NUM_OF_OBJECTS          10 // max 10, or savegames for palm fail...
 #define OBJ_CHANCE_OF_TURNING   5 // must be at least 3
 typedef struct _moveable_object {
         unsigned short x;
@@ -71,6 +74,7 @@ typedef struct _moveable_object {
 } MoveableObject;
 
 enum Objects {  OBJ_MONSTER,
+                OBJ_DRAGON,
                 OBJ_CHOPPER, // not done
                 OBJ_SHIP,    // not done
                 OBJ_TRAIN};  // not done

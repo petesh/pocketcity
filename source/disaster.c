@@ -41,7 +41,10 @@ extern void DoNastyStuffTo(int type, unsigned int probability)
 extern void DoRandomDisaster(void)
 {
     long unsigned int randomTile;
-    int i,x,y, type;
+    int i,x,y, type,random;
+#ifdef DEBUG
+    char temp[10];
+#endif
 
     LockWorld();
 
@@ -52,19 +55,25 @@ extern void DoRandomDisaster(void)
             type != TYPE_REAL_WATER) {
             x = randomTile % mapsize;
             y = randomTile / mapsize;
-            switch(GetRandomNumber(250))
-            {
-                case 1:
-                    if (BurnField(x,y)) {
-                        UIDisplayError(ERROR_FIRE_OUTBREAK);
-                    }
-                    break;
-                case 2:
-                    if (CreateMonster(x,y)) {
-                        //TODO: display diaster warning
-                    }
-                default:
-                    break;
+            random = GetRandomNumber(500); // TODO: shuld depend on difficulty
+#ifdef DEBUG
+            LongToString(random, temp);
+            UIWriteLog("Random disaster: ");
+            UIWriteLog(temp);
+            UIWriteLog("\n");
+#endif
+            if (random < 10) {
+                if (BurnField(x,y)) {
+                    UIDisplayError(ERROR_FIRE_OUTBREAK);
+                }
+            } else if (random < 15) {
+                if (CreateMonster(x,y)) {
+                    UIDisplayError(ERROR_MONSTER);
+                }
+            } else if (random < 17) {
+                if (CreateDragon(x,y)) {
+                    UIDisplayError(ERROR_DRAGON);
+                }
             }
             UnlockWorld();
             return; // only one chance for disaster per turn
@@ -86,6 +95,9 @@ extern int UpdateDisasters(void)
             if (type == TYPE_FIRE2) {
                 retval = 1;
                 if (GetRandomNumber(5) != 0) {
+                    // TODO: fire is spreading to quickly in down-right
+                    // direction - use the WorldFlags like in the power
+                    // distribution functions
                     FireSpread(i,j);
                     SetWorld(WORLDPOS(i,j),TYPE_FIRE3);
                 } else {
@@ -110,7 +122,7 @@ void CreateWaste(int x, int y)
     LockWorld();
     type = GetWorld(WORLDPOS(x,y));
     Build_Destroy(x,y);
-    if (type != TYPE_REAL_WATER) {
+    if (!(type == TYPE_REAL_WATER || type == TYPE_BRIDGE)) {
         SetWorld(WORLDPOS(x,y), TYPE_WASTE);
     }
     DrawCross(x,y);
@@ -174,18 +186,41 @@ extern int CreateMonster(int x, int y)
     return 0;
 }
 
+extern int CreateDragon(int x, int y)
+{
+    // return true on success, false on error
+    int type;
+    LockWorld();
+    type = GetWorld(WORLDPOS(x,y));
+    UnlockWorld();
+    if (type != TYPE_REAL_WATER) {
+        objects[OBJ_DRAGON].x = x;
+        objects[OBJ_DRAGON].y = y;
+        objects[OBJ_DRAGON].dir = GetRandomNumber(8);
+        objects[OBJ_DRAGON].active = 1;
+        DrawField(x,y);
+        return 1;
+    }
+    return 0;
+}
+
 extern void MoveAllObjects(void)
 {
     int i,x,y;
     for (i=0; i<NUM_OF_OBJECTS; i++) {
         if (objects[i].active != 0) {
+
             // hmm, is this thing destructive?
-            if (i == OBJ_MONSTER) {
+            if (i == OBJ_DRAGON) {
                 // sure it is :D
                 if (!BurnField(objects[i].x, objects[i].y)) {
                     CreateWaste(objects[i].x, objects[i].y);
                 }
+            } else if (i == OBJ_MONSTER) {
+                // whoo-hoo, bingo again
+                CreateWaste(objects[i].x, objects[i].y);
             }
+
             x = objects[i].x; // save old position
             y = objects[i].y;
 
@@ -193,11 +228,9 @@ extern void MoveAllObjects(void)
             { // should we let it turn?
                 case 1: // yes, clockwise
                     objects[i].dir = (objects[i].dir+1)%8;
-                    UIWriteLog("Turning clockwise\n");
                     break;
                 case 2: // yes, counter-clockwise
                     objects[i].dir = (objects[i].dir+7)%8;
-                    UIWriteLog("Turning counter-clockwise\n");
                     break;
                 default: // nope
                     break; 

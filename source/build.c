@@ -99,7 +99,7 @@ extern void Build_Destroy(int xpos, int ypos)
     BuildCount[COUNT_POWERLINES] -= ((type == 7) || (type == 6) || (type == 5));
     BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE1);
     updatePowerGrid = 1; // to make sure the powergrid is uptodate
-    if (type == 81) {
+    if (type == 81 || type == TYPE_REAL_WATER) {
         // A bridge turns into real_water when detroyed
         SetWorld(WORLDPOS(xpos,ypos),TYPE_REAL_WATER);
     } else {

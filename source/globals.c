@@ -1,9 +1,9 @@
 #include "zakdef.h"
-int mapsize = 100;
-int map_xpos = 50;
-int map_ypos = 50;
-int cursor_xpos = 2;
-int cursor_ypos = 2;
+char mapsize = 100;
+char map_xpos = 50;
+char map_ypos = 50;
+char cursor_xpos = 2;
+char cursor_ypos = 2;
 long signed int credits = 50000;
 long unsigned int BuildCount[20];
 long unsigned int TimeElapsed=0; // months since Jan 2000

@@ -257,3 +257,17 @@ BEGIN
   MESSAGE "A power plant just exploded!"
   BUTTONS "Uh-oh!"
 END
+
+ALERT ID alertID_monster
+BEGIN
+  TITLE "Disaster"
+  MESSAGE "Godzilla just came to town!"
+  BUTTONS "Uh-oh!"
+END
+
+ALERT ID alertID_dragon
+BEGIN
+  TITLE "Disaster"
+  MESSAGE "A fire dragon wants to use your city as it's lair!"
+  BUTTONS "Uh-oh!"
+END

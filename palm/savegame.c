@@ -177,6 +177,7 @@ void UINewGame(void)
     map_ypos = 50;
     credits = 50000;
     memset((void*)&BuildCount[0],0,40);
+    memset((void*)objects,0,sizeof(MoveableObject)*NUM_OF_OBJECTS);
     mapsize = 100;
     ResizeWorld(mapsize*mapsize);
     SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
@@ -240,6 +241,7 @@ int UILoadGame(UInt16 index)
             MemMove(&TimeElapsed,   pTemp+11,4);
             MemMove(&BuildCount[0], pTemp+20,80);
             MemMove(cityname,       pTemp+100,20);
+            MemMove(&objects,       pTemp+120,sizeof(MoveableObject)*NUM_OF_OBJECTS);
             MemMove(worldPtr,       pTemp+200,mapsize*mapsize);
             UnlockWorld();
             // update the power grid:
@@ -308,6 +310,7 @@ extern void UISaveGame(UInt16 index)
             
             DmWrite(pRec,20,&BuildCount[0],80);
             DmWrite(pRec,100,(char*)cityname,20);
+            DmWrite(pRec,120,(void*)&objects, sizeof(MoveableObject)*NUM_OF_OBJECTS); // 8 bytes each
             DmWrite(pRec,200,(void*)(unsigned char*)worldPtr,mapsize*mapsize);
             UnlockWorld();
             MemHandleUnlock(rec);
