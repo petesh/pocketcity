@@ -10,15 +10,15 @@
 ###############################################################################
 
 CC = m68k-palmos-gcc
-CCFLAGS = -O2 -Wall -g
+CCFLAGS = -O2 -Wall -g -DDEBUG
 
 all: blackwhite color
 
 blackwhite: bin.stm grcs.stm zones.stm game.stm
-	build-prc pcity.prc "Pocket City" PCit *.grc tempbw/*.bin temp/*.bin
+	build-prc -o pcity.prc -n "Pocket City" -c PCit pcity.def *.grc tempbw/*.bin temp/*.bin
 	
 color:  bin-color.stm grcs.stm zones-color.stm game.stm
-	build-prc pcity-color.prc "Pocket City" PCit *.grc tempcolor/*.bin temp/*.bin
+	build-prc -o pcity-color.prc -n "Pocket City" -c PCit pcity.def *.grc tempcolor/*.bin temp/*.bin
     
 bin.stm: simcity.rcp
 	pilrc -q simcity.rcp tempbw
