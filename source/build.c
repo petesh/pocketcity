@@ -890,42 +890,47 @@ Build_PowerLine(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 
 	old = getWorld(WORLDPOS(xpos, ypos));
 	toSpend = BUILD_COST_POWER_LINE;
-	if (IsBulldozable(old) || IsRoad(old) || IsPipe(old)) {
-		if (IsRoad(old) || IsPipe(old)) {
-			welem_t tobuil = 0;
-			switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos))) {
-			/* straight road - horizontal, vertical power line */
-			case Z_ROAD:
-				tobuil = Z_POWERROAD_PVER;
-				break;
-			case Z_ROAD+1: /* straight road - vertical */
-				tobuil = Z_POWERROAD_PHOR;
-				break;
-			case Z_PIPE: /* straight pipe - horizontal */
-				tobuil = Z_POWER_WATER_PVER;
-				break;
-			case Z_PIPE+1:
-				tobuil = Z_POWER_WATER_PHOR;
-				break;
-			}
-			if (SpendMoney(toSpend)) {
-				setWorld(WORLDPOS(xpos, ypos), tobuil);
-				DrawCross(xpos, ypos, 1, 1);
-				vgame.BuildCount[bc_powerlines]++;
-				rv = 1;
-			} else {
-				UIDisplayError(enOutOfMoney);
-			}
+	if (IsBulldozable(old)) {
+		if (old == Z_REALTREE) toSpend += BUILD_COST_BULLDOZER;
+		if (SpendMoney(toSpend)) {
+			setWorld(WORLDPOS(xpos, ypos), Z_POWERLINE);
+			DrawCross(xpos, ypos, 1, 1);
+			vgame.BuildCount[bc_powerlines]++;
+			rv = 1;
 		} else {
-			if (old == Z_REALTREE) toSpend += BUILD_COST_BULLDOZER;
-			if (SpendMoney(toSpend)) {
-				setWorld(WORLDPOS(xpos, ypos), Z_POWERLINE);
-				DrawCross(xpos, ypos, 1, 1);
-				vgame.BuildCount[bc_powerlines]++;
-				rv = 1;
-			} else {
-				UIDisplayError(enOutOfMoney);
-			}
+			UIDisplayError(enOutOfMoney);
+		}
+	}
+	if (IsRoad(old) || IsPipe(old) || IsRail(old)) {
+		welem_t tobuil = 0;
+		switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos))) {
+		/* straight road - horizontal, vertical power line */
+		case Z_ROAD_START:
+			tobuil = Z_POWERROAD_PVER;
+			break;
+		case Z_ROAD_START+1: /* straight road - vertical */
+			tobuil = Z_POWERROAD_PHOR;
+			break;
+		case Z_PIPE_START: /* straight pipe - horizontal */
+			tobuil = Z_POWER_WATER_PVER;
+			break;
+		case Z_PIPE_START+1:
+			tobuil = Z_POWER_WATER_PHOR;
+			break;
+		case Z_RAIL_START: /* straight rail - horizontal */
+			tobuil = Z_RAILPOWER_RHOR;
+			break;
+		case Z_RAIL_START+1: /* straight rail - vertical */
+			tobuil = Z_RAILPOWER_RVER;
+			break;
+		}
+		if (SpendMoney(toSpend)) {
+			setWorld(WORLDPOS(xpos, ypos), tobuil);
+			DrawCross(xpos, ypos, 1, 1);
+			vgame.BuildCount[bc_powerlines]++;
+			rv = 1;
+		} else {
+			UIDisplayError(enOutOfMoney);
 		}
 	}
 	UnlockZone(lz_world);
@@ -952,40 +957,45 @@ Build_WaterPipe(Int16 xpos, Int16 ypos, welem_t type __attribute__((unused)))
 
 	toSpend = BUILD_COST_WATER_PIPE;
 	old = getWorld(WORLDPOS(xpos, ypos));
-	if (IsBulldozable(old) || IsRoad(old) || IsPowerLine(old)) {
-		if (IsRoad(old) || IsPowerLine(old)) {
-			switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos))) {
-			case Z_ROAD_START: /* straight road - Horizontal */
-				elt = Z_PIPEROAD_PVER;
-				break;
-			case Z_ROAD_START+1: /* straight road - Vertical */
-				elt = Z_PIPEROAD_PHOR;
-				break;
-			case Z_POWERLINE_START: /* powerline - Horizontal */
-				elt = Z_POWER_WATER_PHOR;
-				break;
-			case Z_POWERLINE_START+1: /* powerline - Vertical */
-				elt = Z_POWER_WATER_PVER;
-				break;
-			}
-			if (SpendMoney(toSpend)) {
-				setWorld(WORLDPOS(xpos, ypos), elt);
-				DrawCross(xpos, ypos, 1, 1);
-				vgame.BuildCount[bc_waterpipes]++;
-				rv = 1;
-			} else {
-				UIDisplayError(enOutOfMoney);
-			}
+	if (IsBulldozable(old)) {
+		if (old == Z_REALTREE) toSpend += BUILD_COST_BULLDOZER;
+		if (SpendMoney(toSpend)) {
+			setWorld(WORLDPOS(xpos, ypos), Z_PIPE);
+			DrawCross(xpos, ypos, 1, 1);
+			vgame.BuildCount[bc_waterpipes]++;
+			rv = 1;
 		} else {
-			if (old == Z_REALTREE) toSpend += BUILD_COST_BULLDOZER;
-			if (SpendMoney(toSpend)) {
-				setWorld(WORLDPOS(xpos, ypos), Z_PIPE);
-				DrawCross(xpos, ypos, 1, 1);
-				vgame.BuildCount[bc_waterpipes]++;
-				rv = 1;
-			} else {
-				UIDisplayError(enOutOfMoney);
-			}
+			UIDisplayError(enOutOfMoney);
+		}
+	}
+	if (IsRoad(old) || IsPowerLine(old) || IsRail(old)) {
+		switch (GetSpecialGraphicNumber(WORLDPOS(xpos, ypos))) {
+		case Z_ROAD_START: /* straight road - Horizontal */
+			elt = Z_PIPEROAD_PVER;
+			break;
+		case Z_ROAD_START+1: /* straight road - Vertical */
+			elt = Z_PIPEROAD_PHOR;
+			break;
+		case Z_RAIL_START: /* straight rail - Horizontal */
+			elt = Z_RAILPIPE_RHOR;
+			break;
+		case Z_RAIL_START+1: /* rail - Vertical */
+			elt = Z_RAILPIPE_RVER;
+			break;
+		case Z_POWERLINE_START: /* powerline - Horizontal */
+			elt = Z_POWER_WATER_PHOR;
+			break;
+		case Z_POWERLINE_START+1: /* powerline - Vertical */
+			elt = Z_POWER_WATER_PVER;
+			break;
+		}
+		if (SpendMoney(toSpend)) {
+			setWorld(WORLDPOS(xpos, ypos), elt);
+			DrawCross(xpos, ypos, 1, 1);
+			vgame.BuildCount[bc_waterpipes]++;
+			rv = 1;
+		} else {
+			UIDisplayError(enOutOfMoney);
 		}
 	}
 	UnlockZone(lz_world);
@@ -1018,6 +1028,7 @@ SpendMoney(UInt32 howMuch)
 /*!
  * \brief Create a river on the map
  * \todo Make the river more interesting
+ *
  */
 void
 CreateFullRiver(void)
@@ -1026,15 +1037,18 @@ CreateFullRiver(void)
 	int axis;
 	int kmax;
 
-	width = GetRandomNumber(5)+5;
+	width = GetRandomNumber(5) + 5;
 	axis = GetRandomNumber(1);
 	kmax = axis ? getMapWidth() : getMapHeight();
+
+	/* This is the start position of the center of the river */
 	j = GetRandomNumber(kmax);
+
 	LockZone(lz_world);
 
 	for (i = 0; i < kmax; i++) {
 		for (k = j; k < (width + j); k++) {
-			if ((k > 0) && (k < kmax)) {
+			if ((k >= 0) && (k < kmax)) {
 				if (axis)
 					setWorld(WORLDPOS(i, k),
 					    Z_REALWATER);
