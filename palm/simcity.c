@@ -58,6 +58,14 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 		FrmGotoForm(formID_pocketCity);
 		do {
 			EvtGetEvent(&event, 1);
+			
+			if (event.eType == keyDownEvent)
+			{
+				if (FrmDispatchEvent(&event)) continue;
+			}
+
+			if (SysHandleEvent(&event)) continue;
+
 			if (MenuHandleEvent((void*)0, &event, &err)) continue;
 
 			if (event.eType == frmLoadEvent)
@@ -88,7 +96,6 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 			}
 			
 			if (FrmDispatchEvent(&event)) continue;
-			if (SysHandleEvent(&event)) continue;
 
 			// the almighty homemade >>"multithreader"<<
 			if (simState == 0)
@@ -175,8 +182,8 @@ static Boolean hPocketCity(EventPtr event)
 		if (RctPtInRectangle(event->screenX, event->screenY, &rPlayGround))
 		{
 			_UIGetFieldToBuildOn(event->screenX, event->screenY);
+			handled = 1;
 		}
-		handled = 1;
 		break;
 	case menuEvent:
 		if (event->data.menu.itemID >= menuitemID_buildBulldoze)
