@@ -46,6 +46,9 @@ BITMAPFAMILY ID bitmapID_iconTree         "graphic/icons/tree.bmp" "" ""
         "graphic/icons-color/tree.bmp"         COMPRESS
 BITMAPFAMILY ID bitmapID_iconWater        "graphic/icons/water.bmp" "" ""
         "graphic/icons-color/water.bmp"        COMPRESS
+BITMAPFAMILY ID bitmapID_iconQuery		"graphic/icons/query.bmp" "" ""
+	"graphic/icons-color/query.bmp"
+
 BITMAPFAMILY ID bitmapID_iconExtra        "graphic/icons/extra.bmp" "" ""
         "graphic/icons-color/extra.bmp"        COMPRESS
 

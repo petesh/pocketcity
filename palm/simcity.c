@@ -12,6 +12,7 @@
 #include <ui.h>
 #include <drawing.h>
 #include <build.h>
+#include <query.h>
 #include <handler.h>
 #include <globals.h>
 #include <simulation.h>
@@ -36,17 +37,10 @@ WinHandle winUnits;
 
 BuildCodes nSelectedBuildItem = Be_Bulldozer;
 BuildCodes nPreviousBuildItem = Be_Bulldozer;
-short int game_in_progress = 0;
-
-short int lowShown = 0;
-short int noShown = 0;
-short int oldROM = 0;
-short int building = 0;
 
 UInt32 timeStamp = 0;
 UInt32 timeStampDisaster = 0;
 short simState = 0;
-short DoDrawing = 0;
 unsigned short XOFFSET = 0;
 unsigned short YOFFSET = 15;
 #ifdef SONY_CLIE
@@ -87,7 +81,24 @@ static void clearToolbarBitmap(void);
 
 extern void UIDrawLoc(void);
 
-UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
+/* Collects what would otherwise be several variables */
+static UInt8 IsBuilding(void);
+static void SetBuilding(void);
+static void SetNotBuilding(void);
+static void SetLowNotShown(void);
+static void SetOutNotShown(void);
+static void SetDeferDrawing(void);
+static void SetDrawing(void);
+static UInt8 IsDeferDrawing(void);
+
+/*
+ * The PilotMain routine.
+ * Needed by all palm applications. It checks the rom version and
+ * Throws out to the user of it's too old.
+ * Handles the auto-saving of the application at the end.
+ */
+UInt32
+PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 {
     UInt16 error;
 
@@ -97,10 +108,12 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
       sysMakeROMVersion(3, 5, 0, sysROMStageRelease, 0), launchFlags);
     if (error) return (error);
 
-    UIWriteLog("Starting Pocket City\n");
+    WriteLog("Starting Pocket City\n");
     _PalmInit();
     PCityMain();
     if (UILoadAutoGame()) {
+        SetLowNotShown();
+        SetOutNotShown();
 	FrmGotoForm(formID_pocketCity);
     } else {
 	FrmGotoForm(formID_files);
@@ -108,7 +121,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
     
     EventLoop();
 
-    if (game_in_progress) {
+    if (IsGameInProgress()) {
 	UISaveAutoGame();
     }
 
@@ -116,157 +129,193 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
     return (0);
 }
 
+/*
+ * Event loop for application level form events.
+ * These are events that are not dealt with by the main event loop.
+ * Returns true if the event has been handled, false otherwise.
+ */
+static Boolean
+AppEvent(EventPtr event)
+{
+    static UInt16 oldFormID = -1;
+    FormPtr form;
+    UInt16 formID;
+
+    if (event->eType == frmLoadEvent) {
+        formID = event->data.frmLoad.formID;
+        WriteLog("Main::frmLoadEvent: %d -> %d\n", oldFormID, formID);
+        oldFormID = formID;
+        form = FrmInitForm(formID);
+        FrmSetActiveForm(form);
+
+        switch (formID) {
+        case formID_pocketCity:
+            FrmSetEventHandler(form, hPocketCity);
+            break;
+        case formID_budget:
+            FrmSetEventHandler(form, hBudget);
+            break;
+        case formID_map:
+            FrmSetEventHandler(form, hMap);
+            break;
+        case formID_options:
+            FrmSetEventHandler(form, hOptions);
+            break;
+        case formID_files:
+            FrmSetEventHandler(form, hFiles);
+            break;
+        case formID_filesNew:
+            FrmSetEventHandler(form, hFilesNew);
+            break;
+        case formID_quickList:
+            FrmSetEventHandler(form, hQuickList);
+            break;
+        case formID_extraBuild:
+            FrmSetEventHandler(form, hExtraList);
+            break;
+        case formID_ButtonConfig:
+            FrmSetEventHandler(form, hButtonConfig);
+            break;
+        case formID_Query:
+            FrmSetEventHandler(form, hQuery);
+            break;
+        }
+        return (true);
+    }
+
+    if (event->eType == winExitEvent) {
+        if (event->data.winExit.exitWindow ==
+          (WinHandle) FrmGetFormPtr(formID_pocketCity)) {
+            WriteLog("Setting drawing to 0\n");
+            SetDeferDrawing();
+        }
+        return (true);
+    }
+
+    if (event->eType == winEnterEvent) {
+        if (event->data.winEnter.enterWindow ==
+          (WinHandle) FrmGetFormPtr(formID_pocketCity) &&
+          event->data.winEnter.enterWindow == (WinHandle) FrmGetFirstForm()) {
+            WriteLog("Setting drawing to 1\n");
+            SetDrawing();
+            RedrawAllFields(); /* update screen after menu etc. */
+        } else {
+            WriteLog("Setting drawing to 0\n");
+            SetDeferDrawing();
+        }
+        /* pass to form */
+        return (false);
+    }
+    return (false);
+}
+
+/*
+ * Main event loop routine.
+ * The standard one ... loop until the game terminates.
+ */
 static void
 EventLoop(void)
 {
     EventType event;
-    FormPtr form;
-    int formID;
     UInt32 timeTemp;
     short err;
-    static int oldFormID = -1;
 
-    do {
+    for (;;) {
         EvtGetEvent(&event, 1);
+        if (event.eType == appStopEvent) break;
 
-       if (event.eType == keyDownEvent) {
-           UIWriteLog("keydown event\n");
-           if (FrmDispatchEvent(&event)) continue;
-       }
+        if (event.eType == keyDownEvent) {
+            WriteLog("keydown event\n");
+            if (FrmDispatchEvent(&event)) continue;
+        }
+ 
+        if (SysHandleEvent(&event)) continue;
 
-       if (SysHandleEvent(&event)) continue;
+        if (MenuHandleEvent((void*)0, &event, &err)) continue;
 
-       if (MenuHandleEvent((void*)0, &event, &err)) continue;
+        if (AppEvent(&event)) continue;
 
-       if (event.eType == frmLoadEvent) {
-           char c[20];
-           UIWriteLog("Main::frmLoadEvent:");
-           formID = event.data.frmLoad.formID;
-           StrPrintF(c, "%d -> %d\n", oldFormID, formID);
-           UIWriteLog(c);
-           oldFormID = formID;
-           form = FrmInitForm(formID);
-           FrmSetActiveForm(form);
-           
-           switch (formID) {
-           case formID_pocketCity:
-               FrmSetEventHandler(form, hPocketCity);
-               break;
-           case formID_budget:
-               FrmSetEventHandler(form, hBudget);
-               break;
-           case formID_map:
-               FrmSetEventHandler(form, hMap);
-               break;
-           case formID_options:
-               FrmSetEventHandler(form, hOptions);
-               break;
-           case formID_files:
-               FrmSetEventHandler(form, hFiles);
-               break;
-           case formID_filesNew:
-               FrmSetEventHandler(form, hFilesNew);
-               break;
-           case formID_quickList:
-               FrmSetEventHandler(form, hQuickList);
-               break;
-           case formID_extraBuild:
-               FrmSetEventHandler(form, hExtraList);
-               break;
-           case formID_ButtonConfig:
-               FrmSetEventHandler(form, hButtonConfig);
-               break;
-           }
-       }
-       else if (event.eType == winExitEvent) {
-           if (event.data.winExit.exitWindow ==
-             (WinHandle) FrmGetFormPtr(formID_pocketCity)) {
-               UIWriteLog("Setting drawing to 0\n");
-               DoDrawing = 0;
-           }
-       }
-       else if (event.eType == winEnterEvent) {
-           if (event.data.winEnter.enterWindow ==
-             (WinHandle) FrmGetFormPtr(formID_pocketCity) &&
-             event.data.winEnter.enterWindow == (WinHandle) FrmGetFirstForm()) {
-               UIWriteLog("Setting drawing to 1\n");
-               DoDrawing = 1;
-               RedrawAllFields(); /* update screen after menu etc. */
-           } else {
-               UIWriteLog("Setting drawing to 0\n");
-               DoDrawing = 0;
-           }
-       }
-       
-       if (FrmDispatchEvent(&event)) continue;
-       
-       /* the almighty homemade >>"multithreader"<< */
-       if (game_in_progress == 1 && building == 0 &&
-         game.gameLoopSeconds != SPEED_PAUSED) {
-           if (simState == 0) {
-               timeTemp = TimGetSeconds();
-               if (timeTemp >= timeStamp+game.gameLoopSeconds) {
-                   simState = 1;
-                   timeStamp = timeTemp;
-               }
-           } else  {
-               simState = Sim_DoPhase(simState);
-               if (simState == 0) {
-                   RedrawAllFields();
-               }
-           }
-       }
-       
-       /*
-	* Do a disaster update every 2 secound nomatter what.
-	* We don't want the (l)user to get help by pausing the game
-        * (not realistic enough)
-	* TODO: Pause should be enabled on 'easy' difficulty.
-	*/
-       if (game_in_progress == 1 && building == 0) {
-           timeTemp = TimGetSeconds();
+        if (FrmDispatchEvent(&event)) continue;
 
-           if (timeTemp >= timeStampDisaster+SIM_GAME_LOOP_DISASTER) {
-               MoveAllObjects();
+        /*
+         * if we're faffing around in the savegame dialogs then we're not
+         * actually playing the game.
+         */
+        if (!IsGameInProgress()) continue;
+
+        /* Game is fully formally paused ? */
+        if (!IsGamePlaying()) {
+            WriteLog("-");
+            continue;
+        }
+        WriteLog("+");
+
+        if (IsBuilding()) continue;
+
+        /* the almighty homemade >>"multithreader"<< */
+        if (game.gameLoopSeconds != SPEED_PAUSED) {
+            if (simState == 0) {
+                timeTemp = TimGetSeconds();
+                if (timeTemp >= timeStamp+game.gameLoopSeconds) {
+                    simState = 1;
+                    timeStamp = timeTemp;
+                }
+            } else  {
+                simState = Sim_DoPhase(simState);
+                if (simState == 0) {
+                    RedrawAllFields();
+                }
+            }
+        }
+
+        /*
+         * Do a disaster update every 2 seconds.
+         * This is only disabled when difficulty is at easy and game is paused.
+         */
+
+        if (GetDifficultyLevel() == 0 && game.gameLoopSeconds == SPEED_PAUSED) {
+            continue;
+        }
+
+        timeTemp = TimGetSeconds();
+            
+        if (timeTemp >= timeStampDisaster+SIM_GAME_LOOP_DISASTER) {
 #ifdef DEBUG
-               {
-                   /*
-		    * This will print the BuildCount array
-                    * don't forget to keep an eye on it
-                    * in the log - should be up-to-date
-                    * AT ALL TIMES!
-		    */
-                   char temp[10];
-                   int q;
-                   for (q=0; q<20; q++) {
-                       sprintf(temp,"%li",vgame.BuildCount[q]);
-                       UIWriteLog(temp);
-                       UIWriteLog(" ");
-                   }
-                   UIWriteLog("\n");
-                   
-               } /* end debug block */
+            int q;
 #endif
-               if (UpdateDisasters()) {
-                   RedrawAllFields();
-               }
-               timeStampDisaster = timeTemp;
-               /* TODO: This would be the place to create animation...
-		* perhaps with a second offscreen window for the
-                * second animation frame of each zone
-                * Then swap the winZones between the two,
-                * and do the RedrawAllFields() from above here
-		*/
-           }
-       }
-    } while (event.eType != appStopEvent);
-
+            MoveAllObjects();
+#ifdef DEBUG
+            /*
+             * This will print the BuildCount array
+             * don't forget to keep an eye on it
+             * in the log - should be up-to-date
+             * AT ALL TIMES!
+             */
+            for (q=0; q<20; q++)
+                WriteLog("%li ", vgame.BuildCount[q]);
+            WriteLog("\n");
+#endif
+            if (UpdateDisasters()) {
+                RedrawAllFields();
+            }
+            timeStampDisaster = timeTemp;
+            /* TODO: This would be the place to create animation...
+             * perhaps with a second offscreen window for the
+             * second animation frame of each zone
+             * Then swap the winZones between the two,
+             * and do the RedrawAllFields() from above here
+             */
+        }
+    } 
 }
 
+/*
+ * Handles, dimensions and resourceID's of the bitmaps
+ */
 static const struct _bmphandles {
     WinHandle *handle;
-    Coord width, height;
-    DmResID resourceID;
+    const Coord width, height;
+    const DmResID resourceID;
 } handles[] = {
 	/* space for 64*2=128 zones */
     { &winZones, 1024, 32, bitmapID_zones },
@@ -274,6 +323,9 @@ static const struct _bmphandles {
     { &winUnits, 48, 32, bitmapID_units }
 };
 
+/*
+ * Set up the game in relation to the screen mode.
+ */
 void
 _PalmInit(void)
 {
@@ -290,7 +342,7 @@ _PalmInit(void)
     timeStampDisaster = timeStamp;
 
     /* set screen mode to colors if supported */
-    if (oldROM != 1) {  /* must be v3.5+ for some functions in here */
+    if (IsNewROM()) {  /* must be v3.5+ for some functions in here */
         WinScreenMode(winScreenModeGetSupportedDepths, 0, 0, &depth, 0);
         if ((depth & (1 << (8-1))) != 0 ) {
             /* 8bpp (color) is supported */
@@ -313,15 +365,15 @@ _PalmInit(void)
 	if (bitmaphandle == NULL) {
 	    char c[20];
 	    StrPrintF(c, "%ld]\n", (long)handles[i].resourceID);
-	    UIWriteLog("could not get bitmap handle[");
-	    UIWriteLog(c);
+	    WriteLog("could not get bitmap handle[");
+	    WriteLog(c);
 	}
     	bitmap = MemHandleLock(bitmaphandle);
 	privhandle = _WinCreateOffscreenWindow(handles[i].width,
 	    handles[i].height, genericFormat, &err);
     	if (err != errNone) {
 	    /* TODO: alert user, and quit program */
-    	    UIWriteLog("Offscreen window for zones failed\n");
+    	    WriteLog("Offscreen window for zones failed\n");
 	}
 	if (winHandle == NULL) winHandle = WinSetDrawWindow(privhandle);
 	else WinSetDrawWindow(privhandle);
@@ -343,15 +395,19 @@ _PalmInit(void)
     }
 }
 
+/*
+ * Clean up the application.
+ * Save the button configuration and delete any windows that have been
+ * allocated.
+ */
 static void
 _PalmFini(void)
 {
     unhookHoldSwitch();
     clearToolbarBitmap();
     PrefSetAppPreferences(GetCreatorID(), 0, CONFIG_VERSION, &gameConfig, sizeof(AppConfig_t), true);
-#ifdef DEBUG
-    { char log[40]; StrPrintF(log, "saved: %ld\n", (long)sizeof(AppConfig_t)); UIWriteLog(log); }
-#endif
+
+    WriteLog("saved: %ld\n", (long)sizeof(AppConfig_t));
 
     /* clean up */
     WinDeleteWindow(winZones,0);
@@ -363,6 +419,11 @@ _PalmFini(void)
     /* Close the forms */
     FrmCloseAllForms();
 }
+
+/*
+ * Handler for the main pocketCity form.
+ * This form performs all the updates to the main game screen.
+ */
 static Boolean
 hPocketCity(EventPtr event)
 {
@@ -372,10 +433,12 @@ hPocketCity(EventPtr event)
     switch (event->eType) {
     case frmOpenEvent:
         form = FrmGetActiveForm();
+        WriteLog("mainform opened\n");
+        SetGameInProgress();
+        ResumeGame();
         FrmDrawForm(form);
         DrawGame(1);
         handled = 1;
-        game_in_progress = 1;
         break;
     case frmCloseEvent:
         break;
@@ -420,12 +483,12 @@ hPocketCity(EventPtr event)
         scaleEvent(event);
         if (RctPtInRectangle(event->screenX, event->screenY, &rPlayGround)) {
             _UIGetFieldToBuildOn(event->screenX, event->screenY);
+            SetBuilding();
             handled = 1;
-            building = 1;
         }
         break;
     case penUpEvent:
-        building = 0;
+        SetNotBuilding();
         timeStamp = TimGetSeconds()-game.gameLoopSeconds+2;
         /* so the simulation routine won't kick in right away */
         timeStampDisaster = timeStamp-game.gameLoopSeconds+1;
@@ -433,8 +496,8 @@ hPocketCity(EventPtr event)
         break;
     case menuEvent:
 #if defined(DEBUG)
-	{ char c[20]; StrPrintF(c, "mi: %d", event->data.menu.itemID);
-		UIWriteLog(c);}
+	{ char c[20]; StrPrintF(c, "Menu Item: %d\n", event->data.menu.itemID);
+		WriteLog(c);}
 #endif
     	switch (event->data.menu.itemID) {
 		/* First menu ... game */
@@ -443,9 +506,13 @@ hPocketCity(EventPtr event)
 	    case 0: /* save game */
 		UISaveMyCity();
 		UIClearAutoSaveSlot();
+                SetLowNotShown();
+                SetOutNotShown();
 		FrmGotoForm(formID_files);
 		break;
 	    case 1: /* don't save */
+                SetLowNotShown();
+                SetOutNotShown();
 		UIClearAutoSaveSlot();
 		FrmGotoForm(formID_files);
 		break;
@@ -461,12 +528,10 @@ hPocketCity(EventPtr event)
 	    handled = 1;
 	    break;
 	case menuitemID_Budget:
-	    SaveSpeed();
 	    FrmGotoForm(formID_budget);
 	    handled = 1;
 	    break;
 	case menuitemID_Map:
-	    SaveSpeed();
 	    FrmGotoForm(formID_map);
 	    handled = 1;
 	    break;
@@ -488,14 +553,12 @@ hPocketCity(EventPtr event)
 	    break;
 #endif
 	case menuitemID_Configuration:
-	    SaveSpeed();
 	    FrmGotoForm(formID_options);
 	    handled = 1;
 	    break;
 
 	    /* next menu ... build */
 	case menuitemID_Buttons:
-	    SaveSpeed();
 	    FrmGotoForm(formID_ButtonConfig);
 	    handled = 1;
 	    break;
@@ -573,6 +636,9 @@ hPocketCity(EventPtr event)
     return handled;
 }
 
+/*
+ * Do the about dialog
+ */
 static void
 DoAbout(void)
 {
@@ -599,6 +665,10 @@ DoAbout(void)
     }
 }
 
+/*
+ * Go to one of the Budget and map forms.
+ * Only if we're not already at that form to begin with.
+ */
 extern void
 UIGotoForm(int n)
 {
@@ -615,29 +685,35 @@ UIGotoForm(int n)
     }
 }
 
+/*
+ * Pop up the extra build list.
+ * Contains items that are not in the quicklist tool bar.
+ * This is the only choice for Pre-PalmOS 3.5 users, as they
+ * can't have bitmapped buttons.
+ */
 void
 UIPopUpExtraBuildList(void)
 {
-    FormType * ftList;
+    FormType * form;
     int sfe;
     static Char **lp;
     UInt16 poplen;
 
-    ftList = FrmInitForm(formID_extraBuild);
-    FrmSetEventHandler(ftList, hExtraList);
+    form = FrmInitForm(formID_extraBuild);
+    FrmSetEventHandler(form, hExtraList);
     lp = FillStringList(strID_Items, &poplen);
-    LstSetListChoices(FrmGetObjectPtr(ftList, FrmGetObjectIndex(ftList, listID_extraBuildList)), lp, poplen);
+    LstSetListChoices(FrmGetObjectPtr(form, FrmGetObjectIndex(form, listID_extraBuildList)), lp, poplen);
 
     UpdateDescription(0);
-    sfe = FrmDoDialog(ftList);
+    sfe = FrmDoDialog(form);
 
     FreeStringList(lp);
 
     switch (sfe) {
     case buttonID_extraBuildSelect:
         /* List entries must match entries in BuildCodes 0 .. */
-        nSelectedBuildItem = LstGetSelection(FrmGetObjectPtr(ftList,
-              FrmGetObjectIndex(ftList, listID_extraBuildList)));
+        nSelectedBuildItem = LstGetSelection(FrmGetObjectPtr(form,
+              FrmGetObjectIndex(form, listID_extraBuildList)));
         break;
     case buttonID_extraBuildFireMen:
         nSelectedBuildItem = Be_Defence_Fire;
@@ -651,15 +727,18 @@ UIPopUpExtraBuildList(void)
     default:
         break;
     }
-#if defined(DEBUG)
-    { char c[20]; sprintf(c, "sfe = %u, bi = %u\n", sfe, nSelectedBuildItem);
-    UIWriteLog(c);}
-#endif
+
+    WriteLog("sfe = %u, bi = %u\n", sfe, nSelectedBuildItem);
+
     CleanUpExtraBuildForm();
     UIUpdateBuildIcon();
-    FrmDeleteForm(ftList);
+    FrmDeleteForm(form);
 }
 
+/*
+ * Update the description of the item in the extra build list.
+ * XXX: Use MemHandles instead?
+ */
 FieldType *
 UpdateDescription(int sel)
 {
@@ -695,6 +774,10 @@ UpdateDescription(int sel)
     return ctl;
 }
 
+/*
+ * Release any memory allocated to the
+ * extra build list form.
+ */
 void CleanUpExtraBuildForm(void)
 {
     FormPtr form = FrmGetFormPtr(formID_extraBuild);
@@ -702,32 +785,42 @@ void CleanUpExtraBuildForm(void)
                 form, FrmGetObjectIndex(form, labelID_extraBuildDescription)));
     if (ptr != 0)
         MemPtrFree(ptr);
+    ptr = (void*)FldGetTextPtr(FrmGetObjectPtr(
+                form, FrmGetObjectIndex(form, labelID_extraBuildPrice)));
+    if (ptr != 0)
+        MemPtrFree(ptr);
 }
 
+/*
+ * Handler for the Extra Build list form.
+ * Doesn't clean up the description items; that's done in UIPopupExtraBuildList()
+ */
 static Boolean
 hExtraList(EventPtr event)
 {
     FormPtr form;
+    void *ptr, *ptr2;
     int handled = 0;
 
     switch (event->eType) {
     case frmOpenEvent:
-        game_in_progress = 0;
+        PauseGame();
         form = FrmGetActiveForm();
-        UIWriteLog("open hExtraList\n");
+        WriteLog("open hExtraList\n");
         FrmDrawForm(form);
         handled = 1;
         break;
     case frmCloseEvent:
-        UIWriteLog("frmcloseevent\n");
+        WriteLog("close hExtraList\n");
         break;
     case lstSelectEvent:
+        WriteLog("list selection\n");
         if ((event->data.lstSelect.listID) == listID_extraBuildList) {
             /* clear old mem */
             FormPtr form = FrmGetActiveForm();
-            void * ptr = (void*)FldGetTextPtr(FrmGetObjectPtr(form,
+            ptr = (void*)FldGetTextPtr(FrmGetObjectPtr(form,
                   FrmGetObjectIndex(form, labelID_extraBuildDescription)));
-            void * ptr2 = (void*)FldGetTextPtr(FrmGetObjectPtr(form,
+            ptr2 = (void*)FldGetTextPtr(FrmGetObjectPtr(form,
                   FrmGetObjectIndex(form, labelID_extraBuildPrice)));
             FldDrawField(UpdateDescription(event->data.lstSelect.selection));
             if (ptr != 0)
@@ -765,12 +858,18 @@ hExtraList(EventPtr event)
     return handled;
 }
 
+/*
+ * Pop up the quick list.
+ * Contains most of the commonly used icons in one place.
+ * Will pop up the extra build list if the machine is Pre Palmos 3.5 as
+ * it can't do bitmapped buttons.
+ */
 void
 UIDoQuickList(void)
 {
     FormType * ftList;
 
-    if (!oldROM) {
+    if (IsNewROM()) {
         ftList = FrmInitForm(formID_quickList);
         FrmSetEventHandler(ftList, hQuickList);
         nSelectedBuildItem = FrmDoDialog(ftList) - gi_buildBulldoze;
@@ -788,6 +887,9 @@ UIDoQuickList(void)
     }
 }
 
+/*
+ * Handler for the Quick List form
+ */
 static Boolean
 hQuickList(EventPtr event)
 {
@@ -796,23 +898,37 @@ hQuickList(EventPtr event)
 
     switch (event->eType) {
     case frmOpenEvent:
-        game_in_progress = 0;
+        WriteLog("open quicklist\n");
+        PauseGame();
         form = FrmGetActiveForm();
         FrmDrawForm(form);
         handled = 1;
         break;
     case frmCloseEvent:
+        WriteLog("close quicklist\n");
         break;
     case keyDownEvent:
-        UIWriteLog("Key down\n");
+        WriteLog("Key down\n");
         switch (event->data.keyDown.chr) {
         case vchrCalc:
-            /* close the quicksheet - simulate we pushed the bulldozer */
-            CtlHitControl(FrmGetObjectPtr(FrmGetActiveForm(),
-                  FrmGetObjectIndex(FrmGetActiveForm(), gi_buildBulldoze)));
+            /*
+             * simulate we pushed the bulldozer.
+             */
+            form = FrmGetActiveForm();
+            CtlHitControl(FrmGetObjectPtr(form,
+                  FrmGetObjectIndex(form, gi_buildBulldoze)));
             handled = 1;
             break;
         }
+        break;
+    case penUpEvent:
+        if (event->screenY < 0) {
+            form = FrmGetActiveForm();
+            CtlHitControl(FrmGetObjectPtr(form,
+                  FrmGetObjectIndex(form, gi_buildBulldoze)));
+            handled = 1;
+        }
+        break;
     default:
         break;
     }
@@ -820,32 +936,112 @@ hQuickList(EventPtr event)
     return handled;
 }
 
-unsigned char
+/*
+ * Get the selected build item.
+ */
+UInt8
 UIGetSelectedBuildItem(void)
 {
     return (nSelectedBuildItem);
 }
 
+/*
+ * Save the selected build item.
+ */
+void
+UISetSelectedBuildItem(UInt8 item)
+{
+    nSelectedBuildItem = item;
+}
+
+/* is Building logic and data */
+static UInt8 __state;
+
+/*
+ * First the Macro.
+ * You Define the Bit, Clearer, Setter and Tester
+ * of the Bit field you care about.
+ * If you need more than 8 bits (0..7) then change the return type here and
+ * in any of the enties shared in the header file.
+ */
+#define BUILD_STATEBITACCESSOR(BIT,CLEARER,SETTER,TESTER,VISIBILITY)       \
+VISIBILITY void CLEARER(void) \
+{ \
+    __state &= ~(1<<(BIT)); \
+} \
+VISIBILITY void SETTER(void) \
+{ \
+    __state |= (1<<(BIT)); \
+} \
+VISIBILITY UInt8 TESTER(void) \
+{ \
+    return (__state & (1<<(BIT))); \
+}
+
+BUILD_STATEBITACCESSOR(0, PauseGame, ResumeGame, IsGamePlaying,)
+BUILD_STATEBITACCESSOR(1, SetNotBuilding, SetBuilding, IsBuilding, static)
+BUILD_STATEBITACCESSOR(2, SetGameNotInProgress, SetGameInProgress, IsGameInProgress,)
+BUILD_STATEBITACCESSOR(3, SetLowNotShown, SetLowShown, IsLowShown, static)
+BUILD_STATEBITACCESSOR(4, SetOutNotShown, SetOutShown, IsOutShown, static)
+BUILD_STATEBITACCESSOR(5, ClearNewROM, SetNewROM, IsNewROM, )
+BUILD_STATEBITACCESSOR(6, SetDrawing, SetDeferDrawing, IsDeferDrawing, static)
+
+/*
+ * Memory of what was clicked under the pen
+ * Helps reduce the externally visible state,
+ * and allows the query to run without having too much global access.
+ */
+static UInt8 __clicker;
+
+/*
+ * Get the item clicked on the main form last.
+ */
+UInt8
+GetItemClicked()
+{
+    return (__clicker);
+}
+
+/*
+ * Set the field value of the item clicked on the form.
+ * Saves having to re-lookup the location in the WorldMap.
+ */
+void
+SetItemClicked(UInt8 item)
+{
+    __clicker = item;
+}
+
+/*
+ * Check the location clicked on screen to see if it's in the build area.
+ * If it is then either build there or perform a query.
+ */
 void
 _UIGetFieldToBuildOn(int x, int y)
 {
     RectangleType rect;
-    int i,j;
-    rect.extent.x = vgame.tileSize;
-    rect.extent.y = vgame.tileSize;
+    rect.extent.x = vgame.tileSize * vgame.tileSize;
+    rect.extent.y = vgame.tileSize * vgame.tileSize;
+    rect.topLeft.x = XOFFSET;
+    rect.topLeft.y = YOFFSET;
 
-    for (i = 0; i < vgame.visible_x; i++) {
-        for (j = 0; j < vgame.visible_y; j++) {
-            rect.topLeft.x = XOFFSET + i * vgame.tileSize;
-            rect.topLeft.y = YOFFSET + j * vgame.tileSize;
-            if (RctPtInRectangle(x, y, &rect)) {
-                BuildSomething(i + game.map_xpos, j + game.map_ypos);
-                return;
-            }
+    if (RctPtInRectangle(x, y, &rect)) {
+        UInt32 xpos = (x - XOFFSET)/vgame.tileSize + game.map_xpos;
+        UInt32 ypos = (y - YOFFSET)/vgame.tileSize + game.map_ypos;
+        LockWorld();
+        SetItemClicked(WORLDPOS(xpos, ypos));
+        UnlockWorld();
+        if (UIGetSelectedBuildItem() != Be_Query)
+            BuildSomething(xpos, ypos);
+        else {
+            FrmGotoForm(formID_Query);
         }
     }
 }
 
+/*
+ * Display an error to the user of a psecific error / disaster type
+ */
 int
 UIDisplayError(erdiType nError)
 {
@@ -875,6 +1071,9 @@ UIDisplayError(erdiType nError)
     return (1);
 }
 
+/*
+ * Display an error that is simply an error string
+ */
 int
 UIDisplayError1(char *message)
 {
@@ -882,40 +1081,61 @@ UIDisplayError1(char *message)
 	return (0);
 }
 
-void UIInitDrawing(void) {};
-void UIFinishDrawing(void) {};
+/*
+ * Null Function.
+ */
+void
+UIInitDrawing(void)
+{
+}
 
-UInt8 *didLock = NULL;
+/*
+ * Null Function.
+ */
+void
+UIFinishDrawing(void)
+{
+}
+
 /*
  * The WinScreenLock is 'optional' depending on how much memory you have.
  * the call may or may not succeed.
  * by using these two APIs we can get faster, flickerless allscreen updating
  */
+static UInt8 *didLock = NULL;
+
+/*
+ * Try to lock the screen from updates.
+ * This allows bulk updates to the screen without repainting until unlocked.
+ */
 void
 UILockScreen(void)
 {
-    if ((oldROM != 1) && !didLock)
+    if (IsNewROM() && !didLock)
         didLock = WinScreenLock(winLockCopy);
 }
 
+/*
+ * Unlock the display.
+ * Allows any pending updates to proceed.
+ */
 void
 UIUnlockScreen(void)
 {
-    if ((oldROM != 1) && didLock) {
+    if (IsNewROM() && didLock) {
         WinScreenUnlock();
         didLock = 0;
     }
 }
 
+/*
+ * Draw a rectangle on the screen.
+ * it will be exactly nHeight*nWidth pixels in size.
+ * the frame's left border will be at nTop-1 and so on
+ */
 void
 _UIDrawRect(int nTop, int nLeft, int nHeight, int nWidth)
 {
-    /*
-     * draws a rect on screen: note, the rect within the border will
-     * be exactly nHeight*nWidth pxls
-     * the frame's left border will be at nTop-1 and so on
-     */
-
     RectangleType rect;
 
     rect.topLeft.x = nLeft;
@@ -926,28 +1146,52 @@ _UIDrawRect(int nTop, int nLeft, int nHeight, int nWidth)
     _WinDrawRectangleFrame(1, &rect);
 }
 
+/*
+ * Draw the border around the play area
+ */
 void
 UIDrawBorder()
 {
-    if (DoDrawing == 0) return;
+    if (IsDeferDrawing())
+        return;
 
-    /* border */
     _UIDrawRect(YOFFSET, XOFFSET, vgame.visible_y * vgame.tileSize,
       vgame.visible_x * vgame.tileSize);
 }
 
-void UISetUpGraphic(void) {}
+/*
+ * Null Function.
+ */
+void
+UISetUpGraphic(void)
+{
+}
 
-void UIDrawCursor(int xpos, int ypos) { }
+/*
+ * Null Function.
+ * Would be the tracking cursr on the screen in a bigger environment
+ */
+void
+UIDrawCursor(int xpos, int ypos)
+{
+}
 
-void UIDrawWaterLoss(int xpos, int ypos)
+/*
+ * Draw a generic loss icon.
+ * It is obtained from the zones bitmap.
+ * The location in the zones bitmap is stated by the tilex and tiley values.
+ * This specifies the overlay. The icon itself is tile pixels before this.
+ */
+void
+UIDrawLossIcon(int xpos, int ypos, Coord tilex, Coord tiley)
 {
     RectangleType rect;
 
-    if (DoDrawing == 0) { return; }
+    if (IsDeferDrawing())
+        return;
 
-    rect.topLeft.x = 80;
-    rect.topLeft.y = 0;
+    rect.topLeft.x = tilex;
+    rect.topLeft.y = tiley;
     rect.extent.x = vgame.tileSize;
     rect.extent.y = vgame.tileSize;
 
@@ -961,7 +1205,7 @@ void UIDrawWaterLoss(int xpos, int ypos)
             ypos*vgame.tileSize+YOFFSET,
             winErase);
     /* now draw the powerloss icon */
-    rect.topLeft.x = 64;
+    rect.topLeft.x -= vgame.tileSize;
     _WinCopyRectangle(
             winZones,
             WinGetActiveWindow(),
@@ -971,42 +1215,34 @@ void UIDrawWaterLoss(int xpos, int ypos)
             winOverlay);
 }
 
-void UIDrawPowerLoss(int xpos, int ypos)
+/*
+ * Draw the water loss icon on a field.
+ * The Field has already been determined to not have water.
+ */
+void
+UIDrawWaterLoss(int xpos, int ypos)
 {
-    RectangleType rect;
-
-    if (DoDrawing == 0) { return; }
-
-    rect.topLeft.x = 144;
-    rect.topLeft.y = 0;
-    rect.extent.x = vgame.tileSize;
-    rect.extent.y = vgame.tileSize;
-
-    /* copy/paste the graphic from the offscreen image */
-    /* first draw the overlay */
-    _WinCopyRectangle(
-            winZones,
-            WinGetActiveWindow(),
-            &rect,
-            xpos*vgame.tileSize+XOFFSET,
-            ypos*vgame.tileSize+YOFFSET,
-            winErase);
-    /* now draw the powerloss icon */
-    rect.topLeft.x = 128;
-    _WinCopyRectangle(
-            winZones,
-            WinGetActiveWindow(),
-            &rect,
-            xpos*vgame.tileSize+XOFFSET,
-            ypos*vgame.tileSize+YOFFSET,
-            winOverlay);
+    UIDrawLossIcon(xpos, ypos, 80, 0);
 }
 
+/*
+ * Draw a power loss icon for the field.
+ */
+void
+UIDrawPowerLoss(int xpos, int ypos)
+{
+    UIDrawLossIcon(xpos, ypos, 144, 0);
+}
+
+/*
+ * Draw a special unit at the location chosen
+ */
 void
 UIDrawSpecialUnit(int i, int xpos, int ypos)
 {
     RectangleType rect;
-    if (DoDrawing == 0) { return; }
+    if (IsDeferDrawing())
+        return;
 
     rect.topLeft.x = game.units[i].type*vgame.tileSize;
     rect.topLeft.y = vgame.tileSize;
@@ -1028,14 +1264,18 @@ UIDrawSpecialUnit(int i, int xpos, int ypos)
             xpos*vgame.tileSize+XOFFSET,
             ypos*vgame.tileSize+YOFFSET,
             winOverlay);
-
 }
 
+/*
+ * Draw a special object a the location chosen.
+ * Mostly monsters, but it coud be a train, palin, chopper
+ */
 void
 UIDrawSpecialObject(int i, int xpos, int ypos)
 {
     RectangleType rect;
-    if (DoDrawing == 0) { return; }
+    if (IsDeferDrawing())
+        return;
 
     rect.topLeft.x = (game.objects[i].dir) * vgame.tileSize;
     rect.topLeft.y = ((i*2)+1) * vgame.tileSize;
@@ -1059,12 +1299,16 @@ UIDrawSpecialObject(int i, int xpos, int ypos)
             winOverlay);
 }
 
+/*
+ * Paint the location on screen with the field.
+ */
 void
 UIDrawField(int xpos, int ypos, unsigned char nGraphic)
 {
     RectangleType rect;
 
-    if (DoDrawing == 0) { return; }
+    if (IsDeferDrawing())
+        return;
 
     rect.topLeft.x = (nGraphic%64) * vgame.tileSize;
     rect.topLeft.y = (nGraphic/64) * vgame.tileSize;
@@ -1091,7 +1335,8 @@ UIScrollMap(dirType direction)
     RectangleType rect;
     int to_x, to_y, i;
 
-    if (DoDrawing == 0) { return; }
+    if (IsDeferDrawing())
+        return;
 
     UILockScreen();
 
@@ -1136,8 +1381,10 @@ UIScrollMap(dirType direction)
     UnlockWorld();
 }
 
-
-extern unsigned long
+/*
+ * Get a random number.
+ */
+unsigned long
 GetRandomNumber(unsigned long max)
 {
     if (max == 0) return 0;
@@ -1176,8 +1423,9 @@ struct StatusPositions {
     UInt32 extents;
 };
 
-/* extent.x is filled in automatically */
-
+/*
+ * extents.x is filled in by initTextPositions
+ */
 static struct StatusPositions lrpositions[] = {
     { { {0, 0}, {0, 11} }, {0, 1}, MIDX },  /* DATELOC */
     { { {0, 0}, {0, 11} }, {0, 1}, ENDY }, /* CREDITSLOC */
@@ -1186,6 +1434,9 @@ static struct StatusPositions lrpositions[] = {
 };
 #ifdef SONY_CLIE
 
+/*
+ * High resolution version of the positions
+ */
 static struct StatusPositions hrpositions[] = {
     { { {2, 0}, {0, 11} }, {0, 1}, ENDY },  /* DATELOC */
     { { {80, 0}, {0, 11} }, {0, 1}, ENDY }, /* CREDITSLOC */
@@ -1193,6 +1444,10 @@ static struct StatusPositions hrpositions[] = {
     { { {280, 0}, {0, 11} }, {0, 1}, ENDY }, /* POSITIONLOC */
 };
 
+/*
+ * Get the valid array of status positions
+ * Depends on if we're in High Resolution mode or not
+ */
 static struct StatusPositions *
 posAt(int pos)
 {
@@ -1210,7 +1465,9 @@ posAt(int pos)
 #endif
 #define MAXLOC          (sizeof (lrpositions) / sizeof (lrpositions[0]))
 
-/* only the topLeft.y location is a 'constant' */
+/*
+ * only the topLeft.y location is a 'constant'
+ */
 void
 initTextPositions(void)
 {
@@ -1223,7 +1480,11 @@ initTextPositions(void)
     }
 }
 
-void UIDrawItem(int location, char *text)
+/*
+ * Draw a status item at the position requested
+ */
+void
+UIDrawItem(int location, char *text)
 {
     struct StatusPositions *pos;
     Int16 sl;
@@ -1256,6 +1517,10 @@ void UIDrawItem(int location, char *text)
         _FntSetFont(stdFont);
 }
 
+/*
+ * Check a click in the display.
+ * See if it's one of the status locations. If it is then return it.
+ */
 static int
 UICheckOnClick(Coord x, Coord y)
 {
@@ -1272,6 +1537,9 @@ UICheckOnClick(Coord x, Coord y)
     return (-1);
 }
 
+/*
+ * Perform an action based on the location on screen that was clicked.
+ */
 static void
 CheckTextClick(Coord x, Coord y)
 {
@@ -1294,19 +1562,25 @@ CheckTextClick(Coord x, Coord y)
     }
 }
 
-extern void
+/*
+ * Draw the date on screen.
+ */
+void
 UIDrawDate(void)
 {
     char temp[23];
 
-    if (DoDrawing == 0) { return; }
+    if (IsDeferDrawing())
+        return;
 
     GetDate((char*)temp);
     UIDrawItem(DATELOC, temp);
 }
 
-
-extern void
+/*
+ * Draw the amount of credits on screen.
+ */
+void
 UIDrawCredits(void)
 {
     char temp[23];
@@ -1315,7 +1589,8 @@ UIDrawCredits(void)
     BitmapPtr bitmap;
 #endif
 
-    if (DoDrawing == 0) { return; }
+    if (IsDeferDrawing())
+        return;
 
     StrPrintF(temp, "$: %ld", game.credits);
     UIDrawItem(CREDITSLOC, temp);
@@ -1332,7 +1607,10 @@ UIDrawCredits(void)
     UIDrawDate();
 }
 
-extern void
+/*
+ * Draw the map position on screen
+ */
+void
 UIDrawLoc(void)
 {
     char temp[25];
@@ -1341,7 +1619,8 @@ UIDrawLoc(void)
     BitmapPtr bitmap;
 #endif
 
-    if (DoDrawing == 0) { return; }
+    if (IsDeferDrawing())
+        return;
 
 #ifdef SONY_CLIE
     if (isHires()) {
@@ -1372,12 +1651,15 @@ UIDrawLoc(void)
     UIDrawItem(POSITIONLOC, temp);
 }
 
-extern void
+/*
+ * Update the build icon on screen
+ */
+void
 UIUpdateBuildIcon(void)
 {
     MemHandle bitmaphandle;
     BitmapPtr bitmap;
-    if (DoDrawing == 0) { return; }
+    if (IsDeferDrawing()) { return; }
 
     bitmaphandle = DmGet1Resource('Tbmp', bitmapID_iconBulldoze +
             (((nSelectedBuildItem <= Be_Extra)) ?
@@ -1394,7 +1676,10 @@ UIUpdateBuildIcon(void)
 #endif
 }
 
-extern void
+/*
+ * Draw the speed icon on screen
+ */
+void
 UIDrawSpeed(void)
 {
     MemHandle  bitmaphandle;
@@ -1409,7 +1694,11 @@ UIDrawSpeed(void)
     DmReleaseResource(bitmaphandle);
 }
 
-extern void
+/*
+ * Draw the population on screen.
+ * As a side effect also draws the population, Location and Speed to screen
+ */
+void
 UIDrawPop(void)
 {
     char temp[25];
@@ -1418,7 +1707,8 @@ UIDrawPop(void)
     BitmapPtr bitmap;
 #endif
 
-    if (DoDrawing == 0) { return; }
+    if (IsDeferDrawing())
+        return;
 
     StrPrintF(temp, "Pop: %lu", vgame.BuildCount[COUNT_RESIDENTIAL] * 150);
     UIDrawItem(POPLOC, temp);
@@ -1436,20 +1726,26 @@ UIDrawPop(void)
 #endif
 }
 
-extern void
+/*
+ * Check if we've got dosh to do what we're asking to do.
+ * If we're nearly broke show us a warning dialog.
+ * If we're broke then show us a we're broke dialog.
+ * Only show them once per game.
+ */
+void
 UICheckMoney(void)
 {
     if (game.credits == 0) {
-        if(noShown == 0) {
+        if(!IsOutShown()) {
             FrmAlert(alertID_outMoney);
-            noShown = 1;
+            SetOutShown();
         } else {
             return;
         }
     } else if ((game.credits <= 1000) || (game.credits == 1000)) {
-        if(lowShown==0) {
+        if(!IsLowShown()) {
             FrmAlert(alertID_lowFunds);
-            lowShown=1;
+            SetLowShown();
         } else {
             return;
         }
@@ -1462,11 +1758,11 @@ InitWorld(void)
 {
     worldHandle = MemHandleNew(10);
     worldFlagsHandle = MemHandleNew(10);
-    UIWriteLog("Allocation initial 20 bytes\n");
+    WriteLog("Allocation initial 20 bytes\n");
 
     if (worldHandle == 0 || worldFlagsHandle == 0) {
         UIDisplayError(enOutOfMemory);
-        UIWriteLog("FAILED!\n");
+        WriteLog("FAILED!\n");
         return 0;
     }
     return 1;
@@ -1479,15 +1775,15 @@ ResizeWorld(long unsigned size)
 #ifdef DEBUG
     char temp[20];
     StrPrintF(temp,"%i\n",size);
-    UIWriteLog("Allocating bytes: ");
-    UIWriteLog(temp);
+    WriteLog("Allocating bytes: ");
+    WriteLog(temp);
 #endif
 
     if (MemHandleResize(worldHandle, size) != 0 ||
       MemHandleResize(worldFlagsHandle, size) != 0) {
         UIDisplayError(enOutOfMemory);
         /* QuitGameError(); */
-        UIWriteLog("FAILED!\n");
+        WriteLog("FAILED!\n");
         return 0;
     }
 
@@ -1580,25 +1876,18 @@ static Err
 RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
 {
     UInt32 romVersion;
-#ifdef DEBUG
-    char temp[20];
-#endif
 
     /* See if we're on in minimum required version of the ROM or later. */
     FtrGet(sysFtrCreator, sysFtrNumROMVersion, &romVersion);
-#ifdef DEBUG
-    StrPrintF(temp, "0x%lx", romVersion);
-    UIWriteLog("Rom version: ");
-    UIWriteLog(temp);
-    UIWriteLog("\n");
-#endif
+
+    WriteLog("Rom Version: 0x%lx\n", (unsigned long)romVersion);
 
     if (romVersion < requiredVersion) {
         if ((launchFlags &
               (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp)) ==
                 (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp)) {
             if (romVersion > sysMakeROMVersion(3, 1, 0, 0, 0)) {
-                oldROM = 1;
+                ClearNewROM();
                 return (0);
             }
 
@@ -1613,6 +1902,7 @@ RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
         }
         return (sysErrRomIncompatible);
     }
+    SetNewROM();
     return (0);
 }
 
@@ -1661,11 +1951,9 @@ doButtonEvent(ButtonEvent event)
 	UIDoQuickList();
 	break;
     case BeMap:
-	SaveSpeed();
 	FrmGotoForm(formID_map);
 	break;
     case BeBudget:
-	SaveSpeed();
 	FrmGotoForm(formID_budget);
         break;
     case BePopulation:
@@ -1739,7 +2027,7 @@ buildSilkList()
 #if defined(DEBUG)
             char log[200];
             StrPrintF(log, "btn: %ld char: %lx\n", (long)atbtn, (long)silkinfo[atbtn].asciiCode);
-            UIWriteLog(log);
+            WriteLog(log);
 #endif
             if (silkinfo[atbtn].asciiCode == vchrFind) {
                 if (atbtn >0) {
@@ -1855,15 +2143,25 @@ HoldHook(UInt32 held)
 #endif
 
 #ifdef DEBUG
-extern void
-UIWriteLog(char *s)
+
+#include <unix_stdarg.h>
+
+void
+WriteLog(char *s, ...)
 {
+    va_list args;
     HostFILE * hf = NULL;
+    Char text[0x100];
+
+    va_start(args, s);
 
     hf = HostFOpen("\\pcity.log", "a");
     if (hf) {
-        HostFPrintF(hf, s);
+        StrVPrintF(text, s, args);
+
+        HostFPrintF(hf, text);
         HostFClose(hf);
     }
+    va_end(args);
 }
 #endif

@@ -9,6 +9,7 @@
 
 #include <resCompat.h>
 #include <simcity_resconsts.h>
+#include <simcity.h>
 
 static UInt32 oWidth = 0;
 static UInt32 oHeight = 0;
@@ -32,10 +33,9 @@ UInt32
 getDepth(void)
 {
     static UInt32 avd = 0;
-    extern short int oldROM;
     if (avd != 0)
         return (avd);
-    if (!oldROM) {
+    if (IsNewROM()) {
 	    (void) _WinScreenMode(winScreenModeGet, NULL, NULL,
 				  &avd, NULL);
 	    /* avd = 1 << (avd-1); */

@@ -19,20 +19,240 @@
 #include <resCompat.h>
 #include <palmutils.h>
 
-void _UIUpdateSaveGameList(void);
-void _UICreateNewSaveGame(void);
-void _UICleanSaveGameList(void);
-void _UIDeleteFromList(void);
-int  _UILoadFromList(void);
-void UIDeleteGame(UInt16 index);
-int  UILoadGame(UInt16 index);
-void UINewGame(void);
+static void _UIUpdateSaveGameList(void);
+static void _UICreateNewSaveGame(void);
+static void _UICleanSaveGameList(void);
+static void _UIDeleteFromList(void);
+static int  _UILoadFromList(void);
+static void UISaveGame(UInt16 index);
+static void UIDeleteGame(UInt16 index);
+static int  UILoadGame(UInt16 index);
+static void UINewGame(void);
+static DmOpenRef OpenMyDB(void);
 
-char *pArray[50];
+static char *pArray[50];
 static short int savegame_index = 0;
 #define LASTGAME        ((UInt16)~0)
 
+/*
+ * Load the game form the auto-save slot
+ */
+int
+UILoadAutoGame(void)
+{
+    return UILoadGame(0);
+}
+
+/*
+ * Delete the game stored in the auto-save slot
+ */
 void
+UIClearAutoSaveSlot(void)
+{
+    DmOpenRef db;
+    MemHandle rec;
+    void * pRec;
+
+    db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(), dmModeReadWrite);
+    if (!db) {
+            return; /* couldn't create */
+    }
+    /* no, this should NOT be an "else if" */
+    rec = DmGetRecord(db,0);
+    if (rec) {
+        pRec = MemHandleLock(rec);
+        DmWrite(pRec, 0, "PCNO", 4);
+        MemHandleUnlock(rec);
+        DmReleaseRecord(db, 0, true);
+    }
+
+    DmCloseDatabase(db);
+}
+
+/*
+ * save the city that is currently being used.
+ * Needs to find the city in the set of saved cities
+ */
+void
+UISaveMyCity(void)
+{
+    DmOpenRef db = NULL;
+    MemHandle rec;
+    GameStruct *pRec;
+    unsigned short int nRec;
+    unsigned short int i;
+
+    if (savegame_index == 0) { /* I am the autosave slot... get real slot */
+        db = OpenMyDB();
+        if (!db) {
+            FrmCustomAlert(alertID_majorbad,
+              "Can't Open/Create the savegame database", NULL, NULL);
+            return;
+        }
+        nRec = DmNumRecords(db);
+        for (i = 1; i < nRec; i++) {
+            rec = DmQueryRecord(db, i);
+            if (rec) {
+                pRec = (GameStruct *)MemHandleLock(rec);
+                if (strcmp(pRec->cityname, game.cityname) == 0) {
+                    savegame_index = i;
+                    MemHandleUnlock(rec);
+                    break;
+                }
+                MemHandleUnlock(rec);
+            }
+        }
+    }
+    if (db) DmCloseDatabase(db);
+    if (savegame_index == 0) {
+        savegame_index = LASTGAME;
+    }
+    UISaveGame(savegame_index);
+}
+
+/*
+ * Save the autosave game.
+ * This is a different to 'my city'. the autosave slot is *Distinct* from
+ * the mycity slot. If you don't save the game before loading a new-one then
+ * you've lost all the changes since the last time you explicitly saved it,
+ * and for a lot of people that is the time they first loaded the city.
+ */
+void
+UISaveAutoGame(void)
+{
+    UISaveGame(0);
+}
+
+/*
+ * Handler for the new file form.
+ * Makes sure that the text field is given focus.
+ */
+Boolean
+hFilesNew(EventPtr event)
+{
+    FormPtr form;
+    int handled = 0;
+    char * pGameName;
+
+    switch (event->eType) {
+    case frmOpenEvent:
+        SetGameNotInProgress();
+        form = FrmGetActiveForm();
+        FrmSetFocus(form, FrmGetObjectIndex(form, fieldID_newGameName));
+		FrmSetControlValue(form, FrmGetObjectIndex(form, buttonID_Easy), 1);
+        FrmDrawForm(form);
+        handled = 1;
+        break;
+    case frmCloseEvent:
+        break;
+    case ctlSelectEvent:
+        switch (event->data.ctlSelect.controlID) {
+        case buttonID_FilesNewCreate:
+            WriteLog("Create pushed\n");
+            /* need to fetch the savegame name from the form */
+            form = FrmGetActiveForm();
+            pGameName = FldGetTextPtr(FrmGetObjectPtr(form,
+                  FrmGetObjectIndex(form, fieldID_newGameName)));
+			if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Easy)))
+				SetDifficultyLevel(0);
+			if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Medium)))
+				SetDifficultyLevel(1);
+			if (FrmGetControlValue(form, FrmGetObjectIndex(form, buttonID_Hard)))
+				SetDifficultyLevel(2);
+            if (pGameName != NULL) {
+                strcpy((char*)game.cityname,pGameName);
+                _UICreateNewSaveGame();
+                _UICleanSaveGameList();
+                if (UILoadGame(LASTGAME)) {
+                    FrmEraseForm(form);
+                    form = FrmGetFormPtr(formID_files);
+                    if (form)
+                        FrmEraseForm(form);
+                    FrmGotoForm(formID_pocketCity);
+                } else {
+                    _UIUpdateSaveGameList();
+                }
+            } else {
+                strcpy((char*)game.cityname,"");
+                WriteLog("No name specified\n");
+            }
+            handled = 1;
+            break;
+        case buttonID_FilesNewCancel:
+            WriteLog("Cancel pushed\n");
+            /* set (char*)cityname to '\0' */
+            game.cityname[0] = '\0';
+            FrmReturnToForm(0);
+            handled = 1;
+            break;
+        }
+        break;
+    default:
+        break;
+    }
+
+    return handled;
+}
+
+/*
+ * Handler for the list of cities dialog.
+ * Ensures that the list is populated with all the cities in the save game
+ * slots.
+ */
+Boolean
+hFiles(EventPtr event)
+{
+    FormPtr form;
+    int handled = 0;
+
+    switch (event->eType) {
+    case frmOpenEvent:
+        SetGameNotInProgress();
+        form = FrmGetActiveForm();
+        _UIUpdateSaveGameList();
+        FrmDrawForm(form);
+        handled = 1;
+        break;
+    case frmCloseEvent:
+        _UICleanSaveGameList();
+        break;
+    case ctlSelectEvent:
+        switch (event->data.ctlSelect.controlID)
+        {
+        case buttonID_FilesNew:
+            /* create new game and add it to the list */
+            FrmPopupForm(formID_filesNew);
+            handled = 1;
+            break;
+        case buttonID_FilesLoad:
+            /* create new game */
+            if (_UILoadFromList()) {
+                FrmGotoForm(formID_pocketCity);
+            }
+            handled = 1;
+            break;
+        case buttonID_FilesDelete:
+            _UIDeleteFromList();
+            _UICleanSaveGameList();
+            _UIUpdateSaveGameList();
+            handled = 1;
+            break;
+        }
+        break;
+    default:
+        break;
+    }
+
+    return handled;
+}
+
+/*
+ * Update the list of save games.
+ * Can be called from 2 contexts ... from the delete items dialog
+ * or from the main save game dialog. That's the reason for the
+ * check agains the active form and the formID_files pointer
+ */
+static void
 _UIUpdateSaveGameList(void)
 {
     DmOpenRef db;
@@ -77,7 +297,11 @@ _UIUpdateSaveGameList(void)
               FrmGetObjectIndex(form, listID_FilesList)));
 }
 
-void
+/*
+ * free the memory that has been allocated in the files form.
+ * Makes sure that all the objects allocated have been released.
+ */
+static void
 _UICleanSaveGameList(void)
 {
     int i,n;
@@ -94,8 +318,12 @@ _UICleanSaveGameList(void)
     LstSetListChoices(fp, NULL, 0);
 }
 
-
-void
+/*
+ * Create a new save game slot.
+ * Save the city into it using a special save-game mode that says it is to
+ * be reconfigured
+ */
+static void
 _UICreateNewSaveGame(void)
 {
     Err err = 0;
@@ -109,13 +337,13 @@ _UICreateNewSaveGame(void)
     if (!db) {
         err = DmCreateDatabase(0, SGNAME, GetCreatorID(), SGTYP, false);
         if (err) {
-            return; /* couldn't create */
+            return;             /* couldn't create */
         }
 
         db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(),
           dmModeReadWrite);
         if (!db) {
-            return; /* couldn't open after creation */
+            return;             /* couldn't open after creation */
         }
     }
     /* no, this should NOT be an "else if" */
@@ -149,7 +377,13 @@ _UICreateNewSaveGame(void)
     }
 }
 
-int
+/*
+ * Load a game from the list of save games
+ * Uses the index into the array, as the array is
+ * unsorted, and maps 1:1 with the underlying savegames
+ * XXX: Sort the list of file names
+ */
+static int
 _UILoadFromList(void)
 {
     FormPtr form = FrmGetFormPtr(formID_files);
@@ -161,7 +395,13 @@ _UILoadFromList(void)
     }
 }
 
-void
+/*
+ * Delete a game from the list of savegames.
+ * uses the index into the list to choose the city to delete
+ * This is agian because the array is unsorted
+ * XXX: Sort the list of file names
+ */
+static void
 _UIDeleteFromList(void)
 {
     FormPtr form = FrmGetFormPtr(formID_files);
@@ -172,60 +412,37 @@ _UIDeleteFromList(void)
     }
 }
 
-
-void
-UIClearAutoSaveSlot(void)
-{
-    DmOpenRef db;
-    MemHandle rec;
-    void * pRec;
-
-    db = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(), dmModeReadWrite);
-    if (!db) {
-            return; /* couldn't create */
-    }
-    /* no, this should NOT be an "else if" */
-    rec = DmGetRecord(db,0);
-    if (rec) {
-        pRec = MemHandleLock(rec);
-        DmWrite(pRec, 0, "PCNO", 4);
-        MemHandleUnlock(rec);
-        DmReleaseRecord(db, 0, true);
-    }
-
-    DmCloseDatabase(db);
-}
-
-void
+/*
+ * Reset the viewable elements of the volatile game configuration.
+ * We set the tile size (16 pels).
+ * We reserve 2 tiles (one at the top, one at the bottom) for use
+ * with status information.
+ */
+static void
 UIResetViewable(void)
 {
-    /*
-     * The UI part is responsible for setting
-     * the visible_x/y vars
-     * and then call SetupNewGame()
-     * tile is 16 * 16
-     * we reserve nothing on the x axis, but 2 tiles on the y
-     */
     vgame.tileSize = 16;
     vgame.visible_x = sWidth / vgame.tileSize;
     vgame.visible_y = (sHeight / vgame.tileSize) - 2;
 }
 
-void
+/*
+ * Set up a new game.
+ * Hands off everything to other routines
+ */
+static void
 UINewGame(void)
 {
     SetupNewGame();
     UIResetViewable();
-    game_in_progress = 1;
+    ResumeGame();
 }
 
-
-int
-UILoadAutoGame(void)
-{
-    return UILoadGame(0);
-}
-
+/*
+ * Open up the savegame database.
+ * If it does not exist, then it tries to create it.
+ * It will return a reference to the database if successful, NULL otherwise.
+ */
 static DmOpenRef
 OpenMyDB(void)
 {
@@ -242,7 +459,12 @@ OpenMyDB(void)
     return (db);
 }
 
-void
+/*
+ * Delete the savegame from the list of savegames.
+ * This will also compact the database of savegames. i.e. when the
+ * savegame is deleted it is removed completely.
+ */
+static void
 UIDeleteGame(UInt16 index)
 {
     DmOpenRef db;
@@ -260,7 +482,10 @@ UIDeleteGame(UInt16 index)
     DmCloseDatabase(db);
 }
 
-int
+/*
+ * Load a game by index into the list of savegames.
+ */
+static int
 UILoadGame(UInt16 index)
 {
     DmOpenRef db;
@@ -311,50 +536,10 @@ UILoadGame(UInt16 index)
     return loaded;
 }
 
-void
-UISaveMyCity(void)
-{
-    DmOpenRef db = NULL;
-    MemHandle rec;
-    GameStruct *pRec;
-    unsigned short int nRec;
-    unsigned short int i;
-
-    if (savegame_index == 0) { /* I am the autosave slot... get real slot */
-        db = OpenMyDB();
-        if (!db) {
-            FrmCustomAlert(alertID_majorbad,
-              "Can't Open/Create the savegame database", NULL, NULL);
-            return;
-        }
-        nRec = DmNumRecords(db);
-        for (i = 1; i < nRec; i++) {
-            rec = DmQueryRecord(db, i);
-            if (rec) {
-                pRec = (GameStruct *)MemHandleLock(rec);
-                if (strcmp(pRec->cityname, game.cityname) == 0) {
-                    savegame_index = i;
-                    MemHandleUnlock(rec);
-                    break;
-                }
-                MemHandleUnlock(rec);
-            }
-        }
-    }
-    if (db) DmCloseDatabase(db);
-    if (savegame_index == 0) {
-        savegame_index = LASTGAME;
-    }
-    UISaveGame(savegame_index);
-}
-
-void
-UISaveAutoGame(void)
-{
-    UISaveGame(0);
-}
-
-void
+/*
+ * Save a game into the database of savegames.
+ */
+static void
 UISaveGame(UInt16 index)
 {
     DmOpenRef db = NULL;
@@ -380,6 +565,7 @@ UISaveGame(UInt16 index)
         MemHandleUnlock(rec);
         DmReleaseRecord(db,index,true);
     }
+    /* tag DB so it gets saved */
     { UInt16 attr = dmHdrAttrBackup;
         DmSetDatabaseInfo(0, DmFindDatabase(0, SGNAME), NULL, &attr, NULL,
             NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -387,113 +573,3 @@ UISaveGame(UInt16 index)
     DmCloseDatabase(db);
 }
 
-
-
-
-Boolean
-hFilesNew(EventPtr event)
-{
-    FormPtr form;
-    int handled = 0;
-    char * pGameName;
-
-    switch (event->eType) {
-    case frmOpenEvent:
-        game_in_progress = 0;
-        form = FrmGetActiveForm();
-        FrmDrawForm(form);
-        FrmSetFocus(form, FrmGetObjectIndex(form, fieldID_newGameName));
-        handled = 1;
-        break;
-    case frmCloseEvent:
-        break;
-    case ctlSelectEvent:
-        switch (event->data.ctlSelect.controlID) {
-        case buttonID_FilesNewCreate:
-            UIWriteLog("Create pushed\n");
-            /* need to fetch the savegame name from the form */
-            form = FrmGetActiveForm();
-            pGameName = FldGetTextPtr(FrmGetObjectPtr(form,
-                  FrmGetObjectIndex(form, fieldID_newGameName)));
-            if (pGameName != NULL) {
-                strcpy((char*)game.cityname,pGameName);
-                _UICreateNewSaveGame();
-                _UICleanSaveGameList();
-                if (UILoadGame(LASTGAME)) {
-                    FrmEraseForm(form);
-                    form = FrmGetFormPtr(formID_files);
-                    if (form)
-                        FrmEraseForm(form);
-                    FrmGotoForm(formID_pocketCity);
-                } else {
-                    _UIUpdateSaveGameList();
-                }
-            } else {
-                strcpy((char*)game.cityname,"");
-                UIWriteLog("No name specified\n");
-            }
-            handled = 1;
-            break;
-        case buttonID_FilesNewCancel:
-            UIWriteLog("Cancel pushed\n");
-            /* set (char*)cityname to '\0' */
-            game.cityname[0] = '\0';
-            FrmReturnToForm(0);
-            handled = 1;
-            break;
-        }
-        break;
-    default:
-        break;
-    }
-
-    return handled;
-}
-
-
-extern Boolean
-hFiles(EventPtr event)
-{
-    FormPtr form;
-    int handled = 0;
-
-    switch (event->eType) {
-    case frmOpenEvent:
-        game_in_progress = 0;
-        form = FrmGetActiveForm();
-        FrmDrawForm(form);
-        _UIUpdateSaveGameList();
-        handled = 1;
-        break;
-    case frmCloseEvent:
-        _UICleanSaveGameList();
-        break;
-    case ctlSelectEvent:
-        switch (event->data.ctlSelect.controlID)
-        {
-        case buttonID_FilesNew:
-            /* create new game and add it to the list */
-            FrmPopupForm(formID_filesNew);
-            handled = 1;
-            break;
-        case buttonID_FilesLoad:
-            /* create new game */
-            if (_UILoadFromList()) {
-                FrmGotoForm(formID_pocketCity);
-            }
-            handled = 1;
-            break;
-        case buttonID_FilesDelete:
-            _UIDeleteFromList();
-            _UICleanSaveGameList();
-            _UIUpdateSaveGameList();
-            handled = 1;
-            break;
-        }
-        break;
-    default:
-        break;
-    }
-
-    return handled;
-}

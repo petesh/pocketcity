@@ -121,13 +121,20 @@ USABLE
 BEGIN
     TITLE "Game Options"
     /* disasters - some people wants to adjust the frequency */
-    LABEL "Disasters:" AUTOID AT (4 18)
-    PUSHBUTTON "Off" ID buttonID_dis_off   AT (PREVRIGHT+6 PREVTOP AUTO AUTO) GROUP 1
+    LABEL "Disasters:" AUTOID AT (RIGHT@60 18)
+    PUSHBUTTON "Off" ID buttonID_dis_off   AT (PREVRIGHT+4 PREVTOP AUTO AUTO) GROUP 1
     PUSHBUTTON "I"   ID buttonID_dis_one   AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
     PUSHBUTTON "II"  ID buttonID_dis_two   AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
     PUSHBUTTON "III" ID buttonID_dis_three AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
 
-    CHECKBOX "Auto Bulldoze" ID checkboxID_autobulldoze AT (4 PREVBOTTOM+6 AUTO AUTO) LEFTANCHOR
+    LABEL "Difficulty:" AUTOID AT (RIGHT@60 PREVBOTTOM+4)
+    PUSHBUTTON "Easy" ID buttonID_Easy AT (PREVRIGHT+4 PREVTOP AUTO AUTO) GROUP 2
+    PUSHBUTTON "Medium" ID buttonID_Medium AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 2
+    PUSHBUTTON "Hard" ID buttonID_Hard AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 2
+
+    LABEL "Auto Bulldoze:" AUTOID AT (RIGHT@60 PREVBOTTOM+4)
+
+    CHECKBOX "" ID checkboxID_autobulldoze AT (PREVRIGHT+1 PREVTOP AUTO AUTO) RIGHTANCHOR
 
     BUTTON "OK" ID buttonID_OK AT (2 146 AUTO AUTO)
     BUTTON "Cancel" ID buttonID_Cancel AT (PREVRIGHT+4 PREVTOP AUTO AUTO)
@@ -175,17 +182,22 @@ BEGIN
     BUTTON "Delete"  ID buttonID_FilesDelete  AT (prevright+4 prevtop AUTO AUTO)
 END
 
-FORM ID formID_filesNew AT ( 1 98 158 59 )
+FORM ID formID_filesNew AT ( 1 78 158 79 )
 USABLE
 SAVEBEHIND
 MODAL
 DEFAULTBTNID buttonID_FilesNewCancel
 BEGIN
     TITLE "New city"
-    LABEL "Name: " AUTOID AT (3 20)
-    FIELD ID fieldID_newGameName AT (prevright+2 prevtop 120 20 ) UNDERLINED
+    FIELD ID fieldID_newGameName AT (54 20 92 AUTO ) UNDERLINED
     MAXCHARS 18 AUTOSHIFT
-    BUTTON "Create"     ID buttonID_FilesNewCreate     AT (2 prevbottom+5 AUTO AUTO)
+    LABEL "Name:" AUTOID AT (RIGHT@PREVLEFT-6 20)
+
+    LABEL "Difficulty:" AUTOID AT (RIGHT@PREVRIGHT PREVBOTTOM+6)
+    PUSHBUTTON "Easy" ID buttonID_Easy AT (54 PREVTOP AUTO AUTO) GROUP 1
+    PUSHBUTTON "Medium" ID buttonID_Medium AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
+    PUSHBUTTON "Hard" ID buttonID_Hard AT (PREVRIGHT PREVTOP AUTO AUTO) GROUP 1
+    BUTTON "Create"     ID buttonID_FilesNewCreate     AT (4 prevbottom+6 AUTO AUTO)
     BUTTON "Cancel"    ID buttonID_FilesNewCancel    AT (prevright+4 prevtop AUTO AUTO)
 END
 
@@ -215,13 +227,14 @@ BEGIN
     BUTTON "" ID gi_buildTree AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconTree SELECTEDBITMAPID bitmapID_iconPushed
     BUTTON "" ID gi_buildWater AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconWater SELECTEDBITMAPID bitmapID_iconPushed
 
-    /* next line  - defence and such */
-    BUTTON "" ID gi_buildExtra AT (3 PREVBOTTOM AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconExtra SELECTEDBITMAPID bitmapID_iconPushed
 
-    BUTTON "" ID gi_defenceFire     AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefFire SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID gi_defencePolice   AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefPolice SELECTEDBITMAPID bitmapID_iconPushed
-    BUTTON "" ID gi_defenceMilitary AT (PREVRIGHT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefMilitary SELECTEDBITMAPID bitmapID_iconPushed
-    
+    BUTTON "" ID gi_queryItem     AT (PREVLEFT PREVBOTTOM AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconQuery SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_defenceFire     AT (RIGHT@PREVLEFT-12 PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefFire SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_defencePolice   AT (RIGHT@PREVLEFT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefPolice SELECTEDBITMAPID bitmapID_iconPushed
+    BUTTON "" ID gi_defenceMilitary AT (RIGHT@PREVLEFT PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconDefMilitary SELECTEDBITMAPID bitmapID_iconPushed
+    /* next line  - defence and such */
+    BUTTON "" ID gi_buildExtra AT (3 PREVTOP AUTO AUTO) NOFRAME GRAPHICAL LEFTANCHOR BITMAPID bitmapID_iconExtra SELECTEDBITMAPID bitmapID_iconPushed
+
 END
 
 /* Entries need to match #define menuID...
@@ -381,10 +394,22 @@ BEGIN
 	POPUPLIST ID List_JogOut_Popup List_JogOut
 /* <<HIRES */
 
-
 	BUTTON "OK" ID buttonID_OK AT ( 8 146 AUTO AUTO )
 	BUTTON "Cancel" ID buttonID_Cancel AT ( PREVRIGHT+4 PREVTOP AUTO AUTO )
 END
+
+FORM ID formID_Query AT (0 0 160 160)
+USABLE
+NOSAVEBEHIND
+BEGIN
+	TITLE "Zone Status"
+
+	LABEL "-" labelID_zonetype AT ( 52 16 )
+	LABEL "Zone Type:"  AUTOID AT ( RIGHT@PREVLEFT-2 16 )
+
+	BUTTON "OK" ID buttonID_OK AT ( RIGHT@154 146 AUTO AUTO )
+END
+
 
 STRING ID StrID_tips FILE "../GAMEHINTS"
 

@@ -8,27 +8,29 @@
 #include <sections.h>
 #include <budget.h>
 
-static void BudgetInit(void) MAP_SECTION;
-static void BudgetFreeMem(void) MAP_SECTION;
+static FormPtr budgetSetup(void) MAP_SECTION;
+static void budgetCleanup(void) MAP_SECTION;
 
+/*
+ * Handler for the budget form.
+ * Takes care of events directed at the form.
+ */
 Boolean
 hBudget(EventPtr event)
 {
-    FormPtr form;
     int handled = 0;
 
     switch (event->eType)
     {
         case frmOpenEvent:
-            form = FrmGetActiveForm();
-            BudgetInit();
-            FrmDrawForm(form);
+            PauseGame();
+            WriteLog("opening budget\n");
+            FrmDrawForm(budgetSetup());
             handled = 1;
             break;
         case frmCloseEvent:
-            UIWriteLog("closing budget\n");
-            BudgetFreeMem();
-            RestoreSpeed();
+            WriteLog("closing budget\n");
+            budgetCleanup();
             break;
         case keyDownEvent:
             switch (event->data.keyDown.chr)
@@ -61,99 +63,85 @@ hBudget(EventPtr event)
     return handled;
 }
 
-static void
-BudgetInit(void)
+/*
+ * A collection of all the labels and their related items.
+ * Shrinks the code and makes it more consistent.
+ */
+static const struct updateentity {
+    const BudgetNumber  item;
+    const char          *formatstr;
+    const UInt32        label;
+} entity[] = {
+    { bnResidential, "%lu", labelID_budget_res },
+    { bnCommercial, "%lu", labelID_budget_com },
+    { bnIndustrial, "%lu", labelID_budget_ind },
+    { bnTraffic, "%lu", labelID_budget_tra },
+    { bnPower, "%lu", labelID_budget_pow },
+    { bnDefence, "%lu", labelID_budget_def },
+    { bnCurrentBalance, "%li", labelID_budget_now },
+    { bnChange, "%+li", labelID_budget_tot },
+    { bnNextMonth, "%li", labelID_budget_bal },
+    { 0, NULL, 0 }
+};
+
+/*
+ * Set up the budget form.
+ * configures all the text strings to read the values from the main
+ * simulation, as well as adding in space for the text fields to
+ * choose the %age to give over to each service.
+ */
+static FormPtr
+budgetSetup(void)
 {
-    FormPtr form;
-    char * temp;
-    
+    Char        *temp;
+    FormPtr     form;
+    MemHandle   texthandle;
+    MemPtr      text;
+    int         i;
+    struct updateentity *entityp = (struct updateentity *)&entity[0];
+
     form = FrmGetActiveForm();
+    temp = MemPtrNew(12 * (sizeof (entity) / sizeof (entity[0])));
 
-    temp = MemPtrNew(12);
-    StrPrintF(temp,"%lu", BudgetGetNumber(bnResidential));
-    CtlSetLabel(FrmGetObjectPtr(form,
-          FrmGetObjectIndex(form, labelID_budget_res)), temp);
-
-    temp = MemPtrNew(12);
-    StrPrintF(temp,"%lu", BudgetGetNumber(bnCommercial));
-    CtlSetLabel(FrmGetObjectPtr(form,
-          FrmGetObjectIndex(form, labelID_budget_com)), temp);
-
-    temp = MemPtrNew(12);
-    StrPrintF(temp,"%lu", BudgetGetNumber(bnIndustrial));
-    CtlSetLabel(FrmGetObjectPtr(form,
-          FrmGetObjectIndex(form, labelID_budget_ind)), temp);
-
-    temp = MemPtrNew(12);
-    StrPrintF(temp,"%lu", BudgetGetNumber(bnTraffic));
-    CtlSetLabel(FrmGetObjectPtr(form,
-          FrmGetObjectIndex(form, labelID_budget_tra)), temp);
-
-    temp = MemPtrNew(12);
-    StrPrintF(temp,"%lu", BudgetGetNumber(bnPower));
-    CtlSetLabel(FrmGetObjectPtr(form,
-          FrmGetObjectIndex(form, labelID_budget_pow)), temp);
-
-    temp = MemPtrNew(12);
-    StrPrintF(temp,"%lu", BudgetGetNumber(bnDefence));
-    CtlSetLabel(FrmGetObjectPtr(form,
-          FrmGetObjectIndex(form, labelID_budget_def)), temp);
-
-    temp = MemPtrNew(12);
-    StrPrintF(temp,"%li", BudgetGetNumber(bnCurrentBalance));
-    CtlSetLabel(FrmGetObjectPtr(form,
-          FrmGetObjectIndex(form, labelID_budget_now)), temp);
-
-    temp = MemPtrNew(12);
-    StrPrintF(temp,"%+li", BudgetGetNumber(bnChange));
-    CtlSetLabel(FrmGetObjectPtr(form,
-          FrmGetObjectIndex(form, labelID_budget_tot)), temp);
-
-    temp = MemPtrNew(12);
-    StrPrintF(temp,"%li", BudgetGetNumber(bnNextMonth));
-    CtlSetLabel(FrmGetObjectPtr(form,
-          FrmGetObjectIndex(form, labelID_budget_bal)), temp);
-
+    while (entityp->formatstr != NULL) {
+        StrPrintF(temp, entityp->formatstr, BudgetGetNumber(entityp->item));
+        CtlSetLabel(FrmGetObjectPtr(form,
+              FrmGetObjectIndex(form, entityp->label)), temp);
+        temp += 12;
+        entityp++;
+    }
 
     /* set up editable upkeep fields */
-    {
-        MemHandle texthandle;
-        MemPtr text;
-        int i;
-        for (i=0; i<3; i++) {
-            texthandle = MemHandleNew(4);
-            text = MemHandleLock(texthandle);
-            StrPrintF(text, "%u", game.upkeep[i]);
-            MemHandleUnlock(texthandle);
-            FldSetTextHandle(FrmGetObjectPtr(form,FrmGetObjectIndex(form,fieldID_budget_tra+i)) , texthandle);
-        }
+    for (i = 0; i < 3; i++) {
+        texthandle = MemHandleNew(5);
+        text = MemHandleLock(texthandle);
+        StrPrintF(text, "%u", game.upkeep[i]);
+        MemHandleUnlock(texthandle);
+        FldSetTextHandle(FrmGetObjectPtr(form,
+              FrmGetObjectIndex(form,fieldID_budget_tra+i)), texthandle);
     }
+    return (form);
 }
 
+/*
+ * save the upkeep settings.
+ * Also releases the memory that was allocated by the initialization routine.
+ */
 static void
-BudgetFreeMem(void)
+budgetCleanup(void)
 {
-    FormPtr form;
+    int         i, j;
+    FormPtr     form = FrmGetActiveForm();
+
+    for (i = 0; i < 3; i++) {
+        j = atol(FldGetTextPtr(FrmGetObjectPtr(form, FrmGetObjectIndex(form, fieldID_budget_tra+i))));
+        if (j < 0)
+            j = 0;
+        if (j > 100)
+            j = 100;
+        game.upkeep[i] = j;
+    }
 
     form = FrmGetActiveForm();
     MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_res))));
-    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_com))));
-    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_ind))));
-    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_tra))));
-    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_pow))));
-    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_def))));
-    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_tot))));
-    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_bal))));
-    MemPtrFree((void*)CtlGetLabel(FrmGetObjectPtr(form,FrmGetObjectIndex(form,labelID_budget_now))));
-
-    /* don't forget to save the upkeep settings ;) */
-    {
-        int i,j;
-        for (i=0; i<3; i++) {
-            j = atol(FldGetTextPtr(FrmGetObjectPtr(form, FrmGetObjectIndex(form, fieldID_budget_tra+i))));
-            if (j < 0)   {j = 0;}
-            if (j > 100) {j = 100;}
-            game.upkeep[i] = j;
-        }
-    }
 }

@@ -7,7 +7,8 @@
 #define formID_extraBuild                1006
 #define formID_options                   1007
 #define formID_DistribDetails            1008
-#define formID_ButtonConfig				 1009
+#define formID_ButtonConfig		 1009
+#define formID_Query    		 1010
 
 #define menu_pocketCity               	1000
 #define menu_budget                    	1001
@@ -59,12 +60,11 @@
 #define gi_defenceFire                  1112
 #define gi_defencePolice                1113
 #define gi_defenceMilitary              1114
-#define gi_buildExtra                   1115
+#define gi_queryItem                    1115
+#define gi_buildExtra                   1116
 
 #define listID_shifter_popup             5000
 #define listID_shifter                   5001
-
-#define OFFSET_EXTRA                     15 /* the extra for the offset */
 
 /* notice how the IDs here are the same as the menuIDs (uptil the "extra") */
 #define bitmapID_iconBulldoze            1100
@@ -86,9 +86,13 @@
 #define bitmapID_iconDefPolice           1113
 #define bitmapID_iconDefMilitary         1114
 
-/* anything after this isn't on the toolbar */
-#define bitmapID_iconExtra               1115
+#define bitmapID_iconQuery               1115
 
+/* anything after this isn't on the toolbar */
+#define bitmapID_iconExtra               1116
+
+/* Make sure this keeps in sync with the iconExtra */
+#define OFFSET_EXTRA                    (bitmapID_iconExtra-bitmapID_iconBulldoze)
 
 #define bitmapID_iconPushed              1400
 
@@ -144,12 +148,16 @@
 #define buttonID_FilesNewCancel         1012
 
 /* controls for options form */
-#define buttonID_dis_off                1010
-#define buttonID_dis_one                1011
-#define buttonID_dis_two                1012
-#define buttonID_dis_three              1013
+#define buttonID_dis_off                1000
+#define buttonID_dis_one                1001
+#define buttonID_dis_two                1002
+#define buttonID_dis_three              1003
 
-#define checkboxID_autobulldoze         1014
+#define buttonID_Easy                   1004
+#define buttonID_Medium                 1005
+#define buttonID_Hard                   1006
+
+#define checkboxID_autobulldoze         1010
 
 /* Controls for the DistribDetails Form */
 #define pb_dd_overview                  1000
@@ -220,3 +228,5 @@
 #define List_JogOut      2520
 #define List_JogOut_Popup 2521
 
+/* Controls for the Query Form */
+#define labelID_zonetype        1001

@@ -5,6 +5,7 @@
 #include <simcity.h>
 #include <simcity_resconsts.h>
 #include <ui.h>
+#include <map.h>
 #include <globals.h>
 #include <drawing.h>
 #include <resCompat.h>
@@ -12,69 +13,77 @@
 #include <sections.h>
 
 static void DrawMap(void) MAP_SECTION;
-Boolean hMap(EventPtr event) MAP_SECTION;
 
+static const int StartX = 1;
+static const int StartY = 17;
+
+/*
+ * Handler for the map.
+ * takes care of the set-up, pen clicks and popup events.
+ */
 Boolean
 hMap(EventPtr event)
 {
     FormPtr form;
     int handled = 0;
 
-    switch (event->eType)
-    {
-        case penDownEvent:
-            if (event->screenX >= 1  && event->screenX <= (GetMapSize() + 1) &&
-                event->screenY >= 17 &&
-                event->screenY <= (GetMapSize() + 17) ) {
-                Goto(event->screenX - 1, event->screenY - 17);
-                FrmGotoForm(formID_pocketCity);
-                handled = 1;
-            }
-            /* check for other 'penclicks' here */
-            break;
-        case frmOpenEvent:
-            form = FrmGetActiveForm();
-            FrmDrawForm(form);
-            DrawMap();
+    switch (event->eType) {
+    case penDownEvent:
+        if (event->screenX >= StartX  &&
+          event->screenX <= (GetMapSize() + StartX) &&
+          event->screenY >= StartY &&
+          event->screenY <= (GetMapSize() + StartY) ) {
+            Goto(event->screenX - StartX, event->screenY - StartY);
+            FrmGotoForm(formID_pocketCity);
+            handled = 1;
+        }
+        /* check for other 'penclicks' here */
+        break;
+    case frmOpenEvent:
+        PauseGame();
+        WriteLog("map opened\n");
+        form = FrmGetActiveForm();
+        FrmDrawForm(form);
+        DrawMap();
+        handled = 1;
+        break;
+    case frmCloseEvent:
+        WriteLog("map closed\n");
+        break;
+    case keyDownEvent:
+        switch (event->data.keyDown.chr) {
+        case vchrFind:
+        case vchrLaunch:
+            FrmGotoForm(formID_pocketCity);
             handled = 1;
             break;
-        case frmCloseEvent:
-            RestoreSpeed();
+        }
+        break;
+    case menuEvent:
+        switch (event->data.menu.itemID) {
+        case menuitemID_MapBack:
+            FrmGotoForm(formID_pocketCity);
+            handled = 1;
             break;
-        case keyDownEvent:
-            switch (event->data.keyDown.chr)
-            {
-                case vchrFind:
-                case vchrLaunch:
-                    FrmGotoForm(formID_pocketCity);
-                    handled = 1;
-                    break;
-            }
-            break;
-        case menuEvent:
-            switch (event->data.menu.itemID)
-            {
-                case menuitemID_MapBack:
-                    FrmGotoForm(formID_pocketCity);
-                    handled = 1;
-                    break;
-            }
-            break;
-        case popSelectEvent:
-            if (event->data.popSelect.controlID == listID_shifter_popup) {
-                UIGotoForm(event->data.popSelect.selection);
-                handled = 1;
-            }
-            break;
-        default:
-            break;
+        }
+        break;
+    case popSelectEvent:
+        if (event->data.popSelect.controlID == listID_shifter_popup) {
+            UIGotoForm(event->data.popSelect.selection);
+            handled = 1;
+        }
+        break;
+    default:
+        break;
     }
 
     return handled;
 }
 
 /*
- * The map looks too small if we use Hi-Res calls so we use the standard API.
+ * Draw the Map.
+ * Does not use the High-Resolution calls because the map would be too small
+ * on a high-resolution screen.
  */
 static void DrawMap(void)
 {
@@ -82,7 +91,7 @@ static void DrawMap(void)
     static IndexedColorType entries[5] = { 0, 1, 2, 3, 4 };
     static int inited = 0; /* 0 == not done 1 == */
     IndexedColorType cc = 1;
-    const RectangleType rect = { {1, 17}, {100, 100} };
+    const RectangleType rect = { {StartX, StartY}, {100, 100} };
     WinHandle wh;
     WinHandle swh;
     Err e;
@@ -99,7 +108,7 @@ static void DrawMap(void)
     swh = WinSetDrawWindow(wh);
     WinDrawRectangleFrame(1, &rect);
 
-    if (oldROM) {
+    if (!IsNewROM()) {
         /* Draw On The Bitmap Using direct write */
         addr = wh->displayAddrV20;
     }
@@ -107,7 +116,6 @@ static void DrawMap(void)
 
     /*
      * Entries are: gnd, water, house, comm, fac, oth
-     *
      */
     if (inited == 0) {
         inited++;
@@ -131,7 +139,7 @@ static void DrawMap(void)
         }
     }
 
-    if (!oldROM) {
+    if (IsNewROM()) {
         WinPushDrawState();
     }
     for (y = 0; y < GetMapSize(); y++) {
@@ -182,7 +190,7 @@ static void DrawMap(void)
             }
         }
     }
-    if (!oldROM) {
+    if (IsNewROM()) {
         WinPopDrawState();
     }
     WinSetDrawWindow(swh);
