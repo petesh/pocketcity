@@ -67,7 +67,7 @@ grcs.stm: simcity
 
 # for all
 game.stm: game.rcp
-	pilrc -q -D game.rcp temp
+	pilrc -q game.rcp temp
 	echo touching>$@
 
 version.stm: ../CHANGELOG
@@ -137,7 +137,7 @@ mg/:
 # dist
 DDIR=pcity-palm_$(VERSION)
 
-dist: all hires
+dist: all
 	@mkdir -p $(DDIR)
 	@cp ../Changelog ../Copying ../Gamehints ../Readme *.prc $(DDIR)
 	@tar cvzf $(DDIR).tar.gz $(DDIR)
