@@ -101,7 +101,10 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 			else
 			{
 				simState = Sim_DoPhase(simState);
-				RedrawAllFields();
+				if (simState == 0)
+				{
+					RedrawAllFields();
+				}
 			}
 			
 
