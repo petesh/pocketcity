@@ -20,6 +20,7 @@ unsigned char nSelectedBuildItem = 0;
 
 short lowShown = 0;
 short noShown = 0;
+short oldROM = 0;
 
 UInt32 timeStamp = 0;
 short simState = 0;
@@ -314,6 +315,7 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
 	int powerID = bitmapID_PowerLoss;
 
 	if (DoDrawing == 0) { return; }
+    if (oldROM == 1) { return; } // must be v3.5+ for some functions in here
 
 	WinPushDrawState();
 
@@ -581,6 +583,7 @@ Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags)
 		{
 			if (FrmAlert (alertID_RomIncompatible) == 1)
 			{ // try anyway
+                oldROM = 1;
 				return (0);
 			}
 		
