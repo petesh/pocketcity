@@ -22,6 +22,9 @@
 #include <simulation.h>
 #include <disaster.h>
 #include <compilerpragmas.h>
+#include <nix_utils.h>
+
+#define PATHSEARCH	".:./graphic:./graphic/icons:../graphic"
 
 /*! \brief handle to area on which the game is drawn */
 static GtkWidget *drawingarea;
@@ -411,9 +414,13 @@ setupToolBox(void)
 			continue;
 
 		button = gtk_button_new();
-		sprintf(image_path, "%s/graphic/icons/interface_%02i.png",
-			exec_dir, i);
-		button_image = gtk_image_new_from_file(image_path);
+		sprintf(image_path, "interface_%02i.png", i);
+		if (searchForFile(image_path, MAXPATHLEN, PATHSEARCH))
+			button_image = gtk_image_new_from_file(image_path);
+		else {
+			perror(image_path);
+			exit(1);
+		}
 		gtk_container_add(GTK_CONTAINER(button), button_image);
 		gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), button,
 		    actions[i].text, "test2");
@@ -554,29 +561,31 @@ void
 UISetUpGraphic(void)
 {
 	char image_path[MAXPATHLEN];
-	struct stat sbuf;
-	
-	sprintf(image_path, "%s/graphic/tile-16x16-color.png", exec_dir);
-	if (stat(image_path, &sbuf) == -1) {
+
+	strlcpy(image_path, "tile-16x16-color.png", MAXPATHLEN);
+	if (searchForFile(image_path, MAXPATHLEN, PATHSEARCH)) {
+		pzones = gdk_pixmap_create_from_xpm(drawingarea->window,
+		    &zones_mask, NULL, image_path);
+	} else {
 		perror(image_path);
 		exit(1);
 	}
-	pzones = gdk_pixmap_create_from_xpm(drawingarea->window,
-	    &zones_mask, NULL, image_path);
-	sprintf(image_path, "%s/graphic/monsters_16x16-color.png", exec_dir);
-	if (stat(image_path, &sbuf) == -1) {
+	strlcpy(image_path, "monsters_16x16-color.png", MAXPATHLEN);
+	if (searchForFile(image_path, MAXPATHLEN, PATHSEARCH)) {
+		pmonsters = gdk_pixmap_create_from_xpm(drawingarea->window,
+		    &monsters_mask, NULL, image_path);
+	} else {
 		perror(image_path);
 		exit(1);
 	}
-	pmonsters = gdk_pixmap_create_from_xpm(drawingarea->window,
-	    &monsters_mask, NULL, image_path);
-	sprintf(image_path, "%s/graphic/units_16x16-color.png", exec_dir);
-	if (stat(image_path, &sbuf) == -1) {
+	strlcpy(image_path, "units_16x16-color.png", MAXPATHLEN);
+	if (searchForFile(image_path, MAXPATHLEN, PATHSEARCH)) {
+		punits = gdk_pixmap_create_from_xpm(drawingarea->window,
+		    &units_mask, NULL, image_path);
+	} else {
 		perror(image_path);
 		exit(1);
 	}
-	punits = gdk_pixmap_create_from_xpm(drawingarea->window,
-	    &units_mask, NULL, image_path);
 }
 
 /*!

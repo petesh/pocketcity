@@ -12,7 +12,7 @@ LDLIBS = $(LIBS) $(GLFLAGS)
 
 OBJECTS = main.o savegame_fe.o budget.o \
 	handler.o build.o disaster.o drawing.o globals.o simulation.o \
-	stack.o savegame_be.o pglobals.o
+	stack.o savegame_be.o pglobals.o nix_utils.o
 
 .PHONY: all debug clean
 
