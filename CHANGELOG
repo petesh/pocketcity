@@ -14,6 +14,7 @@ Kean Pedersen:
   + Naming of savegames
   + Quick list on calculator button
   + Bridges (not over homemade water on purpose)
+  + 16bpp greyscale
   * Fire now spreads at it own rate - pause won't help
   * Cleaned compiler warnings
   * Uses less stackspace in recursive function (should fix the FE)

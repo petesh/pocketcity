@@ -10,8 +10,11 @@ INSTALLATION
 -----------
 To compile for PalmOS:
  type make in the 'palm' folder
- install either pcity.prc for black/white displays, or pcity-color.prc for
- 256 colors displays.
+ 
+ install:           for this:
+ pcity.prc          black/white displays
+ pcity-grey.prc     16bpp greyscale displays (like the Vx)
+ pcity-color.prc    256 colors displays      (like the IIIc)
 
 Special Features:
 =================
