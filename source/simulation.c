@@ -68,8 +68,8 @@ void PowerMoveOnFromThisPoint(unsigned long pos)
 		if ((GetWorldFlags(pos) & 0x01) == 0)
 		{
 			powerleft--;
-			if (GetWorld(pos) == 60) { powerleft += 50; }
-			if (GetWorld(pos) == 61) { powerleft +=150; }
+			if (GetWorld(pos) == 60) { powerleft += 100; }
+			if (GetWorld(pos) == 61) { powerleft +=300; }
 		}
 
 		SetWorldFlags(pos, GetWorldFlags(pos) | 0x03);
@@ -397,8 +397,8 @@ signed long GetZoneScore(long unsigned int pos)
     if (type != 2)
     {
         long signed int availPop = 
-                (BuildCount[COUNT_RESIDENTIAL]/3*2)
-                - (BuildCount[COUNT_COMMERCIAL] + BuildCount[COUNT_INDUSTRIAL]);
+                (BuildCount[COUNT_RESIDENTIAL]*25)
+                - (BuildCount[COUNT_COMMERCIAL]*25 + BuildCount[COUNT_INDUSTRIAL]*25);
         if (availPop <= 0) { UnlockWorld(); return -1; } // whoops, missing population
     }
     // and what is a store without something to sell? therefore we need
