@@ -19,6 +19,9 @@ typedef struct _stacky {
     long        sl; /* Stack Len */
 } Stacky;
 
+/*
+ * preallocates 128 elements to the stack
+ */
 void *
 StackNew(void)
 {
@@ -37,6 +40,9 @@ StackNew(void)
     return (s);
 }
 
+/*
+ * delete the contents of the stack
+ */
 void
 StackDelete(Stacky *sp)
 {
@@ -47,6 +53,9 @@ StackDelete(Stacky *sp)
     MemPtrFree(sp);
 }
 
+/*
+ * remove the top most item from the stack
+ */
 long
 StackPop(Stacky *sp)
 {
@@ -57,6 +66,9 @@ StackPop(Stacky *sp)
     return (-1);
 }
 
+/*
+ * add an element to the stack
+ */
 void
 StackPush(Stacky *sp, long elt)
 {
@@ -76,18 +88,27 @@ StackPush(Stacky *sp, long elt)
     *(++sp->sp) = elt;
 }
 
+/*
+ * check if the stack is empty
+ */
 int
 StackIsEmpty(Stacky *sp)
 {
     return (sp->sp < sp->ss);
 }
 
+/*
+ * 'empty' the stack.
+ */
 void
 StackDoEmpty(Stacky *sp)
 {
     sp->sp = sp->ss - 1;
 }
 
+/*
+ * get the count of the number of elements on the stack
+ */
 int
 StackNElements(Stacky *sp)
 {
