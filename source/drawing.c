@@ -1,3 +1,9 @@
+/*! \file
+ * \brief routines to deal with drawing
+ *
+ * This module contains all the routines that are used to
+ * paint and place items on the display
+ */
 #include <ui.h>
 #include <zakdef.h>
 #include <globals.h>
@@ -6,8 +12,8 @@
 
 static UInt8 GetGraphicNumber(UInt32 pos);
 
-/*
- * Set up the graphics.
+/*!
+ * \brief Set up the graphics.
  */
 void
 SetUpGraphic(void)
@@ -15,10 +21,13 @@ SetUpGraphic(void)
 	UISetUpGraphic();
 }
 
-/*
- * Set the map position to that location.
- * Repaint screen.
- * XXX: should only do visuals and location.
+/*!
+ * \brief Set the map position to that location.
+ *
+ * this function also repaints screen.
+ * \param x horizontal position
+ * \param y vertical position
+ * \todo should only do visuals and location.
  */
 void
 Goto(Int16 x, Int16 y)
@@ -36,10 +45,12 @@ Goto(Int16 x, Int16 y)
 	RedrawAllFields();
 }
 
-/*
- * Draw everything.
+/*!
+ * \brief Draw everything on the screen.
+ *
  * The Game area, Credits and population.
- * XXX: change to painting from a bitmap of the screen?
+ *
+ * \todo change to painting from a bitmap of the screen?
  */
 void
 RedrawAllFields(void)
@@ -66,9 +77,10 @@ RedrawAllFields(void)
 	UnlockWorld();
 }
 
-/*
- * Scroll the map in the direction specified
- * XXX: off by one error?
+/*!
+ * \brief Scroll the map in the direction specified
+ * \param direction the direction to scroll map in
+ * \todo off by one error?
  */
 void
 ScrollMap(dirType direction)
@@ -112,8 +124,9 @@ ScrollMap(dirType direction)
 	UIScrollMap(direction);
 }
 
-/*
- * Move the cursor in the location specified.
+/*!
+ * \brief Move the cursor in the location specified.
+ * \param direction the direction to scroll map in
  */
 void
 MoveCursor(dirType direction)
@@ -158,26 +171,28 @@ MoveCursor(dirType direction)
 	UnlockWorld();
 }
 
-/*
- * Draw the field at the specified location
+/*!
+ * \brief Draw the field at the specified location
+ * \param xpos horizontal position
+ * \param ypos vertical position
  */
 void
 DrawField(Int16 xpos, Int16 ypos)
 {
 	UIInitDrawing();
-	LockWorld();
 	LockWorldFlags();
 
 	DrawFieldWithoutInit(xpos, ypos);
 
 	UnlockWorldFlags();
-	UnlockWorld();
 	UIFinishDrawing();
 }
 
 
-/*
- * Draw a cursor cross
+/*!
+ * \brief Draw a cursor cross
+ * \param xpos horizontal position
+ * \param ypos vertical position
  */
 void
 DrawCross(Int16 xpos, Int16 ypos)
@@ -198,10 +213,14 @@ DrawCross(Int16 xpos, Int16 ypos)
 }
 
 
-/*
+/*!
+ * \brief draw a field without initializing something.
+ *
  * ONLY call this function if you make sure to call
  * UIInitDrawing and UIFinishDrawing in the caller
  * Also remember to call (Un)lockWorld(flags) (4 functions)
+ * \param xpos horizontal position
+ * \param ypos vertical position
  */
 void
 DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
@@ -256,8 +275,10 @@ DrawFieldWithoutInit(Int16 xpos, Int16 ypos)
 	}
 }
 
-/*
- * Get the graphic to use for the position in question.
+/*!
+ * \brief Get the graphic to use for the position in question.
+ * \param pos index into map array
+ * \return the graphc to paint at this location
  */
 static UInt8
 GetGraphicNumber(UInt32 pos)
@@ -285,7 +306,10 @@ GetGraphicNumber(UInt32 pos)
 }
 
 /*
- * Deals with special graphics fields
+ * \brief Deals with special graphics fields
+ * \param pos index into map array
+ * \param ntype the type of the node.
+ * \return the special graphic number for this place.
  */
 UInt8
 GetSpecialGraphicNumber(UInt32 pos, Int16 nType)
@@ -361,8 +385,10 @@ GetSpecialGraphicNumber(UInt32 pos, Int16 nType)
 	return (nAddMe);
 }
 
-/*
- * Can the node carry power
+/*!
+ * \brief Can the node carry power
+ * \param x the node entry
+ * \return true if this node carries power
  */
 Int16
 CarryPower(UInt8 x)
@@ -372,8 +398,10 @@ CarryPower(UInt8 x)
 	    (x <= TYPE_NUCLEAR_PLANT)) ? 1 : 0);
 }
 
-/*
- * can the node carry water
+/*!
+ * \brief can the node carry power
+ * \param x the node entry
+ * \return true if this node carries water
  */
 Int16
 CarryWater(UInt8 x)
@@ -384,8 +412,10 @@ CarryWater(UInt8 x)
 	    (x == TYPE_WATER_PIPE) ? 1 : 0);
 }
 
-/*
- * Is this node a power line
+/*!
+ * \brief Is this node a power line
+ * \param x the node entry to query
+ * \return true if it's a power line
  */
 Int16
 IsPowerLine(UInt8 x)
@@ -393,8 +423,10 @@ IsPowerLine(UInt8 x)
 	return (((x >= TYPE_POWER_LINE) && (x < TYPE_WATER_PIPE)) ? 1 : 0);
 }
 
-/*
- * Is this node a road
+/*!
+ * \brief Is this node a road
+ * \param x the node entry to query
+ * \return true if it's road
  */
 Int16
 IsRoad(UInt8 x)
@@ -404,8 +436,11 @@ IsRoad(UInt8 x)
 	    (x == TYPE_WATERROAD_2) || (x == TYPE_BRIDGE)) ? 1 : 0);
 }
 
-/*
- * Is this node of the zone type passed in.
+/*!
+ * \brief Is this node of the zone type passed in.
+ * \param x node item to query
+ * \param nType type of node.
+ * \return zone value, or zero.
  * XXX: Magic numbers.
  */
 Int16

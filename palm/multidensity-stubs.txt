@@ -1,0 +1,29 @@
+# A file of all the images so the .rcp files can be auto-generated.
+# the format is:
+# ID|b/w bitmap|4 bit bitmap|Grey bitmap|256 bit color bitmap
+bitmapID_zones|graphic/zones_16x16-bw.bmp||graphic/zones_16x16-grey.bmp|graphic/zones_16x16-color.bmp
+bitmapID_monsters|graphic/monsters_16x16-bw.bmp||graphic/monsters_16x16-grey.bmp|graphic/monsters_16x16-color.bmp
+bitmapID_units|graphic/units_16x16-bw.bmp||graphic/units_16x16-grey.bmp|graphic/units_16x16-color.bmp
+bitmapID_Speed|graphic/speed-bw.bmp||graphic/speed-color.bmp|graphic/speed-color.bmp
+bitmapID_iconBulldoze|graphic/icons/bulldozer.bmp||graphic/icons-color/bulldozer.bmp|graphic/icons-color/bulldozer.bmp
+bitmapID_iconResidential|graphic/icons/residential.bmp||graphic/icons-color/residential.bmp|graphic/icons-color/residential.bmp
+bitmapID_iconCommercial|graphic/icons/commercial.bmp||graphic/icons-color/commercial.bmp|graphic/icons-color/commercial.bmp
+bitmapID_iconIndustrial|graphic/icons/industrial.bmp||graphic/icons-color/industrial.bmp|graphic/icons-color/industrial.bmp
+bitmapID_iconRoad|graphic/icons/road.bmp||graphic/icons-color/road.bmp|graphic/icons-color/road.bmp
+bitmapID_iconPowerPlant|graphic/icons/powerplant.bmp||graphic/icons-color/powerplant.bmp|graphic/icons-color/powerplant.bmp
+bitmapID_iconNuclear|graphic/icons/nuclear.bmp||graphic/icons-color/nuclear.bmp|graphic/icons-color/nuclear.bmp
+bitmapID_iconPowerline|graphic/icons/powerline.bmp||graphic/icons-color/powerline.bmp|graphic/icons-color/powerline.bmp
+bitmapID_iconWaterPlant|graphic/icons/waterplant.bmp||graphic/icons-color/waterplant.bmp|graphic/icons-color/waterplant.bmp
+bitmapID_iconWaterPipe|graphic/icons/waterpipe.bmp||graphic/icons-color/waterpipe.bmp|graphic/icons-color/waterpipe.bmp
+bitmapID_iconTree|graphic/icons/tree.bmp||graphic/icons-color/tree.bmp|graphic/icons-color/tree.bmp
+bitmapID_iconWater|graphic/icons/water.bmp||graphic/icons-color/water.bmp|graphic/icons-color/water.bmp
+bitmapID_iconQuery|graphic/icons/query.bmp||graphic/icons-color/query.bmp|graphic/icons-color/query.bmp
+bitmapID_iconExtra|graphic/icons/extra.bmp||graphic/icons-color/extra.bmp|graphic/icons-color/extra.bmp
+bitmapID_iconDefFire|graphic/icons/def_firemen.bmp||graphic/icons-color/def_firemen.bmp|graphic/icons-color/def_firemen.bmp
+bitmapID_iconDefMilitary|graphic/icons/def_military.bmp||graphic/icons-color/def_military.bmp|graphic/icons-color/def_military.bmp
+bitmapID_iconDefPolice|graphic/icons/def_police.bmp||graphic/icons-color/def_police.bmp|graphic/icons-color/def_police.bmp
+bitmapID_coin|graphic/icons/coin.bmp||graphic/icons-color/coin.bmp|graphic/icons-color/coin.bmp
+bitmapID_popu|graphic/icons/people.bmp||graphic/icons-color/people.bmp|graphic/icons-color/people.bmp
+bitmapID_loca|graphic/icons/location.bmp||graphic/icons-color/location.bmp|graphic/icons-color/location.bmp
+bitmapID_updn|graphic/icons/updown.bmp|||
+bitmapID_ltrt|graphic/icons/leftright.bmp|||

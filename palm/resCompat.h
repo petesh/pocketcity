@@ -20,14 +20,17 @@ extern Int32 sHeight;
 #define	SETHEIGHT(y)	sHeight = (y)
 
 void scaleEvent(EventPtr event);
-Boolean highDensityFeatureSet(void);
+UInt32 highDensityFeatureSet(void);
 Boolean canHires(void);
 Boolean isHires(void);
+void setScreenRes(void);
 void scaleEvent(EventPtr event);
 void StartHiresDraw(void);
 void EndHiresDraw(void);
 void StartHiresFontDraw(void);
 void EndHiresFontDraw(void);
+#define	StartScaleDraw	StartHiresFontDraw
+#define EndScaleDraw		EndHiresFontDraw
 
 #else
 
@@ -49,6 +52,9 @@ void EndHiresFontDraw(void);
 #define EndHiresDraw()
 #define StartHiresFontDraw()
 #define EndHiresFontDraw()
+#define	StartScaleDraw()
+#define EndScaleDraw()
+#define setScreenRes()
 
 #endif /* SONY_CLIE || PALM_HIGH */
 

@@ -11,7 +11,7 @@ RC = pilrc
 RCFLAGS = -q
 
 OPTFLAGS = -O2
-WARNFLAGS = -W -Wall -fconserve-space
+WARNFLAGS = -W -Wall -Werror -fconserve-space
 INCLUDES = -I . -I ../source
 DEFINES = -D$(PLATFORM)
 
@@ -19,3 +19,15 @@ CFLAGS = $(OPTFLAGS) $(WARNFLAGS) $(DEFINES) $(INCLUDES)
 LDLIBS =
 
 RC.rcp=$(RC) $(RCFLAGS)
+
+PROGNAME := "Pocket City"
+DBNAME := "Pocket City Tiles"
+PROGTOKEN := PCit
+# tile database type
+COLORDBTOKEN := tidb
+#PRCTARGETS = pcity
+
+#### resources
+temp-%:
+	@mkdir -p temp-$*
+

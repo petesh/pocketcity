@@ -68,12 +68,17 @@ static FormPtr
 setupOptions(void)
 {
 	FormPtr form = FrmGetActiveForm();
-	CtlSetValue((ControlPtr)GetObjectPtr(form,
-		    buttonID_dis_off+GetDisasterLevel()), 1);
-	CtlSetValue((ControlPtr)GetObjectPtr(form,
-	    buttonID_Easy + GetDifficultyLevel()), 1);
+	UInt8 tval = GetDisasterLevel();
+
+	tval = (tval > 3) ? 3 : tval;
+	CtlSetValue((ControlPtr)GetObjectPtr(form, buttonID_dis_off + tval), 1);
+
+	tval = GetDifficultyLevel();
+	tval = (tval > 2) ? 2 : tval;
+	CtlSetValue((ControlPtr)GetObjectPtr(form, buttonID_Easy + tval), 1);
+
 	CtlSetValue((ControlPtr)GetObjectPtr(form, checkboxID_autobulldoze),
-	    game.auto_bulldoze);
+	    game.auto_bulldoze ? 1 : 0);
 	return (form);
 }
 
@@ -215,17 +220,22 @@ setupButtonConfig(void)
 	/* do the buttons */
 	for (bk = BkCalendar; bc_elts[bk].popup != 0; bk++) {
 		ListPtr lp;
+		UInt16 ko = gameConfig.pc.keyOptions[bk];
+
+		if (ko > poplen) {
+			ko = poplen - 1;
+		}
 		CtlSetLabel((ControlPtr)GetObjectPtr(form, bc_elts[bk].popup),
-		    Popups[gameConfig.pc.keyOptions[bk]]);
+		    Popups[ko]);
 		lp = (ListPtr)GetObjectPtr(form, bc_elts[bk].list);
 		LstSetListChoices(lp, (Char **)Popups, poplen);
-		LstSetSelection(lp, gameConfig.pc.keyOptions[bk]);
+		LstSetSelection(lp, ko);
 	}
 	return (form);
 }
 
 /*
- * remember the button choices made.
+ * Remember the button choices made.
  * This is not persisted until the application terminates cleanly.
  */
 static void

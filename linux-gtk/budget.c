@@ -1,3 +1,9 @@
+/*! \file
+ * \brief This file corresponds to the budget form.
+ * 
+ * This is the gtk implementation of the budget form
+ */
+
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <simulation.h>
@@ -6,10 +12,37 @@
 #include <main.h>
 #include <compilerpragmas.h>
 
-GtkWidget *dlg = 0;
-GtkWidget *lres, *lcom, *lind, *lpow, *ltra, *ldef, *lbal, *lcha, *lnex;
-GtkObject *adjust_tra, *adjust_pow, *adjust_def;
+/*! \brief handle for the budgt dialog */
+static GtkWidget *dlg = 0;
 
+/*! \brief label containing the residential income */
+static GtkWidget *lres;
+/*! \brief label containing the commercial income */
+static GtkWidget *lcom;
+/*! \brief label containing the industrial income */
+static GtkWidget *lind;
+/*! \brief label containing the power cost */
+static GtkWidget *lpow;
+/*! \brief label containing the traffic cost */
+static GtkWidget *ltra;
+/*! \brief label containing the defence cost */
+static GtkWidget *ldef;
+/*! \brief label containing the budget opening balance */
+static GtkWidget *lbal;
+/*! \brief label containing the budget delta (income - costs) */
+static GtkWidget *lcha;
+/*! \brief label containing next months values (balance - change) */
+static GtkWidget *lnex;
+/*! \brief traffic percentage adjustment */
+static GtkObject *adjust_tra;
+/*! \brief power percentage adjustment */
+static GtkObject *adjust_pow;
+/*! \brief defence percentage adjustment */
+static GtkObject *adjust_def;
+
+/*!
+ * \brief update each of the budget fields
+ */
 void
 UIUpdateBudget(void)
 {
@@ -41,39 +74,62 @@ UIUpdateBudget(void)
 
 }
 
-void
+/*!
+ * \brief Adjust the traffic percentage
+ * \param adj the adjustment widget that caused this change
+ */
+static void
 budget_traffic(GtkAdjustment *adj)
 {
 	char temp[20];
-	game.upkeep[UPKEEPS_TRAFFIC] = gtk_adjustment_get_value(
+
+	game.upkeep[ue_traffic] = gtk_adjustment_get_value(
 	    GTK_ADJUSTMENT(adj));
 	sprintf(temp, "%li", (long)BudgetGetNumber(bnTraffic));
 	gtk_label_set_text((GtkLabel*)ltra, temp);
 }
 
-void
+/*!
+ * \brief Adjust the power percentage
+ * \param adj the adjustment widget that caused this change
+ */
+static void
 budget_power(GtkAdjustment *adj)
 {
 	char temp[20];
 
-	game.upkeep[UPKEEPS_POWER] = gtk_adjustment_get_value(
+	game.upkeep[ue_power] = gtk_adjustment_get_value(
 	    GTK_ADJUSTMENT(adj));
 	sprintf(temp, "%li", (long)BudgetGetNumber(bnPower));
 	gtk_label_set_text((GtkLabel*)lpow, temp);
 }
 
-void
+/*!
+ * \brief Adjust the percentage allocation of defence
+ * \param adj the adjustment widget that caused this change
+ */
+static void
 budget_defence(GtkAdjustment *adj)
 {
 	char temp[20];
 
-	game.upkeep[UPKEEPS_DEFENCE] = gtk_adjustment_get_value(
+	game.upkeep[ue_defense] = gtk_adjustment_get_value(
 	    GTK_ADJUSTMENT(adj));
 	sprintf(temp, "%li", (long)BudgetGetNumber(bnDefence));
 	gtk_label_set_text((GtkLabel*)ldef, temp);
 }
 
-gint
+/*!
+ * \brief Handler for closing the budget dialog.
+ *
+ * Clears the dlg flag to prevent the accidental writing of values into the
+ * form fields.
+ *
+ * \param widget unused
+ * \param data unused
+ * \return always returns false(0) to allow the form to close.
+ */
+static gint
 close_budget(GtkWidget *widget __attribute__((unused)),
     gpointer data __attribute__((unused)))
 {
@@ -81,17 +137,26 @@ close_budget(GtkWidget *widget __attribute__((unused)),
 	return (FALSE);
 }
 
-GtkWidget *
+/*!
+ * \brief create a left aligned label
+ * \param s the string to put into the label
+ * \return the newly created label
+ */
+static GtkWidget *
 create_left_label(char *s)
 {
-	GtkWidget * l;
+	GtkWidget *l;
 
 	l = gtk_label_new(s);
 	gtk_misc_set_alignment(GTK_MISC(l), 0, 0.5);
 	return (l);
 }
 
-GtkWidget *
+/*!
+ * \brief create a right aligned label with the content "-"
+ * \return the newly created right laligned label
+ */
+static GtkWidget *
 create_right_label(void)
 {
 	GtkWidget * l;
@@ -101,8 +166,15 @@ create_right_label(void)
 	return (l);
 }
 
+/*!
+ * \brief View the budget form
+ *
+ * This is the GTK handler for displaying the budget form.
+ * \param w owner widget (unused)
+ * \param data unused
+ */
 void
-UIViewBudget(GtkWidget *w __attribute__((unused)),
+ViewBudget(GtkWidget *w __attribute__((unused)),
     gpointer data __attribute__((unused)))
 {
 	GtkWidget *table, *mainbox;
@@ -169,21 +241,21 @@ UIViewBudget(GtkWidget *w __attribute__((unused)),
 	gtk_table_attach_defaults(GTK_TABLE(table), lnex, 2, 3, 13, 14);
 
 	/* and the adjustments */
-	adjust_tra = gtk_adjustment_new(game.upkeep[UPKEEPS_TRAFFIC], 0, 100,
+	adjust_tra = gtk_adjustment_new(game.upkeep[ue_traffic], 0, 100,
 	    1, 10, 0);
 	spinner = gtk_spin_button_new(GTK_ADJUSTMENT(adjust_tra), 0.1, 0);
 	gtk_table_attach_defaults(GTK_TABLE(table), spinner, 1, 2, 6, 7);
 	g_signal_connect(G_OBJECT(spinner), "value_changed",
 	    G_CALLBACK(budget_traffic), NULL);
 
-	adjust_pow = gtk_adjustment_new(game.upkeep[UPKEEPS_POWER], 0, 100, 1,
+	adjust_pow = gtk_adjustment_new(game.upkeep[ue_power], 0, 100, 1,
 	    10, 0);
 	spinner = gtk_spin_button_new(GTK_ADJUSTMENT(adjust_pow), 0.1, 0);
 	gtk_table_attach_defaults(GTK_TABLE(table), spinner, 1, 2, 7, 8);
 	g_signal_connect(G_OBJECT(spinner), "value_changed",
 	    G_CALLBACK(budget_power), NULL);
 
-	adjust_def = gtk_adjustment_new(game.upkeep[UPKEEPS_DEFENCE], 0, 100,
+	adjust_def = gtk_adjustment_new(game.upkeep[ue_defense], 0, 100,
 	    1, 10, 0);
 	spinner = gtk_spin_button_new(GTK_ADJUSTMENT(adjust_def), 0.1, 0);
 	gtk_table_attach_defaults(GTK_TABLE(table), spinner, 1, 2, 8, 9);

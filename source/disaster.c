@@ -1,3 +1,9 @@
+/*! \file
+ * \brief routines associated with disasters
+ *
+ * This module contains functions that are used to create disasters in the
+ * simulation.
+ */
 #include <handler.h>
 #include <drawing.h>
 #include <zakdef.h>
@@ -22,9 +28,12 @@ static UInt16 ContainsDefence(Int16 x, Int16 y);
 static void MonsterCheckSurrounded(Int16 i);
 static void CreateMeteor(Int16 x, Int16 y, Int16 size);
 
-/*
- * Do nasty things to a location.
- * based on the probability which is normalized from 0 - 100
+/*!
+ * \brief Do nasty things to a location.
+ *
+ * turns a zone into wasteland based on the normalized probability.
+ * \param type of zone that can be affected
+ * \param probability the normalized probability of something bad happens
  */
 void
 DoNastyStuffTo(Int16 type, UInt16 probability)
@@ -44,15 +53,14 @@ DoNastyStuffTo(Int16 type, UInt16 probability)
 			x = randomTile % GetMapSize();
 			y = randomTile / GetMapSize();
 			CreateWaste(x, y);
-			UnlockWorld();
-			return;
+			break;
 		}
 	}
 	UnlockWorld();
 }
 
-/*
- * Do a random disaster.
+/*!
+ * \brief Do a random disaster.
  */
 void
 DoRandomDisaster(void)
@@ -78,27 +86,28 @@ DoRandomDisaster(void)
 			y = randomTile / GetMapSize();
 			/* TODO: should depend on difficulty */
 			random = GetRandomNumber((4 - disaster_level) * 1000);
-			WriteLog("Random Disaster: %d", random);
-			if (random < 10 && vgame.BuildCount[COUNT_FIRE] == 0) {
+			WriteLog("Random Disaster: %d", (int)random);
+			if (random < 10 && vgame.BuildCount[bc_fire] == 0) {
 				DoSpecificDisaster(diFireOutbreak);
 			} else if (random < 15 &&
-			    game.objects[OBJ_MONSTER].active == 0) {
+			    game.objects[obj_monster].active == 0) {
 				DoSpecificDisaster(diMonster);
 			} else if (random < 17 &&
-			    game.objects[OBJ_DRAGON].active == 0) {
+			    game.objects[obj_dragon].active == 0) {
 				DoSpecificDisaster(diDragon);
 			} else if (random < 19) {
 				DoSpecificDisaster(diMeteor);
 			}
-			UnlockWorld();
-			return; /* only one chance for disaster per turn */
+			/* only one chance for disaster per turn */
+			break;
 		}
 	}
 	UnlockWorld();
 }
 
-/*
- * Deliberately cause a disaster.
+/*!
+ * \brief Deliberately cause a disaster.
+ * \param disaster the type of the disaster to cause.
  */
 void
 DoSpecificDisaster(erdiType disaster)
@@ -139,8 +148,11 @@ DoSpecificDisaster(erdiType disaster)
 	}
 }
 
-/*
- * Make sure the disasters are still happening
+/*!
+ * \brief Make sure the disasters are still happening.
+ *
+ * Causes all disasters to go to their next stage.
+ * \return true if zone was affected.
  */
 Int16
 UpdateDisasters(void)
@@ -184,8 +196,10 @@ UpdateDisasters(void)
 	return (retval);
 }
 
-/*
- * Turn the zone into slag
+/*!
+ * \brief Turn the zone into wasteland
+ * \param x x position to affect
+ * \param y y position to affect
  */
 void
 CreateWaste(Int16 x, Int16 y)
@@ -200,7 +214,7 @@ CreateWaste(Int16 x, Int16 y)
 		return;
 	}
 	SetWorld(WORLDPOS(x, y), TYPE_WASTE);
-	vgame.BuildCount[COUNT_WASTE]++;
+	vgame.BuildCount[bc_waste]++;
 	DrawCross(x, y);
 	UnlockWorld();
 	if (type == TYPE_POWER_PLANT || type == TYPE_NUCLEAR_PLANT)  {
@@ -209,8 +223,10 @@ CreateWaste(Int16 x, Int16 y)
 	}
 }
 
-/*
- * Cause a fire to spread out from the point chosen
+/*!
+ * \brief Cause a fire to spread out from the point chosen
+ * \param x position on horizontal of map to spread fire
+ * \param y position on vertical of map to spread fire
  */
 void
 FireSpread(Int16 x, Int16 y)
@@ -225,14 +241,19 @@ FireSpread(Int16 x, Int16 y)
 		BurnField(x, y + 1, 0);
 }
 
-/*
- * burn the field specified.
+/*!
+ * \brief burn the field specified.
+ *
  * Can be forced to burn.
+ * \param x position on horizontal of map to spread fire
+ * \param y position on vertical of map to spread fire
+ * \return true if field was burned.
  */
 Int16
 BurnField(Int16 x, Int16 y, Int16 forceit)
 {
 	int type;
+	int rv = 0;
 
 	LockWorld();
 	LockWorldFlags();
@@ -252,64 +273,70 @@ BurnField(Int16 x, Int16 y, Int16 forceit)
 		Build_Destroy(x, y);
 		SetWorld(WORLDPOS(x, y), TYPE_FIRE1);
 		SetScratch(WORLDPOS(x, y));
-		/* DrawCross will lock the world flags itself */
-		UnlockWorldFlags();
 		DrawCross(x, y);
-		vgame.BuildCount[COUNT_FIRE]++;
-		UnlockWorld();
-		return (1);
+		vgame.BuildCount[bc_fire]++;
+		rv = 1;
 	}
 	UnlockWorldFlags();
 	UnlockWorld();
-	return (0);
+	return (rv);
 }
 
-/*
- * Create a monster at the location specified.
+/*!
+ * \brief Create a 'zilla at the location specified.
+ * \param x position on horizontal of map to spread fire
+ * \param y position on vertical of map to spread fire
+ * \return true if monster was created
  */
 Int16
 CreateMonster(Int16 x, Int16 y)
 {
 	int type;
+	int rv = 0;
 
 	LockWorld();
 	type = GetWorld(WORLDPOS(x, y));
-	UnlockWorld();
 	if (type != TYPE_REAL_WATER && type != TYPE_CRATER) {
-		game.objects[OBJ_MONSTER].x = x;
-		game.objects[OBJ_MONSTER].y = y;
-		game.objects[OBJ_MONSTER].dir = GetRandomNumber(8);
-		game.objects[OBJ_MONSTER].active = 1;
+		game.objects[obj_monster].x = x;
+		game.objects[obj_monster].y = y;
+		game.objects[obj_monster].dir = GetRandomNumber(8);
+		game.objects[obj_monster].active = 1;
 		DrawField(x, y);
-		return (1);
+		rv = 1;
 	}
-	return (0);
+	UnlockWorld();
+	return (rv);
 }
 
-/*
- * Create a dragon at the location.
+/*!
+ * \brief Create a dragon at the location.
+ * \param x position on horizontal of map to spread fire
+ * \param y position on vertical of map to spread fire
+ * \return true if dragon was created
  */
 Int16
 CreateDragon(Int16 x, Int16 y)
 {
 	int type;
+	int rv = 0;
 
 	LockWorld();
 	type = GetWorld(WORLDPOS(x, y));
-	UnlockWorld();
 	if (type != TYPE_REAL_WATER && type != TYPE_CRATER) {
-		game.objects[OBJ_DRAGON].x = x;
-		game.objects[OBJ_DRAGON].y = y;
-		game.objects[OBJ_DRAGON].dir = GetRandomNumber(8);
-		game.objects[OBJ_DRAGON].active = 1;
+		game.objects[obj_dragon].x = x;
+		game.objects[obj_dragon].y = y;
+		game.objects[obj_dragon].dir = GetRandomNumber(8);
+		game.objects[obj_dragon].active = 1;
 		DrawField(x, y);
-		return (1);
+		rv = 1;
 	}
-	return (0);
+	UnlockWorld();
+	return (rv);
 }
 
-/*
- * Check if a monster is surrounded by defensive units.
+/*!
+ * \brief Check if a monster is surrounded by defensive units.
+ * \param i index of monster to check.
  */
 void
 MonsterCheckSurrounded(Int16 i)
@@ -321,8 +348,11 @@ MonsterCheckSurrounded(Int16 i)
 	}
 }
 
-/*
- * Get the value of the defence fields around this point
+/*!
+ * \brief Get the value of the defence fields around this point
+ * \param xpos horizontal location
+ * \param ypos vertical location
+ * \return the 'level' of the defence surrounding the position.
  */
 UInt16
 GetDefenceValue(Int16 xpos, Int16 ypos)
@@ -342,9 +372,13 @@ GetDefenceValue(Int16 xpos, Int16 ypos)
 	return (def);
 }
 
-/*
- * check if the node has a defence position within it.
+/*!
+ * \brief check if the node has a defence position within it.
+ *
  * If it does, return the value of that defence.
+ * \param x horizontal location
+ * \param y vertical location
+ * \return the level of defence that this node provides.
  */
 UInt16
 ContainsDefence(Int16 x, Int16 y)
@@ -371,9 +405,7 @@ ContainsDefence(Int16 x, Int16 y)
 }
 
 
-/*
- * Move all the elements around the screen.
- */
+/*! \brief Move all the moveable elements around the screen.  */
 void
 MoveAllObjects(void)
 {
@@ -382,14 +414,14 @@ MoveAllObjects(void)
 	for (i = 0; i < NUM_OF_OBJECTS; i++) {
 		if (game.objects[i].active != 0) {
 			/* hmm, is this thing destructive? */
-			if (i == OBJ_DRAGON) {
+			if (i == obj_dragon) {
 				if (!BurnField(game.objects[i].x,
 				    game.objects[i].y, 1)) {
 					CreateWaste(game.objects[i].x,
 					    game.objects[i].y);
 				}
 				MonsterCheckSurrounded(i);
-			} else if (i == OBJ_MONSTER) {
+			} else if (i == obj_monster) {
 				/* whoo-hoo, bingo again */
 				CreateWaste(game.objects[i].x,
 				    game.objects[i].y);
@@ -459,14 +491,17 @@ MoveAllObjects(void)
 			}
 			LockWorld();
 			DrawCross(x, y); /* (erase it) */
-			UnlockWorld();
 			DrawField(game.objects[i].x, game.objects[i].y);
+			UnlockWorld();
 		}
 	}
 }
 
-/*
- * We've had a meteor strike on the map at that location.
+/*!
+ * \brief We've had a meteor strike on the map at that location.
+ * \param x horizontal position
+ * \param y vertical position
+ * \return always happens (true)
  */
 Int16
 MeteorDisaster(Int16 x, Int16 y)
@@ -478,8 +513,11 @@ MeteorDisaster(Int16 x, Int16 y)
 	return (1);
 }
 
-/*
- * Create a waste zone for the meteor.
+/*!
+ * \brief Create a waste zone for the meteor.
+ * \param x horizontal position
+ * \param y vertical position
+ * \param size size of the meteor
  */
 void
 CreateMeteor(Int16 x, Int16 y, Int16 size)
@@ -510,7 +548,7 @@ CreateMeteor(Int16 x, Int16 y, Int16 size)
 	}
 	Build_Destroy(x, y);
 	SetWorld(WORLDPOS(x, y), TYPE_CRATER);
-	UIUnlockScreen();
 	UnlockWorld();
+	UIUnlockScreen();
 	RedrawAllFields();
 }

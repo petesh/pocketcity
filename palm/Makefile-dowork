@@ -9,13 +9,6 @@ OBJECTS := stack.o simcity.o handler.o drawing.o globals.o build.o \
 BUILDENDS=nd d nd5 d5 nds ds dc
 BUILDDIRS:=$(BUILDENDS:%=out-%)
 
-PROGNAME := "Pocket City"
-DBNAME := "Pocket City Tiles"
-PROGTOKEN := PCit
-# tile database type
-COLORDBTOKEN := tidb
-#PRCTARGETS = pcity
-
 DEBUG := 0
 HIRES := 0
 SONY := 0
@@ -28,24 +21,18 @@ PRCTARGETS = $(LANGUAGES:%=$(OBJDIR)/$(BINARY)-%.prc)
 
 LANGDIRS = $(LANGUAGES:%=(OBJDIR)/%)
 
-# Resource PDBs (graphical; non-language)
-COLORTYPES := bw grey color merged bw_hd grey_hd color_hd merged_hd
-# high density:- bw_hd grey_hd color_hd merged_hd
-
-COLORTARGETS := $(COLORTYPES:%=pcity-%.pdb)
-
-.PHONY: all debug clean cheat hires dhires VER
+.PHONY: all debug clean cheat hires dhires
 .PRECIOUS: %.stm $(OBJDIR)/%-lang $(OBJDIR)/%-lang/game.stm \
-		$(OBJDIR) temp temp-%
+		$(OBJDIR) .temp .temp-%
 
-TEMPENDS=$(LANGUAGES) $(COLORTYPES)
-TEMPDIRS:=$(TEMPENDS:%=temp-%)
+TEMPENDS=$(LANGUAGES)
+TEMPDIRS:=$(TEMPENDS:%=.temp-%)
 
 #
 # make all
 #
 
-lores debug palm5 dpalm5 sony dsony: VER $(COLORTARGETS) $(PRCTARGETS)
+lores debug palm5 dpalm5 sony dsony: $(PRCTARGETS)
 
 nearlylive: all palm5 sony
 
@@ -74,23 +61,13 @@ CFLAGS += $(AXCFLAGS) $(BXCFLAGS) $(CXCFLAGS)
 # the different language versions
 $(OBJDIR)/$(BINARY)-%.prc: $(OBJDIR) $(OBJDIR)/pcity $(OBJDIR)/%-lang/game.stm
 	$(BUILDPRC) -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
-		$(OBJDIR)/pcity $(OBJDIR)/$*-lang/*.bin temp/*.bin
-
-# The tile databases
-pcity-%.pdb: simcity-%.stm zones-%.stm
-	$(BUILDPRC) --no-check-resources --bundle -o $@ -n $(DBNAME) \
-		-c $(PROGTOKEN) -t $(COLORDBTOKEN) temp-$*/*.bin
+		$(OBJDIR)/pcity $(OBJDIR)/$*-lang/*.bin .temp/*.bin
 
 $(OBJDIR)/pcity-sections.o: $(OBJDIR)/pcity-sections.s
 	$(CC) -c $< -o $@
 
 $(OBJDIR)/pcity-sections.s $(OBJDIR)/pcity-sections.ld: pcity.def
 	$(MULTIGEN) -b $(OBJDIR)/pcity-sections pcity.def
-
-#### resources
-
-temp-%:
-	@mkdir -p temp-$*
 
 # Language
 $(OBJDIR)/%-lang/game.stm: $(OBJDIR) $(OBJDIR)/%-lang \
@@ -104,18 +81,6 @@ $(OBJDIR)/%-lang/game.stm: $(OBJDIR) $(OBJDIR)/%-lang \
 
 $(OBJDIR)/%-lang:
 	mkdir -p $@
-
-# This will take care of all *.rcp
-# the files must be called this:
-#	*-?.rcp => temp-?
-
-# simcity_resconsts.h
-%.stm: %.rcp
-	@end=$(word 2, $(subst -, ,$*)); \
-	if [ ! -d temp-$$end ]; then mkdir -p temp-$$end; fi; \
-	echo $(RC.rcp) -L $$end $< temp-$$end; \
-	$(RC.rcp) -L $$end $< temp-$$end;
-	@echo touching>$@
 
 #
 # actual source
@@ -142,6 +107,7 @@ $(OBJDIR)/%.o: %.c simcity_resconsts.h Makefile-include
 # make clean 
 #
 clean:
-	rm -f *.stm *.pdb temp*/*.bin build*/* *.zip *.gz
+	rm -f *.stm .temp*/*.bin build*/* *.zip *.gz
 	rm -rf $(TEMPDIRS) temp
 	rm -rf $(BUILDDIRS)
+	cd graphic; make clean

@@ -1,3 +1,9 @@
+/*! \file
+ * \brief routines that are used for event dispatching
+ *
+ * These routines are intended to multiplex the individual steps in the
+ * game.
+ */
 #include <handler.h>
 #include <drawing.h>
 #include <zakdef.h>
@@ -17,8 +23,8 @@
 #include <stdlib.h>
 #endif
 
-/*
- * Application level initialization routines
+/*!
+ * \brief Application level initialization routines
  */
 void
 PCityMain(void)
@@ -30,7 +36,9 @@ PCityMain(void)
 	game.gameLoopSeconds = SPEED_PAUSED;
 }
 
-/*
+/*!
+ * \brief set up a game
+ *
  * Setting up a new game ... initialize the variables
  * the difficulty level should be set before calling this.
  */
@@ -74,8 +82,9 @@ SetupNewGame(void)
 	DrawGame(1);
 }
 
-/*
- * Draw the entire game arena
+/*!
+ * \brief Draw the entire game arena
+ * \param full unused.
  */
 void
 DrawGame(Int8 full)
@@ -85,14 +94,13 @@ DrawGame(Int8 full)
 	UIDrawBorder();
 	RedrawAllFields();
 	UIUpdateBuildIcon();
-	/* DrawHeader(); */
 	full = full;
 
 	UIFinishDrawing();
 }
 
-/*
- * Things to do after loading the game.
+/*!
+ * \brief Things to do after loading the game.
  */
 void
 PostLoadGame(void)

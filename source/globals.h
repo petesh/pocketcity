@@ -1,3 +1,7 @@
+/*! \file
+ * \brief interface to the global routines
+ */
+
 #if !defined(_GLOBALS_H_)
 #define	_GLOBALS_H_
 

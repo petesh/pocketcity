@@ -1,5 +1,0 @@
-#include "simcity_resconsts.h"
-
-BITMAPGREY16 ID bitmapID_zones  "graphic/zones_16x16-grey.bmp" COMPRESS
-BITMAPGREY16 ID bitmapID_monsters  "graphic/monsters_16x16-grey.bmp" COMPRESS
-BITMAPGREY16 ID bitmapID_units  "graphic/units_16x16-grey.bmp" COMPRESS

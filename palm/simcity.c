@@ -34,9 +34,11 @@ static RectangleType rPlayGround;
 WinHandle winZones;
 WinHandle winMonsters;
 WinHandle winUnits;
+WinHandle winButtons;
+WinHandle winSpeeds;
 
-BuildCodes nSelectedBuildItem = Be_Bulldozer;
-BuildCodes nPreviousBuildItem = Be_Bulldozer;
+BuildCode nSelectedBuildItem = Be_Bulldozer;
+BuildCode nPreviousBuildItem = Be_Bulldozer;
 
 UInt32 timeStamp = 0;
 UInt32 timeStampDisaster = 0;
@@ -68,6 +70,7 @@ static void cycleSpeed(void);
 static void DoAbout(void);
 static void CheckTextClick(Coord x, Coord y);
 static Int16 doButtonEvent(ButtonEvent key);
+static Int16 speedOffset(void);
 
 #if defined(SONY_CLIE)
 static void HoldHook(UInt32);
@@ -350,7 +353,9 @@ static const struct _bmphandles {
 	/* space for 64*2=128 zones */
 	{ &winZones, 1024, 32, (DmResID)bitmapID_zones },
 	{ &winMonsters, 128, 64, (DmResID)bitmapID_monsters },
-	{ &winUnits, 48, 32, (DmResID)bitmapID_units }
+	{ &winUnits, 48, 32, (DmResID)bitmapID_units },
+//XXX:	{ &winButtons, 48, 32, (DmResID)bitmapID_buttons },
+	{ &winSpeeds, 5*10, 10, (DmResID)bitmapID_Speed }
 };
 
 static DmOpenRef _refTiles;
@@ -654,6 +659,7 @@ hPocketCity(EventPtr event)
 		FrmDrawForm(form);
 		SetDrawing();
 		DrawGame(1);
+		RedrawAllFields();
 		handled = true;
 		break;
 	case frmCloseEvent:
@@ -672,7 +678,7 @@ hPocketCity(EventPtr event)
 			if (event->screenX >= (sWidth - 12)) {
 				/* click was on change speed */
 				cycleSpeed();
-				UIDrawPop();
+				UIDrawSpeed();
 				break;
 			}
 			if (event->screenX < 12) {
@@ -803,8 +809,8 @@ UIPopUpExtraBuildList(void)
 
 	switch (sfe) {
 	case buttonID_extraBuildSelect:
-		/* List entries must match entries in BuildCodes 0 .. */
-		nSelectedBuildItem = (BuildCodes)LstGetSelection(
+		/* List entries must match entries in BuildCode 0 .. */
+		nSelectedBuildItem = (BuildCode)LstGetSelection(
 		    (ListPtr)GetObjectPtr(form, listID_extraBuildList));
 		break;
 	case buttonID_extraBuildFireMen:
@@ -824,7 +830,6 @@ UIPopUpExtraBuildList(void)
 	    (unsigned int)nSelectedBuildItem);
 
 	CleanUpExtraBuildForm();
-	UIUpdateBuildIcon();
 	FrmDeleteForm(form);
 }
 
@@ -966,7 +971,7 @@ UIDoQuickList(void)
 	if (IsNewROM()) {
 		ftList = FrmInitForm(formID_quickList);
 		FrmSetEventHandler(ftList, hQuickList);
-		nSelectedBuildItem = (BuildCodes)(FrmDoDialog(ftList) -
+		nSelectedBuildItem = (BuildCode)(FrmDoDialog(ftList) -
 		    gi_buildBulldoze);
 
 		if (nSelectedBuildItem >= OFFSET_EXTRA)
@@ -1034,7 +1039,7 @@ hQuickList(EventPtr event)
 /*
  * Get the selected build item.
  */
-BuildCodes
+BuildCode
 UIGetSelectedBuildItem(void)
 {
 	return (nSelectedBuildItem);
@@ -1044,7 +1049,7 @@ UIGetSelectedBuildItem(void)
  * Save the selected build item.
  */
 void
-UISetSelectedBuildItem(BuildCodes item)
+UISetSelectedBuildItem(BuildCode item)
 {
 	nSelectedBuildItem = item;
 }
@@ -1140,9 +1145,9 @@ _UIGetFieldToBuildOn(Int16 x, Int16 y)
 }
 
 /*
- * Display an error to the user of a psecific error / disaster type
+ * Display an error to the user of a specific error / disaster type
  */
-Int16
+void
 UIDisplayError(erdiType nError)
 {
 	/* errors */
@@ -1157,7 +1162,6 @@ UIDisplayError(erdiType nError)
 		default:
 			break;
 		}
-		return (0);
 	}
 	if ((nError > diSTART) && (nError < diEND)) {
 		char string[512];
@@ -1166,19 +1170,16 @@ UIDisplayError(erdiType nError)
 		if (*string == '\0') StrPrintF(string, "generic disaster??");
 
 		FrmCustomAlert(alertID_generic_disaster, string, 0, 0);
-		return (0);
 	}
-	return (1);
 }
 
 /*
  * Display an error that is simply an error string
  */
-Int16
+void
 UIDisplayError1(char *message)
 {
 	FrmCustomAlert(alertID_majorbad, message, 0, 0);
-	return (0);
 }
 
 /*
@@ -1197,24 +1198,29 @@ UIFinishDrawing(void)
 {
 }
 
-/*
+/*!
+ * \brief handle for checking in the winscfeenunlock function
  * The WinScreenLock is 'optional' depending on how much memory you have.
  * the call may or may not succeed.
  * by using these two APIs we can get faster, flickerless allscreen updating
  */
 static UInt8 *didLock = NULL;
+/*!\ brief counter of number of calls to lock screen */
+static UInt8 lockCalls = 0;
 
-/*
- * Try to lock the screen from updates.
+/*!
+ * \Try to lock the screen from updates.
+ *
  * This allows bulk updates to the screen without repainting until unlocked.
  */
 void
 UILockScreen(void)
 {
 	if (!IsNewROM()) return;
-	ErrFatalDisplayIf(didLock != NULL, "double lock on screen attempted");
+	ErrFatalDisplayIf(lockCalls > 0, "double lock on screen attempted");
 	if (!didLock)
 		didLock = WinScreenLock(winLockCopy);
+	lockCalls++;
 }
 
 /*
@@ -1225,11 +1231,12 @@ void
 UIUnlockScreen(void)
 {
 	if (!IsNewROM()) return;
-	ErrFatalDisplayIf(didLock == NULL, "double free on screen attempted");
+	ErrFatalDisplayIf(lockCalls == 0, "double free on screen attempted");
 	if (didLock != NULL) {
 		WinScreenUnlock();
 		didLock = NULL;
 	}
+	lockCalls--;
 }
 
 /*
@@ -1546,10 +1553,13 @@ posAt(int pos)
 	static struct StatusPositions *sp = NULL;
 	if (sp != NULL)
 		return (&(sp[pos]));
-	if (isHires())
+	if (isHires()) {
+		WriteLog("Plucking HiRes Positions (%d)\n", (int)highDensityFeatureSet());
 		sp = &(hrpositions[0]);
-	else
+	} else {
+		WriteLog("Plucking Low Resolution Positions\n");
 		sp = &(lrpositions[0]);
+	}
 	return (&(sp[pos]));
 }
 
@@ -1806,20 +1816,16 @@ UIUpdateBuildIcon(void)
 void
 UIDrawSpeed(void)
 {
-	MemHandle  bitmaphandle;
-	BitmapPtr  bitmap;
+	RectangleType rect;
 
-	bitmaphandle = DmGetResource('Tbmp',
-	    bitmapID_SpeedPaused + game.gameLoopSeconds);
-	if (bitmaphandle == NULL)
-		/* TODO: onscreen error? +save? */
-		return;
-	bitmap = (BitmapPtr)MemHandleLock(bitmaphandle);
+	rect.topLeft.x = speedOffset() * 10;
+	rect.topLeft.y = 0;
+	rect.extent.x = 10;
+	rect.extent.y = 10;
 	StartHiresDraw();
-	_WinDrawBitmap(bitmap, sWidth - 12, 2);
+	_WinCopyRectangle(winSpeeds, WinGetActiveWindow(), &rect,
+	    sWidth - 12, 2, winPaint);
 	EndHiresDraw();
-	MemPtrUnlock(bitmap);
-	DmReleaseResource(bitmaphandle);
 }
 
 /*
@@ -1834,7 +1840,7 @@ UIDrawPop(void)
 	if (IsDeferDrawing())
 		return;
 
-	StrPrintF(temp, "Pop: %lu", vgame.BuildCount[COUNT_RESIDENTIAL] * 150);
+	StrPrintF(temp, "Pop: %lu", vgame.BuildCount[bc_residential] * 150);
 	UIDrawItem(POPLOC, temp);
 	UIDrawLoc();
 	UIDrawSpeed();
@@ -2072,23 +2078,37 @@ RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
 	return (0);
 }
 
+static struct fromto {
+	UInt32 from, to;
+} speedslist[] = {
+	{SPEED_PAUSED, SPEED_SLOW},
+	{SPEED_SLOW, SPEED_MEDIUM},
+	{SPEED_MEDIUM, SPEED_FAST},
+	{SPEED_FAST, SPEED_TURBO},
+	{SPEED_TURBO, SPEED_PAUSED}
+};
+
+static Int16
+speedOffset(void)
+{
+	UInt16 i;
+
+	for (i = 0; i < (sizeof (speedslist) / sizeof (speedslist[0])); i++) {
+		if (game.gameLoopSeconds == speedslist[i].from) {
+			return (i);
+		}
+	}
+	return (0);
+}
+
 static void
 cycleSpeed(void)
 {
-	static struct fromto {
-		UInt32 from, to;
-	} ft[] = {
-		{SPEED_PAUSED, SPEED_SLOW},
-		{SPEED_SLOW, SPEED_MEDIUM},
-		{SPEED_MEDIUM, SPEED_FAST},
-		{SPEED_FAST, SPEED_TURBO},
-		{SPEED_TURBO, SPEED_PAUSED}
-	};
-
 	UInt16 i;
-	for (i = 0; i < (sizeof (ft) / sizeof (ft[0])); i++) {
-		if (ft[i].from == game.gameLoopSeconds) {
-			game.gameLoopSeconds = ft[i].to;
+
+	for (i = 0; i < (sizeof (speedslist) / sizeof (speedslist[0])); i++) {
+		if (speedslist[i].from == game.gameLoopSeconds) {
+			game.gameLoopSeconds = speedslist[i].to;
 			break;
 		}
 	}
@@ -2187,6 +2207,14 @@ static struct _silkKeys {
 	{ 0, BkEnd }
 };
 
+
+/*!
+ * \brief find the calculator button on the screen
+ * 
+ * The calculator button can be a favolrites button on the Zire. The problem
+ * is that the Zire uses a different code on PalmOS 4 than on PalmOS 5 for
+ * the key.
+ */
 static void
 buildSilkList()
 {
@@ -2200,10 +2228,21 @@ buildSilkList()
 	while (atbtn < btncount) {
 		WriteLog("btn: %ld char: %lx\n", (long)atbtn,
 		    (long)silkinfo[atbtn].asciiCode);
+		/*
+		 * Assumes the favourite/calculator button is one
+		 * before the find button. Crap, really.
+		 */
 		if (silkinfo[atbtn].asciiCode == vchrFind) {
-			if (atbtn > 0) {
-				silky[atsilk].vChar =
-				    silkinfo[atbtn-1].asciiCode;
+			if (atbtn > 0) { // XXX: fixme
+				switch (silkinfo[atbtn-1].asciiCode) {
+				case vchrCalc:
+				case vchrMenu:
+					break;
+				default:
+					silky[atsilk].vChar =
+					    silkinfo[atbtn-1].asciiCode;
+					break;
+				}
 				break;
 			}
 		}
@@ -2227,7 +2266,7 @@ vkDoEvent(UInt16 key)
 
 #ifdef HRSUPPORT
 static BitmapType *pToolbarBitmap = NULL;
-BitmapType *pOldBitmap;;
+BitmapType *pOldBitmap;
 
 static void
 freeToolbarBitmap(void)
@@ -2249,10 +2288,7 @@ drawToolBitmaps(Coord startx, Coord starty, Coord spacing)
 	MemPtr pBitmap;
 	UInt32 id;
 
-	StartHiresDraw();
 	for (id = bitmapID_iconBulldoze; id <= bitmapID_iconExtra; id++) {
-		WriteLog("Rendering bitmap %ld\n",
-		    (long)id - bitmapID_iconBulldoze);
 		hBitmap = DmGetResource('Tbmp', id);
 		if (hBitmap == NULL) continue;
 		pBitmap = MemHandleLock(hBitmap);
@@ -2265,7 +2301,6 @@ drawToolBitmaps(Coord startx, Coord starty, Coord spacing)
 		MemPtrUnlock(pBitmap);
 		DmReleaseResource(hBitmap);
 	}
-	EndHiresDraw();
 }
 
 int
@@ -2304,48 +2339,60 @@ UIDrawToolBar(void)
 		Coord bHeight;
 
 		GetBitmapDimensions(bitmapID_iconBulldoze, &bWidth, &bHeight);
+		bWidth += 4; 
 
 		tbWidth = (1 + (bitmapID_iconExtra - bitmapID_iconBulldoze)) *
-		    (4 + bWidth);
+		    bWidth;
 
 		pToolbarBitmap = _BmpCreate(tbWidth, bHeight, getDepth(),
 		    NULL, &err);
 		if (pToolbarBitmap  != NULL && highDensityFeatureSet()) {
 			pOldBitmap = pToolbarBitmap;
 			pToolbarBitmap = (BitmapPtr)BmpCreateBitmapV3(
-			    pToolbarBitmap, kDensityDouble, 
+			    pToolbarBitmap, kDensityLow, 
 			    BmpGetBits(pToolbarBitmap), NULL);
 		}
 		if (pToolbarBitmap != NULL) {
 			wh = _WinCreateBitmapWindow(pToolbarBitmap, &err);
 			if (wh != NULL) {
 				owh = WinSetDrawWindow(wh);
-				drawToolBitmaps(0, 0, bWidth + 4);
+				//StartHiresDraw();
+				drawToolBitmaps(2, 0, bWidth);
+				//EndHiresDraw();
 				WinSetDrawWindow(owh);
 				WinDeleteWindow(wh, false);
 			}
 		} else {
-			drawToolBitmaps((sWidth - tbWidth) >> 1, 2,
-			    bWidth + 4);
+			StartHiresDraw();
+			drawToolBitmaps(((sWidth - tbWidth) >> 1) + 2,
+			    2, bWidth);
+			EndHiresDraw();
 			return;
 		}
 	}
 	if (pToolbarBitmap != NULL) {
 		StartHiresDraw();
+		WriteLog("Toolbar at: %ld (width=%ld) [ swidth=%ld ]\n",
+		    (long)((sWidth - tbWidth) >> 1), (long)tbWidth,
+		    (long)sWidth);
 		_WinDrawBitmap(pToolbarBitmap, (sWidth - tbWidth) >> 1, 2);
 		EndHiresDraw();
 	}
 }
 
+// XXX: This x position check is incorrect!
 static void
 toolBarCheck(Coord xpos)
 {
 	int id;
+
 	/* We've already confirmed the y-axis. */
-	if (xpos < ((sWidth - tbWidth) >> 1) ||
-	    xpos > ((sWidth + tbWidth) >> 1)) return;
+	if ((xpos < ((sWidth - tbWidth) >> 1)) ||
+	    (xpos > ((sWidth + tbWidth) >> 1))) return;
 
 	id = (xpos - ((sWidth - tbWidth) >> 1)) / bWidth;
+	WriteLog("Xpos: %ld [ %ld / %ld ] %d %d \n", (long)xpos,
+	    (long)tbWidth, (long)sWidth, id, (int)bWidth);
 	if (id == (bitmapID_iconExtra - bitmapID_iconBulldoze)) {
 		UIPopUpExtraBuildList();
 	} else {

@@ -1,3 +1,11 @@
+/*! \file
+ * \brief front end for performing savegames
+ *
+ * Does all the gtk-related processing for the savegames.
+ * The idea is to separate the front end from the back end, allowing
+ * us to use a common set of routines to read and write savegames on
+ * unix platforms.
+ */
 #include <gtk/gtk.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -20,8 +28,10 @@
 #include <savegame_be.h>
 #include <compilerpragmas.h>
 
+/*! \brief the savegame name */
 gchar *savegamename;
 
+/*! \brief set the tile size */
 void
 UIResetViewable(void)
 {
@@ -29,53 +39,85 @@ UIResetViewable(void)
 	/* XXX: set based on size of window */
 }
 
+/*!
+ * \brief load a game
+ *
+ * Called by the open dialog handler.
+ * \param data the file name
+ */
 static void
-doOpen(GtkFileSelection *sel __attribute__((unused)), gpointer data, int palm)
+doOpen(gchar *filename, int palm)
 {
-	savegamename = (gchar*)gtk_file_selection_get_filename(
-	    GTK_FILE_SELECTION(data));
-	if (0 == open_filename(savegamename, palm)) {
+	if (0 == open_filename(filename, palm)) {
 		UIResetViewable();
 		PostLoadGame();
 		DrawGame(1);
 		MapHasJumped();
+		savegamename = g_strdup(filename);
 	}
 }
 
+/*!
+ * \brief structure to pass 2 parameters to the file selection handler
+ * 
+ * This is intended to get around the annoying fact that you can only pass
+ * a data pointer to an event handler
+ */
+typedef struct {
+	GtkWidget *file_sel; /*!< The file handler dialog */
+	gpointer data; /*!< The data to go with the dialog */
+} fsh_data;
+
+/*!
+ * \brief open a savegame
+ * \param sel unused
+ * \param data the filename from the selection dialog
+ * \todo fix the code to open the specific filename based on introspection
+ * into the filename
+ */
 void
-open_palmfilename(GtkFileSelection *sel, gpointer data)
+open_filename(GtkFileSelection *sel, gpointer data)
 {
-	doOpen(sel, data, 1);
+	fsh_data *dat = (fsh_data *)data;
+	doOpen(gtk_file_selection_get_filename(data->file_sel),
+	    GPOINTER_TO_INT(dat->data));
 }
 
+/*!
+ * \brief open a game file from the system
+ * \param w unused
+ * \param data unused
+ * \todo save any game in progress
+ */
 void
-open_platfilename(GtkFileSelection *sel, gpointer data)
+OpenGame(GtkWidget *w __attribute__((unused)), gpointer data)
 {
-	doOpen(sel, data, 0);
-}
+	fsh_data handler;
 
-void
-UIOpenGame(GtkWidget *w __attribute__((unused)),
-    gpointer data __attribute__((unused)))
-{
-	GtkWidget *fileSel;
+	handler.file_sel = gtk_file_selection_new("Select saved game to open");
+	handler.data = data;
 
-	fileSel = gtk_file_selection_new("Select saved game to open");
 	g_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
-	    "clicked", G_CALLBACK(open_palmfilename), (gpointer)fileSel);
+	    "clicked", G_CALLBACK(open_platfilename), (gpointer)&handler);
 
 	g_signal_connect_swapped(
 	    GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
-	    "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
+	    "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)&handler);
 	g_signal_connect_swapped(
 	    GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->cancel_button),
-	    "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
+	    "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)&handler);
 
-	gtk_widget_show(GTK_WIDGET(fileSel));
+	gtk_widget_show(GTK_WIDGET(handler->file_sel));
 }
 
+/*!
+ * \brief start a new game
+ * \param w unused
+ * \param data unsued
+ * \todo save the game before starting a new one
+ */
 void
-UINewGame(GtkWidget *w __attribute__((unused)),
+NewGame(GtkWidget *w __attribute__((unused)),
     gpointer data __attribute__((unused)))
 {
 	SetupNewGame();
@@ -83,12 +125,22 @@ UINewGame(GtkWidget *w __attribute__((unused)),
 	game.gameLoopSeconds = SPEED_FAST;
 }
 
-
+/*!
+ * \brief set the save game name
+ * \param sel the file selection dialog that caused this
+ * \param data unused
+ */
 void
-store_filename(GtkFileSelection *sel __attribute__((unused)), gpointer data)
+store_filename(GtkFileSelection *sel, gpointer data __attribute((unused)))
 {
-	savegamename = (gchar*)gtk_file_selection_get_filename(
-	    GTK_FILE_SELECTION(data));
+	gchar *name = (gchar*)gtk_file_selection_get_filename(sel);
+
+	if (name != NULL) {
+		if (savegamename != NULL) {
+			g_free(savegamename);
+		}
+		savegamename = name;
+	}
 	WriteLog("This game will be saved as %s from now on\n", savegamename);
 	UISaveGame(NULL, 0);
 }

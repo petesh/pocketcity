@@ -1,6 +1,12 @@
+/*! \file
+ * \brief interface to the stack functions
+ *
+ * These functions are indended to to provide a simplified set of stack
+ * routines that mey be implemented without reallocating them.
+ */
+
 #if !defined(_STACK_H_)
 #define	_STACK_H_
-/* interface to the stack functions */
 
 #ifdef __cplusplus
 extern "C" {

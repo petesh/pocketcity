@@ -21,6 +21,8 @@ SPEEDBMPS=$(SPEEDFILES:%=speed_%-$(TARGET).bmp)
 $(ALLTARGETS): $(SPEEDBMPS)
 	$(MONTAGE) -geometry 10x10+0+0 -tile 10x1 -adjoin $(SPEEDBMPS) $@
 
+speed-grey.bmp:
+
 CLEANTARGETS=$(TARGETS:%=%-*.bmp)
 
 clean:

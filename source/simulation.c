@@ -1,3 +1,11 @@
+/*! \file
+ * \brief the simulation routines
+ *
+ * This consists of the outines that do all the simulation work, for example
+ * deciding that certain zones are to be improved or deteriorated, where
+ * monsters go to; etc,
+ */
+
 #include <handler.h>
 #include <drawing.h>
 #include <zakdef.h>
@@ -73,8 +81,9 @@ static Int16 ExistsNextto(UInt32 pos, UInt8 what);
  */
 static void DoDistribute(Int16 grid);
 
-/*
- * Distribute to the grids.
+/*!
+ * \brief Distribute to the grids.
+ *
  * Does all the grids needed
  */
 void
@@ -90,8 +99,9 @@ Sim_Distribute(void)
 	}
 }
 
-/*
- * Do a grid distribution for the grid(s) specified
+/*!
+ * \brief Do a grid distribution for the grid(s) specified
+ * \param gridonly the grid to do
  */
 void
 Sim_Distribute_Specific(Int16 gridonly)
@@ -108,8 +118,10 @@ Sim_Distribute_Specific(Int16 gridonly)
 	}
 }
 
-/*
- * Check if the node is a power plant (Nuclear/Coal)
+/*!
+ * \brief Check if the node is a power plant (Nuclear/Coal)
+ * \param point the value at the point
+ * \return wheterh it is one or not.
  */
 static Int16
 IsItAPowerPlant(UInt8 point, UInt32 coord __attribute__((unused)),
@@ -125,9 +137,15 @@ IsItAPowerPlant(UInt8 point, UInt32 coord __attribute__((unused)),
 	}
 }
 
-/*
- * Check if the node is a Water Pump.
+/*!
+ * \brief Check if the node is a Water Pump.
+ *
  * It is a usable water pump if it has power.
+ * \param point node to test
+ * \param coord coordiate of the point
+ * \param flags flag byte of point.
+ * \return if it is a good water pump.
+ *
  */
 static Int16
 IsItAWaterPump(UInt8 point, UInt32 coord, UInt8 flags)
@@ -141,16 +159,24 @@ IsItAWaterPump(UInt8 point, UInt32 coord, UInt8 flags)
 static Int16 (*DoesCarry)(UInt8);
 static Int16 (*IsPlant)(UInt8, UInt32, UInt8);
 
+/*! \brief list of nodes that need to be powered */
 static void *needSourceList;
+/*! \brief nodes that have not been visited */
 static void *unvisitedNodes;
+/*! \brief flag that is being set in this loop */
 static Int8 flagToSet;
+/*! \brief amount of source left */
 static Int16 SourceLeft;
+/*! \brief total source availaable */
 static Int16 SourceTotal;
+/*! \brief nodes visited */
 static Int16 NodesTotal;
+/*! \brief nodes supplied */
 static Int16 NodesSupplied;
 
-/*
- * Set the supplied bit for the point specified
+/*!
+ * \brief Set the supplied bit for the point specified
+ * \param point location in array of point
  */
 static void
 SetSupplied(UInt32 point)
@@ -159,8 +185,12 @@ SetSupplied(UInt32 point)
 	OrWorldFlags(point, flagToSet);
 }
 
-/*
- * Add source to the grid.
+/*!
+ * \brief Add source to the grid.
+ * \param pos index into array of node
+ * \param point node value
+ * \param status status of node (powered/watered)
+ * \return whether node was supplied
  */
 Int16
 SupplyIfPlant(UInt32 pos, UInt8 point, UInt8 status)
@@ -185,8 +215,9 @@ SupplyIfPlant(UInt32 pos, UInt8 point, UInt8 status)
 	return (pt);
 }
 
-/*
- * Do Distribution of the grid (water/power)
+/*!
+ * \brief Do Distribution of the grid (water/power)
+ * \param grid grid to perform distribution on
  */
 static void
 DoDistribute(Int16 grid)
@@ -227,8 +258,9 @@ DoDistribute(Int16 grid)
 				/* unpowered points are removed */
 				StackDoEmpty(needSourceList);
 				WriteLog("Grid#%d Supplied Nodes: %d/%d "
-				    "SrcRemain: %d/%d\n", grid, NodesSupplied,
-				    NodesTotal, SourceLeft, SourceTotal);
+				    "SrcRemain: %d/%d\n", (int)grid,
+				    (int)NodesSupplied, (int)NodesTotal,
+				    (int)SourceLeft, (int)SourceTotal);
 				SourceLeft = SourceTotal = 0;
 				NodesSupplied = NodesTotal = 0;
 			}
@@ -240,8 +272,8 @@ DoDistribute(Int16 grid)
 	StackDelete(unvisitedNodes);
 }
 
-/*
- * Distribute power to the unvisited list.
+/*!
+ * \brief Distribute power to the unvisited list.
  */
 static void
 DistributeUnvisited(void)
@@ -279,8 +311,9 @@ nextneighbor:
 	};
 }
 
-/*
- * Add all the neighbors to this node to the unvisited list.
+/*!
+ * \brief Add all the neighbors to this node to the unvisited list.
+ * \param pos location of node on list
  */
 static void
 AddNeighbors(UInt32 pos)
@@ -308,11 +341,14 @@ AddNeighbors(UInt32 pos)
 }
 
 /*
- * note that this function is used internally in the power distribution
+ * \brief check that the node carries something.
+ *
+ * Note that this function is used internally in the power distribution
  * routine. Therefore it will return false for tiles we've already been at,
  * to avoid backtracking any nodes we've already encountered.
+ * \param pos location of item.
  */
-Int16
+static Int16
 Carries(UInt32 pos)
 {
 	if (GetScratch(pos))
@@ -320,22 +356,22 @@ Carries(UInt32 pos)
 	return (DoesCarry(GetWorld(pos)));
 }
 
-/* gives a status of the situation around us */
-Int16
+/*!
+ * \brief gives a status of the situation around us
+ *
+ * Checks all the nodes around this position to see if they should be
+ * visited to supply them with the appropriate supply item.
+ * 0001 00xx if up
+ * 0010 00xx if right
+ * 0100 00xx if down
+ * 1000 00xx if left
+ * xx = number of directions
+ * \param pos map location to perfrm distribution on.
+ * \return fields & quantity in an overloaded array
+ */
+static Int16
 DistributeNumberOfSquaresAround(UInt32 pos)
 {
-	/*
-	 * return:
-	 * 0001 00xx if up
-	 * 0010 00xx if right
-	 * 0100 00xx if down
-	 * 1000 00xx if left
-	 * xx = number of directions
-	 *
-	 * count fields that carry power
-	 * do not look behind map border
-	 */
-
 	Int16 retval = 0;
 	Int8 number = 0;
 
@@ -361,10 +397,15 @@ DistributeNumberOfSquaresAround(UInt32 pos)
 	return (retval);
 }
 
-/*
+/*!
+ * \brief Distribute supply to locations around this node.
+ * 
  * this function take a position and a direction and
  * moves the position in the direction, but won't move
  * behind map borders
+ * \param pos location in map to source from
+ * \param direction direction move to
+ * \return the location to move to, or the same position
  */
 static UInt32
 DistributeMoveOn(UInt32 pos, dirType direction)
@@ -394,6 +435,12 @@ DistributeMoveOn(UInt32 pos, dirType direction)
 	return (pos);
 }
 
+/*!
+ * \brief check if a node exists next to other types of nodes
+ * \param pos index into map
+ * \param the node type to compare it against
+ * \return true if the node is next to it.
+ */
 static Int16
 ExistsNextto(UInt32 pos, UInt8 what)
 {
@@ -416,17 +463,17 @@ ExistsNextto(UInt32 pos, UInt8 what)
 
 /* Zones upgrade/downgrade */
 
+/*! \brief Zone scores */
 typedef struct {
-	UInt32 pos;
-	Int32 score;
-	Int16 used;
+	UInt32 pos; /*!< position of the node */
+	Int32 score; /*!< score of the node */
+	Int16 used; /*!< ?? */
 } ZoneScore;
 
+/*! \brief zones to be upgraded/downgraded */
 ZoneScore zones[256];
 
-/*
- * Find a bunch of zones and decide to upgrade/downgrade them
- */
+/*! \brief Find a bunch of zones and decide to upgrade/downgrade them */
 void
 FindZonesForUpgrading(void)
 {
@@ -447,13 +494,17 @@ FindZonesForUpgrading(void)
 	}
 }
 
+/*! \brief counter to ensure we don't spend too much time looping */
 UInt16 counter = 0;
 
-/*
+/*!
+ * \brief find the scores that apply to the scoring zones
+ *
  * The score finding routine is divided into small bits of 10 zones per run.
- * This is to free the programflow to take care of user interaction.
+ * This is to free the program flow to take care of user interaction.
  * All functions in the simulation part should complete in under 3/4 second,
  * or the user might see the program as being slow.
+ * \return true of more zones need to be processed.
  */
 Int16
 FindScoreForZones(void)
@@ -482,9 +533,9 @@ FindScoreForZones(void)
 	return (1); /* there's still more zones that need a score. */
 }
 
-/*
- * Upgrade the best zones
- * XXX: this is an O(n^2) algorithm. It should be O(2n) at mo.st
+/*!
+ * \brief Upgrade the best zones
+ * \todo this is an O(n^2) algorithm. It should be O(2n) at most
  */
 void
 UpgradeZones(void)
@@ -539,8 +590,9 @@ UpgradeZones(void)
 	}
 }
 
-/*
- * Downgrade the zone at the position specified
+/*!
+ * \brief Downgrade the zone at the position specified
+ * \param pos the location on the map to downgrade.
  */
 static void
 DowngradeZone(UInt32 pos)
@@ -552,22 +604,23 @@ DowngradeZone(UInt32 pos)
 	if (type >= TYPE_COMMERCIAL_MIN && type <= TYPE_COMMERCIAL_MAX) {
 		SetWorld(pos, (type == TYPE_COMMERCIAL_MIN) ?
 		    ZONE_COMMERCIAL : type - 1);
-		vgame.BuildCount[COUNT_COMMERCIAL]--;
+		vgame.BuildCount[bc_commercial]--;
 	} else if (type >= TYPE_RESIDENTIAL_MIN &&
 	    type <= TYPE_RESIDENTIAL_MAX) {
 		SetWorld(pos, (type == TYPE_RESIDENTIAL_MIN) ?
 		    ZONE_RESIDENTIAL : type - 1);
-		vgame.BuildCount[COUNT_RESIDENTIAL]--;
+		vgame.BuildCount[bc_residential]--;
 	} else if (type >= TYPE_INDUSTRIAL_MIN && type <= TYPE_INDUSTRIAL_MAX) {
 		SetWorld(pos, (type == TYPE_INDUSTRIAL_MIN) ?
 		    ZONE_INDUSTRIAL : type - 1);
-		vgame.BuildCount[COUNT_INDUSTRIAL]--;
+		vgame.BuildCount[bc_industrial]--;
 	}
 	UnlockWorld();
 }
 
 /*
- * Upgrade the zone a the position
+ * \brief Upgrade the zone at the position
+ * \param pos the location on the map to upgrade
  */
 static void
 UpgradeZone(UInt32 pos)
@@ -580,24 +633,24 @@ UpgradeZone(UInt32 pos)
 	    type <= (TYPE_COMMERCIAL_MAX - 1))) {
 		SetWorld(pos, (type == ZONE_COMMERCIAL) ?
 		    TYPE_COMMERCIAL_MIN : type + 1);
-		vgame.BuildCount[COUNT_COMMERCIAL]++;
+		vgame.BuildCount[bc_commercial]++;
 	} else if (type == ZONE_RESIDENTIAL || (type >= TYPE_RESIDENTIAL_MIN &&
 	    type <= (TYPE_RESIDENTIAL_MAX - 1))) {
 		SetWorld(pos, (type == ZONE_RESIDENTIAL) ?
 		    TYPE_RESIDENTIAL_MIN : type + 1);
-		vgame.BuildCount[COUNT_RESIDENTIAL]++;
+		vgame.BuildCount[bc_residential]++;
 	} else if (type == ZONE_INDUSTRIAL || (type >= TYPE_INDUSTRIAL_MIN &&
 	    type <= (TYPE_INDUSTRIAL_MAX - 1))) {
 		SetWorld(pos, (type == ZONE_INDUSTRIAL) ?
 		    TYPE_INDUSTRIAL_MIN : type + 1);
-		vgame.BuildCount[COUNT_INDUSTRIAL]++;
+		vgame.BuildCount[bc_industrial]++;
 	}
 	UnlockWorld();
 }
 
-/*
- * Walk the road, looking for things at the end
- * XXX: actually do this
+/*!
+ * \brief Walk the road, looking for things at the end
+ * \todo actually do the road trip
  */
 static Int16
 DoTheRoadTrip(UInt32 startPos __attribute__((unused)))
@@ -605,10 +658,11 @@ DoTheRoadTrip(UInt32 startPos __attribute__((unused)))
 	return (1); /* for now */
 }
 
-/*
- * Describe the zone at the point specified
+/*!
+ * \brief Describe the zone at the point specified
+ *
  * Crap: has strings, localization issues.
- * XXX: No strings.
+ * \todo remove strings from describing for localization
  */
 /*
 void
@@ -673,9 +727,11 @@ describeZone(UInt8 zone, struct zoneTypeValue *ztv)
 }
 */
 
-/*
- * Get the score for this zone.
- * Returns -1 if the zone needs to be downgraded because of a lack of
+/*!
+ * \brief Get the score for this zone.
+ *
+ * \param pos location on map to get the score of
+ * \return -1 if the zone needs to be downgraded because of a lack of
  * water/power.
  */
 long
@@ -709,9 +765,9 @@ GetZoneScore(UInt32 pos)
 		 * to support a new zone of ind or com
 		 */
 
-		long availPop = (vgame.BuildCount[COUNT_RESIDENTIAL]*25)
-		    - (vgame.BuildCount[COUNT_COMMERCIAL]*25
-		    + vgame.BuildCount[COUNT_INDUSTRIAL]*25);
+		long availPop = (vgame.BuildCount[bc_residential]*25)
+		    - (vgame.BuildCount[bc_commercial]*25
+		    + vgame.BuildCount[bc_industrial]*25);
 		/* pop is too low */
 		if (availPop <= 0)
 			goto unlock_ret;
@@ -724,7 +780,7 @@ GetZoneScore(UInt32 pos)
 		 * bring more potential residents into our little city
 		 */
 		long availPop = ((game.TimeElapsed*game.TimeElapsed)/35+30)
-		    - (vgame.BuildCount[COUNT_RESIDENTIAL]);
+		    - (vgame.BuildCount[bc_residential]);
 		/* hmm - need more children */
 		if (availPop <= 0)
 			goto unlock_ret;
@@ -736,8 +792,8 @@ GetZoneScore(UInt32 pos)
 		 * enough industrial zones before commercial zones kick in.
 		 */
 
-		long int availGoods = (vgame.BuildCount[COUNT_INDUSTRIAL]/3*2)
-		    - (vgame.BuildCount[COUNT_COMMERCIAL]);
+		long int availGoods = (vgame.BuildCount[bc_industrial]/3*2)
+		    - (vgame.BuildCount[bc_commercial]);
 		/* darn, nothing to sell here */
 		if (availGoods <= 0)
 			goto unlock_ret;
@@ -772,8 +828,11 @@ unlock_ret:
 	return (score);
 }
 
-/*
- * Get the score for the zone specified.
+/*!
+ * \brief Get the score for the zone specified.
+ * \param iamthis current zone
+ * \param what adjacent zone
+ * \return the score for an indvidual zone
  */
 Int16
 GetScoreFor(UInt8 iamthis, UInt8 what)
@@ -821,10 +880,12 @@ GetScoreFor(UInt8 iamthis, UInt8 what)
 	return (0);
 }
 
-/*
- * Get a zone on the world.
+/*!
+ * \brief Get a zone on the world.
+ *
  * Must be one of the Residential / Industrial /commercial zones
- * XXX: remove the magic numbers
+ * \return the zone picked
+ * \todo remove the magic numbers
  */
 UInt32
 GetRandomZone()
@@ -847,36 +908,43 @@ GetRandomZone()
 	return (~(UInt32)0);
 }
 
+/*! \brief mapping of item counts and their associated costs */
 static const struct countCosts {
-	UInt32	count;
-	UInt32	cost;
+	BuildCount	count; /*!< Item count to affect */
+	UInt32	cost;	/*!< Cost of associated item */
 } countCosts[] = {
-	{ COUNT_RESIDENTIAL, INCOME_RESIDENTIAL },
-	{ COUNT_COMMERCIAL, INCOME_COMMERCIAL },
-	{ COUNT_INDUSTRIAL, INCOME_INDUSTRIAL },
-	{ COUNT_ROADS, UPKEEP_ROAD },
-	{ COUNT_TREES, 0 },
-	{ COUNT_WATER, 0 },
-	{ COUNT_POWERLINES, UPKEEP_POWERLINE },
-	{ COUNT_POWERPLANTS, UPKEEP_POWERPLANT },
-	{ COUNT_NUCLEARPLANTS, UPKEEP_NUCLEARPLANT },
-	{ COUNT_WASTE, 0 },
-	{ COUNT_FIRE, 0 },
-	{ COUNT_FIRE_STATIONS, UPKEEP_FIRE_STATIONS },
-	{ COUNT_POLICE_STATIONS, UPKEEP_POLICE_STATIONS },
-	{ COUNT_MILITARY_BASES, UPKEEP_MILITARY_BASES },
-	{ COUNT_WATERPIPES, 0 },
-	{ COUNT_WATER_PUMPS, 0 }
+	{ bc_residential, INCOME_RESIDENTIAL },
+	{ bc_commercial, INCOME_COMMERCIAL },
+	{ bc_industrial, INCOME_INDUSTRIAL },
+	{ bc_roads, UPKEEP_ROAD },
+	{ bc_trees, 0 },
+	{ bc_water, 0 },
+	{ bc_powerlines, UPKEEP_POWERLINE },
+	{ bc_coalplants, UPKEEP_POWERPLANT },
+	{ bc_nuclearplants, UPKEEP_NUCLEARPLANT },
+	{ bc_waste, 0 },
+	{ bc_fire, 0 },
+	{ bc_fire_stations, UPKEEP_FIRE_STATIONS },
+	{ bc_police_stations, UPKEEP_POLICE_STATIONS },
+	{ bc_military_bases, UPKEEP_MILITARY_BASES },
+	{ bc_waterpipes, 0 },
+	{ bc_waterpumps, 0 }
 };
 
+/*!
+ * \brief get the costs of a specific node
+ * \param item the item who's cost we wish to extract
+ * \return the cost/benefit associated with the node
+ */
 static Int32
-costIt(Int32 item)
+costIt(BuildCode item)
 {
 	return (vgame.BuildCount[item] * countCosts[item].cost);
 }
 
-/*
- * Get a number for the budget.
+/*!
+ * \brief Get a number for the budget.
+ * \param type the item that we want to extract
  */
 Int32
 BudgetGetNumber(BudgetNumber type)
@@ -884,31 +952,32 @@ BudgetGetNumber(BudgetNumber type)
 	Int32 ret = 0;
 	switch (type) {
 	case bnResidential:
-		ret = (Int32)costIt(COUNT_RESIDENTIAL) * game.tax/100;
+		ret = (Int32)costIt(bc_residential) * game.tax/100;
 		break;
 	case bnCommercial:
-		ret = (Int32)costIt(COUNT_COMMERCIAL) * game.tax/100;
+		ret = (Int32)costIt(bc_commercial) * game.tax/100;
 		break;
 	case bnIndustrial:
-		ret = (Int32)costIt(COUNT_INDUSTRIAL) * game.tax/100;
+		ret = (Int32)costIt(bc_industrial) * game.tax/100;
 		break;
 	case bnIncome:
-		ret = ((costIt(COUNT_RESIDENTIAL) + costIt(COUNT_COMMERCIAL) + costIt(COUNT_INDUSTRIAL)) * game.tax) / 100;
+		ret = ((costIt(bc_residential) + costIt(bc_commercial) +
+			    costIt(bc_industrial)) * game.tax) / 100;
 		break;
 	case bnTraffic:
-		ret = (Int32)(costIt(COUNT_ROADS) *
-		    game.upkeep[UPKEEPS_TRAFFIC]) / 100;
+		ret = (Int32)(costIt(bc_roads) *
+		    game.upkeep[ue_traffic]) / 100;
 		break;
 	case bnPower:
-		ret = (Int32)((costIt(COUNT_POWERLINES) +
-		    costIt(COUNT_NUCLEARPLANTS) + costIt(COUNT_POWERPLANTS)) *
-		    game.upkeep[UPKEEPS_POWER]) / 100;
+		ret = (Int32)((costIt(bc_powerlines) +
+		    costIt(bc_nuclearplants) + costIt(bc_coalplants)) *
+		    game.upkeep[ue_power]) / 100;
 		break;
 	case bnDefence:
-		ret = (Int32)((costIt(COUNT_FIRE_STATIONS) +
-		    costIt(COUNT_POLICE_STATIONS) +
-		    costIt(COUNT_MILITARY_BASES)) *
-		    game.upkeep[UPKEEPS_DEFENCE])/100;
+		ret = (Int32)((costIt(bc_fire_stations) +
+		    costIt(bc_police_stations) +
+		    costIt(bc_military_bases)) *
+		    game.upkeep[ue_defense])/100;
 		break;
 	case bnCurrentBalance:
 		ret = game.credits;
@@ -927,20 +996,20 @@ BudgetGetNumber(BudgetNumber type)
 	return (ret);
 }
 
-/*
- * Add money because of taxes
+/*!
+ * \brief Add money because of taxes
  */
 void
-DoTaxes()
+DoTaxes(void)
 {
 	game.credits += BudgetGetNumber(bnIncome);
 }
 
-/*
- * Take away money because of upkeep costs
+/*!
+ * \brief Take away money because of upkeep costs
  */
 void
-DoUpkeep()
+DoUpkeep(void)
 {
 	UInt32 upkeep;
 
@@ -964,9 +1033,11 @@ DoUpkeep()
 	DoNastyStuffTo(TYPE_MILITARY_BASE, 35);
 }
 
-/*
- * Perform a phase of the simulation
- * XXX: break into separate functions and a jump table.
+/*!
+ * \brief Perform a phase of the simulation
+ * \param nPhase the phase number to do
+ * \return the next phase to go to
+ * \todo break into separate functions and a jump table.
  */
 Int16
 Sim_DoPhase(Int16 nPhase)
@@ -1027,8 +1098,10 @@ Sim_DoPhase(Int16 nPhase)
 	return (nPhase);
 }
 
-/*
- * Updates the BuildCount array after a load game
+/*!
+ * \brief update the vgame entries
+ *
+ * Updates the BuildCount array after a load game.
  */
 void
 UpdateVolatiles(void)
@@ -1041,44 +1114,44 @@ UpdateVolatiles(void)
 		UInt8 elt = GetWorld(p);
 		/* Gahd this is terrible. I need to fix it. */
 		if (elt >= TYPE_COMMERCIAL_MIN && elt <= TYPE_COMMERCIAL_MAX)
-			vgame.BuildCount[COUNT_COMMERCIAL] += elt%10 + 1;
+			vgame.BuildCount[bc_commercial] += elt%10 + 1;
 		if (elt >= TYPE_RESIDENTIAL_MIN && elt <= TYPE_RESIDENTIAL_MAX)
-			vgame.BuildCount[COUNT_RESIDENTIAL] += elt%10 + 1;
+			vgame.BuildCount[bc_residential] += elt%10 + 1;
 		if (elt >= TYPE_INDUSTRIAL_MIN && elt <= TYPE_INDUSTRIAL_MAX)
-			vgame.BuildCount[COUNT_INDUSTRIAL] += elt%10 + 1;
-		if (IsRoad(elt)) vgame.BuildCount[COUNT_ROADS]++;
-		if (elt == TYPE_TREE) vgame.BuildCount[COUNT_TREES]++;
-		if (elt == TYPE_WATER) vgame.BuildCount[COUNT_WATER]++;
+			vgame.BuildCount[bc_industrial] += elt%10 + 1;
+		if (IsRoad(elt)) vgame.BuildCount[bc_roads]++;
+		if (elt == TYPE_TREE) vgame.BuildCount[bc_trees]++;
+		if (elt == TYPE_WATER) vgame.BuildCount[bc_water]++;
 		if (elt == TYPE_POWERROAD_2 || elt == TYPE_POWERROAD_1) {
-			vgame.BuildCount[COUNT_POWERLINES]++;
-			vgame.BuildCount[COUNT_ROADS]++;
+			vgame.BuildCount[bc_powerlines]++;
+			vgame.BuildCount[bc_roads]++;
 		}
 		if (elt == TYPE_POWER_LINE)
-			vgame.BuildCount[COUNT_POWERLINES]++;
+			vgame.BuildCount[bc_powerlines]++;
 		if (elt == TYPE_POWER_PLANT)
-			vgame.BuildCount[COUNT_POWERPLANTS]++;
+			vgame.BuildCount[bc_coalplants]++;
 		if (elt == TYPE_NUCLEAR_PLANT)
-			vgame.BuildCount[COUNT_NUCLEARPLANTS]++;
-		if (elt == TYPE_WASTE) vgame.BuildCount[COUNT_WASTE]++;
+			vgame.BuildCount[bc_nuclearplants]++;
+		if (elt == TYPE_WASTE) vgame.BuildCount[bc_waste]++;
 		if (elt == TYPE_FIRE1 || elt == TYPE_FIRE2 || elt == TYPE_FIRE3)
-			vgame.BuildCount[COUNT_FIRE]++;
+			vgame.BuildCount[bc_fire]++;
 		if (elt == TYPE_FIRE_STATION)
-			vgame.BuildCount[COUNT_FIRE_STATIONS]++;
+			vgame.BuildCount[bc_fire_stations]++;
 		if (elt == TYPE_POLICE_STATION)
-			vgame.BuildCount[COUNT_POLICE_STATIONS]++;
+			vgame.BuildCount[bc_police_stations]++;
 		if (elt == TYPE_MILITARY_BASE)
-			vgame.BuildCount[COUNT_MILITARY_BASES]++;
+			vgame.BuildCount[bc_military_bases]++;
 		if (elt == TYPE_WATER_PIPE)
-			vgame.BuildCount[COUNT_WATERPIPES]++;
+			vgame.BuildCount[bc_waterpipes]++;
 		if (elt == TYPE_WATERROAD_1 || elt == TYPE_WATERROAD_2) {
-			vgame.BuildCount[COUNT_WATERPIPES]++;
-			vgame.BuildCount[COUNT_ROADS]++;
+			vgame.BuildCount[bc_waterpipes]++;
+			vgame.BuildCount[bc_roads]++;
 		}
 		if (elt == TYPE_ROAD)
-			vgame.BuildCount[COUNT_ROADS]++;
+			vgame.BuildCount[bc_roads]++;
 
 		if (elt == TYPE_WATER_PUMP)
-			vgame.BuildCount[COUNT_WATER_PUMPS]++;
+			vgame.BuildCount[bc_waterpumps]++;
 	}
 	UnlockWorld();
 }

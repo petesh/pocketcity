@@ -1,3 +1,9 @@
+/*! \file
+ * \brief convenience routines
+ *
+ * This contains routines for working on the difficulty, disaster level
+ * of the simulation, as well as displaying the date.
+ */
 #include <zakdef.h>
 #if defined(PALM)
 #include <StringMgr.h>
@@ -6,20 +12,22 @@
 #include <stdio.h>
 #endif
 
-/* this is the central game struct */
+/*! \brief this is the central game struct */
 GameStruct game;
-/* This is the volatile game structure (memoizing to reduce op/s) */
+/*! \brief  This is the volatile game structure (memoizing to reduce op/s) */
 vGameStruct vgame;
 
-/* This is the game configuration */
+/*! \brief This is the game configuration */
 AppConfig_t gameConfig = {
 	CONFIG_VERSION,
 	DEFAULT_APPCONFIG
 };
 
-/*
- * Get the date in the game
- * XXX: deal with phenomenally big dates
+/*!
+ * \brief Get the date in the game
+ * \todo deal with phenomenally big dates
+ * \param temp buffer to put date string into
+ * \return the temp buffer (silli!)
  */
 char *
 GetDate(char *temp)
@@ -42,9 +50,15 @@ GetDate(char *temp)
 	return ((char *)temp);
 }
 
-/*
- * find a key in an array.
+/*!
+ * \brief find a key in an array.
+ *
  * Array is an array of possibly structs with key as the first element
+ * \param ary the arry to look into
+ * \param addit amount ot add to get to next element in array
+ * \param key key to check against
+ * \return array item, or NULL
+ *
  */
 void *
 getIndexOf(char *ary, Int16 addit, Int16 key)
@@ -54,11 +68,12 @@ getIndexOf(char *ary, Int16 addit, Int16 key)
 			return (ary);
 		ary += addit;
 	}
-	return (0);
+	return (NULL);
 }
 
-/*
- * Get the disaster level setting of the game
+/*!
+ * \brief Get the disaster level setting of the game
+ * \return disaster level
  */
 UInt8
 GetDisasterLevel(void)
@@ -66,31 +81,34 @@ GetDisasterLevel(void)
 	return (game.diff_disaster & 0xF);
 }
 
-/*
- * Set The disaster Level of the game
+/*!
+ * \brief Set The disaster Level of the game
+ * \param value the new value of disaster level
  */
 void
 SetDisasterLevel(UInt8 value)
 {
 	game.diff_disaster &= 0xf0;
-	game.diff_disaster |= ((value & 0x0f) << 4);
+	game.diff_disaster |= (value & 0x0f);
 }
 
-/*
- * Get the difficulty level of the game
+/*!
+ * \brief Get the difficulty level of the game
+ * \return the difficulty level
  */
 UInt8
 GetDifficultyLevel(void)
 {
-	return ((game.diff_disaster >> 4) & 0xF);
+	return ((game.diff_disaster >> 4) & 0x0f);
 }
 
-/*
- * Set the difficulty level of the game
+/*!
+ * \brief Set the difficulty level of the game
+ * \param value the new difficulty level
  */
 void
 SetDifficultyLevel(UInt8 value)
 {
-	game.diff_disaster &= 0xf;
+	game.diff_disaster &= 0x0f;
 	game.diff_disaster |= ((value & 0x0f) << 4);
 }

@@ -1,3 +1,6 @@
+/*! \file
+ * \brief interface routines for disasters
+ */
 #if !defined(_DISASTER_H_)
 #define	_DISASTER_H_
 

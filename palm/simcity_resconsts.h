@@ -67,6 +67,10 @@
 #define	listID_shifter 5001
 
 /* notice how the IDs here are the same as the menuIDs (uptil the "extra") */
+/*
+ * Button IDs are the 'index' of the button within the button matrix. The
+ * defined matrix is 10x(whatever).
+ */
 #define	bitmapID_iconBulldoze 1100
 #define	bitmapID_iconResidential 1101
 #define	bitmapID_iconCommercial 1102
@@ -111,12 +115,7 @@
 
 #define	st_disasters			2000
 
-/* the jumps in these defines makes coding easier */
-#define	bitmapID_SpeedPaused 3000
-#define	bitmapID_SpeedSlow 3015
-#define	bitmapID_SpeedNormal 3010
-#define	bitmapID_SpeedFast 3005
-#define	bitmapID_SpeedUltra 3001
+#define	bitmapID_Speed 3000
 
 /* menu for budget */
 #define	menuitemID_BudgetBack 1300

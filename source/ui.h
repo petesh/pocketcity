@@ -1,3 +1,9 @@
+/*! \file
+ * \brief the user interface routines that need defining in any implementation
+ *
+ * These are all the functions that need implementing if you want to 
+ * make the game work.
+ */
 #if !defined(_UI_H)
 #define	_UI_H
 
@@ -10,8 +16,8 @@
 extern "C" {
 #endif
 
-Int16 UIDisplayError(erdiType nError);
-Int16 UIDisplayError1(char *message);
+void UIDisplayError(erdiType nError);
+void UIDisplayError1(char *message);
 
 void UIInitDrawing(void);
 void UIFinishDrawing(void);
@@ -35,7 +41,7 @@ void UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos);
 void UIDrawCursor(Int16 xpos, Int16 ypos);
 void UIDrawPowerLoss(Int16 xpos, Int16 ypos);
 void UIDrawWaterLoss(Int16 xpos, Int16 ypos);
-BuildCodes UIGetSelectedBuildItem(void);
+BuildCode UIGetSelectedBuildItem(void);
 
 Int16 InitWorld(void);
 Int16 ResizeWorld(UInt32 size);

@@ -67,14 +67,9 @@ changeDepthRes(UInt32 ndepth)
 	UInt32 height;
 	Err result;
 
-	SETWIDTH(160);
-	SETHEIGHT(160);
-
 	(void) loadHiRes();
-	if (isHires()) {
-		SETWIDTH(320);
-		SETHEIGHT(320);
-	}
+	setScreenRes();
+	
 	(void) _WinScreenMode(winScreenModeGetSupportsColor, NULL, NULL, NULL,
 	    &enablecol);
 	(void) _WinScreenMode(winScreenModeGetSupportedDepths, NULL, NULL,

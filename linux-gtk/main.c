@@ -1,3 +1,9 @@
+/*! \file
+ * \brief the main GTK routines for the simulation
+ *
+ * This file contains all the major routines to perform the simulation
+ * in the GTK environment.
+ */
 #include <gtk/gtk.h>
 #include <stdlib.h>
 #include <time.h>
@@ -16,41 +22,70 @@
 #include <disaster.h>
 #include <compilerpragmas.h>
 
-GtkWidget *drawingarea;
-GtkWidget *window;
-GtkWidget *creditslabel;
-GtkWidget *poplabel;
-GtkWidget *timelabel;
-GtkObject *playscrollerh, *playscrollerv;
+/*! \brief handle to area on which the game is drawn */
+static GtkWidget *drawingarea;
+/*! \brief the handle of the window within which most of the widgets reside */
+static GtkWidget *window;
+/*! \brief the handle to the label containing the amount of money you have */
+static GtkWidget *creditslabel;
+/*! \brief the handle to the label containing the population in the city */
+static GtkWidget *poplabel;
+/*! \brief the handle to the label containing the date in the city */
+static GtkWidget *timelabel;
+/*! \brief handle to the horizontal scroll bar for moving the map around */
+static GtkObject *playscrollerh;
+/*! \brief handle to the vertical scroll bar for moving the map around */
+static GtkObject *playscrollerv;
+/*! \brief handle to the contents of the world */
 void *worldPtr;
+/*! \brief handle to the contents of the world flags */
 void *worldFlagsPtr;
-GdkPixmap *zones_bitmap, *monsters, *units;
-GdkBitmap *zones_mask, *monsters_mask, *units_mask;
-UInt8 selectedBuildItem = 0;
-void SetUpMainWindow(void);
-static gint mainloop_callback(gpointer data);
-void UIQuitGame(GtkWidget *w, gpointer data);
-void UISetSpeed(GtkWidget *w, gpointer data);
+/*! \brief handle to the bitmaps for rendering the zones */
+static GdkPixmap *zones;
+/*! \brief handle to the bitmaps for rendering the monsters */
+static GdkPixmap *monsters;
+/*! \brief handle to the bitmaps for rendering the units */
+static GdkPixmap *units;
+/*! \brief handle to the bitmap masks for rendering the units */
+static GdkPixmap *zones_mask;
+/*! \brief handle to the bitmap masks for rendering the monsters */
+static GdkPixmap *monsters_mask;
+/*! \brief handle to the bitmap masks for rendering the units */
+static GdkPixmap *units_mask;
 
+static void SetUpMainWindow(void);
+static gint mainloop_callback(gpointer data);
+static void QuitGame(GtkWidget *w, gpointer data);
+static void SetSpeed(GtkWidget *w, gpointer data);
+
+/*! \brief the menu items for the main application */
 GtkItemFactoryEntry menu_items[] = {
 	{ "/_File", NULL, NULL, 0, "<Branch>", 0 },
-	{ "/File/_New", "<control>N", UINewGame, 0, NULL, 0 },
-	{ "/File/_Open", "<control>O", UIOpenGame, 0, NULL, 0 },
-	{ "/File/_Save", "<control>S", UISaveGame, 0, NULL, 0 },
-	{ "/File/Save _As", NULL, UISaveGameAs, 0, NULL, 0 },
+	{ "/File/_New", "<control>N", NewGame, 0, NULL, 0 },
+	{ "/File/_Open", "<control>O", OpenGame, 0, NULL, 0 },
+	{ "/File/_Open Palm Game", NULL, OpenGame, 1, NULL, 0 },
+	{ "/File/_Save", "<control>S", SaveGame, 0, NULL, 0 },
+	{ "/File/Save _As", NULL, SaveGameAs, 0, NULL, 0 },
 	{ "/File/sep1",	NULL, NULL, 0, "<Separator>", 0 },
-	{ "/File/_Quit", NULL, UIQuitGame, 0, NULL, 0 },
+	{ "/File/_Quit", NULL, QuitGame, 0, NULL, 0 },
 	{ "/_View", NULL, NULL,	0, "<Branch>", 0 },
-	{ "/View/_Budget", NULL, UIViewBudget, 0, NULL, 0 },
+	{ "/View/_Budget", NULL, ViewBudget, 0, NULL, 0 },
 	{ "/_Speed", NULL, NULL, 0, "<Branch>", 0 },
-	{ "/Speed/_Pause", NULL, UISetSpeed, SPEED_PAUSED, NULL, 0 },
+	{ "/Speed/_Pause", NULL, SetSpeed, SPEED_PAUSED, NULL, 0 },
 	{ "/Speed/sep1", NULL, NULL, 0, "<Separator>", 0 },
-	{ "/Speed/_Slow", NULL, UISetSpeed, SPEED_SLOW, NULL, 0 },
-	{ "/Speed/_Medium", NULL, UISetSpeed, SPEED_MEDIUM, NULL, 0 },
-	{ "/Speed/_Fast", NULL, UISetSpeed, SPEED_FAST, NULL, 0 },
-	{ "/Speed/_Turbo", NULL, UISetSpeed, SPEED_TURBO, NULL, 0 },
+	{ "/Speed/_Slow", NULL, SetSpeed, SPEED_SLOW, NULL, 0 },
+	{ "/Speed/_Medium", NULL, SetSpeed, SPEED_MEDIUM, NULL, 0 },
+	{ "/Speed/_Fast", NULL, SetSpeed, SPEED_FAST, NULL, 0 },
+	{ "/Speed/_Turbo", NULL, SetSpeed, SPEED_TURBO, NULL, 0 },
 };
 
+/*!
+ * \brief the main routine
+ *
+ * Sets up the windows and starts the simulation
+ * \param argc count of arguments on the command line
+ * \param argv array of the arguments
+ */
 int
 main(int argc, char *argv[])
 {
@@ -72,16 +107,30 @@ main(int argc, char *argv[])
 	return (0);
 }
 
+/* \brief the ticker */
 unsigned int timekeeper = 0;
+/* \brief the disaster time clock */
 unsigned int timekeeperdisaster = 0;
 
-void
-UISetSpeed(GtkWidget *w __attribute__((unused)), gpointer data)
+/*!
+ * \brief set the game speed
+ * \param w the widget that originated the speed message
+ * \param data the speed number.
+ */
+static void
+SetSpeed(GtkWidget *w __attribute__((unused)), gpointer data)
 {
-	WriteLog("Setting speed to %i\n", GPOINTER_TO_INT(data));
-	game.gameLoopSeconds = GPOINTER_TO_INT(data);
+	int result = GPOINTER_TO_INT(data);
+
+	WriteLog("Setting speed to %i\n", resul);
+	game.gameLoopSeconds = result;
 }
 
+/*!
+ * \brief time ticker that loops every second
+ * \param data unused in this context
+ * \return true, call me again in a second
+ */
 static gint
 mainloop_callback(gpointer data __attribute__((unused)))
 {
@@ -113,6 +162,15 @@ mainloop_callback(gpointer data __attribute__((unused)))
 	return (TRUE); /* yes, call us again in a sec */
 }
 
+/*! \brief handle to the bitmap masks for rendering the units */
+static UInt8 selectedBuildItem = 0;
+
+/*!
+ * \brief set the item that will be build upon clicking on the play surface
+ * \param widget unused
+ * \param data the identifier of the toolbar item
+ * \return false, handled
+ */
 static gint
 toolbox_callback(GtkWidget *widget __attribute__((unused)), gpointer data)
 {
@@ -120,6 +178,12 @@ toolbox_callback(GtkWidget *widget __attribute__((unused)), gpointer data)
 	return (FALSE);
 }
 
+/*!
+ * \brief slide the scrollbar
+ *
+ * Moves the display to the appropriate location.
+ * \param adj the adjustment; unused
+ */
 void
 scrollbar(GtkAdjustment *adj __attribute__((unused)))
 {
@@ -127,8 +191,14 @@ scrollbar(GtkAdjustment *adj __attribute__((unused)))
 	    GTK_ADJUSTMENT(playscrollerv)->value);
 }
 
-/*
- * XXX: fix this to constrain the width/height so as to not be too big
+/*!
+ * \brief check the size of the screen.
+ *
+ * intended to allow the play area to expand and contract; this code is
+ * used by the initial sizing algorithm, as well as the resize handler.
+ * \todo fix this to constrain the width/height so as to not be too big
+ * \param width the new width of the area
+ * \param height the new height of the area
  */
 void
 ResizeCheck(int width, int height)
@@ -138,14 +208,33 @@ ResizeCheck(int width, int height)
 	vgame.visible_y = height / vgame.tileSize;
 }
 
+/*!
+ * \brief the configure event handler for the play area.
+ *
+ * Resizes the playing area elements to ensure that the play area is
+ * displayed with the correct size on screen.
+ * \param widget the widget that caused the configure event.
+ * \param event te event that isssued this configure event
+ * \param data extra data for the event.
+ */
 void
-checkresize(GtkContainer *widget __attribute__((unused)), GdkEvent *event,
+check_configure(GtkContainer *widget __attribute__((unused)), GdkEvent *event,
     gpointer data __attribute__((unused)))
 {
 	GdkEventConfigure *gek = (GdkEventConfigure *)event;
 	ResizeCheck(gek->width, gek->height);
 }
 
+/*!
+ * \brief when the close button is clicked, this event is called
+ *
+ * MAkes the main event loop terminate.
+ * \param widget unused
+ * \param event unused
+ * \param data unused
+ * \return FALSE, to stop the event being processed again
+ * \todo Change the code to perform an auto save / ask to save.
+ */
 static gint
 delete_event(GtkWidget *widget __attribute__((unused)),
     GdkEvent *event __attribute__((unused)),
@@ -155,9 +244,16 @@ delete_event(GtkWidget *widget __attribute__((unused)),
 	return (FALSE);
 }
 
-/*
- * XXX: horribly inefficient.
- * It's an expose event for the drawing widget only.
+/*!
+ * \brief the drawing area is exposed, and needs to be painted.
+ *
+ * This is an expose event for the drawing area to cause the screen to
+ * be repainted. Redraws all the fields that are on the screen.
+ * \param widget unused
+ * \param event unused
+ * \param data unused
+ * \return FALSE, to make sure tnothing else tries to handle the signal
+ * \todo repaint only the section of the screen that need painting.
  */
 static gint
 drawing_exposed_callback(GtkWidget *widget __attribute__((unused)),
@@ -169,18 +265,36 @@ drawing_exposed_callback(GtkWidget *widget __attribute__((unused)),
 	return (FALSE);
 }
 
+/*!
+ * \brief Realize the drawing area once it is created
+ *
+ * This call is issued once the drawing area is initially created.
+ * It allows us to create a new game and make sure the screen is the
+ * correct size.
+ * \param widget unused
+ * \param event unused
+ * \param data unused
+ * \return FALSE, make sure that no one else reacts to the signal.
+ */
 static gint
 drawing_realized_callback(GtkWidget *widget __attribute__((unused)),
     GdkEvent *event __attribute__((unused)),
     gpointer data __attribute__((unused)))
 {
 	PCityMain();
-	UINewGame(NULL, 0);
+	NewGame(NULL, 0);
 	ResizeCheck(320, 240);
 	return (FALSE);
 }
 
-
+/*!
+ * \brief someone clicked on the play area.
+ *
+ * The play area has a button pressed upon it. As a consequence we need to
+ * either build something or bulldoze the area.
+ * \param widget unused
+ * \param event contains the buttons that were pressed.
+ */
 static gint
 button_press_event(GtkWidget *widget __attribute__((unused)),
     GdkEventButton *event)
@@ -198,6 +312,11 @@ button_press_event(GtkWidget *widget __attribute__((unused)),
 	return (TRUE);
 }
 
+/*!
+ * \brief somethings moved
+ *
+ * Ooooooooo.... I have no clue
+ */
 static gint
 motion_notify_event(GtkWidget *widget __attribute__((unused)),
     GdkEventMotion *event)
@@ -230,6 +349,10 @@ motion_notify_event(GtkWidget *widget __attribute__((unused)),
 	return (TRUE);
 }
 
+/*!
+ * \brief set up the toolbox
+ * \return the widget containing the toolbox
+ */
 GtkWidget *
 setupToolBox(void)
 {
@@ -241,7 +364,7 @@ setupToolBox(void)
 	int i;
 	char image_path[40];
 	/* If you change the order here you need to change the xpm... */
-	/* TODO: make the file names related to the items */
+	/*! \todo make the file names related to the items */
 	struct gaa {
 		gint entry; const char *text;
 	} actions[] = {
@@ -298,6 +421,10 @@ setupToolBox(void)
 	return (handle);
 }
 
+/*!
+ * \brief create the keyboard and menu accelerator groups
+ * \return the accelerator group.
+ */
 GtkAccelGroup *
 createMenu(GtkWidget *main_box)
 {
@@ -318,6 +445,12 @@ createMenu(GtkWidget *main_box)
 	return (accel_group);
 }
 
+/*!
+ * \brief set up and configure the main window.
+ *
+ * Creates the main window. Creates all the elements of the main window
+ * including the toolbar (!grrrrr)
+ */
 void
 SetUpMainWindow(void)
 {
@@ -363,7 +496,7 @@ SetUpMainWindow(void)
 	gtk_table_attach(GTK_TABLE(playingbox), vscroll, 1, 2, 0, 1,
 	    0, GTK_FILL, 0, 0);
 	g_signal_connect(G_OBJECT(drawingarea), "configure_event",
-	    G_CALLBACK(checkresize), NULL);
+	    G_CALLBACK(check_configure), NULL);
 
 	/* arange in boxes  */
 	toolbox = setupToolBox();
@@ -404,10 +537,13 @@ SetUpMainWindow(void)
 	gtk_widget_show(window);
 }
 
+/*!
+ * \brief load and configure the pixmaps
+ */
 void
 UISetUpGraphic(void)
 {
-	zones_bitmap = gdk_pixmap_create_from_xpm(drawingarea->window,
+	zones = gdk_pixmap_create_from_xpm(drawingarea->window,
 	    &zones_mask, NULL, "graphic/zones_16x16-color.png");
 	monsters = gdk_pixmap_create_from_xpm(drawingarea->window,
 	    &monsters_mask, NULL, "graphic/monsters_16x16-color.png");
@@ -415,8 +551,11 @@ UISetUpGraphic(void)
 	    &units_mask, NULL, "graphic/units_16x16-color.png");
 }
 
-
-Int16
+/*!
+ * \brief Display and error dialog with one parameter.
+ * \param error the message to use in the dialog
+ */
+void
 UIDisplayError1(char *error)
 {
 	GtkWidget * dialog;
@@ -428,10 +567,13 @@ UIDisplayError1(char *error)
 	    error);
 	gtk_dialog_run(GTK_DIALOG(dialog));
 	gtk_widget_destroy(GTK_WIDGET(dialog));
-	return (0);
 }
 
-Int16
+/*!
+ * \brief display and error involving a specific error type
+ * \param nError the error number to invoke.
+ */
+void
 UIDisplayError(erdiType nError)
 {
 	char temp[100];
@@ -464,37 +606,44 @@ UIDisplayError(erdiType nError)
 		break;
 	}
 	UIDisplayError1(temp);
-	return (0);
 }
 
+/*! unused */
 void
 UIInitDrawing(void)
 {
 }
 
+/*! unused */
 void
 UIFinishDrawing(void)
 {
 }
 
+/*! unused */
 void
 UIUnlockScreen(void)
 {
 	/* not used for this platform */
 }
 
+/*! unused */
 void
 UILockScreen(void)
 {
 	/* not used for this platform */
 }
 
+/*! unused */
 void
 UIDrawBorder(void)
 {
-	WriteLog("UIDrawBorder\n");
+	/* */
 }
 
+/*!
+ * \brief set the labels for the credits and time
+ */
 void
 UIDrawCredits(void)
 {
@@ -506,24 +655,32 @@ UIDrawCredits(void)
 	gtk_label_set_text((GtkLabel *)timelabel, temp);
 }
 
+/*! unused */
 void
 UIUpdateBuildIcon(void)
 {
-	WriteLog("UIUpdateBuildIcon\n");
+	/* */
 }
 
+/*! unused */
 void
 UIGotoForm(Int16 n __attribute__((unused)))
 {
-	WriteLog("UIGotoForm\n");
+	/* */
 }
 
+/*! unused */
 void
 UICheckMoney(void)
 {
-	WriteLog("UICheckMoney\n");
+	/* */
 }
 
+/*!
+ * \brief scroll the map in the approprite direction
+ *
+ * \todo double buffer to improve the rendering of the screen!
+ */
 void
 UIScrollMap(dirType direction __attribute__((unused)))
 {
@@ -532,6 +689,9 @@ UIScrollMap(dirType direction __attribute__((unused)))
 	RedrawAllFields();
 }
 
+/*!
+ * \brief in theory draw a rectangle.
+ */
 void
 _UIDrawRect(Int16 nTop __attribute__((unused)),
     Int16 nLeft __attribute__((unused)), Int16 nHeight __attribute__((unused)),
@@ -540,6 +700,12 @@ _UIDrawRect(Int16 nTop __attribute__((unused)),
 	WriteLog("_UIDrawRect\n");
 }
 
+/*!
+ * \brief draw a field
+ * \param xpos the horizontal position
+ * \param ypos the vertical position
+ * \param nGraphic the item to paint
+ */
 void
 UIDrawField(Int16 xpos, Int16 ypos, UInt8 nGraphic)
 {
@@ -549,16 +715,22 @@ UIDrawField(Int16 xpos, Int16 ypos, UInt8 nGraphic)
 	gdk_draw_drawable(
 	    drawingarea->window,
 	    gc,
-	    zones_bitmap,
+	    zones,
 	    (nGraphic % 64) * vgame.tileSize,
 	    (nGraphic / 64) * vgame.tileSize,
 	    xpos * vgame.tileSize,
 	    ypos * vgame.tileSize,
 	    vgame.tileSize,
 	    vgame.tileSize);
-	gdk_gc_destroy(gc);
+	g_object_unref(gc);
 }
 
+/*!
+ * \param draw a special object
+ * \param i the item to draw
+ * \param xpos the horizontal position
+ * \param ypos the vertical position
+ */
 void
 UIDrawSpecialObject(Int16 i, Int16 xpos, Int16 ypos)
 {
@@ -580,9 +752,15 @@ UIDrawSpecialObject(Int16 i, Int16 xpos, Int16 ypos)
 	    ypos * vgame.tileSize,
 	    vgame.tileSize,
 	    vgame.tileSize);
-	gdk_gc_destroy(gc);
+	g_object_unref(gc);
 }
 
+/*!
+ * \brief draw a special unit on the screen
+ * \param i the unit do draw
+ * \param xpos the horizontal location on screen
+ * \param ypos the vertical location on screen
+ */
 void
 UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos)
 {
@@ -604,9 +782,10 @@ UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos)
 	    ypos * vgame.tileSize,
 	    vgame.tileSize,
 	    vgame.tileSize);
-	gdk_gc_destroy(gc);
+	g_object_unref(gc);
 }
 
+/*! unused */
 void
 UIDrawCursor(Int16 xpos __attribute__((unused)),
     Int16 ypos __attribute__((unused)))
@@ -614,60 +793,68 @@ UIDrawCursor(Int16 xpos __attribute__((unused)),
 	/* not used on this platform */
 }
 
+/*!
+ * \brief draw an overlay icon on the screen
+ * \param xpos the horizontal location
+ * \param ypos the vertical location
+ * \param offset the offst of the item to paint.
+ */
+void
+UIDrawOverlay(Int16 xpos, Int16 ypos, UInt16 offset)
+{
+	GdkGC *gc;
+
+	gc = gdk_gc_new(drawingarea->window);
+	gdk_gc_set_clip_mask(gc, zones_mask);
+	gdk_gc_set_clip_origin(gc,
+	    xpos * vgame.tileSize - offset,
+	    ypos * vgame.tileSize);
+
+	gdk_draw_drawable(
+	    drawingarea->window,
+	    gc,
+	    zones,
+	    offset,
+	    0,
+	    xpos * vgame.tileSize,
+	    ypos * vgame.tileSize,
+	    vgame.tileSize,
+	    vgame.tileSize);
+	g_object_unref(gc);
+}
+
+/*!
+ * \brief Draw a power loss overlay on the screen at the specified location
+ */
 void
 UIDrawPowerLoss(Int16 xpos, Int16 ypos)
 {
-	GdkGC *gc;
-
-	gc = gdk_gc_new(drawingarea->window);
-	gdk_gc_set_clip_mask(gc, zones_mask);
-	gdk_gc_set_clip_origin(gc,
-	    xpos * vgame.tileSize - 128,
-	    ypos * vgame.tileSize);
-
-	gdk_draw_drawable(
-	    drawingarea->window,
-	    gc,
-	    zones_bitmap,
-	    128,
-	    0,
-	    xpos * vgame.tileSize,
-	    ypos * vgame.tileSize,
-	    vgame.tileSize,
-	    vgame.tileSize);
-	gdk_gc_destroy(gc);
+	UIDrawOverlay(xpos, ypos, 128);
 }
 
+/*!
+ * \brief Draw a water loss overlay on the screen at the specified location
+ */
 void
 UIDrawWaterLoss(Int16 xpos, Int16 ypos)
 {
-	GdkGC *gc;
-
-	gc = gdk_gc_new(drawingarea->window);
-	gdk_gc_set_clip_mask(gc, zones_mask);
-	gdk_gc_set_clip_origin(gc,
-	    xpos * vgame.tileSize-64,
-	    ypos * vgame.tileSize);
-
-	gdk_draw_drawable(
-	    drawingarea->window,
-	    gc,
-	    zones_bitmap,
-	    64,
-	    0,
-	    xpos * vgame.tileSize,
-	    ypos * vgame.tileSize,
-	    vgame.tileSize,
-	    vgame.tileSize);
-	gdk_gc_destroy(gc);
+	UIDrawOverlay(xpos, ypos, 64);
 }
 
-BuildCodes
+/*!
+ * \brief get the selected item to build
+ * \return the item that is selected.
+ */
+BuildCode
 UIGetSelectedBuildItem(void)
 {
 	return (selectedBuildItem);
 }
 
+/*!
+ * \brief initialize the world variables
+ * \return 1 if the allocation succeeded, 0 otherwise
+ */
 Int16
 InitWorld(void)
 {
@@ -676,12 +863,21 @@ InitWorld(void)
 
 	if (worldPtr == NULL || worldFlagsPtr == NULL) {
 		UIDisplayError(0);
+		if (worldPtr != NULL)
+			free(worldPtr);
+		if (worldFlagsPtr)
+			free(worldFlagsPtr)
 		WriteLog("malloc failed - initworld\n");
 		return (0);
 	}
 	return (1);
 }
 
+/*!
+ * \brief make the world of a certain size
+ * \param size the new size of the world (x*y)
+ * \return 0 if it all went pear shaped.
+ */
 Int16
 ResizeWorld(UInt32 size)
 {
@@ -699,18 +895,25 @@ ResizeWorld(UInt32 size)
 	return (1);
 }
 
+/*! unused */
 void
 LockWorld(void)
 {
 	/* not used on this platform */
 }
 
+/*! unused */
 void
 UnlockWorld(void)
 {
 	/* not used on this platform */
 }
 
+/*!
+ * \brief get the item on the surface of the world
+ * \param pos the position in the world map to obtain
+ * \return the item at that position.
+ */
 UInt8
 GetWorld(UInt32 pos)
 {
@@ -719,6 +922,11 @@ GetWorld(UInt32 pos)
 	return (((UInt8 *)worldPtr)[pos]);
 }
 
+/*!
+ * \brief set the object at the position to the value in question
+ * \param pos the position of the item
+ * \param value the value of the item
+ */
 void
 SetWorld(UInt32 pos, UInt8 value)
 {
@@ -727,18 +935,25 @@ SetWorld(UInt32 pos, UInt8 value)
 	((UInt8 *)worldPtr)[pos] = value;
 }
 
+/*! unused */
 void
 LockWorldFlags(void)
 {
 	/* not used on this platform */
 }
 
+/*! unused */
 void
 UnlockWorldFlags(void)
 {
 	/* not used on this platform */
 }
 
+/*!
+ * \brief get the flag corresponding to the game location
+ * \param pos the position of the location
+ * \return the value at that position
+ */
 UInt8
 GetWorldFlags(UInt32 pos)
 {
@@ -747,6 +962,11 @@ GetWorldFlags(UInt32 pos)
 	return (((UInt8 *)worldFlagsPtr)[pos]);
 }
 
+/*!
+ * \brief set the flag corresponding to the game location
+ * \param pos the position of the location
+ * \param value the value at that position
+ */
 void
 SetWorldFlags(UInt32 pos, UInt8 value)
 {
@@ -755,6 +975,11 @@ SetWorldFlags(UInt32 pos, UInt8 value)
 	((UInt8 *)worldFlagsPtr)[pos] = value;
 }
 
+/*!
+ * \brief and the value with the current location of the map world flags
+ * \param pos the position on the map
+ * \param value the value to and the current value with.
+ */
 void
 AndWorldFlags(UInt32 pos, UInt8 value)
 {
@@ -763,6 +988,11 @@ AndWorldFlags(UInt32 pos, UInt8 value)
 	((UInt8 *)worldFlagsPtr)[pos] &= value;
 }
 
+/*!
+ * \brief or the value with the current location of the map world flags
+ * \param pos the position on the map
+ * \param value the value to or the current value with.
+ */
 void
 OrWorldFlags(UInt32 pos, UInt8 value)
 {
@@ -771,6 +1001,11 @@ OrWorldFlags(UInt32 pos, UInt8 value)
 	((UInt8 *)worldFlagsPtr)[pos] |= value;
 }
 
+/*!
+ * \brief get a random number between 0 and max
+ * \param max the maximum limit of the value to obtain
+ * \return the random number
+ */
 UInt32
 GetRandomNumber(UInt32 max)
 {
@@ -778,6 +1013,11 @@ GetRandomNumber(UInt32 max)
 	return ((UInt32)((float)max*rand()/(RAND_MAX+1.0)));
 }
 
+/*!
+ * \brief the map has jumped to another location
+ *
+ * Ensure that the scroll bars are oriented correctly.
+ */
 void
 MapHasJumped(void)
 {
@@ -787,25 +1027,40 @@ MapHasJumped(void)
 	gtk_adjustment_value_changed(GTK_ADJUSTMENT(playscrollerv));
 }
 
+/*!
+ * \brief unused
+ */
 void
 UISetTileSize(Int16 size __attribute__((unused)))
 {
 	WriteLog("UISetTileSize\n");
 }
 
+/*!
+ * \brief draw the population
+ *
+ * Actually simply set the population label to the appropriate value.
+ */
 void
 UIDrawPop(void)
 {
 	char temp[50];
 	sprintf(temp, "(%02u, %02u) Population: %-9li",
 	    game.map_xpos, game.map_ypos,
-	    vgame.BuildCount[COUNT_RESIDENTIAL]*150);
+	    vgame.BuildCount[bc_residential]*150);
 
 	gtk_label_set_text((GtkLabel*)poplabel, temp);
 }
 
+/*!
+ * \brief terminate the game.
+ *
+ * Invoked when the quit option is selected from teh menu
+ * \param w unused
+ * \param data unused
+ */
 void
-UIQuitGame(GtkWidget *w __attribute__((unused)),
+QuitGame(GtkWidget *w __attribute__((unused)),
     gpointer data __attribute__((unused)))
 {
 	gtk_main_quit();
@@ -815,6 +1070,10 @@ UIQuitGame(GtkWidget *w __attribute__((unused)),
 
 #include <stdarg.h>
 
+/*!
+ * \brief write output to the console
+ * \param s the string for formatting
+ */
 void
 WriteLog(char *s, ...)
 {
