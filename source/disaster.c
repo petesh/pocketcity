@@ -40,16 +40,18 @@ extern void DoNastyStuffTo(int type, unsigned int probability)
 extern void DoRandomDisaster(void)
 {
     long unsigned int randomTile;
-    int i,x,y;
+    int i,x,y, type;
 
     LockWorld();
 
     for (i=0; i<100; i++) {
         randomTile = GetRandomNumber(mapsize*mapsize);
-        if (GetWorld(randomTile) != TYPE_DIRT) {
+        type = GetWorld(randomTile);
+        if (type != TYPE_DIRT &&
+            type != TYPE_REAL_WATER) {
             x = randomTile % mapsize;
             y = randomTile / mapsize;
-            switch(GetRandomNumber(50))
+            switch(GetRandomNumber(5))
             {
                 case 1:
                     if (BurnField(x,y)) {
