@@ -64,7 +64,7 @@ SetupNewGame(void)
     game.upkeep[2] = 100;
     SetMapSize(100);
     game.tax = 8; /* TODO: changeable tax rate */
-    SetDisasterLevel(GetDifficultyLevel()+1)
+    SetDisasterLevel(GetDifficultyLevel()+1);
     ResizeWorld(GetMapMul());
     game.gameLoopSeconds = SPEED_PAUSED;
     game.auto_bulldoze = 1;
