@@ -264,10 +264,12 @@ void DrawMap(void)
     UILockScreen();
     _UIDrawRect(17,1,100,100);
     
-    for(i=0; i<mapsize; i++) {
-        for(j=0; j<mapsize; j++) {
-            if (GetWorld(WORLDPOS(i,j)) != TYPE_DIRT) {
-                WinDrawPixel(i+1,j+17);
+    if (!oldROM) {
+        for(i=0; i<mapsize; i++) {
+            for(j=0; j<mapsize; j++) {
+                if (GetWorld(WORLDPOS(i,j)) != TYPE_DIRT) {
+                    WinDrawPixel(i+1,j+17);
+                }
             }
         }
     }

@@ -3,6 +3,7 @@ R = residential zones
 I = industrial zones
 C = commercial zones
 
+* Use the hardware keys to scroll the field (IE. up/down, address book and todo)
 * R will VERY rarely settle next to I
 * I/C zones only grows if there are enough R (workers)
 * C will only grow if there are enough I (to produce goods)
@@ -10,3 +11,4 @@ C = commercial zones
 * The population is calculated from the total R - I/C doesn't count
 * Tapping on the speed indicator will pause the game, tapping again will set the speed to "medium"
 * Tapping on the build icon will toggle bulldozer
+* Tapping on the map will jump to that position

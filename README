@@ -8,12 +8,10 @@ information.
 
 INSTALLATION
 -----------
-To compile for Nokia 9000/9110:
- type make in the root folder of pocketcity
-
-
 To compile for PalmOS:
  type make in the 'palm' folder
+ install either pcity.prc for black/white displays, or pcity-color.prc for
+ 256 colors displays.
 
 Special Features:
 =================
@@ -25,9 +23,8 @@ Keys/strokes
              Tap or drag the pen for building
              Use the hardware keys for scrolling (up/down/phone/todo)
 
-    Nokia:    'Backspace' for bulldozing
-              'R' for residential zoning
-              'C' for commercial zoning
-              'I' for industrial zoning
-              Press or hold the 'space bar' or 'ctrl' for building
-              'Enter' for build menu
+
+PalmOS 3.1:
+===========
+The game _does_ run on 3.1 devices, but some features are disabled:
+ * The map won't be shown, but you can still use it to scroll around quickly
