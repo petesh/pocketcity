@@ -48,22 +48,23 @@ extern void ScrollMap(int direction)
     switch (direction)
     {
         case 0: // up
-            if (map_ypos > 0) { map_ypos-=1; } else {    map_ypos=0; }
+            if (map_ypos > 0) { map_ypos-=1; } else {  map_ypos=0; return; }
             break;
         case 1: // right
-            if (map_xpos <= (mapsize-2-visible_x)) { map_xpos+=1; } else { map_xpos = mapsize-visible_x; }
+            if (map_xpos <= (mapsize-1-visible_x)) { map_xpos+=1; } else { map_xpos = mapsize-visible_x; return; }
             break;
         case 2: // down
-            if (map_ypos <= (mapsize-2-visible_y)) { map_ypos+=1; } else {    map_ypos = mapsize-visible_y; }
+            if (map_ypos <= (mapsize-1-visible_y)) { map_ypos+=1; } else { map_ypos = mapsize-visible_y; return; }
             break;
         case 3: // left
-            if (map_xpos > 0) { map_xpos-=1; } else { map_xpos=0; }
+            if (map_xpos > 0) { map_xpos-=1; } else { map_xpos=0; return; }
             break;
         default:
             return;
     }
 
     UIScrollMap(direction);
+
 }
 
 

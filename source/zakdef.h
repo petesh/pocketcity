@@ -15,6 +15,7 @@
 #define ZONE_RESIDENTIAL        2
 #define ZONE_INDUSTRIAL         3
 
+#define TYPE_DIRT               0
 #define TYPE_POWER_PLANT        60
 #define TYPE_NUCLEAR_PLANT      61
 #define TYPE_WASTE              62

@@ -1,15 +1,18 @@
 #include "../source/zakdef.h"
 #define formID_pocketCity                1000
 #define formID_budget                    1001
+#define formID_map                       1002
 
 #define menuID_pocketCity                1000
 #define menuID_budget                    1001
+#define menuID_map                       1002
 
 #define menuitemID_newGame               1000
 #define menuitemID_loadGame              1001
 #define menuitemID_saveGame              1002
 #define menuitemID_about                 1003
 #define menuitemID_Budget                1004
+#define menuitemID_Map                   1005
 #define menuID_SlowSpeed                 1052
 #define menuID_MediumSpeed               1053
 #define menuID_FastSpeed                 1054
@@ -70,6 +73,9 @@
 #define labelID_budget_tot              1315
 #define labelID_budget_bal              1316
 #define labelID_budget_now              1317
+
+// menu for map
+#define menuitemID_MapBack              1340
 
 #define bitmapID_PowerLossOverlay       2001 // 32x32
 #define bitmapID_PowerLossOverlay2      2002 // 16x16

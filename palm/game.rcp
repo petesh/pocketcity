@@ -20,8 +20,9 @@ BEGIN
   BEGIN
     MENUITEM "New"                              menuitemID_newGame
     MENUITEM "Load"                             menuitemID_loadGame
-	MENUITEM "Save"                         menuitemID_saveGame
-	MENUITEM "Budget"                         menuitemID_Budget
+	MENUITEM "Save"                             menuitemID_saveGame
+	MENUITEM "Budget"                           menuitemID_Budget
+	MENUITEM "Map"                              menuitemID_Map
 	MENUITEM SEPARATOR
 	MENUITEM "About"                        menuitemID_about
   END
@@ -89,6 +90,25 @@ BEGIN
 	MENUITEM "Back"                        menuitemID_BudgetBack
   END
 END
+
+
+FORM ID formID_map AT ( 0 0 160 160 )
+NOFRAME
+USABLE
+MENUID menuID_map
+BEGIN
+    TITLE "Map"
+END
+
+MENU ID menuID_map
+BEGIN
+  PULLDOWN "Map"
+  BEGIN
+	MENUITEM "Back"                        menuitemID_MapBack
+  END
+END
+
+
 
 
 

@@ -32,11 +32,13 @@ unsigned short YOFFSET =15;
 
 static Boolean hPocketCity(EventPtr event);
 static Boolean hBudget(EventPtr event);
+static Boolean hMap(EventPtr event);
 void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth);
 void _PalmInit(void);
 void UISaveGame(void);
 void UILoadGame(void);
 void UINewGame(void);
+void DrawMap(void);
 
 void BudgetInit(void);
 void BudgetFreeMem(void);
@@ -84,6 +86,9 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
                         break;
                     case formID_budget:
                         FrmSetEventHandler(form, hBudget);
+                        break;
+                    case formID_map:
+                        FrmSetEventHandler(form, hMap);
                         break;
                 }
             }
@@ -184,6 +189,59 @@ static Boolean hBudget(EventPtr event)
 
     return handled;
 }
+
+
+static Boolean hMap(EventPtr event)
+{
+    FormPtr form;
+    int handled = 0;
+
+    switch (event->eType)
+    {
+        case frmOpenEvent:
+            form = FrmGetActiveForm();
+            FrmDrawForm(form);
+            DrawMap();
+            handled = 1;
+            break;
+        case frmCloseEvent:
+            break;
+        case menuEvent:
+            switch (event->data.menu.itemID)
+            {
+                case menuitemID_MapBack:
+                    FrmGotoForm(formID_pocketCity);
+                    handled = 1;
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return handled;
+}
+
+void DrawMap(void)
+{
+    int i,j;
+
+    LockWorld();
+    UILockScreen();
+    _UIDrawRect(17,1,100,100);
+    
+    for(i=0; i<mapsize; i++) {
+        for(j=0; j<mapsize; j++) {
+            if (GetWorld(WORLDPOS(i,j)) != TYPE_DIRT) {
+                WinDrawPixel(i+1,j+17);
+            }
+        }
+    }
+
+    UIUnlockScreen();
+    UnlockWorld();
+}
+
 
 void BudgetInit(void)
 {
@@ -314,6 +372,11 @@ static Boolean hPocketCity(EventPtr event)
             } else {
                 switch (event->data.menu.itemID)
                 {
+                    case menuitemID_Map:
+                        SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
+                        FrmGotoForm(formID_map);
+                        handled = 1;
+                        break;
                     case menuitemID_Budget:
                         SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
                         FrmGotoForm(formID_budget);
