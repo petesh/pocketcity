@@ -14,8 +14,8 @@
 static FormPtr budgetSetup(void) MAP_SECTION;
 static void budgetCleanup(void) MAP_SECTION;
 static void dealRepeats(EventPtr event) MAP_SECTION;
-static const struct buttonmapping *getIndex(Int16 buttonControl) MAP_SECTION;
-static void rippleField(Int16 fieldID) MAP_SECTION;
+static const struct buttonmapping *getIndex(UInt16 buttonControl)
+    MAP_SECTION;
 static void updateBudgetValue(FormPtr form, UInt16 label, const Char *format,
     long value) MAP_SECTION;
 static void updateBudgetNumber(BudgetNumber bn) MAP_SECTION;
@@ -34,9 +34,9 @@ static const struct buttonmapping {
 #define BUTTONMAPLEN	(sizeof (buttonmappings) / sizeof (buttonmappings[0]))
 
 static const struct buttonmapping *
-getIndex(Int16 buttonControl)
+getIndex(UInt16 buttonControl)
 {
-	Int16 i = 0;
+	UInt16 i = 0;
 	for (i = 0; i < BUTTONMAPLEN; i++) {
 		if (buttonControl == buttonmappings[i].down ||
 		    buttonControl == buttonmappings[i].up)
@@ -48,7 +48,7 @@ getIndex(Int16 buttonControl)
 static void
 dealRepeats(EventPtr event)
 {
-	Int16 control = event->data.ctlRepeat.controlID;
+	UInt16 control = event->data.ctlRepeat.controlID;
 	const struct buttonmapping *bm = getIndex(control);
 	FieldPtr fp;
 	MemHandle mh;
