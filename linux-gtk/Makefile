@@ -1,4 +1,4 @@
-SOURCEFILES = main.c savegame.c \
+SOURCEFILES = main.c savegame.c budget.c \
 					../source/handler.c ../source/build.c ../source/disaster.c \
                     ../source/drawing.c  ../source/globals.c ../source/simulation.c
 DEBUGFLAGS = -g

@@ -5,6 +5,7 @@
 
 #include "main.h"
 #include "savegame.h"
+#include "budget.h"
 #include "../source/ui.h"
 #include "../source/handler.h"
 #include "../source/drawing.h"
@@ -38,13 +39,15 @@ GtkItemFactoryEntry menu_items[] = {
     { "/File/Save _As", NULL,           UISaveGameAs, 0,      NULL          },
     { "/File/sep1",     NULL,           NULL,         0,      "<Separator>" },
     { "/File/_Quit",    NULL,           UIQuitGame,   0,      NULL          },
-    { "/Speed",         NULL,           NULL,         0,      "<Branch>"    },
-    { "/Speed/Pause",   NULL,           UISetSpeed,   SPEED_PAUSED, NULL    },
+    { "/_View",         NULL,           NULL,         0,      "<Branch>"    },
+    { "/View/_Budget",  NULL,           UIViewBudget, 0,      NULL          },
+    { "/_Speed",        NULL,           NULL,         0,      "<Branch>"    },
+    { "/Speed/_Pause",  NULL,           UISetSpeed,   SPEED_PAUSED, NULL    },
     { "/Speed/sep1",    NULL,           NULL,         0,      "<Separator>" },
-    { "/Speed/Slow",    NULL,           UISetSpeed,   SPEED_SLOW,   NULL    },
-    { "/Speed/Medium",  NULL,           UISetSpeed,   SPEED_MEDIUM, NULL    },
-    { "/Speed/Fast",    NULL,           UISetSpeed,   SPEED_FAST,   NULL    },
-    { "/Speed/Turbo",   NULL,           UISetSpeed,   SPEED_TURBO,  NULL    },
+    { "/Speed/_Slow",   NULL,           UISetSpeed,   SPEED_SLOW,   NULL    },
+    { "/Speed/_Medium", NULL,           UISetSpeed,   SPEED_MEDIUM, NULL    },
+    { "/Speed/_Fast",   NULL,           UISetSpeed,   SPEED_FAST,   NULL    },
+    { "/Speed/_Turbo",  NULL,           UISetSpeed,   SPEED_TURBO,  NULL    },
 };
 
 
