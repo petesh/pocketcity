@@ -97,7 +97,7 @@ void *
 GetObjectPtr(FormType *form, UInt16 index)
 {
 	return (FrmGetObjectPtr(form,
-		    FrmGetObjectIndex(form, index)));
+	    FrmGetObjectIndex(form, index)));
 }
 
 /*
@@ -369,7 +369,7 @@ _PalmInit(void)
 	/* section (2) */
 
 	_refTiles = DmOpenDatabaseByTypeCreator(TILEDBTYPE, GetCreatorID(),
-	dmModeReadOnly);
+	    dmModeReadOnly);
 
 	if (_refTiles == 0) {
 		FrmAlert(alertID_tilesMissing);
@@ -646,7 +646,7 @@ hPocketCity(EventPtr event)
 	case penDownEvent:
 		scaleEvent(event);
 		if (RctPtInRectangle(event->screenX, event->screenY,
-			    &rPlayGround)) {
+		    &rPlayGround)) {
 			/* click was on the playground */
 			_UIGetFieldToBuildOn(event->screenX, event->screenY);
 			handled = true;
@@ -684,7 +684,7 @@ hPocketCity(EventPtr event)
 	case penMoveEvent:
 		scaleEvent(event);
 		if (RctPtInRectangle(event->screenX, event->screenY,
-			    &rPlayGround)) {
+		    &rPlayGround)) {
 			_UIGetFieldToBuildOn(event->screenX, event->screenY);
 			SetBuilding();
 			handled = true;
@@ -913,17 +913,17 @@ hExtraList(EventPtr event)
 		switch (event->data.keyDown.chr) {
 		case vchrCalc:
 			CtlHitControl(GetObjectPtr(FrmGetActiveForm(),
-				    buttonID_extraBuildCancel));
+			    buttonID_extraBuildCancel));
 			handled = true;
 			break;
 		case pageUpChr:
 			LstScrollList(GetObjectPtr(FrmGetActiveForm(),
-				    listID_extraBuildList), winUp, 4);
+			    listID_extraBuildList), winUp, 4);
 			handled = true;
 			break;
 		case pageDownChr:
 			LstScrollList(GetObjectPtr(FrmGetActiveForm(),
-				    listID_extraBuildList), winDown, 4);
+			    listID_extraBuildList), winDown, 4);
 			handled = true;
 			break;
 		}
@@ -1106,8 +1106,8 @@ _UIGetFieldToBuildOn(Int16 x, Int16 y)
 	rect.topLeft.y = YOFFSET;
 
 	if (RctPtInRectangle(x, y, &rect)) {
-		UInt32 xpos = (x - XOFFSET)/vgame.tileSize + game.map_xpos;
-		UInt32 ypos = (y - YOFFSET)/vgame.tileSize + game.map_ypos;
+		UInt32 xpos = (x - XOFFSET) / vgame.tileSize + game.map_xpos;
+		UInt32 ypos = (y - YOFFSET) / vgame.tileSize + game.map_ypos;
 		LockWorld();
 		SetItemClicked(WORLDPOS(xpos, ypos));
 		UnlockWorld();
@@ -1140,8 +1140,8 @@ UIDisplayError(erdiType nError)
 	}
 	if ((nError > diSTART) && (nError < diEND)) {
 		char string[512];
-		SysStringByIndex(st_disasters, nError - diFireOutbreak, string,
-			511);
+		SysStringByIndex(st_disasters, nError - diFireOutbreak,
+		    string, 511);
 		if (*string == '\0') StrPrintF(string, "generic disaster??");
 
 		FrmCustomAlert(alertID_generic_disaster, string, 0, 0);
@@ -1276,22 +1276,14 @@ UIDrawLossIcon(Int16 xpos, Int16 ypos, Coord tilex, Coord tiley)
 
 	/* copy/paste the graphic from the offscreen image */
 	/* first draw the overlay */
-	_WinCopyRectangle(
-			winZones,
-			WinGetActiveWindow(),
-			&rect,
-			xpos*vgame.tileSize+XOFFSET,
-			ypos*vgame.tileSize+YOFFSET,
-			winErase);
+	_WinCopyRectangle(winZones, WinGetActiveWindow(), &rect,
+	    xpos * vgame.tileSize +XOFFSET, ypos * vgame.tileSize + YOFFSET,
+	    winErase);
 	/* now draw the powerloss icon */
 	rect.topLeft.x -= vgame.tileSize;
-	_WinCopyRectangle(
-			winZones,
-			WinGetActiveWindow(),
-			&rect,
-			xpos*vgame.tileSize+XOFFSET,
-			ypos*vgame.tileSize+YOFFSET,
-			winOverlay);
+	_WinCopyRectangle(winZones, WinGetActiveWindow(), &rect,
+	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
+	    winOverlay);
 }
 
 /*
@@ -1328,21 +1320,13 @@ UIDrawSpecialUnit(Int16 i, Int16 xpos, Int16 ypos)
 	rect.extent.x = vgame.tileSize;
 	rect.extent.y = vgame.tileSize;
 
-	_WinCopyRectangle(
-			winUnits,
-			WinGetActiveWindow(),
-			&rect,
-			xpos*vgame.tileSize+XOFFSET,
-			ypos*vgame.tileSize+YOFFSET,
-			winErase);
+	_WinCopyRectangle(winUnits, WinGetActiveWindow(), &rect,
+	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
+	    winErase);
 	rect.topLeft.y = 0;
-	_WinCopyRectangle(
-			winUnits,
-			WinGetActiveWindow(),
-			&rect,
-			xpos*vgame.tileSize+XOFFSET,
-			ypos*vgame.tileSize+YOFFSET,
-			winOverlay);
+	_WinCopyRectangle(winUnits, WinGetActiveWindow(), &rect,
+	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
+	    winOverlay);
 }
 
 /*
@@ -1357,25 +1341,17 @@ UIDrawSpecialObject(Int16 i, Int16 xpos, Int16 ypos)
 		return;
 
 	rect.topLeft.x = (game.objects[i].dir) * vgame.tileSize;
-	rect.topLeft.y = ((i*2)+1) * vgame.tileSize;
+	rect.topLeft.y = ((i * 2) + 1) * vgame.tileSize;
 	rect.extent.x = vgame.tileSize;
 	rect.extent.y = vgame.tileSize;
 
-	_WinCopyRectangle(
-			winMonsters,
-			WinGetActiveWindow(),
-			&rect,
-			xpos * vgame.tileSize+XOFFSET,
-			ypos * vgame.tileSize+YOFFSET,
-			winErase);
+	_WinCopyRectangle(winMonsters, WinGetActiveWindow(), &rect,
+	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
+	    winErase);
 	rect.topLeft.y -= 16;
-	_WinCopyRectangle(
-			winMonsters,
-			WinGetActiveWindow(),
-			&rect,
-			xpos * vgame.tileSize+XOFFSET,
-			ypos * vgame.tileSize+YOFFSET,
-			winOverlay);
+	_WinCopyRectangle(winMonsters, WinGetActiveWindow(), &rect,
+	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
+	    winOverlay);
 }
 
 /*
@@ -1389,19 +1365,15 @@ UIDrawField(Int16 xpos, Int16 ypos, UInt8 nGraphic)
 	if (IsDeferDrawing())
 		return;
 
-	rect.topLeft.x = (nGraphic%64) * vgame.tileSize;
-	rect.topLeft.y = (nGraphic/64) * vgame.tileSize;
+	rect.topLeft.x = (nGraphic % 64) * vgame.tileSize;
+	rect.topLeft.y = (nGraphic / 64) * vgame.tileSize;
 	rect.extent.x = vgame.tileSize;
 	rect.extent.y = vgame.tileSize;
 
 	/* copy/paste the graphic from the offscreen image */
-	_WinCopyRectangle(
-			winZones,
-			WinGetActiveWindow(),
-			&rect,
-			xpos * vgame.tileSize+XOFFSET,
-			ypos * vgame.tileSize+YOFFSET,
-			winPaint);
+	_WinCopyRectangle(winZones, WinGetActiveWindow(), &rect,
+	    xpos * vgame.tileSize + XOFFSET, ypos * vgame.tileSize + YOFFSET,
+	    winPaint);
 }
 
 /*
@@ -1442,16 +1414,14 @@ UIScrollMap(dirType direction)
 	if (direction == 1 || direction == 3) {
 		for (i = game.map_ypos;
 		    i < vgame.visible_y + game.map_ypos; i++) {
-			DrawFieldWithoutInit(
-			    game.map_xpos + (vgame.visible_x - 1) *
-			    (direction == 1), i);
+			DrawFieldWithoutInit(game.map_xpos +
+			    (vgame.visible_x - 1) * (direction == 1), i);
 		}
 	} else {
 		for (i = game.map_xpos;
 		    i < vgame.visible_x + game.map_xpos; i++) {
-			DrawFieldWithoutInit(i,
-			    game.map_ypos + (vgame.visible_y - 1) *
-			    (direction == 2));
+			DrawFieldWithoutInit(i, game.map_ypos +
+			    (vgame.visible_y - 1) * (direction == 2));
 		}
 	}
 
@@ -1757,7 +1727,7 @@ UIUpdateBuildIcon(void)
 
 	bitmaphandle = DmGetResource('Tbmp',
 	    bitmapID_iconBulldoze + (((nSelectedBuildItem <= Be_Extra)) ?
-		    nSelectedBuildItem : OFFSET_EXTRA));
+	    nSelectedBuildItem : OFFSET_EXTRA));
 
 	if (bitmaphandle == NULL)
 		/* TODO: onscreen error? +save? */

@@ -384,7 +384,7 @@ MoveAllObjects(void)
 			/* hmm, is this thing destructive? */
 			if (i == OBJ_DRAGON) {
 				if (!BurnField(game.objects[i].x,
-					    game.objects[i].y, 1)) {
+				    game.objects[i].y, 1)) {
 					CreateWaste(game.objects[i].x,
 					    game.objects[i].y);
 				}

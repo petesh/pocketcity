@@ -577,17 +577,17 @@ UpgradeZone(UInt32 pos)
 	LockWorld();
 	type = GetWorld(pos);
 	if (type == ZONE_COMMERCIAL || (type >= TYPE_COMMERCIAL_MIN &&
-		    type <= (TYPE_COMMERCIAL_MAX - 1))) {
+	    type <= (TYPE_COMMERCIAL_MAX - 1))) {
 		SetWorld(pos, (type == ZONE_COMMERCIAL) ?
 		    TYPE_COMMERCIAL_MIN : type + 1);
 		vgame.BuildCount[COUNT_COMMERCIAL]++;
 	} else if (type == ZONE_RESIDENTIAL || (type >= TYPE_RESIDENTIAL_MIN &&
-		    type <= (TYPE_RESIDENTIAL_MAX - 1))) {
+	    type <= (TYPE_RESIDENTIAL_MAX - 1))) {
 		SetWorld(pos, (type == ZONE_RESIDENTIAL) ?
 		    TYPE_RESIDENTIAL_MIN : type + 1);
 		vgame.BuildCount[COUNT_RESIDENTIAL]++;
 	} else if (type == ZONE_INDUSTRIAL || (type >= TYPE_INDUSTRIAL_MIN &&
-		    type <= (TYPE_INDUSTRIAL_MAX - 1))) {
+	    type <= (TYPE_INDUSTRIAL_MAX - 1))) {
 		SetWorld(pos, (type == ZONE_INDUSTRIAL) ?
 		    TYPE_INDUSTRIAL_MIN : type + 1);
 		vgame.BuildCount[COUNT_INDUSTRIAL]++;
@@ -709,8 +709,8 @@ GetZoneScore(UInt32 pos)
 		 */
 
 		long availPop = (vgame.BuildCount[COUNT_RESIDENTIAL]*25)
-		    - (vgame.BuildCount[COUNT_COMMERCIAL]*25 +
-			vgame.BuildCount[COUNT_INDUSTRIAL]*25);
+		    - (vgame.BuildCount[COUNT_COMMERCIAL]*25
+		    + vgame.BuildCount[COUNT_INDUSTRIAL]*25);
 		/* pop is too low */
 		if (availPop <= 0)
 			goto unlock_ret;
@@ -747,7 +747,7 @@ GetZoneScore(UInt32 pos)
 	for (i = x - 3; i < 4 + x; i++) {
 		for (j = y - 3; j < 4 + y; j++) {
 			if (!(i < 0 || i >= GetMapSize() || j < 0 ||
-				    j >= GetMapSize())) {
+			    j >= GetMapSize())) {
 				score += GetScoreFor(type,
 				    GetWorld(WORLDPOS(i, j)));
 				if (IsRoad(GetWorld(WORLDPOS(i, j))) &&
@@ -846,6 +846,34 @@ GetRandomZone()
 	return (-1);
 }
 
+static const struct countCosts {
+	UInt32	count;
+	UInt32	cost;
+} countCosts[] = {
+	{ COUNT_RESIDENTIAL, INCOME_RESIDENTIAL },
+	{ COUNT_COMMERCIAL, INCOME_COMMERCIAL },
+	{ COUNT_INDUSTRIAL, INCOME_INDUSTRIAL },
+	{ COUNT_ROADS, UPKEEP_ROAD },
+	{ COUNT_TREES, 0 },
+	{ COUNT_WATER, 0 },
+	{ COUNT_POWERLINES, UPKEEP_POWERLINE },
+	{ COUNT_POWERPLANTS, UPKEEP_POWERPLANT },
+	{ COUNT_NUCLEARPLANTS, UPKEEP_NUCLEARPLANT },
+	{ COUNT_WASTE, 0 },
+	{ COUNT_FIRE, 0 },
+	{ COUNT_FIRE_STATIONS, UPKEEP_FIRE_STATIONS },
+	{ COUNT_POLICE_STATIONS, UPKEEP_POLICE_STATIONS },
+	{ COUNT_MILITARY_BASES, UPKEEP_MILITARY_BASES },
+	{ COUNT_WATERPIPES, 0 },
+	{ COUNT_WATERPUMPS, 0 }
+};
+
+static Int32
+costIt(Int32 item)
+{
+	return (vgame.BuildCount[item] * countCosts[item]);
+}
+
 /*
  * Get a number for the budget.
  */
@@ -855,38 +883,28 @@ BudgetGetNumber(BudgetNumber type)
 	Int32 ret = 0;
 	switch (type) {
 	case bnResidential:
-		ret = (Int32)vgame.BuildCount[COUNT_RESIDENTIAL] *
-			INCOME_RESIDENTIAL * game.tax/100;
+		ret = (Int32)costIt(COUNT_RESIDENTIAL) * game.tax/100;
 		break;
 	case bnCommercial:
-		ret = (Int32)vgame.BuildCount[COUNT_COMMERCIAL] *
-			INCOME_COMMERCIAL * game.tax/100;
+		ret = (Int32)costIt(COUNT_COMMERCIAL) * game.tax/100;
 		break;
 	case bnIndustrial:
-		ret = (Int32)vgame.BuildCount[COUNT_INDUSTRIAL] *
-			INCOME_INDUSTRIAL * game.tax/100;
+		ret = (Int32)costIt(COUNT_INDUSTRIAL) * game.tax/100;
 		break;
 	case bnTraffic:
-		ret = (Int32)(vgame.BuildCount[COUNT_ROADS] * UPKEEP_ROAD *
-			game.upkeep[UPKEEPS_TRAFFIC])/100;
+		ret = (Int32)(costIt(COUNT_ROADS) *
+		    game.upkeep[UPKEEPS_TRAFFIC]) / 100;
 		break;
 	case bnPower:
-		ret = (Int32)((vgame.BuildCount[COUNT_POWERLINES] *
-				UPKEEP_POWERLINE +
-				vgame.BuildCount[COUNT_NUCLEARPLANTS] *
-				UPKEEP_NUCLEARPLANT +
-				vgame.BuildCount[COUNT_POWERPLANTS] *
-				UPKEEP_POWERPLANT) *
-			game.upkeep[UPKEEPS_POWER])/100;
+		ret = (Int32)((costIt(COUNT_POWERLINES) +
+		    costIt(COUNT_NUCLEARPLANTS) + costIt(COUNT_POWERPLANTS)) *
+		    game.upkeep[UPKEEPS_POWER]) / 100;
 		break;
 	case bnDefence:
-		ret = (Int32)((vgame.BuildCount[COUNT_FIRE_STATIONS] *
-				UPKEEP_FIRE_STATIONS +
-				vgame.BuildCount[COUNT_POLICE_STATIONS] *
-				UPKEEP_POLICE_STATIONS +
-				vgame.BuildCount[COUNT_MILITARY_BASES] *
-				UPKEEP_MILITARY_BASES)
-			* game.upkeep[UPKEEPS_DEFENCE])/100;
+		ret = (Int32)((costIt(COUNT_FIRE_STATIONS) +
+		    costIt(COUNT_POLICE_STATIONS) +
+		    costIt(COUNT_MILITARY_BASES)) *
+		    game.upkeep[UPKEEPS_DEFENCE])/100;
 		break;
 	case bnCurrentBalance:
 		ret = game.credits;
@@ -914,8 +932,7 @@ void
 DoTaxes()
 {
 	game.credits += BudgetGetNumber(bnResidential) +
-					BudgetGetNumber(bnCommercial) +
-					BudgetGetNumber(bnIndustrial);
+	    BudgetGetNumber(bnCommercial) + BudgetGetNumber(bnIndustrial);
 }
 
 /*
@@ -926,8 +943,8 @@ DoUpkeep()
 {
 	UInt32 upkeep;
 
-	upkeep = BudgetGetNumber(bnTraffic) +
-	    BudgetGetNumber(bnPower) + BudgetGetNumber(bnDefence);
+	upkeep = BudgetGetNumber(bnTraffic) + BudgetGetNumber(bnPower) +
+	    BudgetGetNumber(bnDefence);
 
 	if (upkeep <= (UInt32)game.credits) {
 		game.credits -= upkeep;

@@ -70,7 +70,7 @@ setupOptions(void)
 	FormPtr form = FrmGetActiveForm();
 	CtlSetValue(GetObjectPtr(form, buttonID_dis_off+GetDisasterLevel()), 1);
 	CtlSetValue(GetObjectPtr(form,
-		    buttonID_Easy + GetDifficultyLevel()), 1);
+	    buttonID_Easy + GetDifficultyLevel()), 1);
 	CtlSetValue(GetObjectPtr(form, checkboxID_autobulldoze),
 	    game.auto_bulldoze);
 	return (form);
@@ -102,7 +102,7 @@ saveOptions(void)
 		SetDifficultyLevel(2);
 	}
 	game.auto_bulldoze = CtlGetValue(GetObjectPtr(form,
-		    checkboxID_autobulldoze));
+	    checkboxID_autobulldoze));
 }
 
 

@@ -93,7 +93,7 @@ cnCancelButtonPressed(void)
 static void
 cnCreateButtonPressed(void)
 {
-	char * pGameName;
+	char *pGameName;
 	FormPtr form;
 
 	form = FrmGetActiveForm();

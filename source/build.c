@@ -99,6 +99,18 @@ RemoveAllDefence(void)
 	}
 }
 
+static const struct buildCounters {
+	DefenceUnitTypes	unit;
+	UInt16			counter;
+	UInt16			start;
+	UInt16			end;
+} counters[] = {
+	{ DuFireman, COUNT_FIRE_STATIONS, DEF_FIREMAN_START, DEF_FIREMAN_END },
+	{ DuPolice, COUNT_POLICE_STATIONS, DEF_POLICE_START, DEF_POLICE_END },
+	{ DuMilitary, COUNT_MILITARY_BASES, DEF_MILITARY_START,
+		DEF_MILITARY_END }
+};
+
 /*
  * Build a defence unit.
  * Takes the type of unit as a parameter.
@@ -112,27 +124,31 @@ Build_Defence(Int16 xpos, Int16 ypos, UInt16 type)
 	int i;
 	int sel = -1;
 	int newactive = 1;
-	int end;
-	int start;
+	UInt16 start;
+	UInt16 end;
 	int max;
 	int nCounter;
 
+	if (type < DuFireman || type > DuMilitary)
+		return;
+
+	struct buildCounters *cnt = &counters[type];
+
 	/* this is here to make sure not too many of any item are created */
-	nCounter = ((type == DuPolice) ? COUNT_POLICE_STATIONS :
-	    (type == DuFireman ? COUNT_FIRE_STATIONS : COUNT_MILITARY_BASES));
+	nCounter = cnt->counter;
 
 	if (vgame.BuildCount[nCounter] == 0)
 		return; /* no special building */
 
-	start = ((type == DuPolice) ? DEF_POLICE_START :
-	(type == DuFireman ? DEF_FIREMEN_START : DEF_MILITARY_START));
-	end = ((type == DuPolice) ? DEF_POLICE_END :
-	(type == DuFireman ? DEF_FIREMEN_END : DEF_MILITARY_END));
+	start = cnt->start;
+	end = cnt->end;
 
 	/* make sure we can't make too many objects */
-	max = ((unsigned)((end-start)+1) <
-	    (unsigned)(vgame.BuildCount[nCounter]/3)) ? end :
-	    (int)(vgame.BuildCount[nCounter]/3 + start);
+	if (((unsigned)((end - start) + 1) <
+		    (unsigned)(vgame.BuildCount[nCounter] / 3)))
+		max = end;
+	else
+		max = (int)(vgame.BuildCount[nCounter] / 3 + start);
 
 	/* first remove all defence on this tile */
 	for (i = 0; i < NUM_OF_UNITS; i++) {
@@ -247,15 +263,15 @@ Build_Destroy(Int16 xpos, Int16 ypos)
 	    ((type == TYPE_POWERROAD_2) || (type == TYPE_POWERROAD_1) ||
 	    (type == TYPE_POWER_LINE)) ? 1 : 0;
 	vgame.BuildCount[COUNT_FIRE] -= ((type == TYPE_FIRE1) ||
-	(type == TYPE_FIRE2) || (type == TYPE_FIRE3)) ? 1 : 0;
+	    (type == TYPE_FIRE2) || (type == TYPE_FIRE3)) ? 1 : 0;
 	vgame.BuildCount[COUNT_WATERPIPES] -= ((type == TYPE_WATER_PIPE) ||
-	(type == TYPE_WATERROAD_1) || (type == TYPE_WATERROAD_2)) ? 1 : 0;
+	    (type == TYPE_WATERROAD_1) || (type == TYPE_WATERROAD_2)) ? 1 : 0;
 	vgame.BuildCount[COUNT_FIRE_STATIONS] -=
-	(type == TYPE_FIRE_STATION) ? 1 : 0;
+	    (type == TYPE_FIRE_STATION) ? 1 : 0;
 	vgame.BuildCount[COUNT_POLICE_STATIONS] -=
-	(type == TYPE_POLICE_STATION) ? 1 : 0;
+	    (type == TYPE_POLICE_STATION) ? 1 : 0;
 	vgame.BuildCount[COUNT_MILITARY_BASES] -=
-	(type == TYPE_MILITARY_BASE) ? 1 : 0;
+	    (type == TYPE_MILITARY_BASE) ? 1 : 0;
 	vgame.BuildCount[COUNT_WATER_PUMPS] -=
 	    (type == TYPE_WATER_PUMP) ? 1 : 0;
 	AddGridUpdate(GRID_ALL);

@@ -138,7 +138,7 @@ restoreDepthRes(void)
 	ec = oUseColor;
 	if (canHires())
 		if ((rv = _WinScreenMode(winScreenModeSet,
-				    &wi, &he, &de, &ec)) != 0)
+		    &wi, &he, &de, &ec)) != 0)
 			return (rv);
 	if (0 != (rv = unloadHiRes()))
 		return (rv);

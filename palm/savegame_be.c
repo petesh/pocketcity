@@ -145,7 +145,7 @@ WriteCityRecord(MemHandle rec)
 	/* write the header and some globals */
 	DmWrite(pRec, 0, (void *)&game, sizeof (GameStruct));
 	DmWrite(pRec, sizeof (GameStruct), (void *)(unsigned char *)worldPtr,
-	GetMapMul());
+	    GetMapMul());
 	UnlockWorld();
 	MemHandleUnlock(rec);
 }
@@ -463,7 +463,7 @@ CityNames(int *count)
 	DmOpenRef db;
 	UInt16 index = 0;
 	MemHandle rec;
-	unsigned char * pTemp;
+	unsigned char *pTemp;
 	unsigned short int nRec;
 	unsigned short int nsIndex = 0;
 	char **cities;

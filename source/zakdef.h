@@ -111,22 +111,22 @@ struct zoneTypeValue {
 #define	TYPE_BRIDGE			 81
 
 /* defines for the BuildCount[] array */
-#define	COUNT_RESIDENTIAL	   0
-#define	COUNT_COMMERCIAL		1
-#define	COUNT_INDUSTRIAL		2
-#define	COUNT_ROADS			 3
-#define	COUNT_TREES			 4
-#define	COUNT_WATER			 5
-#define	COUNT_POWERLINES		6
-#define	COUNT_POWERPLANTS	   7
-#define	COUNT_NUCLEARPLANTS	 8
-#define	COUNT_WASTE			 9
-#define	COUNT_FIRE			 10
+#define	COUNT_RESIDENTIAL	0
+#define	COUNT_COMMERCIAL	1
+#define	COUNT_INDUSTRIAL	2
+#define	COUNT_ROADS		3
+#define	COUNT_TREES		4
+#define	COUNT_WATER		5
+#define	COUNT_POWERLINES	6
+#define	COUNT_POWERPLANTS	7
+#define	COUNT_NUCLEARPLANTS	8
+#define	COUNT_WASTE		9
+#define	COUNT_FIRE		10
 #define	COUNT_FIRE_STATIONS	11
-#define	COUNT_POLICE_STATIONS  12
-#define	COUNT_MILITARY_BASES   13
-#define	COUNT_WATERPIPES	   14
-#define	COUNT_WATER_PUMPS	  15
+#define	COUNT_POLICE_STATIONS	12
+#define	COUNT_MILITARY_BASES	13
+#define	COUNT_WATERPIPES	14
+#define	COUNT_WATER_PUMPS	15
 
 /* Supply units per plant */
 #define	SUPPLY_POWER_PLANT	  100
