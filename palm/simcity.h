@@ -12,6 +12,7 @@ extern void UIWriteLog(char * s);
 #define formID_map                       1002
 #define formID_files                     1003
 #define formID_filesNew                  1004
+#define formID_quickList                 1005
 
 #define menuID_pocketCity                1000
 #define menuID_budget                    1001
@@ -54,6 +55,7 @@ extern void UIWriteLog(char * s);
 #define bitmapID_iconPowerline           1107
 #define bitmapID_iconTree                1108
 #define bitmapID_iconWater               1109
+#define bitmapID_iconPushed              1400
 
 #define alertID_errorOutOfMemory         1000
 #define alertID_RomIncompatible          1001

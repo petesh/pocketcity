@@ -40,9 +40,11 @@ unsigned short YOFFSET =15;
 static Boolean hPocketCity(EventPtr event);
 static Boolean hBudget(EventPtr event);
 static Boolean hMap(EventPtr event);
+static Boolean hQuickList(EventPtr event);
 void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth);
 void _PalmInit(void);
 void DrawMap(void);
+void UIDoQuickList(void);
 
 void BudgetInit(void);
 void BudgetFreeMem(void);
@@ -105,16 +107,21 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
                     case formID_filesNew:
                         FrmSetEventHandler(form, hFilesNew);
                         break;
+                    case formID_quickList:
+                        FrmSetEventHandler(form, hQuickList);
+                        break;
                 }
             }
             else if (event.eType == winExitEvent) {
                 if (event.data.winExit.exitWindow == (WinHandle) FrmGetFormPtr(formID_pocketCity)) {
+                    UIWriteLog("Setting drawing to 0\n");
                     DoDrawing = 0;
                 }
             }
             else if (event.eType == winEnterEvent) {
                 if (event.data.winEnter.enterWindow == (WinHandle) FrmGetFormPtr(formID_pocketCity) && event.data.winEnter.enterWindow == (WinHandle) FrmGetFirstForm())
                 {
+                    UIWriteLog("Setting drawing to 1\n");
                     DoDrawing = 1;
                 }
             }
@@ -480,6 +487,13 @@ static Boolean hPocketCity(EventPtr event)
         case keyDownEvent:
             switch (event->data.keyDown.chr)
             {
+                case vchrCalc:
+                    /* popup a quicksheet */
+                    if (!oldROM) {
+                        UIDoQuickList();
+                        handled = 1;
+                    }
+                    break;
                 case pageUpChr:
                     /* scroll map up */
                     ScrollMap(0);
@@ -507,6 +521,43 @@ static Boolean hPocketCity(EventPtr event)
 
     return handled;
 }
+
+void UIDoQuickList(void)
+{
+    FormType * ftList;
+
+    if (oldROM != 1) {
+        ftList = FrmInitForm(formID_quickList);
+        nSelectedBuildItem = FrmDoDialog(ftList) - menuitemID_buildBulldoze;
+        UIUpdateBuildIcon();
+        FrmDeleteForm(ftList);
+    }
+}
+                            
+
+static Boolean hQuickList(EventPtr event)
+{
+    FormPtr form;
+    int handled = 0;
+        
+    switch (event->eType)
+    {       
+        case frmOpenEvent:
+            game_in_progress = 0;
+            form = FrmGetActiveForm();
+            FrmDrawForm(form);
+            handled = 1;
+            break;      
+        case frmCloseEvent:
+            break;      
+        default:
+            break;
+    }
+
+    return handled;
+}
+
+
 
 extern unsigned char UIGetSelectedBuildItem(void) { return nSelectedBuildItem; }
 
@@ -697,9 +748,6 @@ extern void UIScrollMap(int direction)
     UIFinishDrawing();
     UnlockWorldFlags();
     UnlockWorld();
-    
-
-    
 }
 
 
@@ -896,14 +944,17 @@ Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags)
     // See if we're on in minimum required version of the ROM or later.
     FtrGet(sysFtrCreator, sysFtrNumROMVersion, &romVersion);
     LongToString(romVersion,(char*)temp);
+    UIWriteLog("Rom version: ");
+    UIWriteLog(temp);
+    UIWriteLog("\n");
 
     if (romVersion < requiredVersion)
     {
         if ((launchFlags & (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp)) ==
                 (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp))
         {
-            if (FrmAlert (alertID_RomIncompatible) == 1)
-            { // try anyway
+            //if (FrmAlert (alertID_RomIncompatible) == 1)
+            if (romVersion > 0x03100000) {
                 oldROM = 1;
                 return (0);
             }

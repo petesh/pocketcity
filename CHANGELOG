@@ -12,6 +12,8 @@ Version 0.11
 ============
 Kean Pedersen:
   + Naming of savegames
+  + Quick list on calculator button
+  * Cleaned compiler warnings
   * Uses less stackspace in recursive function (should fix the FE)
 
 Version 0.10

@@ -12,3 +12,4 @@ C = commercial zones
 * Tapping on the speed indicator will pause the game, tapping again will set the speed to "medium"
 * Tapping on the build icon will toggle bulldozer
 * Tapping on the map will jump to that position
+* Tapping on the "calculator" button will bring up a quick list

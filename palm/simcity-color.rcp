@@ -18,3 +18,4 @@ BITMAPCOLOR ID bitmapID_iconNuclear         "graphic/icons-color/nuclear.bmp"   
 BITMAPCOLOR ID bitmapID_iconPowerline       "graphic/icons-color/powerline.bmp"    COMPRESS
 BITMAPCOLOR ID bitmapID_iconTree            "graphic/icons-color/tree.bmp"         COMPRESS
 BITMAPCOLOR ID bitmapID_iconWater           "graphic/icons-color/water.bmp"        COMPRESS
+
