@@ -51,7 +51,7 @@ static Boolean hPocketCity(EventPtr event);
 static Boolean hQuickList(EventPtr event);
 static Boolean hExtraList(EventPtr event);
 
-static void _PalmInit(void);
+static int _PalmInit(void);
 static void _PalmFini(void);
 static void buildSilkList(void);
 static int vkDoEvent(UInt16 key);
@@ -109,7 +109,11 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
     if (error) return (error);
 
     WriteLog("Starting Pocket City\n");
-    _PalmInit();
+    if (-1 == _PalmInit()) {
+        WriteLog("Tiles Missing\n");
+        return (1);
+    }
+
     PCityMain();
     if (-1 != UILoadAutoGame()) {
         SetLowNotShown();
@@ -118,7 +122,7 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
     } else {
 	FrmGotoForm(formID_files);
     }
-    
+
     EventLoop();
 
     if (IsGameInProgress()) {
@@ -318,10 +322,11 @@ static const struct _bmphandles {
     { &winUnits, 48, 32, bitmapID_units }
 };
 
+static DmOpenRef _refTiles;
 /*
  * Set up the game in relation to the screen mode.
  */
-void
+int
 _PalmInit(void)
 {
     UInt32 depth;
@@ -335,6 +340,14 @@ _PalmInit(void)
 
     timeStamp = TimGetSeconds();
     timeStampDisaster = timeStamp;
+
+    _refTiles = DmOpenDatabaseByTypeCreator(TILEDBTYPE, GetCreatorID(),
+	dmModeReadOnly);
+
+    if (_refTiles == 0) {
+        FrmAlert(alertID_tilesMissing);
+        return (-1);
+    }
 
     /* set screen mode to colors if supported */
     if (IsNewROM()) {  /* must be v3.5+ for some functions in here */
@@ -356,7 +369,7 @@ _PalmInit(void)
 
     /* create an offscreen window, and copy the zones to be used later */
     for (i = 0; i < (sizeof (handles) / sizeof (handles[0])); i++) {
-    	bitmaphandle = DmGet1Resource('Tbmp', handles[i].resourceID);
+    	bitmaphandle = DmGetResource('Tbmp', handles[i].resourceID);
 	if (bitmaphandle == NULL) {
 	    char c[20];
 	    StrPrintF(c, "%ld]\n", (long)handles[i].resourceID);
@@ -369,6 +382,7 @@ _PalmInit(void)
     	if (err != errNone) {
 	    /* TODO: alert user, and quit program */
     	    WriteLog("Offscreen window for zones failed\n");
+            /* return (-1); */
 	}
 	if (winHandle == NULL) winHandle = WinSetDrawWindow(privhandle);
 	else WinSetDrawWindow(privhandle);
@@ -388,6 +402,7 @@ _PalmInit(void)
     err = PrefGetAppPreferences(GetCreatorID(), 0, &gameConfig, &prefSize, true);
     if (err != noPreferenceFound) {
     }
+    return (0);
 }
 
 /*
@@ -410,6 +425,7 @@ _PalmFini(void)
     WinDeleteWindow(winUnits,0);
     MemPtrFree(worldPtr);
     MemPtrFree(worldFlagsPtr);
+    DmCloseDatabase(_refTiles);
     restoreDepthRes();
     /* Close the forms */
     FrmCloseAllForms();
@@ -751,7 +767,7 @@ UpdateDescription(int sel)
     FldSetTextPtr(ctl, temp);
     FldRecalculateField(ctl, true);
 
-    mh = DmGet1Resource('wrdl', wdlID_Costs);
+    mh = DmGetResource('wrdl', wdlID_Costs);
     if (mh != NULL) {
         ch = MemHandleLock(mh);
         cost = ch[sel+1];
@@ -1591,7 +1607,7 @@ UIDrawCredits(void)
     UIDrawItem(CREDITSLOC, temp);
 #ifdef SONY_CLIE
     if (isHires()) {
-        bitmapHandle = DmGet1Resource('Tbmp', bitmapID_coin);
+        bitmapHandle = DmGetResource('Tbmp', bitmapID_coin);
         if (bitmapHandle == NULL) return;
         bitmap = MemHandleLock(bitmapHandle);
         _WinDrawBitmap(bitmap, 68, sHeight - 11);
@@ -1620,7 +1636,7 @@ UIDrawLoc(void)
 #ifdef SONY_CLIE
     if (isHires()) {
         StrPrintF(temp, "%02u,%02u", game.map_xpos, game.map_ypos);
-        bitmapHandle = DmGet1Resource('Tbmp', bitmapID_loca);
+        bitmapHandle = DmGetResource('Tbmp', bitmapID_loca);
         if (bitmapHandle == NULL) return;
         bitmap = MemHandleLock(bitmapHandle);
         _WinDrawBitmap(bitmap, 270, sHeight - 11);
@@ -1631,7 +1647,7 @@ UIDrawLoc(void)
         StrPrintF(temp, "(%02u,%02u)", game.map_xpos, game.map_ypos);
 
 #ifdef SONY_CLIE
-    bitmapHandle = DmGet1Resource('Tbmp', bitmapID_updn + jog_lr);
+    bitmapHandle = DmGetResource('Tbmp', bitmapID_updn + jog_lr);
     /* place at rt - (12 + 8), 1 */
     if (bitmapHandle) {
         bitmap = MemHandleLock(bitmapHandle);
@@ -1656,7 +1672,7 @@ UIUpdateBuildIcon(void)
     BitmapPtr bitmap;
     if (IsDeferDrawing()) { return; }
 
-    bitmaphandle = DmGet1Resource('Tbmp', bitmapID_iconBulldoze +
+    bitmaphandle = DmGetResource('Tbmp', bitmapID_iconBulldoze +
             (((nSelectedBuildItem <= Be_Extra)) ?
              nSelectedBuildItem : OFFSET_EXTRA));
 
@@ -1680,7 +1696,7 @@ UIDrawSpeed(void)
     MemHandle  bitmaphandle;
     BitmapPtr  bitmap;
 
-    bitmaphandle = DmGet1Resource('Tbmp',
+    bitmaphandle = DmGetResource('Tbmp',
       bitmapID_SpeedPaused + game.gameLoopSeconds);
     if (bitmaphandle == NULL) { return; } /* TODO: onscreen error? +save? */
     bitmap = MemHandleLock(bitmaphandle);
@@ -1711,7 +1727,7 @@ UIDrawPop(void)
     UIDrawSpeed();
 #ifdef SONY_CLIE
     if (isHires()) {
-        bitmapHandle = DmGet1Resource('Tbmp', bitmapID_popu);
+        bitmapHandle = DmGetResource('Tbmp', bitmapID_popu);
         if (bitmapHandle == NULL) return;
         bitmap = MemHandleLock(bitmapHandle);
         _WinDrawBitmap(bitmap, 146, sHeight - 11);
@@ -1881,7 +1897,8 @@ RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
         if ((launchFlags &
               (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp)) ==
                 (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp)) {
-            if (romVersion > sysMakeROMVersion(3, 1, 0, 0, 0)) {
+            if (romVersion > sysMakeROMVersion(3, 1, 0, 0, 0) &&
+		FrmAlert(alertID_RomIncompatible) == 1) {
                 ClearNewROM();
                 return (0);
             }
@@ -2067,7 +2084,7 @@ drawToolBitmaps(Coord startx, Coord starty)
     UInt32 id;
 
     for (id = bitmapID_iconBulldoze; id <= bitmapID_iconExtra; id++) {
-        hBitmap = DmGet1Resource('Tbmp', id);
+        hBitmap = DmGetResource('Tbmp', id);
         if (hBitmap == NULL) continue;
         pBitmap = MemHandleLock(hBitmap);
         if (pBitmap == NULL) {

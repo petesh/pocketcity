@@ -107,6 +107,7 @@
 #define alertID_generic_disaster         1009
 #define alertID_majorbad                 1010
 #define alertID_programmingNiggle        1011
+#define alertID_tilesMissing		 1012
 
 #define st_disasters			2000
 

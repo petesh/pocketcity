@@ -27,3 +27,11 @@ BITMAPCOLOR ID bitmapID_iconExtra           "graphic/icons-color/extra.bmp"     
 BITMAPCOLOR ID bitmapID_iconDefFire         "graphic/icons-color/def_firemen.bmp"        COMPRESS
 BITMAPCOLOR ID bitmapID_iconDefPolice       "graphic/icons-color/def_police.bmp"        COMPRESS
 BITMAPCOLOR ID bitmapID_iconDefMilitary     "graphic/icons-color/def_military.bmp"        COMPRESS
+
+
+BITMAPCOLOR ID bitmapID_coin	"graphic/icons-color/coin.bmp" COMPRESS
+BITMAPCOLOR ID bitmapID_popu	"graphic/icons-color/people.bmp" COMPRESS
+BITMAPCOLOR ID bitmapID_loca	"graphic/icons-color/location.bmp" COMPRESS
+
+BITMAP ID bitmapID_updn	"graphic/icons/updown.bmp"
+BITMAP ID bitmapID_ltrt	"graphic/icons/leftright.bmp"

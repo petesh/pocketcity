@@ -5,7 +5,9 @@
 
 /* global vars from simcity.c */
 #define SGTYP   'DATA'
+#define TILEDBTYPE 'tidb'
 #define SGNAME  "PCitySave"
+
 extern MemPtr worldPtr;
 extern MemPtr worldFlagsPtr;
 
