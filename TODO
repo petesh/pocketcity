@@ -18,10 +18,31 @@ Things left to implement:
 		- pop growth over time
 
 	Evaluation
+		- n% approve
+		- need houses! ...
 
 	query tool
 		- Partially implemented.
 		- missing code for other properties.
+
+	zoom on map
+		- 1 pel
+		- 2 pel
+		- 4 pel
+
+	Animation
+		- I need to come up with the style and make the art
+
+	Big bits
+		- airport
+		- port
+		- stadium
+
+	Palm 5
+		- 5 way navigator
+
+	Buttons
+		- specific tools for buttons
 
 Save games on external media
 
