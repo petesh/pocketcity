@@ -16,7 +16,7 @@
 #include <mem_compat.h>
 
 /*! \brief stack object */
-typedef struct tag_dsobj {
+typedef struct tag_dsobj_palm {
 	MemHandle   sh; /*!< Start of stack... handle */
 	Int32	  *ss; /*!< Start of stack */
 	Int32	  *sp; /*!< Stack pointer */

@@ -21,7 +21,7 @@
 /*!
  * \brief the data structure for the stack object
  */
-typedef struct tag_dsObj {
+typedef struct tag_dsobj_nix {
 	Int32 *bp; /*!< base pointer */
 	Int32 *sp; /*!< stack pointer */
 	Int32 *se; /*!< stack end */
