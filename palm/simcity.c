@@ -1624,7 +1624,7 @@ UIDrawItem(Int16 location, char *text)
 		EndHiresDraw();
 	}
 
-	if (isHires())
+	if (isDoubleOrMoreResolution())
 		_FntSetFont(boldFont);
 	sl = StrLen(text);
 	tx = FntCharsWidth(text, sl);
@@ -1639,14 +1639,14 @@ UIDrawItem(Int16 location, char *text)
 	pos->rect.extent.x = tx;
 	if (highDensityFeatureSet()) {
 		StartHiresFontDraw();
-		_WinDrawChars(text, sl, pos->rect.topLeft.x >> 1,
-		    pos->rect.topLeft.y >> 1);
+		_WinDrawChars(text, sl, normalizeX(pos->rect.topLeft.x),
+		    normalizeY(pos->rect.topLeft.y));
 		EndHiresFontDraw();
 	} else {
 		_WinDrawChars(text, sl, pos->rect.topLeft.x,
 		    pos->rect.topLeft.y);
 	}
-	if (isHires())
+	if (isDoubleOrMoreResolution())
 		_FntSetFont(stdFont);
 }
 

@@ -19,18 +19,22 @@ extern Int32 sHeight;
 #define	SETWIDTH(x)	sWidth = (x)
 #define	SETHEIGHT(y)	sHeight = (y)
 
+Boolean isDoubleOrMoreResolution(void);
 void scaleEvent(EventPtr event);
 UInt32 highDensityFeatureSet(void);
+Coord scaleCoordX(Coord x);
+Coord scaleCoordY(Coord y);
 Boolean canHires(void);
 Boolean isHires(void);
 void setScreenRes(void);
-void scaleEvent(EventPtr event);
 void StartHiresDraw(void);
 void EndHiresDraw(void);
 void StartHiresFontDraw(void);
 void EndHiresFontDraw(void);
 #define	StartScaleDraw	StartHiresFontDraw
 #define EndScaleDraw		EndHiresFontDraw
+#define normalizeX(X)	((X) * BASEWIDTH / sWidth)
+#define normalizeY(Y)	((Y) * BASEHEIGHT / sHeight)
 
 #else
 
@@ -46,7 +50,12 @@ void EndHiresFontDraw(void);
 #define	canHires() (false)
 
 #define highDensityFeatureSet()	(0)
+#define isDoubleOrMoreResolution() (0)
 #define scaleEvent(e)
+#define scaleCoordX(x)	(x)
+#define scaleCoordY(y)	(y)
+#define normalizeX(X)	(X)
+#define normalizeY(Y)	(Y)
 #define StartHiresDraw()
 #define EndHiresDraw()
 #define StartHiresFontDraw()

@@ -23,6 +23,8 @@ static UInt32 hdfs = ~0UL;
  * 
  * This sets the screen resolution in terms of width and height based on
  * the high density feature set or the sony library.
+ *
+ * \todo software silk can resize display
  */
 void
 setScreenRes(void)
@@ -45,8 +47,8 @@ setScreenRes(void)
 	default:
 		if (sonyHires()) {
 			WriteLog("Sony High Density\n");
-			SETWIDTH(320);
-			SETHEIGHT(320);
+			SETWIDTH(BASEWIDTH * 2);
+			SETHEIGHT(BASEHEIGHT * 2);
 		} else {
 			WriteLog("Single Density\n");
 			SETWIDTH(BASEWIDTH);
@@ -84,6 +86,21 @@ highDensityFeatureSet(void)
 		hdfs = 0;
 out:
 	return (hdfs);
+}
+
+/*!
+ * \brief is the screen running at double or greater resolution?
+ *
+ * This is to allow us to use a smaller font on the 1 and 1.5 resolution
+ * displays.
+ * \return is the screen double or greater resolution
+ */
+Boolean
+isDoubleOrMoreResolution()
+{
+	if (hdfs >= kDensityDouble || sonyHires())
+		return (1);
+	return (0);
 }
 
 /*!
@@ -178,29 +195,23 @@ void
 scaleEvent(EventPtr event)
 {
 	if (isHires()) {
-		event->screenX *= sWidth / BASEWIDTH;
-		event->screenY *= sHeight / BASEHEIGHT;
+		event->screenX  = (Coord)((UInt32)event->screenX * sWidth /
+		    BASEWIDTH);
+		event->screenY = (Coord)((UInt32)event->screenY * sHeight /
+		    BASEHEIGHT);
 	}
 }
 
-/*
-UInt32
-xScale(void)
+Coord
+scaleCoordX(Coord x)
 {
-	if (isHires())
-		return (sWidth / BASEWIDTH);
-	else
-		return (1);
+	return ((Coord)((UInt32)x * sWidth / BASEWIDTH));
 }
 
-UInt32
-yScale()
+Coord
+scaleCoordY(Coord y)
 {
-	if (isHires())
-		return (sHeight / BASEHEIGHT);
-	else
-		return (1);
+	return ((Coord)((UInt32)y * sHeight / BASEHEIGHT));
 }
-*/
 
 #endif /* HRSUPPORT */

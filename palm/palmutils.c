@@ -16,6 +16,10 @@
 #define	TRGSysFtrID	'TRG '
 #define	TRGVgaFtrNum	2
 
+/* included Palm Zire (old) magic numbers */
+#define PalmOEMCompanyID	'Palm'
+#define ZireOriginalDeviceID	'Cubs'
+
 Boolean
 isHandEra(void)
 {
@@ -35,9 +39,9 @@ isZireOld(void)
 	if (rv != 3)
 		return (rv);
 	if ((FtrGet(sysFtrCreator, sysFtrNumOEMCompanyID, &vcl) == 0) &&
-	    (vcl == 'Palm') &&
+	    (vcl == PalmOEMCompanyID) &&
 	    (FtrGet(sysFtrCreator, sysFtrNumOEMDeviceID, &vcl) == 0) &&
-	    (vcl == 'Cubs')) {
+	    (vcl == ZireOriginalDeviceID)) {
 		rv = 1;
 	} else {
 		rv = 0;
@@ -107,18 +111,12 @@ changeDepthRes(UInt32 ndepth)
 
 		/* Could not match... */
 		if (!dep) {
-			(void) unloadHiRes();
 			depth = 1;
 			enablecol = 0;
-			SETWIDTH(160);
-			SETHEIGHT(160);
 		}
 	} else {
 		enablecol = 0;
 		depth = 1;
-		SETWIDTH(160);
-		SETHEIGHT(160);
-		(void) unloadHiRes();
 	}
 
 	width = sWidth;
@@ -131,6 +129,14 @@ changeDepthRes(UInt32 ndepth)
 		result = _WinScreenMode(winScreenModeSet, &width, &height,
 		    &depth, &enablecol);
 
+#if defined(DEBUG)
+	if (result != errNone)
+		WriteLog("Could not set resolution to (%d,%d)\n", (int)width,
+		    (int)height);
+	else
+		WriteLog("Resolution set to (%d,%d)\n", (int)width,
+		    (int)height);
+#endif
 	return (result);
 }
 
@@ -210,7 +216,7 @@ FillStringList(UInt16 resID, UInt16 *length)
 	do {
 		foo = SysStringByIndex(resID, max, item, 200);
 		if (*foo != '\0') {
-			maxlen += 1+StrLen(item);
+			maxlen += 1 + StrLen(item);
 			max++;
 		} else break;
 	} while (foo);

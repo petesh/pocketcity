@@ -99,6 +99,8 @@ loadHiRes(void)
 	Err error = 0;
 	UInt16 refNum;
 
+	if (highDensityFeatureSet() != 0)
+		return (errNone);
 	if ((error = FtrGet(sonySysFtrCreator,
 		sonySysFtrNumSysInfoP, (UInt32*)&sonySysFtrSysInfoP))) {
 		/* Not CLIE: maybe not available */
