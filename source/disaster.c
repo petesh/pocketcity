@@ -178,6 +178,7 @@ extern int BurnField(int x, int y, int forceit)
         type != TYPE_WATER &&
         type != TYPE_REAL_WATER &&
         type != TYPE_CRATER &&
+        type != TYPE_BRIDGE &&
         ContainsDefence(x,y) == 0)) {
 
         Build_Destroy(x,y);

@@ -19,6 +19,7 @@ void * worldFlagsPtr;
 GdkPixmap *zones,*monsters,*units;
 GdkBitmap *zones_mask,*monsters_mask,*units_mask;
 unsigned char selectedBuildItem = 0;
+unsigned char drawing = 0;
 
 
 void SetUpMainWindow(void);
@@ -55,6 +56,7 @@ gint mainloop_callback(gpointer data)
     if (timekeeperdisaster >= SIM_GAME_LOOP_DISASTER) {
         MoveAllObjects();
         if (UpdateDisasters()) {
+            g_print("Redrawing fields because of updatedisaster\n");
             RedrawAllFields();
         }
     }
@@ -65,6 +67,7 @@ gint mainloop_callback(gpointer data)
         do {
             phase = Sim_DoPhase(phase);
         } while (phase != 0);
+        g_print("Redrawing fields because of monthloop\n");
         RedrawAllFields();
     }
 
@@ -295,11 +298,13 @@ extern int UIDisplayError(int nError)
 extern void UIInitDrawing(void)
 {
     // not used for this platform
+    drawing = 1;
 }
 
 extern void UIFinishDrawing(void)
 {
     // not used for this platform
+    drawing = 0;
 }
 
 extern void UIUnlockScreen(void)
