@@ -169,7 +169,10 @@ extern int BurnField(int x, int y, int forceit)
     LockWorld();
     LockWorldFlags();
     type = GetWorld(WORLDPOS(x,y));
-    if (forceit != 0 ||
+    if ((forceit != 0 &&
+         type != TYPE_BRIDGE &&
+         type != TYPE_REAL_WATER)
+        ||
         (type != TYPE_FIRE1 &&
         type != TYPE_FIRE2 &&
         type != TYPE_FIRE3 &&
