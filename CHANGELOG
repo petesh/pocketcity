@@ -15,6 +15,8 @@ Kean Pedersen:
   + Quick list on calculator button
   * Cleaned compiler warnings
   * Uses less stackspace in recursive function (should fix the FE)
+  * Moved all graphic for the zones onto an offscreen windows
+      This speeds up the drawing process.
 
 Version 0.10
 ============
@@ -30,10 +32,6 @@ Kean Pedersen:
   + Fire
   + Basic map
   * Even smoother scrolling
-
-Kim Ingemann:
-
-Morten Brix:
 
 Version 0.08
 ============

@@ -247,7 +247,7 @@ ALERT ID alertID_fireOutBreak
 BEGIN
   TITLE "Disaster"
   MESSAGE "An Australian fire has broken out somewhere!"
-  BUTTONS "Sh*t"
+  BUTTONS "Uh-oh!"
 END
 
 
@@ -255,5 +255,5 @@ ALERT ID alertID_plantExplosion
 BEGIN
   TITLE "Disaster"
   MESSAGE "A power plant just exploded!"
-  BUTTONS "Sh*t"
+  BUTTONS "Uh-oh!"
 END
