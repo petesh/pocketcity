@@ -12,14 +12,14 @@ void SetUpGraphic(void)
 
 extern void Goto(int x, int y)
 {
-    game.map_xpos = x-(game.visible_x/2);
-    game.map_ypos = y-(game.visible_y/2);
+    game.map_xpos = x-(vgame.visible_x/2);
+    game.map_ypos = y-(vgame.visible_y/2);
     if (game.map_ypos < 0) { game.map_ypos = 0; }
-    if (game.map_ypos > (GetMapSize() - game.visible_y))
-        game.map_ypos = GetMapSize() - game.visible_y;
+    if (game.map_ypos > (GetMapSize() - vgame.visible_y))
+        game.map_ypos = GetMapSize() - vgame.visible_y;
     if (game.map_xpos < 0) { game.map_xpos = 0; }
-    if (game.map_xpos > (GetMapSize() - game.visible_x))
-      game.map_xpos = GetMapSize() - game.visible_x;
+    if (game.map_xpos > (GetMapSize() - vgame.visible_x))
+      game.map_xpos = GetMapSize() - vgame.visible_x;
     RedrawAllFields();
 }
 
@@ -31,13 +31,14 @@ extern void RedrawAllFields(void)
     LockWorldFlags();
     UIInitDrawing();
     UILockScreen();
-    for (i=game.map_xpos; i<game.visible_x+game.map_xpos; i++) {
-        for (j=game.map_ypos; j<game.visible_y+game.map_ypos; j++) {
+    for (i=game.map_xpos; i < vgame.visible_x+game.map_xpos; i++) {
+        for (j=game.map_ypos; j < vgame.visible_y+game.map_ypos; j++) {
             DrawFieldWithoutInit(i,j);
         }
     }
 
-    UIDrawCursor(game.cursor_xpos-game.map_xpos, game.cursor_ypos-game.map_ypos);
+    UIDrawCursor(vgame.cursor_xpos - game.map_xpos,
+      vgame.cursor_ypos - game.map_ypos);
     UIDrawCredits();
     UIDrawPop();
 
@@ -59,18 +60,18 @@ extern void ScrollMap(int direction)
             }
             break;
         case 1: // right
-            if (game.map_xpos <= (GetMapSize() - 1 - game.visible_x)) {
+            if (game.map_xpos <= (GetMapSize() - 1 - vgame.visible_x)) {
                 game.map_xpos += 1;
             } else {
-                game.map_xpos = GetMapSize() - game.visible_x;
+                game.map_xpos = GetMapSize() - vgame.visible_x;
                 return;
             }
             break;
         case 2: // down
-            if (game.map_ypos <= (GetMapSize() - 1 - game.visible_y)) {
+            if (game.map_ypos <= (GetMapSize() - 1 - vgame.visible_y)) {
                 game.map_ypos += 1;
             } else {
-                game.map_ypos = GetMapSize() - game.visible_y;
+                game.map_ypos = GetMapSize() - vgame.visible_y;
                 return;
             }
             break;
@@ -92,36 +93,38 @@ extern void ScrollMap(int direction)
 
 extern void MoveCursor(int direction)
 {
-    int old_x = game.cursor_xpos, old_y = game.cursor_ypos;
+    int old_x = vgame.cursor_xpos, old_y = vgame.cursor_ypos;
     LockWorld();
 
     switch (direction) {
     case 0: // up
-        if (game.cursor_ypos > 0) { game.cursor_ypos--; }
-        if ((game.cursor_ypos < game.map_ypos)) { ScrollMap(0); }
+        if (vgame.cursor_ypos > 0) { vgame.cursor_ypos--; }
+        if ((vgame.cursor_ypos < game.map_ypos)) { ScrollMap(0); }
         break;
     case 1: // right
-        if (game.cursor_xpos < (GetMapSize() - 1)) { game.cursor_xpos++; }
-        if ((game.cursor_xpos > game.map_xpos+game.visible_x-1) && game.cursor_xpos < GetMapSize()) { ScrollMap(1); }
+        if (vgame.cursor_xpos < (GetMapSize() - 1)) { vgame.cursor_xpos++; }
+        if ((vgame.cursor_xpos > game.map_xpos+vgame.visible_x-1) &&
+          vgame.cursor_xpos < GetMapSize()) { ScrollMap(1); }
         break;
     case 2: // down
-        if (game.cursor_ypos < (GetMapSize() - 1)) { game.cursor_ypos++; }
-        if ((game.cursor_ypos > game.map_ypos+game.visible_y-1) && game.cursor_ypos < GetMapSize()) { ScrollMap(2); }
+        if (vgame.cursor_ypos < (GetMapSize() - 1)) { vgame.cursor_ypos++; }
+        if ((vgame.cursor_ypos > game.map_ypos+vgame.visible_y-1) && vgame.cursor_ypos < GetMapSize()) { ScrollMap(2); }
         break;
     case 3: // left
-        if (game.cursor_xpos > 0) { game.cursor_xpos--; }
-        if ((game.cursor_xpos < game.map_xpos)) { ScrollMap(3); }
+        if (vgame.cursor_xpos > 0) { vgame.cursor_xpos--; }
+        if ((vgame.cursor_xpos < game.map_xpos)) { ScrollMap(3); }
         break;
     }
 
     DrawField(old_x, old_y);
-    DrawField(game.cursor_xpos, game.cursor_ypos);
+    DrawField(vgame.cursor_xpos, vgame.cursor_ypos);
 
     UnlockWorld();
 }
 
 
-extern void DrawField(int xpos, int ypos)
+extern void
+DrawField(int xpos, int ypos)
 {
     UIInitDrawing();
     LockWorld();
@@ -159,9 +162,9 @@ extern void DrawFieldWithoutInit(int xpos, int ypos)
 {
     int i;
     if (xpos < game.map_xpos ||
-            xpos >= game.map_xpos+game.visible_x ||
+            xpos >= game.map_xpos + vgame.visible_x ||
             ypos < game.map_ypos ||
-            ypos >= game.map_ypos+game.visible_y)
+            ypos >= game.map_ypos + vgame.visible_y)
     {
         return;
     }
@@ -176,8 +179,9 @@ extern void DrawFieldWithoutInit(int xpos, int ypos)
         UIDrawWaterLoss(xpos-game.map_xpos, ypos-game.map_ypos);
     }
 
-    if (xpos == game.cursor_xpos && ypos == game.cursor_ypos) {
-        UIDrawCursor(game.cursor_xpos-game.map_xpos, game.cursor_ypos-game.map_ypos);
+    if (xpos == vgame.cursor_xpos && ypos == vgame.cursor_ypos) {
+        UIDrawCursor(vgame.cursor_xpos - game.map_xpos,
+          vgame.cursor_ypos - game.map_ypos);
     }
 
     // draw monster
@@ -289,12 +293,35 @@ extern unsigned char GetSpecialGraphicNumber(long unsigned int pos, int nType)
 }
 
 /* some small usefull functions */
-extern int CarryPower(unsigned char x)         { return ((x)>=1&&(x)<=7&&(x)!=4) || ((x)>=23&&(x)<=61)  ?1:0; }
-extern int CarryWater(unsigned char x)         { return ((x)>=1&&(x)<=3)||((x)>=23&&(x)<=61)||(x)==68||(x)==69||(x)==8?1:0; }
-extern int IsPowerLine(unsigned char x)        { return ((x)>=5 && (x)<=7)  ?1:0; }
-extern int IsRoad(unsigned char x)             { return ((x)==4||(x)==6||(x)==7||(x)==68||(x)==69||(x)==81)  ?1:0; }
+extern int
+CarryPower(unsigned char x)
+{
+    return (((x >= 1) && (x <= 7) && (x != 4)) ||
+      ((x >= 23) && (x <= 61)) ? 1 : 0);
+}
 
-extern int IsZone(unsigned char x, int nType)
+extern int
+CarryWater(unsigned char x)
+{
+    return (((x >= 1) && (x <= 3)) || ((x >= 23) && (x <= 61)) || (x == 68) ||
+      (x == 69) || (x ==8) ? 1 : 0);
+}
+
+extern int
+IsPowerLine(unsigned char x)
+{
+    return ((x)>=5 && (x)<=7)  ?1:0;
+}
+
+extern int
+IsRoad(unsigned char x)
+{
+    return (((x == 4) || (x == 6) || (x == 7) || (x == 68) || (x == 69) ||
+          (x == 81)) ? 1 : 0);
+}
+
+extern int
+IsZone(unsigned char x, int nType)
 {
     if (x == nType) { return 1; }
     else if (x >= (nType*10+20) && x <= (nType*10+29)) { return (x%10)+1; }

@@ -383,17 +383,17 @@ void DowngradeZone(long unsigned pos)
     if (type >= 30 && type <= 39)
     {
         SetWorld(pos, (type == 30) ? 1 : type-1);
-        game.BuildCount[COUNT_COMMERCIAL]--;
+        vgame.BuildCount[COUNT_COMMERCIAL]--;
     }
     else if (type >= 40 && type <= 49)
     {
         SetWorld(pos, (type == 40) ? 2 : type-1);
-        game.BuildCount[COUNT_RESIDENTIAL]--;
+        vgame.BuildCount[COUNT_RESIDENTIAL]--;
     }
     else if (type >= 50 && type <= 59)
     {
         SetWorld(pos, (type == 50) ? 3 : type-1);
-        game.BuildCount[COUNT_INDUSTRIAL]--;
+        vgame.BuildCount[COUNT_INDUSTRIAL]--;
     }
 
     UnlockWorld();
@@ -409,13 +409,13 @@ void UpgradeZone(long unsigned pos)
 
     if (type == 1 || (type >= 30 && type <= 38)) {
         SetWorld(pos, (type == 1) ? 30 : type+1);
-        game.BuildCount[COUNT_COMMERCIAL]++;
+        vgame.BuildCount[COUNT_COMMERCIAL]++;
     } else if (type == 2 || (type >= 40 && type <= 48)) {
         SetWorld(pos, (type == 2) ? 40 : type+1);
-        game.BuildCount[COUNT_RESIDENTIAL]++;
+        vgame.BuildCount[COUNT_RESIDENTIAL]++;
     } else if (type == 3 || (type >= 50 && type <= 58)) {
         SetWorld(pos, (type == 3) ? 50 : type+1);
-        game.BuildCount[COUNT_INDUSTRIAL]++;
+        vgame.BuildCount[COUNT_INDUSTRIAL]++;
     }
     UnlockWorld();
 }
@@ -456,8 +456,9 @@ signed long GetZoneScore(long unsigned int pos)
         // a new zone of ind or com
 
         long signed int availPop = 
-                (game.BuildCount[COUNT_RESIDENTIAL]*25)
-                - (game.BuildCount[COUNT_COMMERCIAL]*25 + game.BuildCount[COUNT_INDUSTRIAL]*25);
+                (vgame.BuildCount[COUNT_RESIDENTIAL]*25)
+                - (vgame.BuildCount[COUNT_COMMERCIAL]*25 +
+                vgame.BuildCount[COUNT_INDUSTRIAL]*25);
         if (availPop <= 0) { UnlockWorld(); return -1; } // whoops, missing population
 
     } else if (type == ZONE_RESIDENTIAL) {
@@ -469,7 +470,7 @@ signed long GetZoneScore(long unsigned int pos)
 
         long signed int availPop = 
                 ((game.TimeElapsed*game.TimeElapsed)/35+30)
-                - (game.BuildCount[COUNT_RESIDENTIAL]);
+                - (vgame.BuildCount[COUNT_RESIDENTIAL]);
         if (availPop <= 0) { UnlockWorld(); return -1; } // hmm - need more children
     }
 
@@ -478,8 +479,8 @@ signed long GetZoneScore(long unsigned int pos)
         // enough industrial zones before commercial zones kick in ;)
 
         long signed int availGoods =
-                (game.BuildCount[COUNT_INDUSTRIAL]/3*2)
-                - (game.BuildCount[COUNT_COMMERCIAL]);
+                (vgame.BuildCount[COUNT_INDUSTRIAL]/3*2)
+                - (vgame.BuildCount[COUNT_COMMERCIAL]);
         if (availGoods <= 0) { UnlockWorld(); return -1; } // darn, nothing to sell here
     }
 
@@ -545,34 +546,34 @@ extern signed long int BudgetGetNumber(int type)
     signed long int ret = 0;
     switch (type) {
         case BUDGET_RESIDENTIAL:
-            ret = game.BuildCount[COUNT_RESIDENTIAL]
+            ret = vgame.BuildCount[COUNT_RESIDENTIAL]
                     * INCOME_RESIDENTIAL
                     * game.tax/100;
             break;
         case BUDGET_COMMERCIAL:
-            ret = game.BuildCount[COUNT_COMMERCIAL]
+            ret = vgame.BuildCount[COUNT_COMMERCIAL]
                     * INCOME_COMMERCIAL
                     * game.tax/100;
             break;
         case BUDGET_INDUSTRIAL:
-            ret = game.BuildCount[COUNT_INDUSTRIAL]
+            ret = vgame.BuildCount[COUNT_INDUSTRIAL]
                     * INCOME_INDUSTRIAL
                     * game.tax/100;
             break;
         case BUDGET_TRAFFIC:
-            ret = (game.BuildCount[COUNT_ROADS] * UPKEEP_ROAD
+            ret = (vgame.BuildCount[COUNT_ROADS] * UPKEEP_ROAD
                     * game.upkeep[UPKEEPS_TRAFFIC])/100;
             break;
         case BUDGET_POWER:
-            ret = ((game.BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE +
-                    game.BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT +
-                    game.BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT)
+            ret = ((vgame.BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE +
+                    vgame.BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT +
+                    vgame.BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT)
                     * game.upkeep[UPKEEPS_POWER])/100;
             break;
         case BUDGET_DEFENCE:
-            ret = ((game.BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS +
-                     game.BuildCount[COUNT_POLICE_STATIONS]*UPKEEP_POLICE_STATIONS +
-                     game.BuildCount[COUNT_MILITARY_BASES]*UPKEEP_MILITARY_BASES)
+            ret = ((vgame.BuildCount[COUNT_FIRE_STATIONS]*UPKEEP_FIRE_STATIONS +
+                     vgame.BuildCount[COUNT_POLICE_STATIONS]*UPKEEP_POLICE_STATIONS +
+                     vgame.BuildCount[COUNT_MILITARY_BASES]*UPKEEP_MILITARY_BASES)
                     * game.upkeep[UPKEEPS_DEFENCE])/100;
             break;
         case BUDGET_CURRENT_BALANCE:
@@ -633,18 +634,18 @@ extern int Sim_DoPhase(int nPhase)
     switch (nPhase)
     {
         case 1:
-            if (updatePowerGrid != 0) {
+            if (NeedsUpdate(GRID_POWER)) {
                 UIWriteLog("Simulation phase 1 - power grid\n");
                 Sim_Distribute(0);
-                updatePowerGrid = 0;
+                ClearUpdate(GRID_POWER);
             }
             nPhase =2;
             break;
         case 2:
-            if (updateWaterGrid != 0) {
+            if (NeedsUpdate(GRID_WATER)) {
                 UIWriteLog("Simulation phase 2 - water grid\n");
                 Sim_Distribute(1);
-                updateWaterGrid = 0;
+                ClearUpdate(GRID_WATER);
             }
             nPhase = 3;
             break;
@@ -685,4 +686,49 @@ extern int Sim_DoPhase(int nPhase)
     }
 
     return nPhase;
+}
+
+extern void
+UpdateVolatiles(void)
+{
+    // Updates the BuildCount array after a load game
+    int x;
+    int y;
+
+    LockWorld();
+    vgame.tileSize = 16;
+
+    for (y = 0; y < game.mapsize; y++)
+        for (x = 0; x < game.mapsize; x++) {
+            char elt = GetWorld(WORLDPOS(x,y));
+            // Gahd this is terrible. I need to fix it.
+            if (elt >= ZONE_COMMERCIAL*10+20 &&
+              elt <= ZONE_COMMERCIAL*20+29)
+                vgame.BuildCount[COUNT_COMMERCIAL] += elt%10 + 1;
+            if (elt >= ZONE_RESIDENTIAL*10+20 &&
+              elt <= ZONE_RESIDENTIAL*10+29)
+                vgame.BuildCount[COUNT_RESIDENTIAL] += elt%10 + 1;
+            if (elt >= ZONE_INDUSTRIAL*10+20 &&
+              elt <= ZONE_INDUSTRIAL*10+20)
+                vgame.BuildCount[COUNT_INDUSTRIAL] += elt%10 + 1;
+            if (IsRoad(elt)) vgame.BuildCount[COUNT_ROADS]++;
+            if (elt == TYPE_TREE) vgame.BuildCount[COUNT_TREES]++;
+            if (elt == TYPE_WATER) vgame.BuildCount[COUNT_WATER]++;
+            if (elt == TYPE_POWERROAD_2 || elt == TYPE_POWERROAD_1 ||
+              elt == TYPE_POWER_LINE) vgame.BuildCount[COUNT_POWERLINES]++;
+            if (elt == TYPE_POWER_PLANT || elt == TYPE_NUCLEAR_PLANT)
+                vgame.BuildCount[COUNT_POWERPLANTS]++;
+            if (elt == TYPE_WASTE) vgame.BuildCount[COUNT_WASTE]++;
+            if (elt == TYPE_FIRE1 || elt == TYPE_FIRE2 || elt == TYPE_FIRE3)
+                vgame.BuildCount[COUNT_FIRE]++;
+            if (elt == TYPE_FIRE_STATION)
+                vgame.BuildCount[COUNT_FIRE_STATIONS]++;
+            if (elt == TYPE_POLICE_STATION)
+                vgame.BuildCount[COUNT_POLICE_STATIONS]++;
+            if (elt == TYPE_MILITARY_BASE)
+                vgame.BuildCount[COUNT_MILITARY_BASES]++;
+            if (elt == TYPE_WATER_PIPE) vgame.BuildCount[COUNT_WATERPIPES]++;
+            if (elt == TYPE_WATER_PUMP) vgame.BuildCount[COUNT_WATER_PUMPS]++; 
+        }
+    UnlockWorld();
 }

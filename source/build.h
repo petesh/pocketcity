@@ -1,28 +1,26 @@
 // the BUILD_* fits the defines in simcity.h (palm)
-#define BUILD_BULLDOZER             0
-#define BUILD_ZONE_RESIDENTIAL      1
-#define BUILD_ZONE_COMMERCIAL       2
-#define BUILD_ZONE_INDUSTRIAL       3
-#define BUILD_ROAD                  4
-#define BUILD_POWER_PLANT           5
-#define BUILD_NUCLEAR_PLANT         6
-#define BUILD_POWER_LINE            7
-
-#define BUILD_WATER_PUMP            8
-#define BUILD_WATER_PIPE            9
-
-#define BUILD_TREE                  10
-#define BUILD_WATER                 11
-// these are "extras"
-#define BUILD_FIRE_STATION          12
-#define BUILD_POLICE_STATION        13
-#define BUILD_MILITARY_BASE         14
-
-#define BUILD_DEFENCE_FIRE          250
-#define BUILD_DEFENCE_POLICE        251
-#define BUILD_DEFENCE_MILITARY      252
-///////////////////////////////////////
-
+typedef enum {
+    Build_Bulldozer = 0,
+    Build_Zone_Residential,
+    Build_Zone_Commercial,
+    Build_Zone_Industrial,
+    Build_Road,
+    Build_Power_Plant,
+    Build_Nuclear_Plant,
+    Build_Power_Line,
+    Build_Water_Pump,
+    Build_Water_Pipe,
+    Build_Tree,
+    Build_Water,
+    Build_Fire_Station,
+    Build_Police_Station,
+    Build_Military_Base,
+    // Defense items are bigger.
+    Build_Defence_Fire,
+    Build_Defence_Police,
+    Build_Defence_Military,
+    Build_Extra
+} BuildCodes;
 
 #define BUILD_COST_BULLDOZER        5
 #define BUILD_COST_ZONE             50
@@ -40,7 +38,6 @@
 #define BUILD_COST_WATER_PUMP       3000
 
 extern void BuildSomething(int xpos, int ypos);
-extern void Build_Bulldoze(int xpos, int ypos);
 extern void Build_Destroy(int xpos, int ypos);
 extern void CreateFullRiver(void);
 extern void CreateForests(void);

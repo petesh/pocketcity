@@ -1,6 +1,7 @@
 extern void Sim_Distribute(char type);
 extern int Sim_DoPhase(int nPhase);
 extern signed long int BudgetGetNumber(int type);
+extern void UpdateVolatiles(void);
 
 enum BudgetNumbers {
     BUDGET_RESIDENTIAL,

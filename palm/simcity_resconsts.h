@@ -50,12 +50,13 @@
 
 #define menuitemID_buildTree             1110
 #define menuitemID_buildWater            1111
-#define menuitemID_buildExtra            1112 // pops up an extra list
-#define OFFSET_EXTRA                    12 // the extra for the offset
+#define menuitemID_defenceFire           1112
+#define menuitemID_defencePolice         1113
+#define menuitemID_defenceMilitary       1114
+#define menuitemID_buildExtra            1115 // pops up an extra list
 
-#define menuitemID_defenceFire           1350 // equals to 250
-#define menuitemID_defencePolice         1351 // 251
-#define menuitemID_defenceMilitary       1352 // 252
+#define OFFSET_EXTRA                     15 // the extra for the offset
+
 
 // notice how the IDs here are the same as the menuIDs (uptil the "extra")
 #define bitmapID_iconBulldoze            1100
@@ -72,11 +73,14 @@
 
 #define bitmapID_iconTree                1110
 #define bitmapID_iconWater               1111
+
+// anything after this isn't on the toolbar
 #define bitmapID_iconExtra               1112
 
-#define bitmapID_iconDefFire             1350
-#define bitmapID_iconDefPolice           1351
-#define bitmapID_iconDefMilitary         1352
+#define bitmapID_iconDefFire             1113
+#define bitmapID_iconDefPolice           1114
+#define bitmapID_iconDefMilitary         1115
+
 #define bitmapID_iconPushed              1400
 
 #define alertID_errorOutOfMemory         1000
@@ -144,11 +148,14 @@
 
 // controls for extra Build list
 #define listID_extraBuildList           1013
+
 #define buttonID_extraBuildSelect       1014
 #define buttonID_extraBuildCancel       1015
+
 #define buttonID_extraBuildFireMen      1016
 #define buttonID_extraBuildPolice       1017
 #define buttonID_extraBuildMilitary     1018
+
 #define labelID_extraBuildDescription   1019
 #define strID_Descriptions              1020
 

@@ -3,10 +3,7 @@
 // this is the central game struct
 GameStruct game;
 // This is the volatile game structure (memoizing to reduce op/s)
-vGameStruct vgame;
-
-unsigned char updatePowerGrid = 1;
-unsigned char updateWaterGrid = 1;
+vGameStruct vgame = { 0, GRID_ALL };
 
 int GetCiffer(int number, signed long value);
 
@@ -21,34 +18,26 @@ extern void LongToString(signed long value, char* out)
     char temp;
     reachednumber=0;
 
-    if (value==0)
-    {
+    if (value==0) {
         out[0] = '0';
         out[1] = '\0';
         return;
     }
 
-    if (value<0)
-    {
+    if (value<0) {
         out[0] = '-';
         move=1;
     }
 
-
-    for (i=0; i<10; i++)
-    {
-        if (reachednumber==0)
-        {
+    for (i=0; i<10; i++) {
+        if (reachednumber==0) {
             temp = (char)GetCiffer(10-i, value)+0x30;
-            if (temp != (char)'0')
-            {
+            if (temp != (char)'0') {
                 reachednumber=1;
                 out[move] = temp;
                 move++;
             }
-        }
-        else
-        {
+        } else {
             temp = (char)GetCiffer(10-i, value)+0x30;
             out[move] = temp;
             move++;
@@ -57,12 +46,12 @@ extern void LongToString(signed long value, char* out)
     out[move] = '\0';
 }
 
-int GetCiffer(int number, signed long value)
+int
+GetCiffer(int number, signed long value)
 {
     if (value < 0) { value = 0-value; }
 
-    switch(number)
-    {
+    switch(number) {
         case 10: return (value/1000000000);
         case 9: return (value%1000000000/100000000);
         case 8: return (value%100000000/10000000);
@@ -78,11 +67,6 @@ int GetCiffer(int number, signed long value)
 
 
 }
-
-
-
-
-
 
 extern char* GetDate(char * temp)
 {
@@ -102,4 +86,15 @@ extern char* GetDate(char * temp)
     temp[8] = (char)0;
 
     return (char*)temp;
+}
+
+extern void *
+arIndex(char *ary, int addit, int key)
+{
+    while (*(int *)ary) {
+        if (key == *(int *)ary)
+            return (ary);
+        ary += addit;
+    }
+    return (0);
 }

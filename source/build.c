@@ -7,93 +7,58 @@
 #include "ui.h"
 #include "drawing.h"
 
-void Build_Road(int xpos, int ypos);
-void Build_PowerLine(int xpos, int ypos);
-void Build_WaterPipe(int xpos, int ypos);
-void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nType);
-void Build_Defence(int xpos, int ypos, int type);
-static void CreateForest(long unsigned int pos, int size);
-void RemoveDefence(int xpos, int ypos);
+typedef void (*BuildF)(int xpos, int ypos, unsigned int type);
 
-int SpendMoney(unsigned long howMuch);
+static void _Build_Bulldoze(int xpos, int ypos, unsigned int _type);
+static void _Build_Road(int xpos, int ypos, unsigned int type);
+static void Build_PowerLine(int xpos, int ypos, unsigned int type);
+static void Build_WaterPipe(int xpos, int ypos, unsigned int type);
+static void Build_Generic(int xpos, int ypos, unsigned int type);
+static void _Build_Defence(int xpos, int ypos, unsigned int type);
+
+static void CreateForest(long unsigned int pos, int size);
+static void RemoveDefence(int xpos, int ypos);
+
+static int SpendMoney(unsigned long howMuch);
+
+// this array is dependent on mirroring the BuildCodes enumeration
+static const struct _bldStruct {
+    unsigned int bt; // build type
+    BuildF func;        // Function to call
+    unsigned int type;
+    unsigned int gridsToUpdate;
+} buildStructure[] = {
+    { Build_Bulldozer, _Build_Bulldoze, 0, GRID_ALL },
+    { Build_Zone_Residential, Build_Generic, ZONE_RESIDENTIAL, GRID_ALL },
+    { Build_Zone_Commercial, Build_Generic, ZONE_COMMERCIAL, GRID_ALL},
+    { Build_Zone_Industrial, Build_Generic, ZONE_INDUSTRIAL, GRID_ALL},
+    { Build_Road, _Build_Road, 0, 0 },
+    { Build_Power_Plant, Build_Generic, TYPE_POWER_PLANT, GRID_ALL },
+    { Build_Nuclear_Plant, Build_Generic, TYPE_NUCLEAR_PLANT, GRID_ALL },
+    { Build_Power_Line, Build_PowerLine, 0, GRID_ALL },
+    { Build_Water_Pump, Build_Generic, TYPE_WATER_PUMP, GRID_ALL },
+    { Build_Water_Pipe, Build_WaterPipe, 0, GRID_WATER },
+    { Build_Tree, Build_Generic, TYPE_TREE, 0 },
+    { Build_Water, Build_Generic, TYPE_WATER, 0 },
+    { Build_Fire_Station, Build_Generic, TYPE_FIRE_STATION, GRID_ALL },
+    { Build_Police_Station, Build_Generic, TYPE_POLICE_STATION, GRID_ALL },
+    { Build_Military_Base, Build_Generic, TYPE_MILITARY_BASE, GRID_ALL },
+    { Build_Defence_Fire, _Build_Defence, DuFireman, 0 },
+    { Build_Defence_Police, _Build_Defence, DuPolice, 0 },
+    { Build_Defence_Military, _Build_Defence, DuMilitary, 0 },
+};
 
 extern void BuildSomething(int xpos, int ypos)
 {
-    switch (UIGetSelectedBuildItem()) {
-        case BUILD_BULLDOZER:
-            Build_Bulldoze(xpos, ypos);
-            updatePowerGrid = 1;
-            updateWaterGrid = 1;
-            break;
-        case BUILD_ZONE_RESIDENTIAL:
-            Build_Generic(xpos, ypos, BUILD_COST_ZONE, ZONE_RESIDENTIAL);
-            updatePowerGrid = 1;
-            updateWaterGrid = 1;
-            break;
-        case BUILD_ZONE_COMMERCIAL:
-            Build_Generic(xpos, ypos, BUILD_COST_ZONE, ZONE_COMMERCIAL);
-            updatePowerGrid = 1;
-            updateWaterGrid = 1;
-            break;
-        case BUILD_ZONE_INDUSTRIAL:
-            Build_Generic(xpos, ypos, BUILD_COST_ZONE, ZONE_INDUSTRIAL);
-            updatePowerGrid = 1;
-            updateWaterGrid = 1;
-            break;
-        case BUILD_ROAD:
-            Build_Road(xpos, ypos);
-            break;
-        case BUILD_WATER_PIPE:
-            Build_WaterPipe(xpos, ypos);
-            updateWaterGrid = 1;
-            break;
-        case BUILD_POWER_LINE:
-            Build_PowerLine(xpos, ypos);
-            updatePowerGrid = 1;
-            updateWaterGrid = 1;
-            break;
-        case BUILD_POWER_PLANT:
-            Build_Generic(xpos, ypos, BUILD_COST_POWER_PLANT, TYPE_POWER_PLANT);
-            updatePowerGrid = 1;
-            updateWaterGrid = 1;
-            break;
-        case BUILD_NUCLEAR_PLANT:
-            Build_Generic(xpos, ypos, BUILD_COST_NUCLEAR_PLANT, TYPE_NUCLEAR_PLANT);
-            updatePowerGrid = 1;
-            updateWaterGrid = 1;
-            break;
-        case BUILD_WATER:
-            Build_Generic(xpos, ypos, BUILD_COST_WATER, TYPE_WATER);
-            break;
-        case BUILD_TREE:
-            Build_Generic(xpos, ypos, BUILD_COST_TREE, TYPE_TREE);
-            break;
-        case BUILD_FIRE_STATION:
-            Build_Generic(xpos, ypos, BUILD_COST_FIRE_STATION, TYPE_FIRE_STATION);
-            updatePowerGrid = 1;
-            updateWaterGrid = 1;
-            break;
-        case BUILD_POLICE_STATION:
-            Build_Generic(xpos, ypos, BUILD_COST_POLICE_STATION, TYPE_POLICE_STATION);
-            updatePowerGrid = 1;
-            updateWaterGrid = 1;
-            break;
-        case BUILD_MILITARY_BASE:
-            Build_Generic(xpos, ypos, BUILD_COST_MILITARY_BASE, TYPE_MILITARY_BASE);
-            updatePowerGrid = 1;
-            updateWaterGrid = 1;
-            break;
-        case BUILD_WATER_PUMP:
-            Build_Generic(xpos, ypos, BUILD_COST_WATER_PUMP, TYPE_WATER_PUMP);
-            updatePowerGrid = 1;
-            updateWaterGrid = 1;
-            break;
-        case BUILD_DEFENCE_FIRE:     // fall through
-        case BUILD_DEFENCE_POLICE:   // fall through
-        case BUILD_DEFENCE_MILITARY:
-            Build_Defence(xpos, ypos, UIGetSelectedBuildItem() - BUILD_DEFENCE_FIRE);
-            break;
-    }
+    int item = UIGetSelectedBuildItem();
+    struct _bldStruct *be = (struct _bldStruct *)&(buildStructure[item]);
+
+    ErrFatalDisplayIf(
+      item >= (sizeof (buildStructure)/ sizeof (buildStructure[0])),
+          "UI item out of range");
+
+    be->func(xpos, ypos, be->type);
+    AddGridUpdate(be->gridsToUpdate);
 }
 
 void RemoveDefence(int xpos, int ypos)
@@ -118,14 +83,18 @@ extern void RemoveAllDefence(void)
     }
 }
 
-void Build_Defence(int xpos, int ypos, int type)
+static void
+_Build_Defence(int xpos, int ypos, unsigned int type)
 {
     int oldx, oldy, i, sel=-1,newactive=1,e,s,m,nCounter;
-    nCounter = ((type == DEFENCE_POLICE) ? COUNT_POLICE_STATIONS : (type == DEFENCE_FIREMEN ? COUNT_FIRE_STATIONS : COUNT_MILITARY_BASES));
-    if (game.BuildCount[nCounter] == 0) { return; } // no special building....
-    s = ((type == DEFENCE_POLICE) ? DEF_POLICE_START : (type == DEFENCE_FIREMEN ? DEF_FIREMEN_START : DEF_MILITARY_START));
-    e = ((type == DEFENCE_POLICE) ? DEF_POLICE_END : (type == DEFENCE_FIREMEN ? DEF_FIREMEN_END : DEF_MILITARY_END));
-    m = ((e-s)+1 < game.BuildCount[nCounter]/3) ? e : game.BuildCount[nCounter]/3+s; // make sure we can't make too many objects
+    nCounter = ((type == DuPolice) ? COUNT_POLICE_STATIONS :
+      (type == DuFireman ? COUNT_FIRE_STATIONS :
+       COUNT_MILITARY_BASES));
+    if (vgame.BuildCount[nCounter] == 0) { return; } // no special building....
+    s = ((type == DuPolice) ? DEF_POLICE_START : (type == DuFireman ? DEF_FIREMEN_START : DEF_MILITARY_START));
+    e = ((type == DuPolice) ? DEF_POLICE_END : (type == DuFireman ? DEF_FIREMEN_END : DEF_MILITARY_END));
+    m = ((e-s)+1 < vgame.BuildCount[nCounter]/3) ? e : 
+        vgame.BuildCount[nCounter]/3+s; // make sure we can't make too many objects
 
 
     // first remove all defence on this tile
@@ -182,7 +151,8 @@ void Build_Defence(int xpos, int ypos, int type)
 }
 
 
-extern void Build_Bulldoze(int xpos, int ypos)
+static void
+_Build_Bulldoze(int xpos, int ypos, unsigned int _type)
 {
     int type;
     LockWorld();
@@ -204,7 +174,8 @@ extern void Build_Bulldoze(int xpos, int ypos)
 }
 
 
-extern void Build_Destroy(int xpos, int ypos)
+extern void
+Build_Destroy(int xpos, int ypos)
 {
     unsigned char type;
 
@@ -212,26 +183,23 @@ extern void Build_Destroy(int xpos, int ypos)
     type = GetWorld(WORLDPOS(xpos,ypos));
     RemoveDefence(xpos, ypos);
 
-    game.BuildCount[COUNT_COMMERCIAL] -= (type >= (ZONE_COMMERCIAL*10+20) && type <= (ZONE_COMMERCIAL*10+29)) ? (type%10)+1 : 0;
-    game.BuildCount[COUNT_RESIDENTIAL] -= (type >= (ZONE_RESIDENTIAL*10+20) && type <= (ZONE_RESIDENTIAL*10+29)) ? (type%10)+1 : 0;
-    game.BuildCount[COUNT_INDUSTRIAL] -= (type >= (ZONE_INDUSTRIAL*10+20) && type <= (ZONE_INDUSTRIAL*10+29)) ? (type%10)+1 : 0;
-    game.BuildCount[COUNT_ROADS] -= IsRoad(type);
-    game.BuildCount[COUNT_TREES] -= (type == TYPE_TREE);
-    game.BuildCount[COUNT_WATER] -= (type == TYPE_WATER);
-    game.BuildCount[COUNT_WASTE] -= (type == TYPE_WASTE);
-    game.BuildCount[COUNT_POWERPLANTS] -= (type == TYPE_POWER_PLANT);
-    game.BuildCount[COUNT_NUCLEARPLANTS] -= (type == TYPE_NUCLEAR_PLANT);
-    game.BuildCount[COUNT_POWERLINES] -= ((type == TYPE_POWERROAD_2) || (type == TYPE_POWERROAD_1) || (type == TYPE_POWER_LINE));
-    game.BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE1);
-    game.BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE2);
-    game.BuildCount[COUNT_FIRE] -= (type == TYPE_FIRE3);
-    game.BuildCount[COUNT_WATERPIPES] -= ((type == TYPE_WATER_PIPE) || (type == TYPE_WATERROAD_1) || (type == TYPE_WATERROAD_2));
-    game.BuildCount[COUNT_FIRE_STATIONS] -= (type == TYPE_FIRE_STATION);
-    game.BuildCount[COUNT_POLICE_STATIONS] -= (type == TYPE_POLICE_STATION);
-    game.BuildCount[COUNT_MILITARY_BASES] -= (type == TYPE_MILITARY_BASE);
-    game.BuildCount[COUNT_WATER_PUMPS] -= (type == TYPE_WATER_PUMP);
-    updatePowerGrid = 1; // to make sure the powergrid is uptodate
-    updateWaterGrid = 1;
+    vgame.BuildCount[COUNT_COMMERCIAL] -= (type >= (ZONE_COMMERCIAL*10+20) && type <= (ZONE_COMMERCIAL*10+29)) ? (type%10)+1 : 0;
+    vgame.BuildCount[COUNT_RESIDENTIAL] -= (type >= (ZONE_RESIDENTIAL*10+20) && type <= (ZONE_RESIDENTIAL*10+29)) ? (type%10)+1 : 0;
+    vgame.BuildCount[COUNT_INDUSTRIAL] -= (type >= (ZONE_INDUSTRIAL*10+20) && type <= (ZONE_INDUSTRIAL*10+29)) ? (type%10)+1 : 0;
+    vgame.BuildCount[COUNT_ROADS] -= IsRoad(type);
+    vgame.BuildCount[COUNT_TREES] -= (type == TYPE_TREE) ? 1 : 0;
+    vgame.BuildCount[COUNT_WATER] -= (type == TYPE_WATER) ? 1 : 0;
+    vgame.BuildCount[COUNT_WASTE] -= (type == TYPE_WASTE) ? 1 : 0;
+    vgame.BuildCount[COUNT_POWERPLANTS] -= (type == TYPE_POWER_PLANT);
+    vgame.BuildCount[COUNT_NUCLEARPLANTS] -= (type == TYPE_NUCLEAR_PLANT);
+    vgame.BuildCount[COUNT_POWERLINES] -= ((type == TYPE_POWERROAD_2) || (type == TYPE_POWERROAD_1) || (type == TYPE_POWER_LINE)) ? 1 : 0;
+    vgame.BuildCount[COUNT_FIRE] -= ((type == TYPE_FIRE1) || (type == TYPE_FIRE2) || (type == TYPE_FIRE3)) ? 1 : 0;
+    vgame.BuildCount[COUNT_WATERPIPES] -= ((type == TYPE_WATER_PIPE) || (type == TYPE_WATERROAD_1) || (type == TYPE_WATERROAD_2)) ? 1 : 0;
+    vgame.BuildCount[COUNT_FIRE_STATIONS] -= (type == TYPE_FIRE_STATION) ? 1 : 0;
+    vgame.BuildCount[COUNT_POLICE_STATIONS] -= (type == TYPE_POLICE_STATION) ? 1 : 0;
+    vgame.BuildCount[COUNT_MILITARY_BASES] -= (type == TYPE_MILITARY_BASE) ? 1 : 0;
+    vgame.BuildCount[COUNT_WATER_PUMPS] -= (type == TYPE_WATER_PUMP) ? 1 : 0;
+    AddGridUpdate(GRID_ALL);
     if (type == TYPE_BRIDGE || type == TYPE_REAL_WATER) {
         // A bridge turns into real_water when detroyed
         SetWorld(WORLDPOS(xpos,ypos),TYPE_REAL_WATER);
@@ -243,24 +211,45 @@ extern void Build_Destroy(int xpos, int ypos)
     DrawCross(xpos, ypos);
 }
 
-void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nType)
+static const struct _costMappings {
+  unsigned int type;
+  unsigned long int cost;
+  int count;
+} genericMappings[] = {
+  { ZONE_RESIDENTIAL, BUILD_COST_ZONE, COUNT_RESIDENTIAL },
+  { ZONE_INDUSTRIAL, BUILD_COST_ZONE, COUNT_COMMERCIAL },
+  { ZONE_COMMERCIAL, BUILD_COST_ZONE, COUNT_INDUSTRIAL },
+  { TYPE_POWER_PLANT, BUILD_COST_POWER_PLANT, -1 },
+  { TYPE_NUCLEAR_PLANT, BUILD_COST_NUCLEAR_PLANT, COUNT_POWERPLANTS },
+  { TYPE_WATER, BUILD_COST_WATER, COUNT_WATER },
+  { TYPE_TREE, BUILD_COST_TREE, COUNT_TREES },
+  { TYPE_FIRE_STATION, BUILD_COST_FIRE_STATION, COUNT_FIRE_STATIONS },
+  { TYPE_POLICE_STATION, BUILD_COST_POLICE_STATION, COUNT_POLICE_STATIONS },
+  { TYPE_MILITARY_BASE, BUILD_COST_MILITARY_BASE, COUNT_MILITARY_BASES },
+  { TYPE_WATER_PUMP, BUILD_COST_WATER_PUMP, COUNT_WATER_PUMPS },
+  { 0, 0, -1 }
+};
+
+void
+Build_Generic(int xpos, int ypos, unsigned int type)
 {
+    struct _costMappings *cmi = (struct _costMappings *)arIndex(
+      (char *)&genericMappings[0], sizeof (genericMappings[0]), type);
     LockWorld();
+    ErrFatalDisplayIf(cmi == NULL, "No generic->item mapping");
+    if (cmi == NULL) return;
+
     if (GetWorld(WORLDPOS(xpos, ypos)) == TYPE_DIRT) {
-        if (SpendMoney(nCost)) {
-            SetWorld(WORLDPOS(xpos,ypos),nType);
+        if (SpendMoney(cmi->cost)) {
+            SetWorld(WORLDPOS(xpos,ypos), (unsigned char)type);
             DrawCross(xpos, ypos);
 
             //  update counter
-            game.BuildCount[COUNT_ROADS] += IsRoad(nType);
-            game.BuildCount[COUNT_TREES] += (nType == TYPE_TREE);
-            game.BuildCount[COUNT_WATER] += (nType == TYPE_WATER);
-            game.BuildCount[COUNT_POWERPLANTS] += (nType == TYPE_POWER_PLANT);
-            game.BuildCount[COUNT_NUCLEARPLANTS] += (nType == TYPE_NUCLEAR_PLANT);
-            game.BuildCount[COUNT_FIRE_STATIONS] += (nType == TYPE_FIRE_STATION);
-            game.BuildCount[COUNT_POLICE_STATIONS] += (nType == TYPE_POLICE_STATION);
-            game.BuildCount[COUNT_MILITARY_BASES] += (nType == TYPE_MILITARY_BASE);
-            game.BuildCount[COUNT_WATER_PUMPS] += (nType == TYPE_WATER_PUMP);
+            if (IsRoad(type)) {
+                vgame.BuildCount[COUNT_ROADS]++;
+            } else {
+                if (cmi->count != -1) vgame.BuildCount[cmi->count]++;
+            }
         } else {
             UIDisplayError(ERROR_OUT_OF_MONEY);
         }
@@ -270,7 +259,8 @@ void Build_Generic(int xpos, int ypos, long unsigned int nCost, unsigned char nT
 }
 
 
-void Build_Road(int xpos, int ypos)
+void
+_Build_Road(int xpos, int ypos, unsigned int type)
 {
     int old;
     LockWorld();
@@ -281,7 +271,7 @@ void Build_Road(int xpos, int ypos)
                 if (SpendMoney(BUILD_COST_ROAD)) {
                     SetWorld(WORLDPOS(xpos, ypos),TYPE_POWERROAD_1);
                     DrawCross(xpos, ypos);
-                    game.BuildCount[COUNT_ROADS]++;
+                    vgame.BuildCount[COUNT_ROADS]++;
                 } else {
                     UIDisplayError(ERROR_OUT_OF_MONEY);
                 }
@@ -290,7 +280,7 @@ void Build_Road(int xpos, int ypos)
                 if (SpendMoney(BUILD_COST_ROAD)) {
                     SetWorld(WORLDPOS(xpos, ypos),TYPE_POWERROAD_2);
                     DrawCross(xpos, ypos);
-                    game.BuildCount[COUNT_ROADS]++;
+                    vgame.BuildCount[COUNT_ROADS]++;
                 } else {
                     UIDisplayError(ERROR_OUT_OF_MONEY);
                 }
@@ -302,7 +292,7 @@ void Build_Road(int xpos, int ypos)
                 if (SpendMoney(BUILD_COST_ROAD)) {
                     SetWorld(WORLDPOS(xpos, ypos),TYPE_WATERROAD_1);
                     DrawCross(xpos, ypos);
-                    game.BuildCount[COUNT_ROADS]++;
+                    vgame.BuildCount[COUNT_ROADS]++;
                 } else {
                     UIDisplayError(ERROR_OUT_OF_MONEY);
                 }
@@ -311,7 +301,7 @@ void Build_Road(int xpos, int ypos)
                 if (SpendMoney(BUILD_COST_ROAD)) {
                     SetWorld(WORLDPOS(xpos, ypos),TYPE_WATERROAD_2);
                     DrawCross(xpos, ypos);
-                    game.BuildCount[COUNT_ROADS]++;
+                    vgame.BuildCount[COUNT_ROADS]++;
                 } else {
                     UIDisplayError(ERROR_OUT_OF_MONEY);
                 }
@@ -321,7 +311,7 @@ void Build_Road(int xpos, int ypos)
         if (SpendMoney(BUILD_COST_BRIDGE)) {
             SetWorld(WORLDPOS(xpos, ypos), TYPE_BRIDGE);
             DrawCross(xpos, ypos);
-            game.BuildCount[COUNT_ROADS]++;
+            vgame.BuildCount[COUNT_ROADS]++;
         } else {
             UIDisplayError(ERROR_OUT_OF_MONEY);
         }
@@ -329,7 +319,7 @@ void Build_Road(int xpos, int ypos)
         if (SpendMoney(BUILD_COST_ROAD)) {
             SetWorld(WORLDPOS(xpos, ypos),TYPE_ROAD);
             DrawCross(xpos, ypos);
-            game.BuildCount[COUNT_ROADS]++;
+            vgame.BuildCount[COUNT_ROADS]++;
         } else {
             UIDisplayError(ERROR_OUT_OF_MONEY);
         }
@@ -337,7 +327,8 @@ void Build_Road(int xpos, int ypos)
     UnlockWorld();
 }
 
-void Build_PowerLine(int xpos, int ypos)
+static void
+Build_PowerLine(int xpos, int ypos, unsigned int type)
 {
     int old;
     LockWorld();
@@ -350,7 +341,7 @@ void Build_PowerLine(int xpos, int ypos)
                     if (SpendMoney(BUILD_COST_POWER_LINE)) {
                         SetWorld(WORLDPOS(xpos, ypos),TYPE_POWERROAD_2);
                         DrawCross(xpos, ypos);
-                        game.BuildCount[COUNT_POWERLINES]++;
+                        vgame.BuildCount[COUNT_POWERLINES]++;
                     } else {
                         UIDisplayError(ERROR_OUT_OF_MONEY);
                     }
@@ -359,7 +350,7 @@ void Build_PowerLine(int xpos, int ypos)
                     if (SpendMoney(BUILD_COST_POWER_LINE)) {
                         SetWorld(WORLDPOS(xpos, ypos),TYPE_POWERROAD_1);
                         DrawCross(xpos, ypos);
-                        game.BuildCount[COUNT_POWERLINES]++;
+                        vgame.BuildCount[COUNT_POWERLINES]++;
                     } else {
                         UIDisplayError(ERROR_OUT_OF_MONEY);
                     }
@@ -369,7 +360,7 @@ void Build_PowerLine(int xpos, int ypos)
             if (SpendMoney(BUILD_COST_POWER_LINE)) {
                 SetWorld(WORLDPOS(xpos, ypos),TYPE_POWER_LINE);
                 DrawCross(xpos, ypos);
-                game.BuildCount[COUNT_POWERLINES]++;
+                vgame.BuildCount[COUNT_POWERLINES]++;
             } else {
                 UIDisplayError(ERROR_OUT_OF_MONEY);
             }
@@ -378,7 +369,8 @@ void Build_PowerLine(int xpos, int ypos)
     UnlockWorld();
 }
 
-void Build_WaterPipe(int xpos, int ypos)
+static void
+Build_WaterPipe(int xpos, int ypos, unsigned int type)
 {
     int old;
     LockWorld();
@@ -391,7 +383,7 @@ void Build_WaterPipe(int xpos, int ypos)
                     if (SpendMoney(BUILD_COST_WATER_PIPES)) {
                         SetWorld(WORLDPOS(xpos, ypos),TYPE_WATERROAD_2);
                         DrawCross(xpos, ypos);
-                        game.BuildCount[COUNT_WATERPIPES]++;
+                        vgame.BuildCount[COUNT_WATERPIPES]++;
                     } else {
                         UIDisplayError(ERROR_OUT_OF_MONEY);
                     }
@@ -400,7 +392,7 @@ void Build_WaterPipe(int xpos, int ypos)
                     if (SpendMoney(BUILD_COST_WATER_PIPES)) {
                         SetWorld(WORLDPOS(xpos, ypos),TYPE_WATERROAD_1);
                         DrawCross(xpos, ypos);
-                        game.BuildCount[COUNT_WATERPIPES]++;
+                        vgame.BuildCount[COUNT_WATERPIPES]++;
                     } else {
                         UIDisplayError(ERROR_OUT_OF_MONEY);
                     }
@@ -410,7 +402,7 @@ void Build_WaterPipe(int xpos, int ypos)
             if (SpendMoney(BUILD_COST_POWER_LINE)) {
                 SetWorld(WORLDPOS(xpos, ypos),TYPE_WATER_PIPE);
                 DrawCross(xpos, ypos);
-                game.BuildCount[COUNT_WATERPIPES]++;
+                vgame.BuildCount[COUNT_WATERPIPES]++;
             } else {
                 UIDisplayError(ERROR_OUT_OF_MONEY);
             }
@@ -419,7 +411,8 @@ void Build_WaterPipe(int xpos, int ypos)
     UnlockWorld();
 }
 
-int SpendMoney(unsigned long howMuch)
+static int
+SpendMoney(unsigned long howMuch)
 {
     if (howMuch > game.credits) { return 0; }
 
@@ -433,8 +426,7 @@ int SpendMoney(unsigned long howMuch)
 }
 
 /* this creates a river through the playfield
- * TODO: make this more interesting, perhaps
- *       it can run the other way too ;)
+ * TODO: make this more interesting.
  */
 extern void
 CreateFullRiver(void)
@@ -507,7 +499,7 @@ CreateForest(long unsigned int pos, int size)
                         ((x>i) ? (x-i) : (i-x));
                     if (GetRandomNumber(s) < 2) {
                         SetWorld(WORLDPOS(i,j), TYPE_TREE);
-                        game.BuildCount[COUNT_TREES]++;
+                        vgame.BuildCount[COUNT_TREES]++;
                     }
                 }
             }

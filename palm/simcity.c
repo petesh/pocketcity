@@ -30,8 +30,8 @@ RectangleType rPlayGround;
 WinHandle winZones;
 WinHandle winMonsters;
 WinHandle winUnits;
-unsigned char nSelectedBuildItem = 0;
-unsigned char nPreviousBuildItem = 0;
+BuildCodes nSelectedBuildItem = Build_Bulldozer;
+BuildCodes nPreviousBuildItem = Build_Bulldozer;
 short int game_in_progress = 0;
 
 short int lowShown = 0;
@@ -217,7 +217,7 @@ EventLoop(void)
                    char temp[10];
                    int q;
                    for (q=0; q<20; q++) {
-                       sprintf(temp,"%li",game.BuildCount[q]);
+                       sprintf(temp,"%li",vgame.BuildCount[q]);
                        UIWriteLog(temp);
                        UIWriteLog(" ");
                    }
@@ -271,7 +271,7 @@ void _PalmInit(void)
 
     // create an offscreen window, and copy the zones.bmp
     // to be used later
-    bitmaphandle = DmGet1Resource(TBMP , bitmapID_zones);
+    bitmaphandle = DmGet1Resource('Tbmp', bitmapID_zones);
     bitmap = MemHandleLock(bitmaphandle);
     //space for 64*2=128 zones
     winZones = _WinCreateOffscreenWindow(1024, 32, genericFormat, &err);
@@ -286,7 +286,7 @@ void _PalmInit(void)
 
 
     // now, ditto for the monsters
-    bitmaphandle = DmGet1Resource(TBMP, bitmapID_monsters);
+    bitmaphandle = DmGet1Resource('Tbmp', bitmapID_monsters);
     bitmap = MemHandleLock(bitmaphandle);
     winMonsters = _WinCreateOffscreenWindow(128, 64, genericFormat, &err);
     if (err != errNone) {
@@ -298,7 +298,7 @@ void _PalmInit(void)
     MemHandleUnlock(bitmaphandle);
 
     // and, at last, the units
-    bitmaphandle = DmGet1Resource(TBMP, bitmapID_units);
+    bitmaphandle = DmGet1Resource('Tbmp', bitmapID_units);
     bitmap = MemHandleLock(bitmaphandle);
     winUnits = _WinCreateOffscreenWindow(48, 32, genericFormat,&err);
     if (err != errNone) {
@@ -365,11 +365,11 @@ static Boolean hPocketCity(EventPtr event)
             }
             if (event->screenX < 12) {
                 // click was on toggle production
-                if (nSelectedBuildItem == BUILD_BULLDOZER) {
+                if (nSelectedBuildItem == Build_Bulldozer) {
                     nSelectedBuildItem = nPreviousBuildItem;
                 } else {
                     nPreviousBuildItem = nSelectedBuildItem;
-                    nSelectedBuildItem = BUILD_BULLDOZER;
+                    nSelectedBuildItem = Build_Bulldozer;
                 }
                 UIUpdateBuildIcon();
                 break;
@@ -578,30 +578,38 @@ UIGotoForm(int n)
     }
 }
 
-void UIPopUpExtraBuildList(void)
+void
+UIPopUpExtraBuildList(void)
 {
     FormType * ftList;
+    int sfe;
 
     ftList = FrmInitForm(formID_extraBuild);
     FrmSetEventHandler(ftList, hExtraList);
     UpdateDescription(0);
-    switch (FrmDoDialog(ftList)) {
+    sfe = FrmDoDialog(ftList);
+    switch (sfe) {
     case buttonID_extraBuildSelect:
+        // List entries must match entries in BuildCodes 0 ..
         nSelectedBuildItem = LstGetSelection(FrmGetObjectPtr(ftList,
               FrmGetObjectIndex(ftList, listID_extraBuildList)));
         break;
     case buttonID_extraBuildFireMen:
-        nSelectedBuildItem = 250;
+        nSelectedBuildItem = Build_Defence_Fire;
         break;
     case buttonID_extraBuildPolice:
-        nSelectedBuildItem = 251;
+        nSelectedBuildItem = Build_Defence_Police;
         break;
     case buttonID_extraBuildMilitary:
-        nSelectedBuildItem = 252;
+        nSelectedBuildItem = Build_Defence_Military;
         break;
     default:
         break;
     }
+#if defined(DEBUG)
+    { char c[20]; sprintf(c, "sfe = %u, bi = %u\n", sfe, nSelectedBuildItem);
+    UIWriteLog(c);}
+#endif
     CleanUpExtraBuildForm();
     UIUpdateBuildIcon();
     FrmDeleteForm(ftList);
@@ -630,7 +638,8 @@ void CleanUpExtraBuildForm(void)
 }
 
 
-static Boolean hExtraList(EventPtr event)
+static Boolean
+hExtraList(EventPtr event)
 {
     FormPtr form;
     int handled = 0;
@@ -639,7 +648,7 @@ static Boolean hExtraList(EventPtr event)
     case frmOpenEvent:
         game_in_progress = 0;
         form = FrmGetActiveForm();
-        UIWriteLog("open\n");
+        UIWriteLog("open hExtraList\n");
         FrmDrawForm(form);
         handled = 1;
         break;
@@ -686,7 +695,8 @@ static Boolean hExtraList(EventPtr event)
     return handled;
 }
 
-void UIDoQuickList(void)
+void
+UIDoQuickList(void)
 {
     FormType * ftList;
 
@@ -694,7 +704,8 @@ void UIDoQuickList(void)
         ftList = FrmInitForm(formID_quickList);
         FrmSetEventHandler(ftList, hQuickList);
         nSelectedBuildItem = FrmDoDialog(ftList) - menuitemID_buildBulldoze;
-        if (nSelectedBuildItem == OFFSET_EXTRA)
+
+        if (nSelectedBuildItem >= OFFSET_EXTRA)
             UIPopUpExtraBuildList();
         UIUpdateBuildIcon();
         FrmDeleteForm(ftList);
@@ -705,8 +716,8 @@ void UIDoQuickList(void)
     }
 }
 
-
-static Boolean hQuickList(EventPtr event)
+static Boolean
+hQuickList(EventPtr event)
 {
     FormPtr form;
     int handled = 0;
@@ -809,13 +820,13 @@ void _UIGetFieldToBuildOn(int x, int y)
 {
     RectangleType rect;
     int i,j;
-    rect.extent.x = game.tileSize;
-    rect.extent.y = game.tileSize;
+    rect.extent.x = vgame.tileSize;
+    rect.extent.y = vgame.tileSize;
 
-    for (i = 0; i < game.visible_x; i++) {
-        for (j = 0; j < game.visible_y; j++) {
-            rect.topLeft.x = XOFFSET + i * game.tileSize;
-            rect.topLeft.y = YOFFSET + j * game.tileSize;
+    for (i = 0; i < vgame.visible_x; i++) {
+        for (j = 0; j < vgame.visible_y; j++) {
+            rect.topLeft.x = XOFFSET + i * vgame.tileSize;
+            rect.topLeft.y = YOFFSET + j * vgame.tileSize;
             if (RctPtInRectangle(x, y, &rect)) {
                 BuildSomething(i + game.map_xpos, j + game.map_ypos);
                 return;
@@ -888,8 +899,8 @@ extern void UIDrawBorder()
     if (DoDrawing == 0) return;
 
     // border
-    _UIDrawRect(YOFFSET, XOFFSET, game.visible_y * game.tileSize,
-      game.visible_x * game.tileSize);
+    _UIDrawRect(YOFFSET, XOFFSET, vgame.visible_y * vgame.tileSize,
+      vgame.visible_x * vgame.tileSize);
 }
 
 
@@ -909,8 +920,8 @@ extern void UIDrawWaterLoss(int xpos, int ypos)
 
     rect.topLeft.x = 80;
     rect.topLeft.y = 0;
-    rect.extent.x = game.tileSize;
-    rect.extent.y = game.tileSize;
+    rect.extent.x = vgame.tileSize;
+    rect.extent.y = vgame.tileSize;
 
     // copy/paste the graphic from the offscreen image
     // first draw the overlay
@@ -918,8 +929,8 @@ extern void UIDrawWaterLoss(int xpos, int ypos)
             winZones,
             WinGetActiveWindow(),
             &rect,
-            xpos*game.tileSize+XOFFSET,
-            ypos*game.tileSize+YOFFSET,
+            xpos*vgame.tileSize+XOFFSET,
+            ypos*vgame.tileSize+YOFFSET,
             winErase);
     // now draw the powerloss icon
     rect.topLeft.x = 64;
@@ -927,8 +938,8 @@ extern void UIDrawWaterLoss(int xpos, int ypos)
             winZones,
             WinGetActiveWindow(),
             &rect,
-            xpos*game.tileSize+XOFFSET,
-            ypos*game.tileSize+YOFFSET,
+            xpos*vgame.tileSize+XOFFSET,
+            ypos*vgame.tileSize+YOFFSET,
             winOverlay);
 }
 
@@ -940,8 +951,8 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
 
     rect.topLeft.x = 144;
     rect.topLeft.y = 0;
-    rect.extent.x = game.tileSize;
-    rect.extent.y = game.tileSize;
+    rect.extent.x = vgame.tileSize;
+    rect.extent.y = vgame.tileSize;
 
     // copy/paste the graphic from the offscreen image
     // first draw the overlay
@@ -949,8 +960,8 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
             winZones,
             WinGetActiveWindow(),
             &rect,
-            xpos*game.tileSize+XOFFSET,
-            ypos*game.tileSize+YOFFSET,
+            xpos*vgame.tileSize+XOFFSET,
+            ypos*vgame.tileSize+YOFFSET,
             winErase);
     // now draw the powerloss icon
     rect.topLeft.x = 128;
@@ -958,8 +969,8 @@ extern void UIDrawPowerLoss(int xpos, int ypos)
             winZones,
             WinGetActiveWindow(),
             &rect,
-            xpos*game.tileSize+XOFFSET,
-            ypos*game.tileSize+YOFFSET,
+            xpos*vgame.tileSize+XOFFSET,
+            ypos*vgame.tileSize+YOFFSET,
             winOverlay);
 }
 
@@ -968,25 +979,25 @@ extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
     RectangleType rect;
     if (DoDrawing == 0) { return; }
 
-    rect.topLeft.x = game.units[i].type*game.tileSize;
-    rect.topLeft.y = game.tileSize;
-    rect.extent.x = game.tileSize;
-    rect.extent.y = game.tileSize;
+    rect.topLeft.x = game.units[i].type*vgame.tileSize;
+    rect.topLeft.y = vgame.tileSize;
+    rect.extent.x = vgame.tileSize;
+    rect.extent.y = vgame.tileSize;
 
     _WinCopyRectangle(
             winUnits,
             WinGetActiveWindow(),
             &rect,
-            xpos*game.tileSize+XOFFSET,
-            ypos*game.tileSize+YOFFSET,
+            xpos*vgame.tileSize+XOFFSET,
+            ypos*vgame.tileSize+YOFFSET,
             winErase);
     rect.topLeft.y = 0;
     _WinCopyRectangle(
             winUnits,
             WinGetActiveWindow(),
             &rect,
-            xpos*game.tileSize+XOFFSET,
-            ypos*game.tileSize+YOFFSET,
+            xpos*vgame.tileSize+XOFFSET,
+            ypos*vgame.tileSize+YOFFSET,
             winOverlay);
 
 }
@@ -996,27 +1007,26 @@ extern void UIDrawSpecialObject(int i, int xpos, int ypos)
     RectangleType rect;
     if (DoDrawing == 0) { return; }
 
-    rect.topLeft.x = (game.objects[i].dir)*game.tileSize;
-    rect.topLeft.y = ((i*2)+1)*game.tileSize;
-    rect.extent.x = game.tileSize;
-    rect.extent.y = game.tileSize;
+    rect.topLeft.x = (game.objects[i].dir) * vgame.tileSize;
+    rect.topLeft.y = ((i*2)+1) * vgame.tileSize;
+    rect.extent.x = vgame.tileSize;
+    rect.extent.y = vgame.tileSize;
 
     _WinCopyRectangle(
             winMonsters,
             WinGetActiveWindow(),
             &rect,
-            xpos*game.tileSize+XOFFSET,
-            ypos*game.tileSize+YOFFSET,
+            xpos * vgame.tileSize+XOFFSET,
+            ypos * vgame.tileSize+YOFFSET,
             winErase);
     rect.topLeft.y -= 16;
     _WinCopyRectangle(
             winMonsters,
             WinGetActiveWindow(),
             &rect,
-            xpos*game.tileSize+XOFFSET,
-            ypos*game.tileSize+YOFFSET,
+            xpos * vgame.tileSize+XOFFSET,
+            ypos * vgame.tileSize+YOFFSET,
             winOverlay);
-
 }
 
 extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
@@ -1025,18 +1035,18 @@ extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
 
     if (DoDrawing == 0) { return; }
 
-    rect.topLeft.x = (nGraphic%64)*game.tileSize;
-    rect.topLeft.y = (nGraphic/64)*game.tileSize;
-    rect.extent.x = game.tileSize;
-    rect.extent.y = game.tileSize;
+    rect.topLeft.x = (nGraphic%64) * vgame.tileSize;
+    rect.topLeft.y = (nGraphic/64) * vgame.tileSize;
+    rect.extent.x = vgame.tileSize;
+    rect.extent.y = vgame.tileSize;
 
     // copy/paste the graphic from the offscreen image
     _WinCopyRectangle(
             winZones,
             WinGetActiveWindow(),
             &rect,
-            xpos*game.tileSize+XOFFSET,
-            ypos*game.tileSize+YOFFSET,
+            xpos * vgame.tileSize+XOFFSET,
+            ypos * vgame.tileSize+YOFFSET,
             winPaint);
 }
 
@@ -1051,14 +1061,14 @@ extern void UIScrollMap(int direction)
 
     UILockScreen();
 
-    rect.topLeft.x = XOFFSET + game.tileSize * (direction == 1);
-    rect.topLeft.y = YOFFSET + game.tileSize * (direction == 2);
-    rect.extent.x = (game.visible_x - 1 * (direction == 1 || direction == 3 ))
-        * game.tileSize;
-    rect.extent.y = (game.visible_y - 1 * (direction == 0 || direction == 2 ))
-        * game.tileSize;
-    to_x = XOFFSET + game.tileSize*(direction == 3);
-    to_y = YOFFSET + game.tileSize*(direction == 0);
+    rect.topLeft.x = XOFFSET + vgame.tileSize * (direction == 1);
+    rect.topLeft.y = YOFFSET + vgame.tileSize * (direction == 2);
+    rect.extent.x = (vgame.visible_x - 1 * (direction == 1 || direction == 3 ))
+        * vgame.tileSize;
+    rect.extent.y = (vgame.visible_y - 1 * (direction == 0 || direction == 2 ))
+        * vgame.tileSize;
+    to_x = XOFFSET + vgame.tileSize*(direction == 3);
+    to_y = YOFFSET + vgame.tileSize*(direction == 0);
 
 
     screen = WinGetActiveWindow();
@@ -1070,19 +1080,19 @@ extern void UIScrollMap(int direction)
     UIInitDrawing();
 
     if (direction == 1 || direction == 3) {
-        for (i = game.map_ypos; i < game.visible_y + game.map_ypos; i++) {
-            DrawFieldWithoutInit(game.map_xpos + (game.visible_x - 1) *
+        for (i = game.map_ypos; i < vgame.visible_y + game.map_ypos; i++) {
+            DrawFieldWithoutInit(game.map_xpos + (vgame.visible_x - 1) *
               (direction == 1), i);
         }
     } else {
-        for (i = game.map_xpos; i < game.visible_x + game.map_xpos; i++) {
-            DrawFieldWithoutInit(i, game.map_ypos + (game.visible_y - 1) *
+        for (i = game.map_xpos; i < vgame.visible_x + game.map_xpos; i++) {
+            DrawFieldWithoutInit(i, game.map_ypos + (vgame.visible_y - 1) *
               (direction == 2));
         }
     }
 
-    UIDrawCursor(game.cursor_xpos - game.map_xpos,
-      game.cursor_ypos - game.map_ypos);
+    UIDrawCursor(vgame.cursor_xpos - game.map_xpos,
+      vgame.cursor_ypos - game.map_ypos);
     UIDrawCredits();
     UIDrawPop();
 
@@ -1235,7 +1245,7 @@ extern void UIDrawCredits(void)
     UIDrawItem(CREDITSLOC, temp);
 #ifdef SONY_CLIE
     if (isHires()) {
-        bitmapHandle = DmGet1Resource(TBMP, bitmapID_coin);
+        bitmapHandle = DmGet1Resource('Tbmp', bitmapID_coin);
         if (bitmapHandle == NULL) return;
         bitmap = MemHandleLock(bitmapHandle);
         _WinDrawBitmap(bitmap, 68, sHeight - 11);
@@ -1259,7 +1269,7 @@ extern void UIDrawLoc(void)
 #ifdef SONY_CLIE
     if (isHires()) {
         StrPrintF(temp, "%02u,%02u", game.map_xpos, game.map_ypos);
-        bitmapHandle = DmGet1Resource(TBMP, bitmapID_loca);
+        bitmapHandle = DmGet1Resource('Tbmp', bitmapID_loca);
         if (bitmapHandle == NULL) return;
         bitmap = MemHandleLock(bitmapHandle);
         _WinDrawBitmap(bitmap, 270, sHeight - 11);
@@ -1269,7 +1279,7 @@ extern void UIDrawLoc(void)
 #endif
         StrPrintF(temp, "(%02u,%02u)", game.map_xpos, game.map_ypos);
 #ifdef SONY_CLIE
-    bitmapHandle = DmGet1Resource(TBMP, bitmapID_updn + jog_lr);
+    bitmapHandle = DmGet1Resource('Tbmp', bitmapID_updn + jog_lr);
     // place at rt - (12 + 8), 1
     if (bitmapHandle) {
         bitmap = MemHandleLock(bitmapHandle);
@@ -1291,10 +1301,10 @@ UIUpdateBuildIcon(void)
     BitmapPtr bitmap;
     if (DoDrawing == 0) { return; }
 
-    bitmaphandle = DmGet1Resource(TBMP,bitmapID_iconBulldoze +
-            ((nSelectedBuildItem < OFFSET_EXTRA ||
-              (nSelectedBuildItem >= 250 && nSelectedBuildItem <= 252)) ?
+    bitmaphandle = DmGet1Resource('Tbmp', bitmapID_iconBulldoze +
+            (((nSelectedBuildItem <= Build_Extra)) ?
              nSelectedBuildItem : OFFSET_EXTRA));
+
     if (bitmaphandle == NULL) { return; } // TODO: onscreen error? +save?
     bitmap = MemHandleLock(bitmaphandle);
     _WinDrawBitmap(bitmap, 2, 2);
@@ -1311,7 +1321,7 @@ extern void UIDrawSpeed(void)
     MemHandle  bitmaphandle;
     BitmapPtr  bitmap;
 
-    bitmaphandle = DmGet1Resource(TBMP,
+    bitmaphandle = DmGet1Resource('Tbmp',
       bitmapID_SpeedPaused + game.gameLoopSeconds);
     if (bitmaphandle == NULL) { return; } // TODO: onscreen error? +save?
     bitmap = MemHandleLock(bitmaphandle);
@@ -1330,13 +1340,13 @@ extern void UIDrawPop(void)
 
     if (DoDrawing == 0) { return; }
 
-    StrPrintF(temp, "Pop: %lu", game.BuildCount[COUNT_RESIDENTIAL] * 150);
+    StrPrintF(temp, "Pop: %lu", vgame.BuildCount[COUNT_RESIDENTIAL] * 150);
     UIDrawItem(POPLOC, temp);
     UIDrawLoc();
     UIDrawSpeed();
 #ifdef SONY_CLIE
     if (isHires()) {
-        bitmapHandle = DmGet1Resource(TBMP, bitmapID_popu);
+        bitmapHandle = DmGet1Resource('Tbmp', bitmapID_popu);
         if (bitmapHandle == NULL) return;
         bitmap = MemHandleLock(bitmapHandle);
         _WinDrawBitmap(bitmap, 146, sHeight - 11);
@@ -1418,34 +1428,39 @@ extern void UnlockWorld() { MemHandleUnlock(worldHandle); }
 extern void LockWorldFlags() { worldFlagsPtr = MemHandleLock(worldFlagsHandle); }
 extern void UnlockWorldFlags() { MemHandleUnlock(worldFlagsHandle); }
 
-extern unsigned char GetWorldFlags(long unsigned int pos)
+extern unsigned char
+GetWorldFlags(long unsigned int pos)
 {
     // NOTE: LockWorld() MUST have been called before this is used!!!
     if (pos > GetMapMul()) { return 0; }
     return ((unsigned char*)worldFlagsPtr)[pos];
 }
 
-extern void SetWorldFlags(long unsigned int pos, unsigned char value)
+extern void
+SetWorldFlags(long unsigned int pos, unsigned char value)
 {
     if (pos > GetMapMul()) { return; }
     ((unsigned char*)worldFlagsPtr)[pos] = value;
 }
 
 
-extern unsigned char GetWorld(unsigned long pos)
+extern unsigned char
+GetWorld(unsigned long pos)
 {
     // NOTE: LockWorld() MUST have been called before this is used!!!
     if (pos > GetMapMul()) { return 0; }
     return ((unsigned char*)worldPtr)[pos];
 }
 
-extern void SetWorld(unsigned long pos, unsigned char value)
+extern void
+SetWorld(unsigned long pos, unsigned char value)
 {
     if (pos > GetMapMul()) { return; }
     ((unsigned char*)worldPtr)[pos] = value;
 }
 
-static Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags)
+static Err
+RomVersionCompatible(UInt32 requiredVersion, UInt16 launchFlags)
 {
     UInt32 romVersion;
 #ifdef DEBUG
@@ -1517,7 +1532,7 @@ UIDrawToolBar(void)
     MemPtr pBitmap;
 
     for (id = bitmapID_iconBulldoze; id <= bitmapID_iconExtra; id++) {
-        hBitmap = DmGet1Resource(TBMP, id);
+        hBitmap = DmGet1Resource('Tbmp', id);
         if (hBitmap == NULL) continue;
         pBitmap = MemHandleLock(hBitmap);
         if (pBitmap == NULL) {
@@ -1554,11 +1569,11 @@ HoldHook(UInt32 held)
 #endif
 
 #ifdef DEBUG
-extern void UIWriteLog(char * s)
+extern void UIWriteLog(char *s)
 {
     HostFILE * hf = NULL;
 
-    hf = HostFOpen("pcity.log", "a");
+    hf = HostFOpen("\\pcity.log", "a");
     if (hf) {
         HostFPrintF(hf, s);
         HostFClose(hf);

@@ -8,8 +8,6 @@ extern unsigned char       GetSpecialGraphicNumber(long unsigned int pos, int nT
 extern void                DrawFieldWithoutInit(int xpos, int ypos);
 extern void Goto(int x, int y);
 
-
-
 extern int IsRoad(unsigned char x);
 extern int IsZone(unsigned char x, int nType);
 extern int CarryPower(unsigned char x);

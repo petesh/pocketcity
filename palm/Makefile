@@ -48,17 +48,18 @@ pcity.prc: simcity.stm zones.stm game.stm grcs.stm $(DMENU)
 	build-prc -o pcity.prc -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		*.grc tempbw/*.bin temp/*.bin
 
-sy-pcity.prc: sy/ game.stm syicons.stm simcity.stm zones.stm sy/sy.stm $(DMENU)
+sy-pcity.prc: sy/ game.stm sy/syicons.stm simcity.stm zones.stm \
+	sy/sy.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc tempbw/*.bin temp/*.bin
 
-sy-mg-pcity.prc: sy/ game.stm syicons.stm simcity.stm zones.stm \
+sy-mg-pcity.prc: sy/ game.stm sy/syicons.stm simcity.stm zones.stm \
 	sy/sy.stm mg.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc mg/*.bin temp/*.bin sy/*.bin
 
-sy-pcity-%.prc: sy/ game.stm syicons.stm simcity-%.stm zones-%.stm sy/sy.stm \
-	$(DMENU)
+sy-pcity-%.prc: sy/ game.stm sy/syicons.stm simcity-%.stm zones-%.stm \
+	sy/sy.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc temp$*/*.bin temp/*.bin sy/*.bin
 
@@ -70,7 +71,7 @@ grcs.stm: simcity
 #### resources
 
 # for all
-game.stm: game.rcp
+game.stm: game.rcp simcity_resconsts.h
 	pilrc -q game.rcp temp
 	echo touching>$@
 
@@ -97,7 +98,7 @@ pcitymain.stm: pcitymain.rcp
 # *-grey.rcp  => tempgrey/
 # *.rcp       => tempbw/
 
-%.stm: %.rcp
+%.stm: %.rcp simcity_resconsts.h
 	pilrc -q $< temp$(if $(findstring -,$*),$(word 2, $(subst -, ,$*)),bw)
 	echo touching>$*.stm
 ####################################
@@ -109,7 +110,7 @@ simcity: $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o simcity $(LDLIBS)
 
 simcity.o: simcity.c simcity.h ../source/handler.h ../source/ui.h \
-	../source/zakdef.h
+	../source/zakdef.h simcity_resconsts.h
 
 %.o: ../source/%.c ../source/%.h ../source/zakdef.h ../source/ui.h
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -138,11 +139,11 @@ sy/sy.stm: sy/simcity
 	cd sy; m68k-palmos-obj-res simcity
 	echo touching>sy/sy.stm
 
-syicons.stm: hricons.rcp
+sy/syicons.stm: hricons.rcp
 	pilrc -q hricons.rcp sy
 	echo touching>$@
 
-mg.stm: mg/ mg.rcp
+mg.stm: mg/ mg.rcp simcity_resconsts.h
 	pilrc -q mg.rcp mg
 	echo touching>$@
 
@@ -162,6 +163,7 @@ dist: all hires
 	@cp ../Changelog ../Copying ../Gamehints ../Readme sy*.prc $(DDIR)
 	@tar cvzf sony-$(DDIR).tar.gz $(DDIR)
 	@zip -9R sony-$(DDIR).zip $(DDIR)/*
+	@rm -rf $(DDIR)
 
 #
 # make clean 
@@ -170,4 +172,4 @@ dist: all hires
 clean:
 	rm -f *.bin *.o *.grc *.stm simcity *.prc \
 		tempbw/*.bin tempcolor/*.bin temp/*.bin tempgrey/*.bin sy/* \
-		mg/*
+		mg/* *.zip *.gz

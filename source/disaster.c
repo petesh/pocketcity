@@ -67,7 +67,7 @@ extern void DoRandomDisaster(void)
             UIWriteLog(temp);
             UIWriteLog("\n");
 #endif
-            if (random < 10 && game.BuildCount[COUNT_FIRE] == 0) {
+            if (random < 10 && vgame.BuildCount[COUNT_FIRE] == 0) {
                 if (BurnField(x,y,0)) {
                     UIDisplayError(ERROR_FIRE_OUTBREAK);
                     Goto(x,y);
@@ -150,7 +150,7 @@ void CreateWaste(int x, int y)
         return;
     }
     SetWorld(WORLDPOS(x,y), TYPE_WASTE);
-    game.BuildCount[COUNT_WASTE]++;
+    vgame.BuildCount[COUNT_WASTE]++;
     DrawCross(x,y);
     UnlockWorld();
     if (type == TYPE_POWER_PLANT || type == TYPE_NUCLEAR_PLANT)  {
@@ -195,7 +195,7 @@ extern int BurnField(int x, int y, int forceit)
         SetWorldFlags(WORLDPOS(x,y),
           GetWorldFlags(WORLDPOS(x,y)) | SCRATCHBIT); // set used flag
         DrawCross(x,y);
-        game.BuildCount[COUNT_FIRE]++;
+        vgame.BuildCount[COUNT_FIRE]++;
         UnlockWorldFlags();
         UnlockWorld();
         return 1;
@@ -276,9 +276,9 @@ unsigned short int ContainsDefence(int x, int y)
             game.units[i].y == y &&
             game.units[i].active != 0) {
             switch(game.units[i].type) {
-                case DEFENCE_POLICE: return 2;
-                case DEFENCE_FIREMEN: return 3;
-                case DEFENCE_MILITARY: return 6;
+                case DuPolice: return 2;
+                case DuFireman: return 3;
+                case DuMilitary: return 6;
                 default: return 0;
             }
         }

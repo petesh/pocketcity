@@ -8,6 +8,14 @@ Legend:
  '*' = fix/modification
  '-' = removed feature
 
+Version 0.13br2
+==========================
+  * The displayed item from the toolbar is what is placed.
+
+Version 0.13br
+==========================
+  * Crash on settings menu fixed for PalmOS 3.5
+
 Version 0.13
 ==========================
 Pete Shanahan:
@@ -18,6 +26,7 @@ Pete Shanahan:
   + Map has color when available
   + Added version number to the about dialog
   * Rearranged Layout & reduced memory usage of forms (NOSAVEBEHIND)
+  * Fixed the printing of the map name
 
 Version 0.12
 ==========================

@@ -193,8 +193,8 @@ void UIResetViewable(void)
      * tile is 16 * 16
      * we reserve nothing on the x axis, but 2 tiles on the y
      */
-    game.visible_x = sWidth / 16;
-    game.visible_y = (sHeight / 16) - 2;
+    vgame.visible_x = sWidth / 16;
+    vgame.visible_y = (sHeight / 16) - 2;
 }
 
 void UINewGame(void)
@@ -259,6 +259,7 @@ int UILoadGame(UInt16 index)
             UIResetViewable();
             UnlockWorld();
             // update the power and water grid:
+            UpdateVolatiles();
             Sim_Distribute(0);
             Sim_Distribute(1);
             loaded = 1;
