@@ -533,7 +533,10 @@ Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags)
 		if ((launchFlags & (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp)) ==
 			(sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp))
 		{
-			FrmAlert (alertID_RomIncompatible);
+			if (FrmAlert (alertID_RomIncompatible) == 1)
+			{ // try anyway
+				return (0);
+			}
 		
 			// Pilot 1.0 will continuously relaunch this app unless we switch to 
 			// another safe one.

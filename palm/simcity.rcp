@@ -56,8 +56,8 @@ alert id alertID_RomIncompatible
 error
 begin
   title "System Incompatible"
-  message "System Version 3.5 or greater is required to run this application"
-  buttons "OK"
+  message "System Version 3.5 or greater is required to run this application\n\nYou can, however, try to run Pocket City anyway!"
+  buttons "Quit" "Try anyway"
 end
 
 
