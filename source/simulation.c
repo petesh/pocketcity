@@ -24,9 +24,6 @@ long unsigned int GetRandomZone(void);
 void FindZonesForUpgrading(void);
 int FindScoreForZones(void);
 
-long unsigned int usablePop;
-long unsigned int availPop;
-
 extern void Sim_DistributePower(void)
 {
 	unsigned long i,j;
@@ -345,23 +342,14 @@ void UpgradeZone(long unsigned pos)
 {
 	int type;
 
-
-	usablePop = BuildCount[COUNT_RESIDENTIAL]*176/3*2;
-	availPop = usablePop-(BuildCount[COUNT_COMMERCIAL]*176)-(BuildCount[COUNT_INDUSTRIAL]*176);
-
 	LockWorld();
 	
 	type = GetWorld(pos);
 
 	if (type == 1 || (type >= 30 && type <= 38))
 	{
-		if(availPop<=(BuildCount[COUNT_COMMERCIAL]*176+(BuildCount[COUNT_INDUSTRIAL]*176))) {
-            UnlockWorld();
-			return;
-		} else if(availPop>=(BuildCount[COUNT_COMMERCIAL]*176+(BuildCount[COUNT_INDUSTRIAL]*176))){
-			SetWorld(pos, (type == 1) ? 30 : type+1);
-			BuildCount[COUNT_COMMERCIAL]++;
-		}
+		SetWorld(pos, (type == 1) ? 30 : type+1);
+		BuildCount[COUNT_COMMERCIAL]++;
 	}
 	else if (type == 2 || (type >= 40 && type <= 48))
 	{
@@ -370,13 +358,8 @@ void UpgradeZone(long unsigned pos)
 	}
 	else if (type == 3 || (type >= 50 && type <= 58))
 	{
-        if(availPop<=(BuildCount[COUNT_COMMERCIAL]*176+(BuildCount[COUNT_INDUSTRIAL]*176))) {
-            UnlockWorld();
-			return;
-		} else if(availPop>=(BuildCount[COUNT_COMMERCIAL]*176+(BuildCount[COUNT_INDUSTRIAL]*176))) {
-			SetWorld(pos, (type == 3) ? 50 : type+1);
-			BuildCount[COUNT_INDUSTRIAL]++;
-		}
+		SetWorld(pos, (type == 3) ? 50 : type+1);
+		BuildCount[COUNT_INDUSTRIAL]++;
 	}
 	UnlockWorld();
 }
@@ -407,7 +390,39 @@ signed long GetZoneScore(long unsigned int pos)
 
 	LockWorldFlags();
 	if ((GetWorldFlags(pos) & 0x01) == 0) { UnlockWorldFlags(); UnlockWorld(); return -1; } // whoops, no power
-	UnlockWorldFlags();
+    UnlockWorldFlags();
+
+    // see if there's actually enough residential population to support a
+    // new zone of ind or com
+    if (type != 2)
+    {
+        long signed int availPop = 
+                (BuildCount[COUNT_RESIDENTIAL]/3*2)
+                - (BuildCount[COUNT_COMMERCIAL] + BuildCount[COUNT_INDUSTRIAL]);
+        if (availPop <= 0) { UnlockWorld(); return -1; } // whoops, missing population
+    }
+    // and what is a store without something to sell? therefore we need
+    // enough industrial zones before commercial zones kick in ;)
+    if (type == 1)
+    {
+        long signed int availGoods =
+                (BuildCount[COUNT_INDUSTRIAL]/3*2)
+                - (BuildCount[COUNT_COMMERCIAL]);
+        if (availGoods <= 0) { UnlockWorld(); return -1; } // darn, nothing to sell here
+    }
+    // and lastly, the population can't skyrocket all at once, we need a cap
+    // somewhere - note, this should be fine tuned somehow
+    // A factor might be the number of (road/train/airplane) connections to
+    // the surrounding world - this would bring more potential residents
+    // into our little city
+    if (type == 2)
+    {
+        long signed int availPop = 
+                ((TimeElapsed*TimeElapsed)/35+30)
+                - (BuildCount[COUNT_RESIDENTIAL]);
+        if (availPop <= 0) { UnlockWorld(); return -1; } // hmm - need more children
+    }
+    
 
 	// take a look around at the enviroment ;)
 	for (i=x-3; i<4+x; i++)
