@@ -1,0 +1,19 @@
+@echo off
+echo _____________
+echo *************
+echo ****Nokia****
+echo *************
+pmake
+
+echo _____________
+echo *************
+echo ****Palm*****
+echo *************
+
+cd palm
+make
+rm *.bin
+rm *.o
+rm *.stm
+rm *.grc
+cd ..
