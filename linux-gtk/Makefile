@@ -1,6 +1,9 @@
+VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 CC = gcc
-CFLAGS = -O2 -Wall -DLINUX `pkg-config --cflags gtk+-2.0`
-LFLAGS = `pkg-config --libs gtk+-2.0`
+GFLAGS = `pkg-config --cflags gtk+-2.0`
+CFLAGS = -O2 -Wall -DLINUX $(GFLAGS)
+GLFLAGS = `pkg-config --libs gtk+-2.0`
+LFLAGS = $(GLFLAGS)
 OBJECTS = main.o savegame.o budget.o \
 			handler.o build.o disaster.o drawing.o globals.o simulation.o
 
@@ -22,3 +25,14 @@ pcity: $(OBJECTS)
 
 clean:
 	rm -f *.o
+
+DDIR=pcity-linux-GTK_$(VERSION)
+
+dist:
+	@mkdir -p $(DDIR)
+	@cp ../Changelog ../Copying ../Gamehints ../Readme pcity $(DDIR)
+	@mkdir -p $(DDIR)/graphic/icons
+	@cp graphic/*.xpm $(DDIR)/graphic
+	@cp graphic/icons/*.xpm $(DDIR)/graphic/icons
+	@tar cvzf $(DDIR).tar.gz $(DDIR)
+	@rm -rf $(DDIR)
