@@ -329,6 +329,7 @@ _PalmFini(void)
     MemPtrFree(worldPtr);
     MemPtrFree(worldFlagsPtr);
     restoreDepthRes();
+    FrmCloseAllForms();
 }
 
 static Boolean hPocketCity(EventPtr event)
@@ -395,13 +396,6 @@ static Boolean hPocketCity(EventPtr event)
         timeStampDisaster = timeStamp-game.gameLoopSeconds+1; // ditto
         handled = 1;
         break;
-#if !defined(CHEAT) && !defined(DEBUG)
-    case menuOpenEvent:
-        if (!oldROM)
-            MenuHideItem(menuitemID_Funny);
-        handled = 1;
-        break;
-#endif
     case menuEvent:
         if (event->data.menu.itemID >= menuitemID_buildBulldoze) {
             if (event->data.menu.itemID == menuitemID_buildExtra) {

@@ -7,6 +7,7 @@ OBJECTS = simcity.o handler.o drawing.o globals.o build.o simulation.o \
 PROGNAME = "Pocket City"
 PROGTOKEN = PCit
 PRCTARGETS = pcity pcity-grey pcity-color mg-pcity
+DMENU = pcitymain_opt.stm
 
 .PHONY: all debug clean cheat
 .PRECIOUS: simcity-grey.stm zones-grey.stm simcity-color.stm zones-color.stm
@@ -27,34 +28,37 @@ cheat: debug
 ### make debug ###
 ##################
 debug: CFLAGS += -g -DDEBUG
+debug: DMENU = pcitymain.stm
 
 hires: HCFLAGS = -DSONY_CLIE
 
 dhires: HCFLAGS = -g -DSONY_CLIE -DDEBUG
+debug: DMENU = pcitymain.stm
 
 #### the different versions
-pcity-%.prc: simcity-%.stm zones-%.stm game.stm grcs.stm
+pcity-%.prc: simcity-%.stm zones-%.stm game.stm grcs.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def *.grc \
 		temp$*/*.bin temp/*.bin
 
-mg-pcity.prc: game.stm grcs.stm mg.stm
+mg-pcity.prc: game.stm grcs.stm mg.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def *.grc \
 		mg/*.bin temp/*.bin
 
-pcity.prc: simcity.stm zones.stm game.stm grcs.stm
+pcity.prc: simcity.stm zones.stm game.stm grcs.stm $(DMENU)
 	build-prc -o pcity.prc -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		*.grc tempbw/*.bin temp/*.bin
 
-sy-pcity.prc: sy/ game.stm syicons.stm simcity.stm zones.stm sy/sy.stm
+sy-pcity.prc: sy/ game.stm syicons.stm simcity.stm zones.stm sy/sy.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc tempbw/*.bin temp/*.bin
 
 sy-mg-pcity.prc: sy/ game.stm syicons.stm simcity.stm zones.stm \
-	sy/sy.stm mg.stm
+	sy/sy.stm mg.stm $(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc mg/*.bin temp/*.bin sy/*.bin
 
-sy-pcity-%.prc: sy/ game.stm syicons.stm simcity-%.stm zones-%.stm sy/sy.stm
+sy-pcity-%.prc: sy/ game.stm syicons.stm simcity-%.stm zones-%.stm sy/sy.stm \
+	$(DMENU)
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc temp$*/*.bin temp/*.bin sy/*.bin
 
@@ -73,6 +77,18 @@ game.stm: game.rcp
 version.stm: ../CHANGELOG
 	@echo "VERSION 1 \"$(VERSION)\"" > version.rcp
 	@pilrc -q version.rcp temp
+	@echo touching>$@
+
+pcitymain_opt.stm: pcitymain.rcp
+	@sed '/@@DEBUG@@/d' pcitymain.rcp > mainmenu.rcp
+	@pilrc -q mainmenu.rcp temp
+	@rm -f mainmenu.rcp
+	@echo touching>$@
+
+pcitymain.stm: pcitymain.rcp
+	@sed 's/@@DEBUG@@//' pcitymain.rcp > mainmenu.rcp
+	@pilrc -q mainmenu.rcp temp
+	@rm -f mainmenu.rcp
 	@echo touching>$@
 
 # This will take care of all *.rcp
@@ -137,12 +153,16 @@ mg/:
 # dist
 DDIR=pcity-palm_$(VERSION)
 
-dist: all
+dist: all hires
 	@mkdir -p $(DDIR)
-	@cp ../Changelog ../Copying ../Gamehints ../Readme *.prc $(DDIR)
-	@tar cvzf $(DDIR).tar.gz $(DDIR)
-	@zip -9R $(DDIR).zip $(DDIR)/*
-	@rm -rf $(DDIR)
+	@cp ../Changelog ../Copying ../Gamehints ../Readme pc*.prc mg*.prc $(DDIR)
+	@tar cvzf normal-$(DDIR).tar.gz $(DDIR)
+	@zip -9R normal-$(DDIR).zip $(DDIR)/*
+	@rm -f $(DDIR)/*
+	@cp ../Changelog ../Copying ../Gamehints ../Readme sy*.prc $(DDIR)
+	@tar cvzf sony-$(DDIR).tar.gz $(DDIR)
+	@zip -9R sony-$(DDIR).zip $(DDIR)/*
+
 #
 # make clean 
 #

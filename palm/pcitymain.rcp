@@ -1,0 +1,34 @@
+#include "simcity_resconsts.h"
+
+MENU ID menuID_pocketCity
+BEGIN
+  PULLDOWN "Game"
+  BEGIN
+    MENUITEM "New/Load..."                      menuitemID_loadGame
+	MENUITEM "Save"                             menuitemID_saveGame "s"
+	MENUITEM "Budget"                           menuitemID_Budget "b"
+	MENUITEM "Map"                              menuitemID_Map "m"
+	MENUITEM SEPARATOR
+@@DEBUG@@	MENUITEM "Test"                             menuitemID_Funny
+	MENUITEM "Settings"                      menuitemID_Configuration
+  END
+  PULLDOWN "Build"
+  BEGIN
+	MENUITEM "Remove defence"               menuitemID_removeDefence
+	MENUITEM "List..."                      menuitemID_buildExtra "i"
+  END
+  PULLDOWN "Speed"
+  BEGIN
+	MENUITEM "Slow"                         menuID_SlowSpeed
+	MENUITEM "Medium"                       menuID_MediumSpeed
+	MENUITEM "Fast"                         menuID_FastSpeed
+	MENUITEM "Turbo"                        menuID_TurboSpeed
+	MENUITEM SEPARATOR
+	MENUITEM "Pause"                        menuID_PauseSpeed
+  END
+  PULLDOWN "Help"
+  BEGIN
+	MENUITEM "Tips"				menuitemID_tips
+	MENUITEM "About"			menuitemID_about
+  END
+END
