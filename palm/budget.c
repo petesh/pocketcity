@@ -8,6 +8,8 @@
 #include <sections.h>
 #include <budget.h>
 
+#define	MILLION 1000000
+
 static FormPtr budgetSetup(void) MAP_SECTION;
 static void budgetCleanup(void) MAP_SECTION;
 
@@ -18,7 +20,7 @@ static void budgetCleanup(void) MAP_SECTION;
 Boolean
 hBudget(EventPtr event)
 {
-	Boolean handled = true;
+	Boolean handled = false;
 
 	switch (event->eType) {
 	case frmOpenEvent:
@@ -69,15 +71,15 @@ static const struct updateentity {
 	const char		*formatstr;
 	const UInt32		label;
 } entity[] = {
-	{ bnResidential, "%lu", labelID_budget_res },
-	{ bnCommercial, "%lu", labelID_budget_com },
-	{ bnIndustrial, "%lu", labelID_budget_ind },
-	{ bnTraffic, "%lu", labelID_budget_tra },
-	{ bnPower, "%lu", labelID_budget_pow },
-	{ bnDefence, "%lu", labelID_budget_def },
-	{ bnCurrentBalance, "%li", labelID_budget_now },
-	{ bnChange, "%+li", labelID_budget_tot },
-	{ bnNextMonth, "%li", labelID_budget_bal },
+	{ bnResidential, "%lu%c", labelID_budget_res },
+	{ bnCommercial, "%lu%c", labelID_budget_com },
+	{ bnIndustrial, "%lu%c", labelID_budget_ind },
+	{ bnTraffic, "%lu%c", labelID_budget_tra },
+	{ bnPower, "%lu%c", labelID_budget_pow },
+	{ bnDefence, "%lu%c", labelID_budget_def },
+	{ bnCurrentBalance, "%li%c", labelID_budget_now },
+	{ bnChange, "%+li%c", labelID_budget_tot },
+	{ bnNextMonth, "%li%c", labelID_budget_bal },
 	{ 0, NULL, 0 }
 };
 
@@ -90,24 +92,30 @@ static const struct updateentity {
 static FormPtr
 budgetSetup(void)
 {
-	Char		*temp;
-	FormPtr	 form;
-	MemHandle   texthandle;
-	MemPtr	  text;
-	int		 i;
+	FormPtr		form;
+	MemHandle	texthandle;
+	MemPtr		text;
+	int		i;
 	struct updateentity *entityp = (struct updateentity *)&entity[0];
+	Char		temp[12];
+	Char 		cp[10];
+	Char		*ap;
 
+	ResGetString(si_cash_scale, cp, 10);
 	form = FrmGetActiveForm();
 	/*
 	 * Allocate 12 characters for each budget label in one place
 	 */
-	temp = MemPtrNew(12 * (sizeof (entity) / sizeof (entity[0])));
-
 	while (entityp->formatstr != NULL) {
-		StrPrintF(temp, entityp->formatstr,
-		    BudgetGetNumber(entityp->item));
-		CtlSetLabel(GetObjectPtr(form, entityp->label), temp);
-		temp += 12;
+		long value = BudgetGetNumber(entityp->item);
+
+		ap = (Char *)cp;
+		while (value > MILLION) {
+			ap++;
+			value /= 1000;
+		}
+		StrPrintF(temp, entityp->formatstr, value, *ap);
+		FrmCopyLabel(form, entityp->label, temp);
 		entityp++;
 	}
 
@@ -130,8 +138,8 @@ budgetSetup(void)
 static void
 budgetCleanup(void)
 {
-	int		 i, j;
-	FormPtr	 form = FrmGetActiveForm();
+	int	i, j;
+	FormPtr form = FrmGetActiveForm();
 
 	for (i = 0; i < 3; i++) {
 		j = atol(FldGetTextPtr(
@@ -144,5 +152,4 @@ budgetCleanup(void)
 	}
 
 	form = FrmGetActiveForm();
-	MemPtrFree((void*)CtlGetLabel(GetObjectPtr(form, labelID_budget_res)));
 }
