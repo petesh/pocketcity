@@ -4,14 +4,11 @@ Version History
 0.02	12 Jul 2001		Can now build everything. Shortcut keys/strokes for quick selection. Credits.
 0.03	14 Jul 2001		Simulation preparing. Power distribution.
 0.04	19 Jul 2001		Alert on wrong PalmOS version (v3.5 or higher needed).
-						Made the graphic work on Palm IIIc.
+				Made the graphic work on Palm IIIc.
 0.05	22 Jul 2001		Now it's beginning to look like something:
-						Basic PDR (Population Development Routine) added.
-
-
-
-
-
+				Basic PDR (Population Development Routine) added.
+0.06	11 Sep 2001		Zoom mode on Palm. Hardware scroll keys on Palm. Better multithreading on Palm.
+				Tweaked the simulation a bit.
 
 
 
@@ -23,7 +20,10 @@ Keys/strokes
 			/R for residential zoning
 			/C for commercial zoning
 			/I for industrial zoning
+			/1 to zoom in
+			/2 to zoom out
 			Tap or drag the pen for building
+			Use the hardware keys for scrolling (up/down/phone/todo)
 
 	Nokia:	'Backspace' for bulldozing
 			'R' for residential zoning
