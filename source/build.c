@@ -19,27 +19,34 @@ extern void BuildSomething(int xpos, int ypos)
 	{
 	case BUILD_BULLDOZER:
 		Build_Bulldoze(xpos, ypos);
+        updatePowerGrid = 1;
 		break;
 	case BUILD_ZONE_RESIDENTIAL:
 		Build_Generic(xpos, ypos, BUILD_COST_ZONE, ZONE_RESIDENTIAL);
+        updatePowerGrid = 1;
 		break;
 	case BUILD_ZONE_COMMERCIAL:
 		Build_Generic(xpos, ypos, BUILD_COST_ZONE, ZONE_COMMERCIAL);
+        updatePowerGrid = 1;
 		break;
 	case BUILD_ZONE_INDUSTRIAL:
 		Build_Generic(xpos, ypos, BUILD_COST_ZONE, ZONE_INDUSTRIAL);
+        updatePowerGrid = 1;
 		break;
 	case BUILD_ROAD:
 		Build_Road(xpos, ypos);
 		break;
 	case BUILD_POWER_LINE:
 		Build_PowerLine(xpos, ypos);
+        updatePowerGrid = 1;
 		break;
 	case BUILD_POWER_PLANT:
 		Build_Generic(xpos, ypos, BUILD_COST_POWER_PLANT, 60);
+        updatePowerGrid = 1;
 		break;
 	case BUILD_NUCLEAR_PLANT:
 		Build_Generic(xpos, ypos, BUILD_COST_NUCLEAR_PLANT, 61);
+        updatePowerGrid = 1;
 		break;
 	case BUILD_WATER:
 		Build_Generic(xpos, ypos, BUILD_COST_WATER, 22);

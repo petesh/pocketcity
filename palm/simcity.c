@@ -184,6 +184,10 @@ static Boolean hPocketCity(EventPtr event)
 				SIM_GAME_LOOP_SECONDS = 5;
 				handled = 1;
 				break;
+			case menuID_TurboSpeed:
+				SIM_GAME_LOOP_SECONDS = 0;
+				handled = 1;
+				break;
 			}
 		}
 		break;

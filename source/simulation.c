@@ -495,7 +495,10 @@ extern int Sim_DoPhase(int nPhase)
 	switch (nPhase)
 	{
 	case 1:
-		Sim_DistributePower();
+        if (updatePowerGrid != 0) {
+    		Sim_DistributePower();
+            updatePowerGrid = 0;
+        }
 		nPhase=2;
 		break;
 	case 2:

@@ -9,6 +9,8 @@ long signed int credits = 50000;
 long unsigned int BuildCount[6];
 long unsigned int TimeElapsed=0; // months since Jan 2000
 
+short updatePowerGrid = 1;
+
 
 
 

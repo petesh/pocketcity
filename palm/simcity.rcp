@@ -42,6 +42,7 @@ BEGIN
 	MENUITEM "Slow" menuID_SlowSpeed
 	MENUITEM "Medium" menuID_MediumSpeed
 	MENUITEM "Fast"   menuID_FastSpeed
+	MENUITEM "Turbo"   menuID_TurboSpeed
   END
 END
 

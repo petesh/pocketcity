@@ -9,6 +9,7 @@
 #define menuID_SlowSpeed				1052
 #define menuID_MediumSpeed				1053
 #define menuID_FastSpeed				1054
+#define menuID_TurboSpeed				1055
 
 #define poplabel					1055
 

@@ -10,6 +10,7 @@ extern long unsigned int BuildCount[6];
 extern long unsigned int TimeElapsed;
 extern int tax;
 extern int TILE_SIZE;
+extern short updatePowerGrid;
 
 
 extern void LongToString(signed long value, char* out);
