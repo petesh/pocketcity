@@ -1,4 +1,4 @@
-
+VERSION = 0.13
 CC = m68k-palmos-gcc
 CFLAGS = -O2 -Wall -DPALM
 LDLIBS =
@@ -129,6 +129,14 @@ mg/:
 	mkdir -p mg/
 #
 
+# dist
+DDIR=pcity-palm_$(VERSION)
+dist: all hires
+	@mkdir -p $(DDIR)
+	@cp ../Changelog ../Copying ../Gamehints ../Readme *.prc $(DDIR)
+	tar cvzf $(DDIR).tar.gz $(DDIR)
+	zip -9R $(DDIR).zip $(DDIR)/*
+	@rm -rf $(DDIR)
 #
 # make clean 
 #
