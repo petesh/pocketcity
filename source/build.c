@@ -1,6 +1,7 @@
 #ifdef PALM
 #include <PalmOS.h>
 #include <simcity.h>
+#include <zakdef.h>
 #else
 #include <sys/types.h>
 #include <stddef.h>
@@ -105,7 +106,7 @@ static const struct buildCounters {
 	UInt16			start;
 	UInt16			end;
 } counters[] = {
-	{ DuFireman, COUNT_FIRE_STATIONS, DEF_FIREMAN_START, DEF_FIREMAN_END },
+	{ DuFireman, COUNT_FIRE_STATIONS, DEF_FIREMEN_START, DEF_FIREMEN_END },
 	{ DuPolice, COUNT_POLICE_STATIONS, DEF_POLICE_START, DEF_POLICE_END },
 	{ DuMilitary, COUNT_MILITARY_BASES, DEF_MILITARY_START,
 		DEF_MILITARY_END }
@@ -128,11 +129,12 @@ Build_Defence(Int16 xpos, Int16 ypos, UInt16 type)
 	UInt16 end;
 	int max;
 	int nCounter;
+	struct buildCounters *cnt;
 
 	if (type < DuFireman || type > DuMilitary)
 		return;
 
-	struct buildCounters *cnt = &counters[type];
+	cnt = &counters[type];
 
 	/* this is here to make sure not too many of any item are created */
 	nCounter = cnt->counter;

@@ -189,16 +189,16 @@ enum Objects {
 #define	GRID_WATER			  2
 #define	GRID_ALL				(GRID_POWER|GRID_WATER)
 
+typedef enum DefenceUnitTypes {
+	DuFireman = 0, DuPolice, DuMilitary
+} DefenceUnitTypes;
+
 typedef struct _defence_unit {
 		UInt16 x;
 		UInt16 y;
 		UInt16 active;
-		UInt16 type;
+		DefenceUnitTypes type;
 } DefenceUnit;
-
-enum DefenceUnitTypes {
-	DuFireman = 0, DuPolice, DuMilitary
-};
 
 #define	CITYNAMELEN 20
 
@@ -230,7 +230,7 @@ typedef struct _game_struct05 {
 	MoveableObject  objects[10];	/* Special objects */
 } GameStruct05;
 
-/* Desired new version */
+/* Desired new version ... this is saved */
 typedef struct _game_struct06 {
 	Int8		version[4];	/* version of game */
 	UInt8		mapsize;	/* size of map, it's a square */
@@ -250,6 +250,11 @@ typedef struct _game_struct06 {
 	/* DefenceUnit		*units; */
 	/* MoveableObject	 *objects; */
 } GameStruct06;
+/*
+ * Followed by:
+ * Map
+ * Grid0 .. Gridn
+ */
 
 typedef GameStruct05 GameStruct;
 

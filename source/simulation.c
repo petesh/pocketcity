@@ -865,13 +865,13 @@ static const struct countCosts {
 	{ COUNT_POLICE_STATIONS, UPKEEP_POLICE_STATIONS },
 	{ COUNT_MILITARY_BASES, UPKEEP_MILITARY_BASES },
 	{ COUNT_WATERPIPES, 0 },
-	{ COUNT_WATERPUMPS, 0 }
+	{ COUNT_WATER_PUMPS, 0 }
 };
 
 static Int32
 costIt(Int32 item)
 {
-	return (vgame.BuildCount[item] * countCosts[item]);
+	return (vgame.BuildCount[item] * countCosts[item].cost);
 }
 
 /*
