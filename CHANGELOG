@@ -17,6 +17,7 @@ Version 0.16dev
   + auto-bulldoze feature for trees.
   + difficulty level (currently adjusts money at start)
   + Query tool.
+  + Variable tax rate
   * Better Pause / Freeze logic for dialogs.
   * mycity == autosave city
   * code and tiles are in separate programs (pdb, prc)
