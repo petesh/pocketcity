@@ -89,7 +89,7 @@ temp-%:
 
 # Language
 $(OBJDIR)/%-lang/game.stm: $(OBJDIR) $(OBJDIR)/%-lang \
-		game.rcp simcity_resconsts.h
+		game.rcp langs.rcp simcity_resconsts.h
 	@$(AWK) -v DEBUG=$(DEBUG) -v HIRES=$(HIRES) -f filter.awk \
 		game.rcp > $(OBJDIR)/$*-lang/ngame.rcp
 	$(RC.rcp) -L $* $(OBJDIR)/$*-lang/ngame.rcp $(OBJDIR)/$*-lang
