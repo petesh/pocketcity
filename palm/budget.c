@@ -16,7 +16,7 @@
 #include <sections.h>
 #include <budget.h>
 #include <stddef.h>
-#include <rescompat.h>
+#include <resCompat.h>
 #include <repeathandler.h>
 
 static FormPtr budgetSetup(FormPtr form) BUDGET_SECTION;
