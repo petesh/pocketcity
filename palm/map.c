@@ -8,11 +8,13 @@
 #include <globals.h>
 #include <drawing.h>
 #include <resCompat.h>
+#include <sections.h>
 
-void DrawMap(void);
-Boolean hMap(EventPtr event);
+static void DrawMap(void) MAP_SECTION;
+Boolean hMap(EventPtr event) MAP_SECTION;
 
-extern Boolean hMap(EventPtr event)
+Boolean
+hMap(EventPtr event)
 {
     FormPtr form;
     int handled = 0;
@@ -73,7 +75,7 @@ extern Boolean hMap(EventPtr event)
 /*
  * The map looks too small if we use Hi-Res calls so we use the standard API.
  */
-void DrawMap(void)
+static void DrawMap(void)
 {
     int x, y;
     static IndexedColorType entries[5] = { 0, 1, 2, 3, 4 };

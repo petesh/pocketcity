@@ -201,3 +201,15 @@
 #define List_Memo       2510
 #define List_Memo_Popup 2511
 
+#define List_Calc	2512
+#define List_Calc_Popup	2513
+#define List_Find	2514
+#define List_Find_Popup	2515
+
+#define List_JogUp      2516
+#define List_JogUp_Popup 2517
+#define List_JogDn      2518
+#define List_JogDn_Popup 2519
+#define List_JogOut      2520
+#define List_JogOut_Popup 2521
+

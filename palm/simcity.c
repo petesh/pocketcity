@@ -58,6 +58,8 @@ static Boolean hOptions(EventPtr event);
 static Boolean hButtonConfig(EventPtr event);
 static void _PalmInit(void);
 static void _PalmFini(void);
+static void buildSilkList(void);
+static int vkDoEvent(UInt16 key);
 static void UIDoQuickList(void);
 static void UIPopUpExtraBuildList(void);
 void UIDrawPop(void);
@@ -329,6 +331,7 @@ _PalmInit(void)
     hookHoldSwitch(HoldHook);
     /* load application configuration */
     prefSize = sizeof(AppConfig_t);
+    buildSilkList();
     err = PrefGetAppPreferences(GetCreatorID(), 0, &gameConfig, &prefSize, true);
     if (err != noPreferenceFound) {
     }
@@ -353,35 +356,8 @@ _PalmFini(void)
     /* Close the forms */
     FrmCloseAllForms();
 }
-
-/* Do the command against the key passed */
-static int
-HardButtonEvent(ButtonKey key)
-{
-    switch(gameConfig.pc.keyOptions[key]) {
-    case BeIgnore:
-        break;
-    case BeUp:
-        ScrollMap(dtUp);
-        break;
-    case BeDown:
-        ScrollMap(dtDown);
-        break;
-    case BeLeft:
-        ScrollMap(dtLeft);
-        break;
-    case BeRight:
-        ScrollMap(dtRight);
-        break;
-    case BePassthrough:
-        return (0);
-    default:
-        break;
-    }
-    return (1);
-}
-
-static Boolean hPocketCity(EventPtr event)
+static Boolean
+hPocketCity(EventPtr event)
 {
     FormPtr form;
     int handled = 0;
@@ -578,61 +554,8 @@ static Boolean hPocketCity(EventPtr event)
 	}
 
     case keyDownEvent:
-        switch (event->data.keyDown.chr) {
-        case vchrCalc:
-            /* popup a quicksheet */
-            UIDoQuickList();
-            handled = 1;
-            break;
-        case vchrFind:
-            /* goto map */
-            SaveSpeed();
-            FrmGotoForm(formID_map);
-            handled = 1;
-            break;
-        case pageUpChr:
-            handled = HardButtonEvent(BkHardUp);
-            break;
-        case pageDownChr:
-            handled = HardButtonEvent(BkHardDown);
-            break;
-        case vchrHard1:
-            handled = HardButtonEvent(BkCalendar);
-            break;
-        case vchrHard2:
-            handled = HardButtonEvent(BkAddress);
-            break;
-        case vchrHard3:
-            handled = HardButtonEvent(BkToDo);
-            break;
-        case vchrHard4:
-            handled = HardButtonEvent(BkMemo);
-            break;
-#ifdef SONY_CLIE
-        case vchrJogUp:
-            if (!IsDrawWindowMostOfScreen()) break;
-            if (jog_lr)
-                ScrollMap(dtLeft);
-            else
-                ScrollMap(dtUp);
-            handled = 1;
-            break;
-        case vchrJogDown:
-            if (!IsDrawWindowMostOfScreen()) break;
-            if (jog_lr)
-                ScrollMap(dtRight);
-            else
-                ScrollMap(dtDown);
-            handled = 1;
-            break;
-        case vchrJogRelease:
-            if (!IsDrawWindowMostOfScreen()) break;
-            jog_lr = 1 - jog_lr;
-            UIDrawLoc();
-            handled = 1;
-            break;
-#endif
-        }
+	handled = vkDoEvent(event->data.keyDown.chr);
+	break;
     default:
         break;
     }
@@ -915,9 +838,15 @@ static Boolean hOptions(EventPtr event)
     return (handled);
 }
 
-const char *bc_Choices[] = { "Ignore", "Up", "Down", "Left", "Right", "Default" };
+static const char *bc_Choices[] = { "Ignore",
+	"Up", "Down", "Left", "Right",
+	"Pop Up", "Map",
+#ifdef SONY_CLIE
+	"Jog Up", "Jog Down", "Jog Swap",
+#endif
+	"Default" };
 #define BC_CHOICELEN (sizeof(bc_Choices)/sizeof(bc_Choices[0]))
-const struct bc_chelts {
+static const struct bc_chelts {
     UInt16 popup;
     UInt16 list;
     UInt16 elt;
@@ -927,7 +856,15 @@ const struct bc_chelts {
     { List_HrUp_Popup, List_HrUp, BkHardUp },
     { List_HrDn_Popup, List_HrDn, BkHardDown },
     { List_ToDo_Popup, List_ToDo, BkToDo },
-    { List_Memo_Popup, List_Memo, BkMemo }
+    { List_Memo_Popup, List_Memo, BkMemo },
+#ifdef SONY_CLIE
+    { List_JogUp_Popup, List_JogUp, BkJogUp },
+    { List_JogDn_Popup, List_JogDn, BkJogDown },
+    { List_JogOut_Popup, List_JogOut, BkJogRelease },
+#endif
+    { List_Calc_Popup, List_Calc, BkCalc },
+    { List_Find_Popup, List_Find, BkFind },
+    { 0, 0, 0 }
 };
 
 /* Handle the button configuration menu */
@@ -944,7 +881,7 @@ static Boolean hButtonConfig(EventPtr event)
         FrmDrawForm(form);
         okHit = 0;
         /* do the buttons */
-        for (bk = BkCalendar; bk <= BkMemo; bk++) {
+        for (bk = BkCalendar; bc_elts[bk].popup != 0; bk++) {
             ListType *lp;
             CtlSetLabel(FrmGetObjectPtr(form, FrmGetObjectIndex(form, bc_elts[bk].popup)),
               bc_Choices[gameConfig.pc.keyOptions[bk]]);
@@ -957,7 +894,7 @@ static Boolean hButtonConfig(EventPtr event)
     case frmCloseEvent:
         if (okHit) {
             form = FrmGetActiveForm();
-            for (bk = BkCalendar; bk <= BkMemo; bk++) {
+            for (bk = BkCalendar; bc_elts[bk].popup != 0; bk++) {
                 gameConfig.pc.keyOptions[bk] =
                     LstGetSelection(FrmGetObjectPtr(form, FrmGetObjectIndex(form, bc_elts[bk].list)));
             }
@@ -1754,6 +1691,120 @@ cycleSpeed(void)
             break;
         }
     }
+}
+
+/* Do the command against the key passed */
+static int
+HardButtonEvent(ButtonKey key)
+{
+    switch(gameConfig.pc.keyOptions[key]) {
+    case BeIgnore:
+        break;
+    case BeUp:
+        ScrollMap(dtUp);
+        break;
+    case BeDown:
+        ScrollMap(dtDown);
+        break;
+    case BeLeft:
+        ScrollMap(dtLeft);
+        break;
+    case BeRight:
+        ScrollMap(dtRight);
+        break;
+#ifdef SONY_CLIE
+    case BeJogUp:
+	if (!IsDrawWindowMostOfScreen()) return (1);
+	if (jog_lr)
+		ScrollMap(dtLeft);
+	else
+		ScrollMap(dtUp);
+	break;
+    case BeJogDown:
+    	if (!IsDrawWindowMostOfScreen()) return (1);
+	if (jog_lr)
+		ScrollMap(dtRight);
+	else
+		ScrollMap(dtDown);
+	break;
+    case BeJogRelease:
+     	if (!IsDrawWindowMostOfScreen()) return (1);
+ 	jog_lr = 1 - jog_lr;
+	UIDrawLoc();
+	break;
+#endif
+    case BePopup:
+	UIDoQuickList();
+	break;
+    case BeMap:
+	SaveSpeed();
+	FrmGotoForm(formID_map);
+	break;
+    case BePassthrough:
+        return (0);
+    default:
+        break;
+    }
+    return (1);
+}
+
+static struct _silkKeys {
+	UInt16 vChar;
+	ButtonKey event;
+} silky[] = {
+	{ pageUpChr, BkHardUp },
+	{ pageDownChr, BkHardDown },
+	{ vchrHard1, BkCalendar },
+	{ vchrHard2, BkAddress },
+	{ vchrHard3, BkToDo },
+	{ vchrHard4, BkMemo },
+#ifdef SONY_CLIE
+	{ vchrJogUp, BkJogUp },
+	{ vchrJogDown, BkJogDown },
+	{ vchrJogRelease, BkJogRelease },
+#endif
+	{ vchrFind, BkFind },
+	{ 1, BkCalc },
+	{ 0, 0 }
+};
+
+static void
+buildSilkList()
+{
+	UInt16 btncount = 0;
+	UInt16 atsilk = 0;
+	UInt16 atbtn = 0;
+
+	const PenBtnInfoType *silkinfo = EvtGetPenBtnList(&btncount);
+	/* favorites / find */
+	while (silky[atsilk].vChar != 1) atsilk++;
+	while (atbtn < btncount) {
+#if defined(DEBUG)
+            char log[200];
+            StrPrintF(log, "btn: %ld char: %lx\n", (long)atbtn, (long)silkinfo[atbtn].asciiCode);
+            UIWriteLog(log);
+#endif
+            if (silkinfo[atbtn].asciiCode == vchrFind) {
+                if (atbtn >0) {
+                    silky[atsilk].vChar = silkinfo[atbtn-1].asciiCode;
+                    break;
+                }
+            }
+            atbtn++;
+	}
+        if (silky[atsilk].vChar == 1) silky[atsilk].vChar = vchrCalc;
+}
+
+static int
+vkDoEvent(UInt16 key)
+{
+	struct _silkKeys *atsilk = &(silky[0]);
+	while (atsilk->vChar != 0) {
+		if (key == atsilk->vChar) return HardButtonEvent(atsilk->event);
+		atsilk++;
+	}
+	return 0;
+
 }
 
 #ifdef SONY_CLIE

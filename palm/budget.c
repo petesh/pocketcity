@@ -5,9 +5,11 @@
 #include <globals.h>
 #include <ui.h>
 #include <simulation.h>
+#include <sections.h>
 
-void BudgetInit(void);
-void BudgetFreeMem(void);
+void BudgetInit(void) MAP_SECTION;
+void BudgetFreeMem(void) MAP_SECTION;
+Boolean hBudget(EventPtr event) MAP_SECTION;
 
 Boolean
 hBudget(EventPtr event)
