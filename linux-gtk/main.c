@@ -19,10 +19,9 @@ GtkWidget *timelabel;
 
 void * worldPtr;
 void * worldFlagsPtr;
-GdkPixmap *zones,*monsters,*units;
+GdkPixmap *zones_bitmap,*monsters,*units;
 GdkBitmap *zones_mask,*monsters_mask,*units_mask;
 unsigned char selectedBuildItem = 0;
-unsigned short drawing = 0;
 
 
 void SetUpMainWindow(void);
@@ -99,9 +98,7 @@ gint delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 
 static gint drawing_exposed_callback(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-    drawing = 1;
     RedrawAllFields();
-    drawing = 0;
 
     return FALSE;
 }
@@ -268,7 +265,7 @@ void SetUpMainWindow(void)
 
 extern void UISetUpGraphic(void)
 {
-    zones = gdk_pixmap_create_from_xpm(drawingarea->window,
+    zones_bitmap = gdk_pixmap_create_from_xpm(drawingarea->window,
                                        &zones_mask,
                                        NULL,
                                        "graphic/zones_16x16-color.xpm");
@@ -370,38 +367,31 @@ extern void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth)
 
 extern void UIDrawField(int xpos, int ypos, unsigned char nGraphic)
 {
-    if (drawing == 0) {
-        gtk_widget_queue_draw(drawingarea);
-    } else {
-        GdkGC *gc;
-    
-        gc = gdk_gc_new(drawingarea->window);
-        gdk_draw_drawable(
+    GdkGC *gc;
+
+    gc = gdk_gc_new(drawingarea->window);
+    gdk_draw_drawable(
             drawingarea->window,
             gc,
-            zones,
+            zones_bitmap,
             (nGraphic%64)*game.tileSize,
             (nGraphic/64)*game.tileSize,
             xpos*game.tileSize,
             ypos*game.tileSize,
             game.tileSize,
             game.tileSize);
-    }
 }
 
 extern void UIDrawSpecialObject(int i, int xpos, int ypos)
 {
-    if (drawing == 0) {
-        gtk_widget_queue_draw(drawingarea);
-    } else {
-        GdkGC *gc;
-        gc = gdk_gc_new(drawingarea->window);
-        gdk_gc_set_clip_mask(gc,monsters_mask);
-        gdk_gc_set_clip_origin(gc,
+    GdkGC *gc;
+    gc = gdk_gc_new(drawingarea->window);
+    gdk_gc_set_clip_mask(gc,monsters_mask);
+    gdk_gc_set_clip_origin(gc,
             xpos*game.tileSize-(game.objects[i].dir*game.tileSize),
             ypos*game.tileSize-(i*game.tileSize));
 
-        gdk_draw_drawable(
+    gdk_draw_drawable(
             drawingarea->window,
             gc,
             monsters,
@@ -411,22 +401,18 @@ extern void UIDrawSpecialObject(int i, int xpos, int ypos)
             ypos*game.tileSize,
             game.tileSize,
             game.tileSize);
-    }
 }
 
 extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
 {
-    if (drawing == 0) {
-        gtk_widget_queue_draw(drawingarea);
-    } else {
-        GdkGC *gc;
-        gc = gdk_gc_new(drawingarea->window);
-        gdk_gc_set_clip_mask(gc,units_mask);
-        gdk_gc_set_clip_origin(gc,
+    GdkGC *gc;
+    gc = gdk_gc_new(drawingarea->window);
+    gdk_gc_set_clip_mask(gc,units_mask);
+    gdk_gc_set_clip_origin(gc,
             xpos*game.tileSize-(game.units[i].type*game.tileSize),
             ypos*game.tileSize);
 
-        gdk_draw_drawable(
+    gdk_draw_drawable(
             drawingarea->window,
             gc,
             units,
@@ -436,7 +422,6 @@ extern void UIDrawSpecialUnit(int i, int xpos, int ypos)
             ypos*game.tileSize,
             game.tileSize,
             game.tileSize);
-    }
 }
 
 extern void UIDrawCursor(int xpos, int ypos)
@@ -446,27 +431,23 @@ extern void UIDrawCursor(int xpos, int ypos)
 
 extern void UIDrawPowerLoss(int xpos, int ypos)
 {
-    if (drawing == 0) {
-        gtk_widget_queue_draw(drawingarea);
-    } else {
-        GdkGC *gc;
-        gc = gdk_gc_new(drawingarea->window);
-        gdk_gc_set_clip_mask(gc,zones_mask);
-        gdk_gc_set_clip_origin(gc,
+    GdkGC *gc;
+    gc = gdk_gc_new(drawingarea->window);
+    gdk_gc_set_clip_mask(gc,zones_mask);
+    gdk_gc_set_clip_origin(gc,
             xpos*game.tileSize-128,
             ypos*game.tileSize);
 
-        gdk_draw_drawable(
+    gdk_draw_drawable(
             drawingarea->window,
             gc,
-            zones,
+            zones_bitmap,
             128,
             0,
             xpos*game.tileSize,
             ypos*game.tileSize,
             game.tileSize,
             game.tileSize);
-    }
 }
 
 extern unsigned char UIGetSelectedBuildItem(void)
