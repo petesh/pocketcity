@@ -72,11 +72,11 @@ BEGIN
     POPUPLIST ID listID_shifter_popup listID_shifter
     LABEL "INCOME" AUTOID AT (CENTER 16)
     LABEL "RESIDENTIAL" AUTOID AT (0 PrevBottom)
-    LABEL "-" labelID_budget_res AT (115 PrevTop)
+    LABEL "------------" labelID_budget_res AT (115 PrevTop)
     LABEL "COMMERCIAL" AUTOID AT (0 PrevBottom)
-    LABEL "-" labelID_budget_com AT (115 PrevTop)
+    LABEL "------------" labelID_budget_com AT (115 PrevTop)
     LABEL "INDUSTRIAL" AUTOID AT (0 PrevBottom)
-    LABEL "-" labelID_budget_ind AT (115 PrevTop)
+    LABEL "------------" labelID_budget_ind AT (115 PrevTop)
 
 
     LABEL "EXPENSES" AUTOID AT (CENTER PrevBottom)
@@ -85,28 +85,28 @@ BEGIN
     FIELD ID fieldID_budget_tra AT (60 prevtop 20 auto) 
         EDITABLE UNDERLINED MAXCHARS 3 NUMERIC RIGHTALIGN
     LABEL "%" AUTOID AT (prevright prevtop)
-    LABEL "-" labelID_budget_tra AT (115 PrevTop)
+    LABEL "------------" labelID_budget_tra AT (115 PrevTop)
     
     LABEL "POWER" AUTOID AT (0 PrevBottom)
     FIELD ID fieldID_budget_pow AT (60 prevtop 20 auto) 
         EDITABLE UNDERLINED MAXCHARS 3 NUMERIC RIGHTALIGN
     LABEL "%" AUTOID AT (prevright prevtop)
-    LABEL "-" labelID_budget_pow AT (115 PrevTop)
+    LABEL "------------" labelID_budget_pow AT (115 PrevTop)
     
     LABEL "DEFENCE" AUTOID AT (0 PrevBottom)
     FIELD ID fieldID_budget_def AT (60 prevtop 20 auto) 
         EDITABLE UNDERLINED MAXCHARS 3 NUMERIC RIGHTALIGN
     LABEL "%" AUTOID AT (prevright prevtop)
-    LABEL "-" labelID_budget_def AT (115 PrevTop)
+    LABEL "------------" labelID_budget_def AT (115 PrevTop)
 
 
     LABEL "TOTAL" AUTOID AT (CENTER PrevBottom)
     LABEL "CURRBAL" AUTOID AT (0 PrevBottom)
-    LABEL "-" labelID_budget_now AT (115 PrevTop)
+    LABEL "------------" labelID_budget_now AT (115 PrevTop)
     LABEL "BALDELTA" AUTOID AT (0 PrevBottom)
-    LABEL "-" labelID_budget_tot AT (115 PrevTop)
+    LABEL "------------" labelID_budget_tot AT (115 PrevTop)
     LABEL "NEXTMONTHBAL" AUTOID AT (0 PrevBottom)
-    LABEL "-" labelID_budget_bal AT (115 PrevTop)
+    LABEL "------------" labelID_budget_bal AT (115 PrevTop)
 END
 
 MENU ID menu_budget
@@ -383,6 +383,15 @@ STRINGTABLE ID strID_Descriptions
     "DESCRIPTION_UNIT_FIRE"
     "DESCRIPTION_UNIT_POLICE"
     "DESCRIPTION_UNIT_MILITARY"
+
+/* Localizable strings */
+STRINGTABLE ID resstrings_base ""
+	"CASH_SCALE"
+	"EMPTY_LAND"
+	"POWER_LINE"
+	"ROAD"
+	"REAL_WATER"
+	"FOREST"
 
 FORM ID formID_DistribDetails AT ( 0 0 160 160 )
 USABLE

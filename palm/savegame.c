@@ -155,13 +155,13 @@ cityNewSetup(void)
 Boolean
 hFilesNew(EventPtr event)
 {
-	int handled = 0;
+	Boolean handled = false;
 
 	switch (event->eType) {
 	case frmOpenEvent:
 		SetGameNotInProgress();
 		FrmDrawForm(cityNewSetup());
-		handled = 1;
+		handled = true;
 		break;
 	case frmCloseEvent:
 		break;
@@ -169,11 +169,11 @@ hFilesNew(EventPtr event)
 		switch (event->data.ctlSelect.controlID) {
 		case buttonID_FilesNewCreate:
 			cnCreateButtonPressed();
-			handled = 1;
+			handled = true;
 			break;
 		case buttonID_FilesNewCancel:
 			cnCancelButtonPressed();
-			handled = 1;
+			handled = true;
 			break;
 		}
 		break;

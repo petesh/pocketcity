@@ -100,6 +100,14 @@ GetObjectPtr(FormType *form, UInt16 index)
 	    FrmGetObjectIndex(form, index)));
 }
 
+void
+ResGetString(UInt16 index, char *buffer, UInt16 length)
+{
+	if (NULL == SysStringByIndex(resstrings_base, index, buffer, length)) {
+		/* XXX: Error here ! */
+	}
+}
+
 /*
  * The PilotMain routine.
  * Needed by all palm applications. It checks the rom version and

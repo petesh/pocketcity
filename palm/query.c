@@ -9,7 +9,7 @@
 #include <simcity_resconsts.h>
 #include <zakdef.h>
 
-static void zonetoPtr(Char *zonemesg, UInt8 tile) MAP_SECTION;
+static void zonetoPtr(Char *zonemesg, UInt8 tile, UInt16 length) MAP_SECTION;
 static FormPtr querySetup(void) MAP_SECTION;
 static void queryCleanup(void) MAP_SECTION;
 
@@ -54,32 +54,37 @@ hQuery(EventPtr event)
 	return (handled);
 }
 
+static const struct type_zone {
+	UInt8	tile;
+	UInt16	zonestring;
+} type_zones[] = {
+	{ TYPE_DIRT, si_empty_land },
+	{ TYPE_POWER_LINE, si_power_line },
+	{ TYPE_ROAD, si_road },
+	{ TYPE_REAL_WATER, si_real_water },
+	{ TYPE_TREE, si_forest },
+	{ 0, 0 }
+};
+
 /*
  * Convert a zone type into a display string.
  * Probably should have an array of all zone entries -> zonetype
  */
 static void
-zonetoPtr(Char *zonemsg, UInt8 tile)
+zonetoPtr(Char *zonemsg, UInt8 tile, UInt16 maxlen)
 {
-	switch (tile) {
-	case TYPE_DIRT:
-		StrCopy(zonemsg, "Empty land");
-		break;
-	case TYPE_POWER_LINE:
-		StrCopy(zonemsg, "Power line");
-		break;
-	case TYPE_ROAD:
-		StrCopy(zonemsg, "Road");
-		break;
-	case TYPE_REAL_WATER:
-		StrCopy(zonemsg, "Water");
-		break;
-	case TYPE_TREE:
-		StrCopy(zonemsg, "Forest");
-		break;
-	default:
+	struct type_zone *tzone = (struct type_zone *)&type_zones[0];
+
+	while (tzone->zonestring != 0) {
+		if (tzone->tile == tile)
+			break;
+		tzone++;
+	}
+
+	if (tzone->zonestring == 0) {
 		StrIToA(zonemsg, tile);
-		break;
+	} else {
+		ResGetString(tzone->zonestring, zonemsg, maxlen);
 	}
 }
 
@@ -95,7 +100,7 @@ querySetup(void)
 
 	form = FrmGetActiveForm();
 	temp = MemPtrNew(255);
-	zonetoPtr(temp, GetItemClicked());
+	zonetoPtr(temp, GetItemClicked(), 255);
 	ctl = GetObjectPtr(form, labelID_zonetype);
 	CtlSetLabel(ctl, temp);
 	return (form);

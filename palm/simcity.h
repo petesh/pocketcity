@@ -29,5 +29,6 @@ void ClearNewROM(void);
 void SetNewROM(void);
 UInt8 IsNewROM(void);
 void *GetObjectPtr(FormType *form, UInt16 index);
+void ResGetString(UInt16 index, char *string, UInt16 length);
 
 #endif

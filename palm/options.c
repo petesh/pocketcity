@@ -18,7 +18,7 @@ static void saveOptions(void) MAP_SECTION;
 Boolean
 hOptions(EventPtr event)
 {
-	int handled = 0;
+	Boolean handled = false;
 	static char okHit = 0;
 
 	switch (event->eType) {
@@ -27,7 +27,7 @@ hOptions(EventPtr event)
 		WriteLog("options open\n");
 		FrmDrawForm(setupOptions());
 		okHit = 0;
-		handled = 1;
+		handled = true;
 		break;
 	case frmCloseEvent:
 		WriteLog("options closed\n");
@@ -38,19 +38,19 @@ hOptions(EventPtr event)
 		switch (event->data.keyDown.chr) {
 		case vchrLaunch:
 			FrmGotoForm(formID_pocketCity);
-			handled = 1;
+			handled = true;
 			break;
 		}
 	case ctlSelectEvent:
 		switch (event->data.ctlEnter.controlID) {
 		case buttonID_OK:
 			okHit = 1;
-			handled = 1;
+			handled = true;
 			FrmGotoForm(formID_pocketCity);
 			break;
 		case buttonID_Cancel:
 			okHit = 0;
-			handled = 1;
+			handled = true;
 			FrmGotoForm(formID_pocketCity);
 			break;
 		}
@@ -117,7 +117,7 @@ static void clearButtonConfig(void) MAP_SECTION;
 Boolean
 hButtonConfig(EventPtr event)
 {
-	int handled = 0;
+	Boolean handled = false;
 	static char okHit = 0;
 
 	switch (event->eType) {
@@ -126,7 +126,7 @@ hButtonConfig(EventPtr event)
 		PauseGame();
 		FrmDrawForm(setupButtonConfig());
 		okHit = 0;
-		handled = 1;
+		handled = true;
 		break;
 	case frmCloseEvent:
 		WriteLog("close buttonconfig\n");
@@ -137,19 +137,19 @@ hButtonConfig(EventPtr event)
 		switch (event->data.keyDown.chr) {
 		case vchrLaunch:
 			FrmGotoForm(formID_pocketCity);
-			handled = 1;
+			handled = true;
 			break;
 		}
 	case ctlSelectEvent:
 		switch (event->data.ctlEnter.controlID) {
 		case buttonID_OK:
 			okHit = 1;
-			handled = 1;
+			handled = true;
 			FrmGotoForm(formID_pocketCity);
 			break;
 		case buttonID_Cancel:
 			okHit = 0;
-			handled = 1;
+			handled = true;
 			FrmGotoForm(formID_pocketCity);
 			break;
 		}

@@ -125,10 +125,10 @@
 #define	labelID_budget_ind 1312
 #define	labelID_budget_tra 1313
 #define	labelID_budget_pow 1314
-#define	labelID_budget_tot 1315
-#define	labelID_budget_bal 1316
-#define	labelID_budget_now 1317
-#define	labelID_budget_def 1318
+#define	labelID_budget_def 1315
+#define	labelID_budget_now 1316
+#define	labelID_budget_tot 1317
+#define	labelID_budget_bal 1318
 
 #define	fieldID_budget_tra 1300
 #define	fieldID_budget_pow 1301
@@ -231,3 +231,12 @@
 
 /* Controls for the Query Form */
 #define	labelID_zonetype 1001
+
+/* Strings */
+#define	resstrings_base	4096
+#define	si_cash_scale	0
+#define	si_empty_land	1
+#define	si_power_line	2
+#define	si_road		3
+#define	si_real_water	4
+#define	si_forest	5
