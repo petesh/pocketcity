@@ -81,11 +81,11 @@ begin
 end
 
 ALERT ID alertID_newGame
-ERROR
+CONFIRMATION
 BEGIN
-  TITLE "New"
-  MESSAGE "Function not working"
-  BUTTONS "Ok"
+  TITLE "New Game"
+  MESSAGE "Are you sure you want to start a new game?\nOld game will be lost"
+  BUTTONS "Yes" "No"
 END
 
 ALERT ID alertID_loadGame

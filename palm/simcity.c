@@ -33,6 +33,9 @@ unsigned short YOFFSET =15;
 static Boolean hPocketCity(EventPtr event);
 void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth);
 void _PalmInit(void);
+void UISaveGame(void);
+void UILoadGame(void);
+void UINewGame(void);
 
 void _UIGetFieldToBuildOn(int x, int y);
 Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags);
@@ -52,6 +55,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
     if (cmd == sysAppLaunchCmdNormalLaunch) {
         _PalmInit();
         PCityMain();
+        UILoadGame();
 
         FrmGotoForm(formID_pocketCity);
         do {
@@ -110,6 +114,8 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 
 
         } while (event.eType != appStopEvent);
+
+        UISaveGame();
     }
 
     return 0;
@@ -136,6 +142,7 @@ void _PalmInit(void)
         }
     }
 
+
 }
 
 
@@ -146,7 +153,6 @@ static Boolean hPocketCity(EventPtr event)
 {
     FormPtr form;
     int handled = 0;
-    int depth;
 
     switch (event->eType)
     {
@@ -210,7 +216,9 @@ static Boolean hPocketCity(EventPtr event)
                          handled = 1;
                          break;
                     case menuitemID_newGame:
-                         FrmAlert(alertID_newGame);
+                         if (FrmAlert(alertID_newGame) == 0) {
+                             UINewGame();
+                         }
                          handled = 1;
                          break;
                     case menuitemID_loadGame:
@@ -357,9 +365,6 @@ void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth)
 
 extern void UIDrawBorder()
 {
-    MemHandle bitmaphandle;
-    BitmapPtr bitmap;
-
     if (DoDrawing == 0) return;
 
     // border
@@ -540,7 +545,6 @@ extern int InitWorld(void)
 
 extern int ResizeWorld(long unsigned size)
 {
-    char pWorld;
     int i;
 
     if (MemHandleResize(worldHandle, size) != 0 || MemHandleResize(worldFlagsHandle, size) != 0)
@@ -645,4 +649,105 @@ Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags)
     }
 
     return (0);
+}
+
+
+
+void UISaveGame() 
+{
+    // saves the game in slot 0
+    Err err = 0;
+    DmOpenRef db;
+    MemHandle rec;
+    void * pRec;
+    
+    UInt16 index = 0;
+
+    db = DmOpenDatabaseByTypeCreator('DATA', 'PCit', dmModeReadWrite);
+    if (!db) {
+        err = DmCreateDatabase(0, "PCitySave", 'PCit', 'DATA', false);
+        if (err) {
+            return; // couldn't create
+        }
+
+        db = DmOpenDatabaseByTypeCreator('DATA', 'PCit', dmModeReadWrite);
+        if (!db) {
+            return; // couldn't open after creation
+        }
+    }
+    // no, this should NOT be an "else if"
+    if (db) {
+        if (DmNumRecords(db) > index) {
+            DmRemoveRecord(db, index);
+        }
+        rec = DmNewRecord(db,&index, mapsize*mapsize+100);
+        if (rec) {
+            pRec = MemHandleLock(rec);
+            LockWorld();
+            // write the header and some globals
+            DmWrite(pRec,0,"PC01",4);
+            DmWrite(pRec,4,&credits,4);
+            DmWrite(pRec,8,&map_xpos,1);
+            DmWrite(pRec,9,&map_ypos,1);
+            DmWrite(pRec,10,&mapsize,1);
+            DmWrite(pRec,11,&TimeElapsed,4);
+            
+            DmWrite(pRec,60,&BuildCount[0],40);
+            DmWrite(pRec,100,(void*)(unsigned char*)worldPtr,mapsize*mapsize);
+            UnlockWorld();
+            MemHandleUnlock(rec);
+            DmReleaseRecord(db,index,true);
+        }
+        
+        DmCloseDatabase(db);
+    }
+}
+
+void UILoadGame(void)
+{
+    // loads the game in slot 0
+    DmOpenRef db;
+    UInt16 index = 0;
+    MemHandle rec;
+    unsigned char * pTemp;
+
+    db = DmOpenDatabaseByTypeCreator('DATA', 'PCit', dmModeReadOnly);
+    if (!db) {
+        return; // no database
+    }
+    rec = DmQueryRecord(db, index);
+    if (rec) {
+        pTemp = (unsigned char*)MemHandleLock(rec);
+        if (strncmp("PC01",(char*)pTemp,4) == 0) { // version check
+            LockWorld();
+            memcpy((void*)&credits,(void*)pTemp+4,4);
+            memcpy((void*)&map_xpos,(void*)pTemp+8,1);
+            memcpy((void*)&map_ypos,(void*)pTemp+9,1);
+            memcpy((void*)&mapsize,(void*)pTemp+10,1);
+            memcpy((void*)&TimeElapsed,(void*)pTemp+11,4);
+
+            memcpy((void*)&BuildCount[0],(void*)pTemp+60,40);
+            memcpy((void*)worldPtr,(void*)pTemp+100,mapsize*mapsize);
+            UnlockWorld();
+            // update the power grid:
+            Sim_DistributePower();
+        }
+        MemHandleUnlock(rec);
+    }
+    DmCloseDatabase(db);
+}
+
+
+void UINewGame(void)
+{
+    // reset all vars
+    TimeElapsed = 0;
+    map_xpos = 50;
+    map_ypos = 50;
+    credits = 50000;
+    memset((void*)&BuildCount[0],0,40);
+    mapsize = 100;
+    ResizeWorld(mapsize*mapsize);
+    SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
+    DrawGame(1);
 }
