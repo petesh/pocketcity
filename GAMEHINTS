@@ -7,6 +7,8 @@ C = commercial zones
 
 Gameplay:
 =========
+
+== PalmOS:
 * Use the hardware keys to scroll the field (IE. up/down, address book and todo)
 * Tapping on the speed indicator will pause the game, tapping again will set the speed to "medium"
 * Tapping on the build icon will toggle bulldozer
@@ -15,6 +17,10 @@ Gameplay:
 * The home/launch button will bring you back to the game from map/budget
 * The "F/P/M" in the build list are the defence units:
   Fire fighters, police and military
+
+== GTK+ (Linux):
+* Use the left mouse button to build with
+* Use the right mouse button for a quick bulldozer
 
 
 City development:
