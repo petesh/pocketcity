@@ -20,7 +20,6 @@ unsigned char nSelectedBuildItem = 0;
 unsigned char nPreviousBuildItem = 0;
 
 short int lowShown = 0;
-short int noShown = 0;
 short int oldROM = 0;
 short int building = 0;
 
@@ -114,8 +113,9 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 
 
         } while (event.eType != appStopEvent);
-
-        UISaveGame();
+	if(FrmAlert(alertID_exitSave) == 0) {
+	        UISaveGame();
+	}
     }
 
     return 0;
@@ -166,25 +166,66 @@ static Boolean hPocketCity(EventPtr event)
             if (RctPtInRectangle(event->screenX, event->screenY, &rPlayGround)) {
                 // click was on the playground
                 _UIGetFieldToBuildOn(event->screenX, event->screenY);
-            } else if (event->screenX >= 150 && event->screenY >= 150) {
+            } else if (event->screenX >= 150 && event->screenY >= 150 && event->screenX <= 160) {
                 // click was on change speed
                 switch (SIM_GAME_LOOP_SECONDS)
                 {
                     case SPEED_PAUSED:
-                        SIM_GAME_LOOP_SECONDS = SPEED_MEDIUM;
+                        SIM_GAME_LOOP_SECONDS = SPEED_SLOW;
                         break;
+                    case SPEED_SLOW:
+                    	SIM_GAME_LOOP_SECONDS = SPEED_MEDIUM;
+                    	break;
+                    case SPEED_MEDIUM:
+                    	SIM_GAME_LOOP_SECONDS = SPEED_FAST;
+                    	break;
+                    case SPEED_FAST:
+                    	SIM_GAME_LOOP_SECONDS = SPEED_TURBO;
+                    	break;
+                    case SPEED_TURBO:
+                    	SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
+                    	break;
                     default:
                         SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
                         break;
                 }
-                UIDrawPop();
-            } else if (event->screenX >= 140 && event->screenY >= 150) {
+                UIDrawToolbar();
+            } else if (event->screenX >= 135 && event->screenY >= 150 && event->screenX <= 145) {
                 // click was on change production
-                if (nSelectedBuildItem == BUILD_BULLDOZER) {
-                    nSelectedBuildItem = nPreviousBuildItem;
-                } else {
-                    nPreviousBuildItem = nSelectedBuildItem;
-                    nSelectedBuildItem = BUILD_BULLDOZER;
+                switch(nSelectedBuildItem) {
+                	case BUILD_BULLDOZER:
+                		nSelectedBuildItem = BUILD_ZONE_RESIDENTIAL;
+                		break;
+                	case BUILD_ZONE_RESIDENTIAL:
+                		nSelectedBuildItem = BUILD_ZONE_COMMERCIAL;
+                		break;
+                	case BUILD_ZONE_COMMERCIAL:
+                		nSelectedBuildItem = BUILD_ZONE_INDUSTRIAL;
+                		break;
+                	case BUILD_ZONE_INDUSTRIAL:
+                		nSelectedBuildItem = BUILD_ROAD;
+                		break;
+                	case BUILD_ROAD:
+                		nSelectedBuildItem = BUILD_POWER_PLANT;
+                		break;
+                	case BUILD_POWER_PLANT:
+                		nSelectedBuildItem = BUILD_NUCLEAR_PLANT;
+                		break;
+                	case BUILD_NUCLEAR_PLANT:
+                		nSelectedBuildItem = BUILD_POWER_LINE;
+                		break;
+                	case BUILD_POWER_LINE:
+                		nSelectedBuildItem = BUILD_TREE;
+                		break;
+                	case BUILD_TREE:
+                		nSelectedBuildItem = BUILD_WATER;
+                		break;
+                	case BUILD_WATER:
+                		nSelectedBuildItem = BUILD_BULLDOZER;
+                		break;
+                	deafult:
+                		nSelectedBuildItem = BUILD_ZONE_RESIDENTIAL;
+                		break;
                 }
                 UIUpdateBuildIcon();
             }
@@ -238,27 +279,27 @@ static Boolean hPocketCity(EventPtr event)
                          break;
                     case menuID_SlowSpeed:
                         SIM_GAME_LOOP_SECONDS = SPEED_SLOW;
-                        UIDrawPop();
+                        UIDrawToolbar();
                         handled = 1;
                         break;
                     case menuID_MediumSpeed:
                         SIM_GAME_LOOP_SECONDS = SPEED_MEDIUM;
-                        UIDrawPop();
+                        UIDrawToolbar();
                         handled = 1;
                         break;
                     case menuID_FastSpeed:
                         SIM_GAME_LOOP_SECONDS = SPEED_FAST;
-                        UIDrawPop();
+                        UIDrawToolbar();
                         handled = 1;
                         break;
                     case menuID_TurboSpeed:
                         SIM_GAME_LOOP_SECONDS = SPEED_TURBO;
-                        UIDrawPop();
+                        UIDrawToolbar();
                         handled = 1;
                         break;
                     case menuID_PauseSpeed:
                         SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
-                        UIDrawPop();
+                        UIDrawToolbar();
                         handled = 1;
                         break;
 
@@ -477,12 +518,12 @@ extern void UIUpdateBuildIcon(void)
 
     bitmaphandle = DmGet1Resource(TBMP,bitmapID_iconBulldoze + nSelectedBuildItem);
     bitmap = MemHandleLock(bitmaphandle);
-    WinDrawBitmap(bitmap,140,150);
+    WinDrawBitmap(bitmap,135,150);
     MemHandleUnlock(bitmaphandle);
 }
 
 
-extern void UIDrawPop(void)
+extern void UIDrawToolbar(void)
 {
     char temp[50];
     MemHandle  bitmaphandle;
@@ -515,13 +556,9 @@ extern void UIDrawPop(void)
 
 extern void UICheckMoney(void)
 {
-    if(credits == 0) {
-        if(noShown == 0) {
-            FrmAlert(alertID_outMoney);
-            noShown = 1;
-        } else {
-            return;
-        }
+    if(credits <= 0) {
+        FrmAlert(alertID_lostGame);
+        UINewGame();
     } else if((credits <= 1000) || (credits == 1000)) {
         if(lowShown==0) {
             FrmAlert(alertID_lowFunds);
@@ -639,7 +676,7 @@ Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags)
         if ((launchFlags & (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp)) ==
                 (sysAppLaunchFlagNewGlobals | sysAppLaunchFlagUIApp))
         {
-            if (FrmAlert (alertID_RomIncompatible) == 1)
+            if (FrmAlert (alertID_RomIncompatible) == 0)
             { // try anyway
                 oldROM = 1;
                 return (0);

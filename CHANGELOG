@@ -19,7 +19,7 @@ Kean Pedersen:
   + New game menu option
   * Smoother scrolling (found some nice APIs)
 
-Kim Ingemann (new artist/developer):
+Kim Ingemann (new artist*developer):
   + Almost all the color tiles (and what a nice job)
 
 Morten Brix Pedersen (new developer):
@@ -28,7 +28,14 @@ Morten Brix Pedersen (new developer):
 Aaron Krill:
   * Changed population to be more realistic.
   * Changed powerplant upkeep to be more realistic.
+  * Changed No Money dialog to say that you've been fired, then restart the
+    game
   + Save/Load on Save/Load menu options
+  + Invalid savegame version number alert
+  + Game saved/loaded alerts
+  + Alert to ask if you want to save your game before exit.
+  * Speed alert indicators scroll through all speeds
+  * Build icon scrolls through all buildings
 
 Version 0.07
 ============
@@ -39,7 +46,7 @@ Kean Pedersen:
   + Simulation pauses while user builds (gives faster response time)
   + Speed indicator (tap to pause)
   * Temporary fix for PalmOS 3.1 (powerloss icon is not shown on OS < 3.5)
-  - Removed the 32x32 tiles, was too ugly/big/unused
+  - Removed the 32x32 tiles, was too ugly*big*unused
 
 Aaron Kill (new developer):
   + Alert to notify when you don't have enough money to build an item

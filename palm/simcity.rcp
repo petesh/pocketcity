@@ -59,9 +59,9 @@ END
 alert id alertID_RomIncompatible
 error
 begin
-  title "System Incompatible"
-  message "System Version 3.5 or greater is required to run this application\n\nYou can, however, try to run Pocket City anyway!"
-  buttons "Quit" "Try anyway"
+  title "System 3.1 Warning"
+  message "Only on PalmOS 3.5 and higher will the no-power indicators work. You are running OS 3.1"
+  buttons "Ok"
 end
 
 alert id alertID_outMoney
@@ -127,11 +127,25 @@ BEGIN
   BUTTONS "OK"
 END
 
+ALERT ID alertID_lostGame
+BEGIN
+  TITLE "Lost Game"
+  MESSAGE "You have run out of money and have been removed from your position as mayor."
+  BUTTONS "OK"
+END
+
 ALERT ID alertID_gameLoaded
 BEGIN
   TITLE "Game Loaded"
   MESSAGE "Game loaded..."
   BUTTONS "OK"
+END
+
+ALERT ID alertID_exitSave
+BEGIN
+  TITLE "Save Game Before Exit"
+  MESSAGE "Would you like to save your game before exiting? This will overwrite your currently saved game."
+  BUTTONS "Yes" "No"
 END
 
 BITMAPFAMILY ID bitmapID_SpeedPaused         "graphic/speed_paused.bmp" "" "" "graphic/speed_paused-color.bmp" COMPRESS

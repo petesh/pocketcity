@@ -30,4 +30,4 @@
 #define COUNT_POWERPLANTS       7
 #define COUNT_NUCLEARPLANTS     8
 
-#define WORLDPOS(x,y)            ((x)+(y)*mapsize)
+#define WORLDPOS(x,y)		(x+y*mapsize)

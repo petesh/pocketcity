@@ -49,6 +49,8 @@
 #define alertID_invalidSaveVersion	 1008
 #define alertID_gameSaved		 1009
 #define alertID_gameLoaded		 1010
+#define alertID_lostGame		 1011
+#define alertID_exitSave		 1012
 
 // the jumps in these defines makes coding easier
 #define bitmapID_SpeedPaused            3000
