@@ -8,10 +8,17 @@ Legend:
  '*' = fix/modification
  '-' = removed feature
 
-Version 0.14dev
-  * Savegames are backed up with application data
+Version 0.14
+  + Savegames are backed up with application data
+  + Build Date & Time is in about dialog
   * Removed recursion from the distribution loop (speed up)
   * savegame problems... autosave != citysave
+  * bug # 529058 Fatal Exception ( 1 )
+  * bug # 592947 Menu Freeze
+  * bug # 595053 Clear Volatiles On Load
+  * bug # 557213 Freeze and Fatal Exception ( 1 )
+  * bug # 593991 pipe chosen lays down pump on screen
+  * jog-assist works on menu on Clie
 
 Version 0.13br2
 ==========================
