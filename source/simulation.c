@@ -472,38 +472,42 @@ long unsigned int GetRandomZone()
 
 void DoTaxes()
 {
-    credits += (BuildCount[COUNT_RESIDENTIAL]+BuildCount[COUNT_COMMERCIAL]+BuildCount[COUNT_INDUSTRIAL])*50*tax/100;
+    credits += (
+            BuildCount[COUNT_RESIDENTIAL]*INCOME_RESIDENTIAL +
+            BuildCount[COUNT_COMMERCIAL]*INCOME_COMMERCIAL   +
+            BuildCount[COUNT_INDUSTRIAL]*INCOME_INDUSTRIAL
+            )*tax/100;
 }
 
 void DoUpkeep()
 {
 
     // roads
-    if (credits < BuildCount[COUNT_ROADS]*2) {
+    if (credits < BuildCount[COUNT_ROADS]*UPKEEP_ROAD) {
         // can't pay
         credits = 0;
         DoNastyStuffTo(TYPE_ROAD,1);
     } else {
-        credits -= BuildCount[COUNT_ROADS]*2;
+        credits -= BuildCount[COUNT_ROADS]*UPKEEP_ROAD;
     }
 
     // power lines
-    if (credits < BuildCount[COUNT_POWERLINES]) {
+    if (credits < BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE) {
         // can't pay
         credits = 0;
         DoNastyStuffTo(TYPE_POWER_LINE,5);
     } else {
-        credits -= BuildCount[COUNT_POWERLINES];
+        credits -= BuildCount[COUNT_POWERLINES]*UPKEEP_POWERLINE;
     }
 
     // power plants
-    if (credits < (BuildCount[COUNT_NUCLEARPLANTS]*500 + BuildCount[COUNT_POWERPLANTS]*200)) {
+    if (credits < (BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT + BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT)) {
         // can't pay
         credits = 0;
         DoNastyStuffTo(TYPE_POWER_PLANT,15);
         DoNastyStuffTo(TYPE_NUCLEAR_PLANT,30);
     } else {
-        credits -= (BuildCount[COUNT_NUCLEARPLANTS]*500 + BuildCount[COUNT_POWERPLANTS]*200);
+        credits -= (BuildCount[COUNT_NUCLEARPLANTS]*UPKEEP_NUCLEARPLANT + BuildCount[COUNT_POWERPLANTS]*UPKEEP_POWERPLANT);
     }
     
 }

@@ -57,7 +57,29 @@ USABLE
 MENUID menuID_budget
 BEGIN
     TITLE "Budget"
-    LABEL "Initial budget screen" AUTOID AT (CENTER 16)
+    LABEL "Income" AUTOID AT (CENTER 16)
+    LABEL "Residential" AUTOID AT (0 PrevBottom)
+    LABEL "-" labelID_budget_res AT (115 PrevTop)
+    LABEL "Commercial" AUTOID AT (0 PrevBottom)
+    LABEL "-" labelID_budget_com AT (115 PrevTop)
+    LABEL "Industrial" AUTOID AT (0 PrevBottom)
+    LABEL "-" labelID_budget_ind AT (115 PrevTop)
+
+    LABEL "Expenses" AUTOID AT (CENTER PrevBottom)
+    LABEL "Traffic" AUTOID AT (0 PrevBottom)
+    LABEL "-" labelID_budget_tra AT (115 PrevTop)
+    LABEL "Power" AUTOID AT (0 PrevBottom)
+    LABEL "-" labelID_budget_pow AT (115 PrevTop)
+
+    LABEL "Total" AUTOID AT (CENTER PrevBottom)
+    LABEL "Current balance" AUTOID AT (0 PrevBottom)
+    LABEL "-" labelID_budget_now AT (115 PrevTop)
+    LABEL "Change" AUTOID AT (0 PrevBottom)
+    LABEL "-" labelID_budget_tot AT (115 PrevTop)
+    LABEL "Next month's balance" AUTOID AT (0 PrevBottom)
+    LABEL "-" labelID_budget_bal AT (115 PrevTop)
+    LABEL "" AUTOID AT (0 PrevBottom)
+    
 END
 
 MENU ID menuID_budget

@@ -34,4 +34,15 @@
 #define COUNT_NUCLEARPLANTS     8
 #define COUNT_WASTE             9
 
+//income pr. zone/level
+#define INCOME_RESIDENTIAL      50
+#define INCOME_COMMERCIAL       50
+#define INCOME_INDUSTRIAL       50
+
+//upkeep cost pr. tile
+#define UPKEEP_ROAD             2
+#define UPKEEP_POWERLINE        1
+#define UPKEEP_NUCLEARPLANT     500
+#define UPKEEP_POWERPLANT       200
+
 #define WORLDPOS(x,y)		(x+y*mapsize)
