@@ -412,7 +412,7 @@ extern void UIDrawPop(void)
 
 
 	StrCopy(temp, "Pop: ");
-	LongToString(BuildCount[COUNT_RESIDENTIAL]*775,(char*)c);
+	LongToString(BuildCount[COUNT_RESIDENTIAL]*188,(char*)c);
 	StrCat(temp, c);
 
 
