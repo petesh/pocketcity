@@ -244,11 +244,8 @@ EventLoop(void)
         if (!IsGameInProgress()) continue;
 
         /* Game is fully formally paused ? */
-        if (!IsGamePlaying()) {
-            WriteLog("-");
+        if (!IsGamePlaying())
             continue;
-        }
-        WriteLog("+");
 
         if (IsBuilding()) continue;
 
@@ -1020,8 +1017,8 @@ void
 _UIGetFieldToBuildOn(int x, int y)
 {
     RectangleType rect;
-    rect.extent.x = vgame.tileSize * vgame.tileSize;
-    rect.extent.y = vgame.tileSize * vgame.tileSize;
+    rect.extent.x = vgame.visible_x * vgame.tileSize;
+    rect.extent.y = vgame.visible_y * vgame.tileSize;
     rect.topLeft.x = XOFFSET;
     rect.topLeft.y = YOFFSET;
 
