@@ -909,6 +909,7 @@ extern void UIUpdateBuildIcon(void)
     if (DoDrawing == 0) { return; }
 
     bitmaphandle = DmGet1Resource(TBMP,bitmapID_iconBulldoze + nSelectedBuildItem);
+    if (bitmaphandle == NULL) { return; } // TODO: onscreen error? +save?
     bitmap = MemHandleLock(bitmaphandle);
     WinDrawBitmap(bitmap,140,150);
     MemHandleUnlock(bitmaphandle);
@@ -941,6 +942,7 @@ extern void UIDrawPop(void)
 
 
     bitmaphandle = DmGet1Resource( TBMP, bitmapID_SpeedPaused + SIM_GAME_LOOP_SECONDS);
+    if (bitmaphandle == NULL) { return; } // TODO: onscreen error? +save?
     bitmap = MemHandleLock(bitmaphandle);
     WinDrawBitmap(bitmap, 150,150);
     MemHandleUnlock(bitmaphandle);
