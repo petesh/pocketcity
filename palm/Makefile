@@ -25,7 +25,7 @@ bin.stm: simcity.rcp
 	echo touching>bin.stm
 
 bin-color.stm: simcity-color.rcp
-	pilrc simcity-color.rcp tempcolor/
+	pilrc simcity-color.rcp tempcolor
 	echo touching>bin-color.stm
 
 zones.stm: zones.rcp
@@ -33,7 +33,7 @@ zones.stm: zones.rcp
 	echo touching>zones.stm
 
 zones-color.stm: zones-color.rcp
-	pilrc zones-color.rcp tempcolor/
+	pilrc zones-color.rcp tempcolor
 	echo touching>zones-color.stm
 
 grcs.stm: simcity
