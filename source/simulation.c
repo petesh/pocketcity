@@ -493,9 +493,9 @@ void DoTaxes()
     short unsigned int comTax;
     short unsigned int indTax;
 
-    popTax = (BuildCount[COUNT_RESIDENTIAL]*188)/100;
-    comTax = (BuildCount[COUNT_COMMERCIAL]*188)/100;
-    indTax = (BuildCount[COUNT_INDUSTRIAL]*188)/100;
+    popTax = (BuildCount[COUNT_RESIDENTIAL]*50)/100;
+    comTax = (BuildCount[COUNT_COMMERCIAL]*50)/100;
+    indTax = (BuildCount[COUNT_INDUSTRIAL]*50)/100;
 
     thisMonthsTaxes = popTax+comTax+indTax;
     credits += thisMonthsTaxes;
@@ -507,13 +507,25 @@ void DoUpkeep()
 {
 	long unsigned int roadCount;
 	long unsigned int roadUpkeep;
+	long unsigned int powerLineCount;
+	long unsigned int powerLineUpkeep;
+	long unsigned int powerPlantCount;
+	long unsigned int powerPlantUpkeep;
 	long unsigned int totalUpkeep;
 	
-	roadCount = BuildCount[COUNT_ROADS];
-	roadUpkeep = 2;
-	totalUpkeep = roadCount*roadUpkeep;
+	LockWorld();
 	
-	credits = credits-totalUpkeep;
+	roadCount = BuildCount[COUNT_ROADS];
+	powerLineCount = BuildCount[COUNT_POWERLINES];
+	powerPlantCount = BuildCount[COUNT_POWERPLANTS];
+	roadUpkeep = 2;
+	powerLineUpkeep = 1;
+	powerPlantUpkeep = 100;
+	totalUpkeep = (roadCount*roadUpkeep)+(powerLineCount*powerLineUpkeep)+(powerPlantCount*powerPlantUpkeep);
+	
+	UnlockWorld();
+	
+	credits -= totalUpkeep;
 }
 
 extern int Sim_DoPhase(int nPhase)
