@@ -129,7 +129,7 @@ $(OBJDIR)/%.o: ../source/%.c ../source/%.h ../source/zakdef.h ../source/ui.h \
                 Makefile-include
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJDIR)/%.o: %.c Makefile-include
+$(OBJDIR)/%.o: %.c simcity_resconsts.h Makefile-include
 	$(CC) $(CFLAGS) -c $< -o $@
 
 #
