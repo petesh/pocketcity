@@ -93,32 +93,42 @@ BEGIN
 
     LABEL "EXPENSES" AUTOID AT (CENTER PrevBottom) FONT 1
     
-    LABEL "TRAFFIC" AUTOID AT (0 PrevBottom)
-    FIELD ID fieldID_budget_tra AT (60 prevtop 20 auto) 
+    LABEL "TRAFFIC_C" AUTOID AT (RIGHT@46 PrevBottom)
+    REPEATBUTTON "\002" rbutton_trafdown AT (PREVRIGHT+1 PREVTOP 12 12)
+	NOFRAME FONT 5
+    FIELD ID fieldID_budget_tra AT (PREVRIGHT prevtop 20 auto) 
         EDITABLE UNDERLINED MAXCHARS 3 NUMERIC RIGHTALIGN
     LABEL "%" AUTOID AT (prevright prevtop)
-    LABEL "------------" labelID_budget_tra AT (115 PrevTop)
+    REPEATBUTTON "\001" rbutton_trafup AT (PREVRIGHT+1 PREVTOP 12 12) NOFRAME FONT 5
+
+    LABEL "------------" labelID_budget_tra AT (110 PrevTop)
     
-    LABEL "POWER" AUTOID AT (0 PrevBottom)
-    FIELD ID fieldID_budget_pow AT (60 prevtop 20 auto) 
+    LABEL "POWER_C" AUTOID AT (RIGHT@46 PrevBottom)
+    REPEATBUTTON "\002" rbutton_powdown AT (PREVRIGHT+1 PREVTOP 12 12)
+	NOFRAME FONT 5
+    FIELD ID fieldID_budget_pow AT (PREVRIGHT prevtop 20 auto) 
         EDITABLE UNDERLINED MAXCHARS 3 NUMERIC RIGHTALIGN
     LABEL "%" AUTOID AT (prevright prevtop)
-    LABEL "------------" labelID_budget_pow AT (115 PrevTop)
+    REPEATBUTTON "\001" rbutton_powup AT (PREVRIGHT+1 PREVTOP 12 12) NOFRAME FONT 5
+    LABEL "------------" labelID_budget_pow AT (110 PrevTop)
     
-    LABEL "DEFENCE" AUTOID AT (0 PrevBottom)
-    FIELD ID fieldID_budget_def AT (60 prevtop 20 auto) 
+    LABEL "DEFENCE_C" AUTOID AT (RIGHT@46 PrevBottom)
+    REPEATBUTTON "\002" rbutton_defdown AT (PREVRIGHT+1 PREVTOP 12 12)
+	NOFRAME FONT 5
+    FIELD ID fieldID_budget_def AT (PREVRIGHT prevtop 20 auto) 
         EDITABLE UNDERLINED MAXCHARS 3 NUMERIC RIGHTALIGN
     LABEL "%" AUTOID AT (PREVRIGHT PREVTOP)
-    LABEL "------------" labelID_budget_def AT (115 PrevTop)
+    REPEATBUTTON "\001" rbutton_defup AT (PREVRIGHT+1 PREVTOP 12 12) NOFRAME FONT 5
+    LABEL "------------" labelID_budget_def AT (110 PrevTop)
 
 
     LABEL "TOTAL" AUTOID AT (CENTER PrevBottom) FONT 1
     LABEL "CURRBAL" AUTOID AT (0 PrevBottom)
-    LABEL "------------" labelID_budget_now AT (115 PrevTop)
+    LABEL "------------" labelID_budget_now AT (110 PrevTop)
     LABEL "BALDELTA" AUTOID AT (0 PrevBottom)
-    LABEL "------------" labelID_budget_tot AT (115 PrevTop)
+    LABEL "------------" labelID_budget_tot AT (110 PrevTop)
     LABEL "NEXTMONTHBAL" AUTOID AT (0 PrevBottom)
-    LABEL "------------" labelID_budget_bal AT (115 PrevTop)
+    LABEL "------------" labelID_budget_bal AT (110 PrevTop)
 END
 
 MENU ID menu_budget

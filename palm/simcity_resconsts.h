@@ -120,7 +120,22 @@
 
 /* menu for budget */
 #define	menuitemID_BudgetBack 1300
-#define	labelID_budget_inc 1310
+
+#define	fieldID_taxrate		1300
+#define	fieldID_budget_tra	1301
+#define	fieldID_budget_pow	1302
+#define	fieldID_budget_def	1303
+
+#define rbutton_taxdown		1304
+#define rbutton_taxup		1305
+#define rbutton_trafdown	1306
+#define rbutton_trafup		1307
+#define rbutton_powdown		1308
+#define rbutton_powup		1309
+#define rbutton_defdown		1310
+#define rbutton_defup		1311
+
+#define	labelID_budget_inc 1312
 
 #define	labelID_budget_tra 1313
 #define	labelID_budget_pow 1314
@@ -129,14 +144,6 @@
 #define	labelID_budget_now 1316
 #define	labelID_budget_tot 1317
 #define	labelID_budget_bal 1318
-
-#define	fieldID_taxrate		1300
-#define	fieldID_budget_tra	1301
-#define	fieldID_budget_pow	1302
-#define	fieldID_budget_def	1303
-
-#define rbutton_taxdown	   1304
-#define rbutton_taxup	   1305
 
 /* menu for map */
 #define	menuitemID_MapBack 1340

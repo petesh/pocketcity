@@ -14,8 +14,9 @@
 static FormPtr budgetSetup(void) MAP_SECTION;
 static void budgetCleanup(void) MAP_SECTION;
 static void dealRepeats(EventPtr event) MAP_SECTION;
-static const struct buttonmapping *getIndex(UInt16 buttonControl)
-    MAP_SECTION;
+static void dealFieldContentChange(UInt16 fieldID) MAP_SECTION;
+static const struct buttonmapping *getIndex(UInt16 buttonControl,
+    Boolean isButton) MAP_SECTION;
 static void updateBudgetValue(FormPtr form, UInt16 label, const Char *format,
     long value) MAP_SECTION;
 static void updateBudgetNumber(BudgetNumber bn) MAP_SECTION;
@@ -24,23 +25,36 @@ static const struct buttonmapping {
 	UInt16		down;
 	UInt16		up;
 	UInt16		field;
+	BudgetNumber	affects;
 	Int16		min;
 	Int16		max;
 	UInt32		fldOffset;
 } buttonmappings[] = {
-	{ rbutton_taxdown, rbutton_taxup, fieldID_taxrate, 0, 20, offsetof(GameStruct, tax) }
+	{ rbutton_taxdown, rbutton_taxup, fieldID_taxrate, bnIncome,
+		0, 20, offsetof(GameStruct, tax) },
+	{ rbutton_trafdown, rbutton_trafup, fieldID_budget_tra,
+		bnTraffic, 0, 100, offsetof(GameStruct, upkeep[0]) },
+	{ rbutton_powdown, rbutton_powup, fieldID_budget_pow,
+		bnPower, 0, 100, offsetof(GameStruct, upkeep[1]) },
+	{ rbutton_defdown, rbutton_defup, fieldID_budget_def,
+		bnDefence, 0, 100, offsetof(GameStruct, upkeep[2]) }
 };
 
 #define BUTTONMAPLEN	(sizeof (buttonmappings) / sizeof (buttonmappings[0]))
 
 static const struct buttonmapping *
-getIndex(UInt16 buttonControl)
+getIndex(UInt16 buttonControl, Boolean isButton)
 {
 	UInt16 i = 0;
 	for (i = 0; i < BUTTONMAPLEN; i++) {
-		if (buttonControl == buttonmappings[i].down ||
-		    buttonControl == buttonmappings[i].up)
-			return (&buttonmappings[i]);
+		if (isButton) {
+			if (buttonControl == buttonmappings[i].down ||
+			    buttonControl == buttonmappings[i].up)
+				return (&buttonmappings[i]);
+		} else {
+			if (buttonControl == buttonmappings[i].field)
+				return (&buttonmappings[i]);
+		}
 	}
 	return (NULL);
 }
@@ -49,7 +63,7 @@ static void
 dealRepeats(EventPtr event)
 {
 	UInt16 control = event->data.ctlRepeat.controlID;
-	const struct buttonmapping *bm = getIndex(control);
+	const struct buttonmapping *bm = getIndex(control, true);
 	FieldPtr fp;
 	MemHandle mh;
 	MemPtr mp;
@@ -76,8 +90,51 @@ dealRepeats(EventPtr event)
 	MemHandleUnlock(mh);
 	FldSetTextHandle(fp, mh);
 	FldDrawField(fp);
+	((UInt8 *)(&game))[bm->fldOffset] = (UInt8)fld;
+	if (bm->affects != bnChange)
+		updateBudgetNumber(bnChange);
+	updateBudgetNumber(bm->affects);
+	updateBudgetNumber(bnNextMonth);
+}
+
+static void
+dealFieldContentChange(UInt16 fieldID)
+{
+	FieldPtr fp;
+	MemHandle mh;
+	MemPtr mp;
+	Boolean limited = false;
+	Int32 fld;
+	const struct buttonmapping *bm = getIndex(fieldID, false);
+
+	if (bm == NULL) return;
+	fp = (FieldPtr)GetObjectPtr(FrmGetActiveForm(), bm->field);
+	mh = FldGetTextHandle(fp);
+	mp = MemHandleLock(mh);
+	fld = StrAToI(mp);
+	if (fld < bm->min) {
+		limited = true;
+		fld = bm->min;
+	} else if (fld > bm->max) {
+		limited = true;
+		fld = bm->max;
+	}
+
+	if (limited) {
+		FldSetTextHandle(fp, NULL);
+		StrPrintF(mp, "%ld", fld);
+	}
+	MemHandleUnlock(mh);
+
+	if (limited) {
+		FldSetTextHandle(fp, mh);
+		FldDrawField(fp);
+	}
+
+	((UInt8 *)(&game))[bm->fldOffset] = (UInt8)fld;
 	updateBudgetNumber(bnChange);
 	updateBudgetNumber(bnNextMonth);
+	updateBudgetNumber(bm->affects);
 }
 /*
  * Handler for the budget form.
@@ -87,6 +144,9 @@ Boolean
 hBudget(EventPtr event)
 {
 	Boolean handled = false;
+	FormPtr form;
+	UInt16 fieldID;
+	WChar chr;
 
 	switch (event->eType) {
 	case frmOpenEvent:
@@ -97,13 +157,24 @@ hBudget(EventPtr event)
 		break;
 	case frmCloseEvent:
 		WriteLog("closing budget\n");
-		budgetCleanup();
 		break;
 	case keyDownEvent:
-		switch (event->data.keyDown.chr) {
-		case vchrLaunch:
+		chr = event->data.keyDown.chr;
+		if (chr == vchrLaunch) {
 			FrmGotoForm(formID_pocketCity);
 			handled = true;
+			break;
+		}
+		/* Cheat ... enqueue a ~ character to post-process the text */
+		if ((chr >= chrDigitZero && chr <= chrDigitNine) ||
+		    (chr == chrBackspace)) {
+			EvtEnqueueKey(chrTilde, 0, 0);
+			break;
+		}
+		if (chr == chrTilde) {
+			form = FrmGetActiveForm();
+			fieldID = FrmGetObjectId(form, FrmGetFocus(form));
+			dealFieldContentChange(fieldID);
 			break;
 		}
 		break;
@@ -235,34 +306,4 @@ budgetSetup(void)
 	FldSetTextHandle((FieldPtr)GetObjectPtr(form,
 		    fieldID_taxrate), texthandle);
 	return (form);
-}
-
-/*
- * save the upkeep settings.
- * Also releases the memory that was allocated by the initialization routine.
- */
-static void
-budgetCleanup(void)
-{
-	int	i, j;
-	FormPtr form = FrmGetActiveForm();
-
-	for (i = 0; i < 3; i++) {
-		Int32 j = StrAToI(FldGetTextPtr((FieldPtr)GetObjectPtr(form,
-		    fieldID_budget_tra+i)));
-		if (j < 0)
-			j = 0;
-		if (j > 100)
-			j = 100;
-		game.upkeep[i] = j;
-	}
-	j = StrAToI(FldGetTextPtr((FieldPtr)GetObjectPtr(form,
-	    fieldID_taxrate)));
-	if (j < 0)
-		j = 0;
-	if (j > 20)
-		j = 20;
-	game.tax = j;
-
-	form = FrmGetActiveForm();
 }
