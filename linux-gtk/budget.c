@@ -11,6 +11,7 @@
 #include <globals.h>
 #include <main.h>
 #include <compilerpragmas.h>
+#include <uibits.h>
 
 /*! \brief handle for the budget dialog */
 static GtkWidget *dlg = 0;
@@ -135,35 +136,6 @@ close_budget(GtkWidget *widget __attribute__((unused)),
 }
 
 /*!
- * \brief create a left aligned label
- * \param s the string to put into the label
- * \return the newly created label
- */
-static GtkWidget *
-create_left_label(char *s)
-{
-	GtkWidget *l;
-
-	l = gtk_label_new(s);
-	gtk_misc_set_alignment(GTK_MISC(l), 0, 0.5);
-	return (l);
-}
-
-/*!
- * \brief create a right aligned label with the content "-"
- * \return the newly created right laligned label
- */
-static GtkWidget *
-create_right_label(void)
-{
-	GtkWidget * l;
-
-	l = gtk_label_new("-");
-	gtk_misc_set_alignment(GTK_MISC(l), 1, 0.5);
-	return (l);
-}
-
-/*!
  * \brief View the budget form
  *
  * This is the GTK handler for displaying the budget form.
@@ -218,15 +190,15 @@ ViewBudget(GtkWidget *w __attribute__((unused)),
 	    create_left_label("Next month's balance"), 0, 2, 13, 14);
 
 	/* now the moneyflow */
-	lres = create_right_label();
-	lcom = create_right_label();
-	lind = create_right_label();
-	lpow = create_right_label();
-	ltra = create_right_label();
-	ldef = create_right_label();
-	lbal = create_right_label();
-	lcha = create_right_label();
-	lnex = create_right_label();
+	lres = create_right_label("-");
+	lcom = create_right_label("-");
+	lind = create_right_label("-");
+	lpow = create_right_label("-");
+	ltra = create_right_label("-");
+	ldef = create_right_label("-");
+	lbal = create_right_label("-");
+	lcha = create_right_label("-");
+	lnex = create_right_label("-");
 	gtk_table_attach_defaults(GTK_TABLE(table), lres, 2, 3, 1, 2);
 	gtk_table_attach_defaults(GTK_TABLE(table), lcom, 2, 3, 2, 3);
 	gtk_table_attach_defaults(GTK_TABLE(table), lind, 2, 3, 3, 4);
@@ -243,21 +215,21 @@ ViewBudget(GtkWidget *w __attribute__((unused)),
 	spinner = gtk_spin_button_new(GTK_ADJUSTMENT(adjust_tra), 0.1, 0);
 	gtk_table_attach_defaults(GTK_TABLE(table), spinner, 1, 2, 6, 7);
 	g_signal_connect(G_OBJECT(spinner), "value_changed",
-	    G_CALLBACK(budget_traffic), NULL);
+	    G_CALLBACK(budget_traffic), adjust_tra);
 
 	adjust_pow = gtk_adjustment_new(getUpkeep(ue_power), 0, 100, 1,
 	    10, 0);
 	spinner = gtk_spin_button_new(GTK_ADJUSTMENT(adjust_pow), 0.1, 0);
 	gtk_table_attach_defaults(GTK_TABLE(table), spinner, 1, 2, 7, 8);
 	g_signal_connect(G_OBJECT(spinner), "value_changed",
-	    G_CALLBACK(budget_power), NULL);
+	    G_CALLBACK(budget_power), adjust_pow);
 
 	adjust_def = gtk_adjustment_new(getUpkeep(ue_defense), 0, 100,
 	    1, 10, 0);
 	spinner = gtk_spin_button_new(GTK_ADJUSTMENT(adjust_def), 0.1, 0);
 	gtk_table_attach_defaults(GTK_TABLE(table), spinner, 1, 2, 8, 9);
 	g_signal_connect(G_OBJECT(spinner), "value_changed",
-	    G_CALLBACK(budget_defence), NULL);
+	    G_CALLBACK(budget_defence), adjust_def);
 
 	UIUpdateBudget();
 
