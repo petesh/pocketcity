@@ -5,8 +5,22 @@
 ******************************
 Legend:
  '+' = added feature
- '*' = bug fix
+ '*' = fix/modification
  '-' = removed feature
+
+
+Version 0.08
+============
+Kean Pedersen:
+  + Color enabled on supporting devices
+  + Some color tiles
+  * Smoother scrolling (found some nice APIs)
+
+Kim Ingemann (new artist/developer):
+  + Almost all the color tiles (and what a nice job)
+
+Morten Brix Pedersen (new developer):
+  * Code cleaning
 
 Version 0.07
 ============
@@ -58,7 +72,7 @@ Version 0.02 - 12 Jul 2001
 Kean Pedersen:
   * Can now build everything.
   + Shortcut keys/strokes for quick selection.
-  * Credits.
+  + Credits.
 
 Version 0.01 - 11 Jul 2001
 ============
