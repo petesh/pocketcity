@@ -31,6 +31,7 @@
 #define alertID_RomIncompatible          1001
 #define alertID_outMoney                 1002
 #define alertID_lowFunds                 1003
+#define alertID_about                    1004
 
 // the jumps in these defines makes coding easier
 #define bitmapID_SpeedPaused            3000

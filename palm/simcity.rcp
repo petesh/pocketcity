@@ -80,6 +80,15 @@ begin
         buttons "Uh-oh!"
 end
 
+ALERT ID alertID_about
+BEGIN
+  TITLE "About PocketCity for Palm"
+  MESSAGE "Pocketcity for Palm\n" \
+  "Made by Zakarun and various others\n" \
+  "Web: pocketcity.sf.net"
+  BUTTONS "Close"
+END
+
 BITMAP ID bitmapID_SpeedPaused         "graphic/speed_paused.bmp" COMPRESS
 BITMAP ID bitmapID_SpeedSlow           "graphic/speed_slow.bmp" COMPRESS
 BITMAP ID bitmapID_SpeedNormal         "graphic/speed_normal.bmp" COMPRESS

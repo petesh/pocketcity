@@ -117,12 +117,24 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 
 void _PalmInit(void)
 {
+    UInt32 depth;
     timeStamp = TimGetSeconds();
 
     rPlayGround.topLeft.x = 0;
     rPlayGround.topLeft.y = 15;
     rPlayGround.extent.x = 16*10;
     rPlayGround.extent.y = 16*8;
+
+    // set screen mode to colors if supported
+    if (oldROM != 1) {  // must be v3.5+ for some functions in here
+        WinScreenMode(winScreenModeGetSupportedDepths, 0, 0, &depth, 0);
+        if ((depth & 0x80) == 0x08 ) {
+            // 8pps is supported
+            depth = 8;
+            WinScreenMode(winScreenModeSet,0,0,&depth,0);
+        }
+    }
+
 }
 
 
@@ -133,6 +145,7 @@ static Boolean hPocketCity(EventPtr event)
 {
     FormPtr form;
     int handled = 0;
+    int depth;
 
     switch (event->eType)
     {
@@ -181,6 +194,10 @@ static Boolean hPocketCity(EventPtr event)
             } else {
                 switch (event->data.menu.itemID)
                 {
+                    case menuitemID_about:
+                         FrmAlert(alertID_about);
+                         handled = 1;
+                         break;
                     case menuID_SlowSpeed:
                         SIM_GAME_LOOP_SECONDS = SPEED_SLOW;
                         UIDrawPop();
