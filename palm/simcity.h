@@ -2,12 +2,13 @@
 #define formID_pocketCity                1000
 #define formID_budget                    1001
 #define formID_map                       1002
+#define formID_files                     1003
 
 #define menuID_pocketCity                1000
 #define menuID_budget                    1001
 #define menuID_map                       1002
+#define menuID_files                     1003
 
-#define menuitemID_newGame               1000
 #define menuitemID_loadGame              1001
 #define menuitemID_saveGame              1002
 #define menuitemID_about                 1003
@@ -50,7 +51,6 @@
 #define alertID_outMoney                 1002
 #define alertID_lowFunds                 1003
 #define alertID_about                    1004
-#define alertID_newGame                  1005
 #define alertID_loadGame                 1006
 #define alertID_saveGame                 1007
 #define alertID_invalidSaveVersion	 1008
@@ -80,6 +80,18 @@
 // menu for map
 #define menuitemID_MapBack              1340
 
+// controls for files
+#define listID_FilesList                1360
+#define buttonID_FilesNew               1361
+#define buttonID_FilesLoad              1362
+#define buttonID_FilesDelete            1363
+// menu for files
+#define menuitemID_FilesNew             1360
+#define menuitemID_FilesOpen            1361
+#define menuitemID_FilesDelete          1362
+
+
+// the bitmap for the tiles
 #define bitmapID_PowerLossOverlay       2001 // 32x32
 #define bitmapID_PowerLossOverlay2      2002 // 16x16
 

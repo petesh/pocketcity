@@ -10,7 +10,7 @@
 ###############################################################################
 
 CC = m68k-palmos-gcc
-CCFLAGS = -O2 -Wall
+CCFLAGS = -O2 -Wall -g
 
 all: blackwhite color
 

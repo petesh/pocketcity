@@ -24,6 +24,8 @@ short int lowShown = 0;
 short int noShown = 0;
 short int oldROM = 0;
 short int building = 0;
+short int game_in_progress = 0;
+short int savegame_index = 0;
 
 UInt32 timeStamp = 0;
 short simState = 0;
@@ -34,10 +36,19 @@ unsigned short YOFFSET =15;
 static Boolean hPocketCity(EventPtr event);
 static Boolean hBudget(EventPtr event);
 static Boolean hMap(EventPtr event);
+static Boolean hFiles(EventPtr event);
 void _UIDrawRect(int nTop,int nLeft,int nHeight,int nWidth);
+void _UIUpdateSaveGameList(void);
+void _UICreateNewSaveGame(void);
+void _UICleanSaveGameList(void);
+void _UIDeleteFromList(void);
+int  _UILoadFromList(void);
+void _UIClearAutoSaveSlot(void);
 void _PalmInit(void);
-void UISaveGame(void);
-void UILoadGame(void);
+void UISaveGame(UInt16 index);
+void UIDeleteGame(UInt16 index);
+int  UILoadGame(UInt16 index);
+int  UILoadAutoGame(void);
 void UINewGame(void);
 void DrawMap(void);
 
@@ -61,9 +72,12 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
     if (cmd == sysAppLaunchCmdNormalLaunch) {
         _PalmInit();
         PCityMain();
-        UILoadGame();
-
-        FrmGotoForm(formID_pocketCity);
+        if (UILoadAutoGame()) {
+            FrmGotoForm(formID_pocketCity);
+        } else {
+            FrmGotoForm(formID_files);
+        }
+        
         do {
             EvtGetEvent(&event, 1);
 
@@ -91,6 +105,9 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
                     case formID_map:
                         FrmSetEventHandler(form, hMap);
                         break;
+                    case formID_files:
+                        FrmSetEventHandler(form, hFiles);
+                        break;
                 }
             }
             else if (event.eType == winExitEvent) {
@@ -108,7 +125,7 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
             if (FrmDispatchEvent(&event)) continue;
 
             // the almighty homemade >>"multithreader"<<
-            if (building == 0 && SIM_GAME_LOOP_SECONDS != SPEED_PAUSED) {
+            if (game_in_progress == 1 && building == 0 && SIM_GAME_LOOP_SECONDS != SPEED_PAUSED) {
                 if (simState == 0) {
                     timeTemp = TimGetSeconds();
                     if (timeTemp >= timeStamp+SIM_GAME_LOOP_SECONDS)
@@ -127,7 +144,9 @@ UInt32 PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 
         } while (event.eType != appStopEvent);
 
-        UISaveGame();
+        if (game_in_progress) {
+            UISaveGame(0);
+        }
     }
 
     return 0;
@@ -258,6 +277,82 @@ void DrawMap(void)
 }
 
 
+
+static Boolean hFiles(EventPtr event)
+{
+    FormPtr form;
+    int handled = 0;
+
+    switch (event->eType)
+    {
+        case frmOpenEvent:
+            game_in_progress = 0;
+            form = FrmGetActiveForm();
+            FrmDrawForm(form);
+            _UIUpdateSaveGameList();
+            handled = 1;
+            break;
+        case frmCloseEvent:
+            _UICleanSaveGameList();
+            break;
+        case ctlSelectEvent:
+            switch (event->data.ctlSelect.controlID)
+            {
+                case buttonID_FilesNew:
+                    // create new game and add it to the list
+                    _UICreateNewSaveGame();
+                    _UICleanSaveGameList();
+                    _UIUpdateSaveGameList();
+                    handled = 1;
+                    break;
+                case buttonID_FilesLoad:
+                    // create new game
+                    if (_UILoadFromList()) {
+                        FrmGotoForm(formID_pocketCity);
+                    }
+                    handled = 1;
+                    break;
+                case buttonID_FilesDelete:
+                    _UIDeleteFromList();
+                    _UICleanSaveGameList();
+                    _UIUpdateSaveGameList();
+                    handled = 1;
+                    break;
+            }
+            break;
+        case menuEvent:
+            switch (event->data.menu.itemID)
+            {
+                case menuitemID_FilesNew:
+                    // create new game and add it to the list
+                    _UICreateNewSaveGame();
+                    _UICleanSaveGameList();
+                    _UIUpdateSaveGameList();
+                    handled = 1;
+                    break;
+                case menuitemID_FilesOpen:
+                    // create new game
+                    if (_UILoadFromList()) {
+                        FrmGotoForm(formID_pocketCity);
+                    }
+                    handled = 1;
+                    break;
+                case menuitemID_FilesDelete:
+                    _UIDeleteFromList();
+                    _UICleanSaveGameList();
+                    _UIUpdateSaveGameList();
+                    handled = 1;
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return handled;
+}
+
+
 void BudgetInit(void)
 {
     FormPtr form;
@@ -337,6 +432,9 @@ static Boolean hPocketCity(EventPtr event)
             FrmDrawForm(form);
             DrawGame(1);
             handled = 1;
+            game_in_progress = 1;
+            break;
+        case frmCloseEvent:
             break;
         case penDownEvent:
             if (RctPtInRectangle(event->screenX, event->screenY, &rPlayGround)) {
@@ -404,23 +502,26 @@ static Boolean hPocketCity(EventPtr event)
                          FrmAlert(alertID_about);
                          handled = 1;
                          break;
-                    case menuitemID_newGame:
-                         if (FrmAlert(alertID_newGame) == 0) {
-                             UINewGame();
-                         }
-                         handled = 1;
-                         break;
                     case menuitemID_loadGame:
-                         if (FrmAlert(alertID_loadGame) == 0) {
-                             UILoadGame();
-			     DrawGame(1);
-			     FrmAlert(alertID_gameLoaded);
+                         switch(FrmAlert(alertID_loadGame))
+                         {
+                             case 0: // save game
+                                 UISaveGame(savegame_index);
+                                 _UIClearAutoSaveSlot();
+                                 FrmGotoForm(formID_files);
+                                 break;
+                             case 1: // don't save
+                                 _UIClearAutoSaveSlot();
+                                 FrmGotoForm(formID_files);
+                                 break;
+                             case 2: // cancel
+                                 break;
                          }
                          handled = 1;
                          break;
                     case menuitemID_saveGame:
                          if (FrmAlert(alertID_saveGame) == 0) {
-                             UISaveGame();
+                             UISaveGame(savegame_index);
                              FrmAlert(alertID_gameSaved);
                          }
                          handled = 1;
@@ -900,8 +1001,25 @@ Err RomVersionCompatible (UInt32 requiredVersion, UInt16 launchFlags)
 }
 
 
+void UIDeleteGame(UInt16 index) 
+{
+    // saves the game in slot 0
+    DmOpenRef db;
+    
+    db = DmOpenDatabaseByTypeCreator('DATA', 'PCit', dmModeReadWrite);
+    if (!db) {
+        return; // couldn't open after creation
+    }
+    
+    if (DmNumRecords(db) < index) {
+        return; // index doesn't exist
+    }
 
-void UISaveGame() 
+    DmRemoveRecord(db, index);
+    DmCloseDatabase(db);
+}
+
+void UISaveGame(UInt16 index) 
 {
     // saves the game in slot 0
     Err err = 0;
@@ -909,8 +1027,6 @@ void UISaveGame()
     MemHandle rec;
     void * pRec;
     
-    UInt16 index = 0;
-
     db = DmOpenDatabaseByTypeCreator('DATA', 'PCit', dmModeReadWrite);
     if (!db) {
         err = DmCreateDatabase(0, "PCitySave", 'PCit', 'DATA', false);
@@ -928,12 +1044,12 @@ void UISaveGame()
         if (DmNumRecords(db) > index) {
             DmRemoveRecord(db, index);
         }
-        rec = DmNewRecord(db,&index, mapsize*mapsize+100);
+        rec = DmNewRecord(db,&index, mapsize*mapsize+200);
         if (rec) {
             pRec = MemHandleLock(rec);
             LockWorld();
             // write the header and some globals
-            DmWrite(pRec,0,"PC02",4);
+            DmWrite(pRec,0,"PC03",4);
             DmWrite(pRec,4,&credits,4);
             DmWrite(pRec,8,&map_xpos,1);
             DmWrite(pRec,9,&map_ypos,1);
@@ -941,7 +1057,8 @@ void UISaveGame()
             DmWrite(pRec,11,&TimeElapsed,4);
             
             DmWrite(pRec,20,&BuildCount[0],80);
-            DmWrite(pRec,100,(void*)(unsigned char*)worldPtr,mapsize*mapsize);
+            DmWrite(pRec,100,"Old savegame\0",13);
+            DmWrite(pRec,200,(void*)(unsigned char*)worldPtr,mapsize*mapsize);
             UnlockWorld();
             MemHandleUnlock(rec);
             DmReleaseRecord(db,index,true);
@@ -951,22 +1068,27 @@ void UISaveGame()
     }
 }
 
-void UILoadGame(void)
+int UILoadAutoGame(void)
 {
-    // loads the game in slot 0
+    return UILoadGame(0);
+}
+
+int UILoadGame(UInt16 index)
+{
     DmOpenRef db;
-    UInt16 index = 0;
     MemHandle rec;
     unsigned char * pTemp;
+    short int loaded = 0;
+    char name[20];
 
     db = DmOpenDatabaseByTypeCreator('DATA', 'PCit', dmModeReadOnly);
     if (!db) {
-        return; // no database
+        return 0; // no database
     }
     rec = DmQueryRecord(db, index);
     if (rec) {
         pTemp = (unsigned char*)MemHandleLock(rec);
-        if (strncmp("PC02",(char*)pTemp,4) == 0) { // version check
+        if (strncmp("PC03",(char*)pTemp,4) == 0) { // version check
             LockWorld();
             memcpy((void*)&credits,(void*)pTemp+4,4);
             memcpy((void*)&map_xpos,(void*)pTemp+8,1);
@@ -975,16 +1097,32 @@ void UILoadGame(void)
             memcpy((void*)&TimeElapsed,(void*)pTemp+11,4);
 
             memcpy((void*)&BuildCount[0],(void*)pTemp+20,80);
-            memcpy((void*)worldPtr,(void*)pTemp+100,mapsize*mapsize);
+            memcpy((void*)name, (void*)pTemp+100,20);
+            memcpy((void*)worldPtr,(void*)pTemp+200,mapsize*mapsize);
             UnlockWorld();
             // update the power grid:
             Sim_DistributePower();
+            loaded = 1;
+        } else if (strncmp("PC00",(char*)pTemp,4) == 0) { // flagged to create new game
+            UINewGame();
+            UISaveGame(index); // save the newly created map
+            loaded = 2;
+        } else if (strncmp("PCNO",(char*)pTemp,4) == 0) { // flagged to be an empty save game
+            loaded = 0;
         } else {
         	FrmAlert(alertID_invalidSaveVersion);
         }
-        MemHandleUnlock(rec);
+        if (loaded != 2) {
+            MemHandleUnlock(rec);
+        }
     }
     DmCloseDatabase(db);
+    if (loaded != 0) {
+        savegame_index = index;
+    } else {
+        savegame_index = 0;
+    }
+    return loaded;
 }
 
 
@@ -1002,4 +1140,146 @@ void UINewGame(void)
     CreateFullRiver();
     CreateForests();
     DrawGame(1);
+    game_in_progress = 1;
+}
+
+char * pArray[50];
+
+void _UIUpdateSaveGameList(void)
+{
+    DmOpenRef db;
+    UInt16 index = 0;
+    MemHandle rec;
+    unsigned char * pTemp;
+    unsigned short int nRec, nsIndex=0;
+    FormPtr form;
+    
+
+    db = DmOpenDatabaseByTypeCreator('DATA', 'PCit', dmModeReadOnly);
+    if (!db) {
+        form = FrmGetActiveForm();
+        LstSetListChoices(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)), NULL, 0);
+        LstDrawList(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)));
+        return; // no database
+    }
+    nRec = DmNumRecords(db);
+
+    for (index=1; index<nRec; index++) {
+        rec = DmQueryRecord(db, index);
+        if (rec) {
+            pArray[nsIndex] = MemPtrNew(20);
+            pTemp = (unsigned char*)MemHandleLock(rec);
+            strncpy(pArray[nsIndex], (char*)pTemp+100, 20);
+            MemHandleUnlock(rec);
+            nsIndex++;
+        }
+    }
+    DmCloseDatabase(db);
+
+    // update list
+    form = FrmGetActiveForm();
+    LstSetListChoices(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)), pArray, nsIndex);
+    LstDrawList(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)));
+}
+
+void _UICleanSaveGameList(void)
+{
+    int i,n;
+    FormPtr form = FrmGetActiveForm();
+    n = LstGetNumberOfItems(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)));
+    for (i=0; i<n;i++) {
+        MemPtrFree((void*)LstGetSelectionText(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)),i));
+    }
+
+}
+
+void _UICreateNewSaveGame(void)
+{
+    // saves the game in a new slot
+    Err err = 0;
+    DmOpenRef db;
+    MemHandle rec;
+    void * pRec;
+    
+    UInt16 index = dmMaxRecordIndex;
+
+    db = DmOpenDatabaseByTypeCreator('DATA', 'PCit', dmModeReadWrite);
+    if (!db) {
+        err = DmCreateDatabase(0, "PCitySave", 'PCit', 'DATA', false);
+        if (err) {
+            return; // couldn't create
+        }
+
+        db = DmOpenDatabaseByTypeCreator('DATA', 'PCit', dmModeReadWrite);
+        if (!db) {
+            return; // couldn't open after creation
+        }
+    }
+    // no, this should NOT be an "else if"
+    if (db) {
+        if (DmNumRecords(db) >= 50) {
+            // TODO: alert user - max is 50 savegames
+        } else {
+            if (DmNumRecords(db) == 0) {
+                // create an empty record in slot 0 if it's not there, this is
+                // used for autosaves
+                rec = DmNewRecord(db,&index, mapsize*mapsize+200);
+                if (rec) {
+                    DmReleaseRecord(db, index, true);
+                }
+            }
+            index = dmMaxRecordIndex;
+            rec = DmNewRecord(db,&index,mapsize*mapsize+200);
+            if (rec) {
+                pRec = MemHandleLock(rec);
+                // write the header and some globals
+                DmWrite(pRec,0,"PC00",4);
+                DmWrite(pRec,100,"New game\0",9);
+                MemHandleUnlock(rec);
+                DmReleaseRecord(db,index,true);
+            }
+        }
+        DmCloseDatabase(db);
+    }
+}
+
+
+int _UILoadFromList(void)
+{
+    FormPtr form = FrmGetActiveForm();
+    int index = LstGetSelection(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)));
+    if (index >= 0) {
+        return UILoadGame(index+1); // +1 is because the savegame in slot 0 isn't in the list
+    } else {
+        return 0;
+    }
+}
+
+void _UIDeleteFromList(void)
+{
+    FormPtr form = FrmGetActiveForm();
+    int index = LstGetSelection(FrmGetObjectPtr(form,FrmGetObjectIndex(form,listID_FilesList)));
+    return UIDeleteGame(index+1); // +1 is because the savegame in slot 0 isn't in the list
+}
+
+void _UIClearAutoSaveSlot(void)
+{
+    DmOpenRef db;
+    MemHandle rec;
+    void * pRec;
+    
+    db = DmOpenDatabaseByTypeCreator('DATA', 'PCit', dmModeReadWrite);
+    if (!db) {
+            return; // couldn't create
+    }
+    // no, this should NOT be an "else if"
+    rec = DmGetRecord(db,0);
+    if (rec) {
+        pRec = MemHandleLock(rec);
+        DmWrite(pRec,0,"PCNO",4);
+        MemHandleUnlock(rec);
+        DmReleaseRecord(db,0,true);
+    }
+        
+    DmCloseDatabase(db);
 }

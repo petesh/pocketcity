@@ -4,7 +4,6 @@
 #include "drawing.h"
 
 unsigned char GetGraphicNumber(long unsigned int pos);
-void DrawFieldWithoutInit(int xpos, int ypos);
 
 int CarryPower(unsigned char x);
 int IsRoad(unsigned char x);
@@ -128,7 +127,7 @@ extern void DrawCross(int xpos, int ypos)
 // ONLY call this function if you make sure to call
 // UIInitDrawing and UIFinishDrawing in the caller
 // Also remember to call (Un)lockWorld(flags) (4 functions)
-void DrawFieldWithoutInit(int xpos, int ypos)
+extern void DrawFieldWithoutInit(int xpos, int ypos)
 {
     if (xpos < map_xpos ||
             xpos >= map_xpos+visible_x ||

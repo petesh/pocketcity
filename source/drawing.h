@@ -16,6 +16,7 @@ extern void                MoveCursor(int direction);
 extern void                DrawField(int xpos, int ypos);
 extern void                DrawCross(int xpos, int ypos);
 extern unsigned char       GetSpecialGraphicNumber(long unsigned int pos, int nType);
+extern void                DrawFieldWithoutInit(int xpos, int ypos);
 
 
 

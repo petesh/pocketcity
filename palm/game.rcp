@@ -18,14 +18,13 @@ MENU ID menuID_pocketCity
 BEGIN
   PULLDOWN "Game"
   BEGIN
-    MENUITEM "New"                              menuitemID_newGame
-    MENUITEM "Load"                             menuitemID_loadGame
+    MENUITEM "New/Load..."                      menuitemID_loadGame
 	MENUITEM "Save"                             menuitemID_saveGame
 	MENUITEM "Budget"                           menuitemID_Budget
 	MENUITEM "Map"                              menuitemID_Map
 	MENUITEM SEPARATOR
-	MENUITEM "About"                        menuitemID_about
-	MENUITEM "Test"                              menuitemID_Funny
+	MENUITEM "About"                            menuitemID_about
+	MENUITEM "Test"                             menuitemID_Funny
   END
   PULLDOWN "Build"
   BEGIN
@@ -110,7 +109,28 @@ BEGIN
 END
 
 
+FORM ID formID_files AT ( 0 0 160 160 )
+USABLE
+MENUID menuID_files
+BEGIN
+    TITLE "Pocket City Savegames"
 
+    LIST "" ID listID_FilesList AT (1 18 158 123) USABLE 
+    BUTTON "New"     ID buttonID_FilesNew     AT (2 prevbottom+5 AUTO AUTO)
+    BUTTON "Load"    ID buttonID_FilesLoad    AT (prevright+4 prevtop AUTO AUTO)
+    BUTTON "Delete"  ID buttonID_FilesDelete  AT (prevright+4 prevtop AUTO AUTO)
+END
+
+
+MENU ID menuID_files
+BEGIN
+    PULLDOWN "Files"
+    BEGIN
+        MENUITEM "New"                      menuitemID_FilesNew
+        MENUITEM "Load"                     menuitemID_FilesOpen
+        MENUITEM "Delete"                   menuitemID_FilesDelete
+    END
+END
 
 
 
@@ -146,20 +166,12 @@ begin
         buttons "Uh-oh!"
 end
 
-ALERT ID alertID_newGame
-CONFIRMATION
-BEGIN
-  TITLE "New Game"
-  MESSAGE "Are you sure you want to start a new city?\nThis city will be lost!"
-  BUTTONS "Yes" "No"
-END
-
 ALERT ID alertID_loadGame
 ERROR
 BEGIN
-  TITLE "Load"
-  MESSAGE "Are you sure you want to load your saved city? This city will be lost!"
-  BUTTONS "Yes" "No"
+  TITLE "Save game?"
+  MESSAGE "Do you want to save your city?"
+  BUTTONS "Yes" "No" "Cancel"
 END
 
 ALERT ID alertID_saveGame

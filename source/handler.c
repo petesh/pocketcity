@@ -14,8 +14,8 @@ extern void PCityMain(void)
     ResizeWorld(mapsize*mapsize);
     SetUpGraphic();
     SIM_GAME_LOOP_SECONDS = SPEED_PAUSED;
-    CreateFullRiver();
-    CreateForests();
+//    CreateFullRiver();
+//    CreateForests();
 }
 
 extern void OnPCityEvent(int nEvent)
