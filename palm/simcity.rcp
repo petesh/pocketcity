@@ -10,7 +10,7 @@ BEGIN
     TITLE "Pocket City"
 END
 
-VERSION 1 "0.08"
+VERSION 1 "0.09"
 ICON "graphic/pcity.bmp"
 SMALLICON "graphic/pcitysmall.bmp"
 
