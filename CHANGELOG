@@ -14,6 +14,9 @@ Version 0.16dev
   * bug # 655365 crash after some time of interacting
   * bug # 726131 powerplant math is wrong in build routine
   + auto-bulldoze feature for trees.
+  + difficulty level (currently adjusts money at start)
+  + Query tool.
+  * Better Pause / Freeze logic for dialogs.
 
 Version 0.15
   * patch # 648260 Make greyscale work on HandEra 330
