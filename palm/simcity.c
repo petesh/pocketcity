@@ -18,10 +18,11 @@ MemPtr worldFlagsPtr;
 RectangleType rPlayGround;
 unsigned char nSelectedBuildItem = 0;
 
-short lowShown = 0;
-short noShown = 0;
-short oldROM = 0;
-short building = 0;
+short int lowShown = 0;
+short int noShown = 0;
+short int oldROM = 0;
+short int building = 0;
+short int tempSpeed = 0;
 
 UInt32 timeStamp = 0;
 short simState = 0;
@@ -198,6 +199,18 @@ static Boolean hPocketCity(EventPtr event)
 				SIM_GAME_LOOP_SECONDS = 0;
 				handled = 1;
 				break;
+			case menuID_PauseSpeed:
+				tempSpeed = SIM_GAME_LOOP_SECONDS;
+				SIM_GAME_LOOP_SECONDS = 9999999;
+				handled = 1;
+				break;
+			case menuID_UnPauseSpeed:
+				if(tempSpeed == 0) {
+					break;
+				} else {
+					SIM_GAME_LOOP_SECONDS = tempSpeed;
+					break;
+				}
 			}
 		}
 		break;
@@ -404,10 +417,10 @@ extern void UIDrawPop(void)
 	RectangleType rect;
     if (DoDrawing == 0) { return; }
     
-    StrPrintF(temp, "(%02u,%02u) Pop: %09li",
+    StrPrintF(temp, "(%02u,%02u) Pop: %9li",
             map_xpos,
             map_ypos,
-            (BuildCount[COUNT_RESIDENTIAL]*188));
+            (BuildCount[COUNT_RESIDENTIAL]*50));
 
 	rect.topLeft.x = 3;
 	rect.topLeft.y = 148;
