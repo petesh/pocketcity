@@ -22,6 +22,7 @@ Version 0.17dev
   * 873010 Graphics look horrible on sony palm5
   * 873809 key-repeat scrolling on v0.17 is broken (can't reproduce)
   * 880086 The display coordinates don't update
+  * 880177 Off by one error in build/destroy tests
 
 Version 0.16
   * bug # 655848 crash after money warning

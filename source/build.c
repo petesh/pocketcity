@@ -72,10 +72,13 @@ static const struct _bldStruct {
 	{ Be_Fire_Station, Build_Generic4, Z_FIRESTATION, GRID_ALL },
 	{ Be_Police_Station, Build_Generic4, Z_POLICEDEPT, GRID_ALL },
 	{ Be_Military_Base, Build_Generic4, Z_ARMYBASE, GRID_ALL },
+	{ Be_OOB, NULL, 0, 0 },
 	{ Be_Defence_Fire, Build_Defence, DuFireman, 0 },
 	{ Be_Defence_Police, Build_Defence, DuPolice, 0 },
 	{ Be_Defence_Military, Build_Defence, DuMilitary, 0 },
 };
+
+#define	BS_LEN	((sizeof (buildStructure) / sizeof (buildStructure[0])))
 
 /*!
  * \brief Build something at the location specified.
@@ -89,12 +92,15 @@ void
 BuildSomething(Int16 xpos, Int16 ypos)
 {
 	UInt16 item = UIGetSelectedBuildItem();
-	struct _bldStruct *be = (struct _bldStruct *)&(buildStructure[item]);
+	struct _bldStruct *be;
 
-	if (item >= (sizeof (buildStructure) / sizeof (buildStructure[0]))) {
+	if (item >= BS_LEN) {
 		UIDisplayError1("Unknown Build Item");
 		return;
 	}
+	be = (struct _bldStruct *)&(buildStructure[item]);
+
+	if (be->bt == Be_OOB) return;
 
 	be->func(xpos, ypos, be->type);
 	AddGridUpdate(be->gridsToUpdate);
@@ -111,6 +117,7 @@ static void
 RemoveDefence(Int16 xpos, Int16 ypos)
 {
 	int i;
+
 	for (i = 0; i < NUM_OF_UNITS; i++) {
 		if (game.units[i].x == xpos &&
 		    game.units[i].y == ypos) {
@@ -275,14 +282,17 @@ Build_Bulldoze(Int16 xpos, Int16 ypos, welem_t _type __attribute__((unused)))
 
 	LockWorld();
 	type = GetWorld(WORLDPOS(xpos, ypos));
-	if (CantBulldoze(type))
+
+	WriteLog("BuildBulldoze(type=%d)\n", (int)type);
+	if (CantBulldoze(type)) {
+		RemoveDefence(xpos, ypos);
 		goto end;
+	}
 	if (SpendMoney(BUILD_COST_BULLDOZER * blockSize(type))) {
 		Build_Destroy(xpos, ypos);
 	} else {
 		UIDisplayError(enOutOfMoney);
 	}
-	RemoveDefence(xpos, ypos);
 end:
 	UnlockWorld();
 }

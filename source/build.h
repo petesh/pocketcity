@@ -39,7 +39,8 @@ typedef enum {
 	Be_Defence_Fire,
 	Be_Defence_Police,
 	Be_Defence_Military,
-	Be_Extra
+	Be_Extra,
+	Be_OOB
 } BuildCode;
 
 /*! \brief The Cost of building a bulldozer */
