@@ -849,13 +849,14 @@ _UIGetFieldToBuildOn(int x, int y)
 int
 UIDisplayError(erdiType nError)
 {
-    if (nError < diFireOutbreak)
+    if (nError <= diFireOutbreak) {
 	switch (nError) {
         case enOutOfMemory: FrmAlert(alertID_errorOutOfMemory); break;
 	case enOutOfMoney: FrmAlert(alertID_outMoney); break;
     	default: ErrFatalDisplay("UIDisplayError called with unknown error");
 	}
-    else if (nError <= diMeteor) {
+        return (0);
+    } else if (nError <= diMeteor) {
         char string[512];
         SysStringByIndex(st_disasters, nError - diFireOutbreak, string,
             511);
