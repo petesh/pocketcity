@@ -161,10 +161,10 @@ unloadHiRes(void)
     Err rv = 0;
     if (hires != 0) {
         rv = HRClose(hires);
-        if (rv == NULL)
-            ErrFatalDisplayIf(0 != SysLibRemove(hires),
-                "Could not unload hires lib");
-        else ErrFatalDisplay("Could not HRClose");
+        if (rv == NULL) {
+            rv = SysLibRemove(hires);
+            ErrFatalDisplayIf(rv != 0, "Could not unload hires lib");
+        } else ErrFatalDisplay("Could not HRClose");
         hires = 0;
     }
     return (rv);
@@ -382,11 +382,12 @@ GetCreatorID(void)
     if (nCreatorID == 0) {
         UInt16 nCard;
         LocalID LocalDB;
-
-        ErrFatalDisplayIf(SysCurAppDatabase(&nCard, &LocalDB),
-          "Could not get current app database.");
-        ErrFatalDisplayIf(DmDatabaseInfo(nCard, LocalDB, 0, 0, 0, 0,
-              0, 0, 0, 0, 0, 0, &nCreatorID),
+        Err err;
+        err = SysCurAppDatabase(&nCard, &LocalDB);
+        ErrFatalDisplayIf(err, "Could not get current app database.");
+        err = DmDatabaseInfo(nCard, LocalDB, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, &nCreatorID);
+        ErrFatalDisplayIf(err,
           "Could not get app database info, looking for creator ID");
     }
 
