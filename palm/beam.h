@@ -27,10 +27,10 @@ void BeamRegister(void) BEAM_SECTION;
 
 /*!
  * \brief receive the city
+ * \param ptr the exchange manager data handle
  *
  * Must be in the first code section, which is the reason for not having the
  * section attribute.
- * \param exg the exchange manager data handle
  */
 Err BeamReceive(ExgSocketType *ptr);
 

@@ -95,7 +95,7 @@ UInt32 saveGameSize(GameStruct *gs);
 
 /*!
  * \brief beam the city named
- * \param name the name of the city to beam
+ * \param cityName the name of the city to beam
  * \return -1 if the city could not be beamed
  */
 Int32 BeamCityByName(Char *cityName) SAVE_SECTION;
