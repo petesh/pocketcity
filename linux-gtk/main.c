@@ -1058,6 +1058,16 @@ UnlockZone(lockZone zone __attribute__((unused)))
 	/* not used on this platform */
 }
 
+/*! unused */
+void
+ReleaseZone(lockZone zone)
+{
+	if (zone == lz_world) {
+		free(worldPtr);
+		worldPtr = NULL;
+	}
+}
+
 /*!
  * \brief get a random number between 0 and max
  * \param max the maximum limit of the value to obtain

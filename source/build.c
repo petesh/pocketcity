@@ -1024,15 +1024,17 @@ CreateFullRiver(void)
 {
 	int i, j, k, width;
 	int axis;
+	int kmax;
 
 	width = GetRandomNumber(5)+5;
-	j = GetRandomNumber(getMapWidth());
 	axis = GetRandomNumber(1);
+	kmax = axis ? getMapWidth() : getMapHeight();
+	j = GetRandomNumber(kmax);
 	LockZone(lz_world);
 
-	for (i = 0; i < getMapWidth(); i++) {
+	for (i = 0; i < kmax; i++) {
 		for (k = j; k < (width + j); k++) {
-			if ((k > 0) && (k < getMapWidth())) {
+			if ((k > 0) && (k < kmax)) {
 				if (axis)
 					setWorld(WORLDPOS(i, k),
 					    Z_REALWATER);
@@ -1060,7 +1062,7 @@ CreateFullRiver(void)
 				j--;
 			break;
 		case 1:
-			if (j < getMapWidth())
+			if (j < kmax)
 				j++;
 			break;
 		default:
@@ -1109,7 +1111,7 @@ CreateForest(UInt32 pos, Int16 size)
 	for (i = x - size; i <= x + size; i++) {
 		for (j = y - size; j <= y + size; j++) {
 			if (i < 0 || i >= getMapWidth() || j < 0 ||
-			    j >= getMapWidth())
+			    j >= getMapHeight())
 				continue;
 			if (getWorld(WORLDPOS(i, j)) != Z_DIRT)
 				continue;
