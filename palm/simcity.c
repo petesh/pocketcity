@@ -20,6 +20,7 @@
 #include <resCompat.h>
 #include <palmutils.h>
 #include <simcity_resconsts.h>
+#include <mem_compat.h>
 
 #ifdef DEBUG
 #include <HostControl.h>

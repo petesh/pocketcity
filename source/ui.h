@@ -83,6 +83,7 @@ typedef enum {
 
 void LockZone(lockZone zone);
 void UnlockZone(lockZone zone);
+void ReleaseZone(lockZone zone);
 
 #if defined(__cplusplus)
 }

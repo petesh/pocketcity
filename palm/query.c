@@ -12,6 +12,7 @@
 #include <zakdef.h>
 #include <simulation.h>
 #include <globals.h>
+#include <mem_compat.h>
 
 static FormPtr querySetup(void) QUERY_SECTION;
 static void queryCleanup(void) QUERY_SECTION;

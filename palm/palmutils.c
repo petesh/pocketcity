@@ -13,6 +13,7 @@
 #include <simcity.h>
 #include <palmutils.h>
 #include <ui.h>
+#include <mem_compat.h>
 
 /* included the TRG magic numbers :( */
 #define	TRGSysFtrID	'TRG '

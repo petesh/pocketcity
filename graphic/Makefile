@@ -30,4 +30,4 @@ $(ICONFILE)-%: $(DEPPNGS:%=$$*/%) $(MAPFILE)
 	touch $@
 
 clean:
-	rm -f $(ALLFILES) *.png *.bmp
+	rm -f $(ALLFILES) *.png *.bmp $(HEADERFILE)

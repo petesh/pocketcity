@@ -13,6 +13,7 @@
 #endif
 #include <mem_compat.h>
 #include <ui.h>
+#include <stack.h>
 
 #define	MILLION 1000000
 
@@ -44,17 +45,9 @@ void *worldPtr;
 /*!
  * \brief the 'growable' pointer
  *
- * This pointer contains an entry for *every* growable position on the map
- * and is sorted once per load.
+ * This pointer contains an entry for *every* growable position on the map.
  */
-void *growablePtr;
-
-/*!
- * \brief the size of the growable pointer
- *
- * This value is the size in bytes of the growable pointer element
- */
-UInt32 growableSize;
+dsObj *growable;
 
 /*! \brief This is the game configuration */
 AppConfig_t gameConfig = {
@@ -152,6 +145,7 @@ setDifficultyLevel(UInt8 value)
 Int16
 ResizeWorld(UInt32 size)
 {
+	WriteLog("Resize World = %ld\n", (long)size);
 	LockZone(lz_world);
 	worldPtr = gRealloc(worldPtr, size);
 
@@ -160,15 +154,12 @@ ResizeWorld(UInt32 size)
 		WriteLog("realloc failed - resizeworld\n");
 		return (0);
 	}
-	WriteLog("Resize World = %ld\n", (long)size);
 
 	gMemSet(worldPtr, size, 0);
 	UnlockZone(lz_world);
-	LockZone(lz_growable);
-	growablePtr = gRealloc(growablePtr, 4);
-	growableSize = 4;
-	UnlockZone(lz_growable);
-
+	if (growable != NULL)
+		ListDelete(growable);
+	growable = ListNew();
 	return (1);
 }
 
@@ -179,7 +170,7 @@ ResizeWorld(UInt32 size)
 Int16
 InitWorld(void)
 {
-	return (ResizeWorld(10));
+	return (ResizeWorld(5));
 }
 
 /*!
@@ -307,9 +298,10 @@ getWorldAndFlag(UInt32 pos, welem_t *world, selem_t *flag)
 void
 PurgeWorld()
 {
-	LockZone(lz_world);
-	if (worldPtr != NULL)
-		gFree(worldPtr);
+	ReleaseZone(lz_world);
+	if (growable != NULL)
+		ListDelete(growable);
+	growable = NULL;
 }
 
 /*!

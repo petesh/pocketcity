@@ -5,6 +5,7 @@
 #include <Field.h>
 #include <repeathandler.h>
 #include <palmutils.h>
+#include <mem_compat.h>
 
 #define BUTTONMAPLEN	(sizeof (buttonmappings) / sizeof (buttonmappings[0]))
 

@@ -9,7 +9,8 @@
 #include <ErrorMgr.h>
 #include <FeatureMgr.h>
 
-#include <resCompat.h>
+#include <ui.h>
+#include <mem_compat.h>
 
 typedef struct tag_dsobj {
 	MemHandle   sh; /* Start of stack... handle */

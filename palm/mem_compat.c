@@ -7,6 +7,76 @@
 
 #include <PalmTypes.h>
 #include <MemoryMgr.h>
+#include <ui.h>
+
+#if defined(MEM_DEBUG)
+MemPtr
+_MemPtrNew(UInt32 size, char *file, int line)
+{
+	MemPtr mp = MemPtrNew(size);
+	WriteLog("%lx = MemPtrNew(%lx) [%s:%d]\n", mp, size, file, line);
+	return (mp);
+}
+
+MemPtr
+_MemHandleLock(MemHandle mh, char *file, int line)
+{
+	MemPtr mp = MemHandleLock(mh);
+	WriteLog("%lx = MemHandleLock(%lx) [%s:%d]\n", mp, mh, file, line);
+	return (mp);
+}
+
+Err
+_MemHandleUnlock(MemHandle mh, char *file, int line)
+{
+	Err err = MemHandleUnlock(mh);
+	WriteLog("%x = MemHandleUnlock(%lx) [%s:%d]\n", err, mh, file, line);
+	return (err);
+}
+
+MemHandle
+_MemHandleNew(UInt32 size, char *file, int line)
+{
+	MemHandle mh = MemHandleNew(size);
+	WriteLog("%lx = MemHandleNew(%lx) [%s:%d]\n", mh, size, file, line);
+	return (mh);
+}
+
+MemHandle
+_MemPtrRecoverHandle(MemPtr mp, char *file, int line)
+{
+	MemHandle mh = MemPtrRecoverHandle(mp);
+	WriteLog("%lx = MemPtrRecoverHandle(%lx) [%s:%d]\n", mh, mp, file,
+	    line);
+	return (mh);
+}
+
+Err
+_MemHandleResize(MemHandle mh, UInt32 size, char *file, int line)
+{
+	Err err = MemHandleResize(mh, size);
+	WriteLog("%d = MemHandleResize(%lx, %lx) [%s:%d]\n", err, mh,
+	    size, file, line);
+	return (err);
+}
+
+Err
+_MemHandleFree(MemHandle mh, char *file, int line)
+{
+	Err err = MemHandleFree(mh);
+	WriteLog("%d = MemHandleFree(%lx) [%s:%d]\n", err, mh, file, line);
+	return (err);
+}
+
+Err
+_MemPtrFree(MemPtr mp, char *file, int line)
+{
+	Err err = MemPtrFree(mp);
+	WriteLog("%d = MemPtrFree(%lx) [%s:%d]\n", err, mp, file, line);
+	return (err);
+}
+#endif
+#include <mem_compat.h>
 
 /*!
  * \brief parallels the realloc function
