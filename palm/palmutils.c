@@ -264,7 +264,9 @@ FillStringList(UInt16 resID, UInt16 *length)
 		} else break;
 	} while (foo);
 	rv = (Char **)MemPtrNew(sizeof (*rv) * (max + 1));
+	MemSet(rv, sizeof (*rv) * (max + 1), 0);
 	lom = (Char *)MemPtrNew(sizeof (*lom) * maxlen);
+	MemSet(lom, sizeof (*lom) * maxlen, 0);
 	rv[0] = lom;
 	while (atitem < max) {
 		UInt16 sli;
