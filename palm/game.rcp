@@ -17,12 +17,12 @@ BEGIN
   PULLDOWN "Game"
   BEGIN
     MENUITEM "New/Load..."                      menuitemID_loadGame
-	MENUITEM "Save"                             menuitemID_saveGame
-	MENUITEM "Budget"                           menuitemID_Budget
-	MENUITEM "Map"                              menuitemID_Map
+	MENUITEM "Save"                             menuitemID_saveGame "s"
+	MENUITEM "Budget"                           menuitemID_Budget "b"
+	MENUITEM "Map"                              menuitemID_Map "m"
 	MENUITEM SEPARATOR
-	MENUITEM "About"                            menuitemID_about
 	MENUITEM "Test"                             menuitemID_Funny
+	MENUITEM "Settings"                      menuitemID_Configuration "c"
   END
   PULLDOWN "Build"
   BEGIN
@@ -37,6 +37,10 @@ BEGIN
 	MENUITEM "Turbo"                        menuID_TurboSpeed
 	MENUITEM SEPARATOR
 	MENUITEM "Pause"                        menuID_PauseSpeed
+  END
+  PULLDOWN "Help"
+  BEGIN
+	MENUITEM "About"			menuitemID_about
   END
 END
 
@@ -88,7 +92,7 @@ BEGIN
 
     POPUPTRIGGER "Budget" ID listID_shifter_popup AT (100 1 auto auto) LEFTANCHOR
     LIST 
-        "Budget" "Map" "Options"
+        "Budget" "Map"
         ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 3
     POPUPLIST ID listID_shifter_popup listID_shifter
     
@@ -114,14 +118,6 @@ BEGIN
     PUSHBUTTON "I"   ID buttonID_dis_one   AT (prevright prevtop auto auto) GROUP 1
     PUSHBUTTON "II"  ID buttonID_dis_two   AT (prevright prevtop auto auto) GROUP 1
     PUSHBUTTON "III" ID buttonID_dis_three AT (prevright prevtop auto auto) GROUP 1
-
-
-    /* formchangers (shapeshifters?) */
-    POPUPTRIGGER "Options" ID listID_shifter_popup AT (100 1 auto auto) LEFTANCHOR
-    LIST 
-        "Budget" "Map" "Options"
-        ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 3
-    POPUPLIST ID listID_shifter_popup listID_shifter
 END
 
 
@@ -140,7 +136,7 @@ BEGIN
     /* formchangers (shapeshifters?) */
     POPUPTRIGGER "Map" ID listID_shifter_popup AT (100 1 auto auto) LEFTANCHOR
     LIST
-        "Budget" "Map" "Options"
+        "Budget" "Map"
         ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 3
     POPUPLIST ID listID_shifter_popup listID_shifter
 END

@@ -28,6 +28,9 @@ extern void UIWriteLog(char * s);
 #define menuitemID_Budget                1004
 #define menuitemID_Map                   1005
 #define menuitemID_Funny                 1006
+
+#define menuitemID_Configuration        1007
+
 #define menuID_SlowSpeed                 1052
 #define menuID_MediumSpeed               1053
 #define menuID_FastSpeed                 1054

@@ -410,6 +410,10 @@ static Boolean hPocketCity(EventPtr event)
                     handled = 1;
                 }
                 break;
+            case menuitemID_Configuration:
+                FrmGotoForm(formID_options);
+                handled = 1;
+                break;
             case menuitemID_loadGame:
                 switch(FrmAlert(alertID_loadGame)) {
                 case 0: // save game
@@ -511,7 +515,8 @@ static Boolean hPocketCity(EventPtr event)
 }
 
 
-extern void UIGotoForm(int n)
+extern void
+UIGotoForm(int n)
 {
     switch (n) {
     case 0:
@@ -519,9 +524,6 @@ extern void UIGotoForm(int n)
         break;
     case 1:
         FrmGotoForm(formID_map);
-        break;
-    case 2:
-        FrmGotoForm(formID_options);
         break;
     default:
         break;
