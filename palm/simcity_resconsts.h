@@ -149,6 +149,8 @@
 #define buttonID_dis_two                1012
 #define buttonID_dis_three              1013
 
+#define checkboxID_autobulldoze         1014
+
 /* Controls for the DistribDetails Form */
 #define pb_dd_overview                  1000
 #define pb_dd_power                     1001

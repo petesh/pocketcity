@@ -57,15 +57,12 @@ extern void BuildSomething(int xpos, int ypos)
     int item = UIGetSelectedBuildItem();
     struct _bldStruct *be = (struct _bldStruct *)&(buildStructure[item]);
 
-#ifdef PALM
-    ErrFatalDisplayIf(
-      item >= (sizeof (buildStructure) / sizeof (buildStructure[0])),
-          "UI item out of range");
-#else
-    assert((unsigned)item <
-	(sizeof (buildStructure) / sizeof (buildStructure[0])));
-#endif
+    if (item >= (sizeof (buildStructure) / sizeof (buildStructure[0]))) {
+        UIDisplayError1("Unknown Build Item");
+        return;
+    }
 
+    /* cover the auto-bulldoze option */
     be->func(xpos, ypos, be->type);
     AddGridUpdate(be->gridsToUpdate);
 }
@@ -256,6 +253,9 @@ static const struct _costMappings {
 void
 Build_Generic(int xpos, int ypos, unsigned int type)
 {
+    unsigned char worldItem;
+    unsigned long toSpend = 0;
+
     struct _costMappings *cmi = (struct _costMappings *)getIndexOf(
       (char *)&genericMappings[0], sizeof (genericMappings[0]), type);
     LockWorld();
@@ -266,8 +266,13 @@ Build_Generic(int xpos, int ypos, unsigned int type)
 #endif
     if (cmi == NULL) return;
 
-    if (GetWorld(WORLDPOS(xpos, ypos)) == TYPE_DIRT) {
-        if (SpendMoney(cmi->cost)) {
+    toSpend = cmi->cost;
+
+    worldItem = GetWorld(WORLDPOS(xpos, ypos));
+    if (worldItem == TYPE_DIRT ||
+      ((worldItem == TYPE_TREE) && game.auto_bulldoze)) {
+        if (worldItem == TYPE_TREE) toSpend += BUILD_COST_BULLDOZER;
+        if (SpendMoney(toSpend)) {
             SetWorld(WORLDPOS(xpos,ypos), (unsigned char)type);
             DrawCross(xpos, ypos);
 

@@ -354,9 +354,22 @@ void UISetUpGraphic(void)
 
 
 int
-UIDisplayError(erdiType nError) 
+UIDisplayError1(char *error)
 {
     GtkWidget * dialog;
+    dialog = gtk_message_dialog_new(GTK_WINDOW(window),
+        GTK_DIALOG_DESTROY_WITH_PARENT,
+        GTK_MESSAGE_ERROR,
+        GTK_BUTTONS_OK,
+        "%s",
+        temp);
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(GTK_WIDGET(dialog));
+}
+
+int
+UIDisplayError(erdiType nError) 
+{
     char temp[100];
 
     switch (nError) {
@@ -378,14 +391,7 @@ UIDisplayError(erdiType nError)
     default:
         strcpy(temp,"An unknown error/disaster?"); break;
     }
-    dialog = gtk_message_dialog_new(GTK_WINDOW(window),
-        GTK_DIALOG_DESTROY_WITH_PARENT,
-        GTK_MESSAGE_ERROR,
-        GTK_BUTTONS_OK,
-        "%s",
-        temp);
-    gtk_dialog_run(GTK_DIALOG(dialog));
-    gtk_widget_destroy(GTK_WIDGET(dialog));
+	UIDisplayError1(temp);
     return 0;
 }
 

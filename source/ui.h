@@ -10,6 +10,8 @@ extern "C" {
 #endif
 
 int UIDisplayError(erdiType nError);
+int UIDisplayError1(char *message);
+
 void UIInitDrawing(void);
 void UIFinishDrawing(void);
 void UIUnlockScreen(void);

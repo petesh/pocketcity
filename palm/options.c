@@ -18,6 +18,8 @@ Boolean hOptions(EventPtr event)
         FrmDrawForm(form);
         CtlSetValue(FrmGetObjectPtr(form, FrmGetObjectIndex(form,
                   buttonID_dis_off+game.disaster_level)), 1);
+        CtlSetValue(FrmGetObjectPtr(form, FrmGetObjectIndex(form,
+                  checkboxID_autobulldoze)), game.auto_bulldoze);
         okHit = 0;
         handled = 1;
         break;
@@ -37,6 +39,8 @@ Boolean hOptions(EventPtr event)
                       FrmGetObjectIndex(form, buttonID_dis_three)))) {
                 game.disaster_level = 3;
             }
+            game.auto_bulldoze = CtlGetValue(FrmGetObjectPtr(form,
+                  FrmGetObjectIndex(form, checkboxID_autobulldoze)));
         }
         RestoreSpeed()
         break;

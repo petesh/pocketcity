@@ -212,7 +212,7 @@ typedef struct _game_struct05 {
     UInt32          _BuildCount[20];    /* Deprecated... calculated on reload */
     UInt32          TimeElapsed;        /* Number of months past 00 */
     UInt8           tax;                /* Tax rate */
-    UInt8           _tileSize;          /* Deprecated */
+    UInt8           auto_bulldoze;      /* was _tilesize ... Deprecated */
     UInt16          gameLoopSeconds;    /* Speed */
     Int8            cityname[20];       /* Name of city */
     UInt8           upkeep[3];          /* upkeep %ages for bits */

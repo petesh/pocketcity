@@ -875,6 +875,12 @@ UIDisplayError(erdiType nError)
     return (1);
 }
 
+int
+UIDisplayError1(char *message)
+{
+    FrmCustomAlert(alertID_majorbad, message, 0, 0);
+	return (0);
+}
 
 void UIInitDrawing(void) {};
 void UIFinishDrawing(void) {};
