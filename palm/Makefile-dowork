@@ -70,7 +70,7 @@ $(OBJDIR)/$(BINARY)-%.prc: $(OBJDIR) $(OBJDIR)/pcity $(OBJDIR)/%-lang/game.stm
 # The tile databases
 pcity-%.pdb: simcity-%.stm zones-%.stm
 	$(BUILDPRC) -o $@ -n $(DBNAME) -c $(PROGTOKEN) -t $(COLORDBTOKEN) \
-		--read-only temp-$*/*.bin
+		temp-$*/*.bin
 
 $(OBJDIR)/pcity-sections.o: $(OBJDIR)/pcity-sections.s
 	$(CC) -c $< -o $@
