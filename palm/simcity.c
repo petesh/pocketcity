@@ -432,14 +432,6 @@ static Boolean hPocketCity(EventPtr event)
 	    }
 	    handled = 1;
 	    break;
-	case menuitemID_about:
-	    DoAbout();
-	    handled = 1;
-	    break;
-	case menuitemID_tips:
-	    FrmHelp(StrID_tips);
-	    handled = 1;
-	    break;
 	case menuitemID_Budget:
 	    SaveSpeed();
 	    FrmGotoForm(formID_budget);
@@ -472,6 +464,17 @@ static Boolean hPocketCity(EventPtr event)
 	    FrmGotoForm(formID_options);
 	    handled = 1;
 	    break;
+
+	case mi_removeDefence:
+	    RemoveAllDefence();
+	    handled = 1;
+	    break;
+
+	case gi_buildExtra:
+	    UIPopUpExtraBuildList();
+	    handled = 1;
+	    break;
+
 	case menuID_SlowSpeed:
 	    game.gameLoopSeconds = SPEED_SLOW;
 	    UIDrawPop();
@@ -497,14 +500,7 @@ static Boolean hPocketCity(EventPtr event)
 	    UIDrawPop();
 	    handled = 1;
 	    break;
-	case mi_removeDefence:
-	    RemoveAllDefence();
-	    handled = 1;
-	    break;
-	case gi_buildExtra:
-	    UIPopUpExtraBuildList();
-	    handled = 1;
-	    break;
+
 	case mi_CauseFire:
 	case mi_CauseMeltDown:
 	case mi_CauseMonster:
@@ -516,6 +512,16 @@ static Boolean hPocketCity(EventPtr event)
 	    break;
 
 	}
+
+	case menuitemID_about:
+	    DoAbout();
+	    handled = 1;
+	    break;
+	case menuitemID_tips:
+	    FrmHelp(StrID_tips);
+	    handled = 1;
+	    break;
+
     case keyDownEvent:
         switch (event->data.keyDown.chr) {
         case vchrCalc:

@@ -12,52 +12,52 @@
 #define menu_budget                    	1001
 #define menu_map                       	1002
 
-#define menuitemID_loadGame              1001
-#define menuitemID_saveGame              1002
-#define menuitemID_about                 1003
-#define menuitemID_tips                  1008
-#define menuitemID_Budget                1004
-#define menuitemID_Map                   1005
-#define menuitemID_Funny                 1006
+#define menuitemID_loadGame             1001
+#define menuitemID_saveGame             1002
+#define menuitemID_Budget               1003
+#define menuitemID_Map                  1004
 
-#define menuitemID_Configuration        1007
+#define menuitemID_Funny                1005
 
-#define menuID_SlowSpeed                 1052
-#define menuID_MediumSpeed               1053
-#define menuID_FastSpeed                 1054
-#define menuID_TurboSpeed                1055
-#define menuID_PauseSpeed                1056
+#define menuitemID_Configuration        1006
 
-#define poplabel                         1055
+#define mi_removeDefence		1011
+#define mi_buildExtra                   1012 // pops up an extra list
 
-#define mi_removeDefence		1057
+#define mi_CauseFire			1013
+#define mi_CauseMeltDown		1014
+#define	mi_CauseMonster			1015
+#define mi_CauseDragon			1016
+#define mi_CauseMeteor			1017
 
-#define gi_buildBulldoze         1100
-#define gi_buildResidential      1101
-#define gi_buildCommercial       1102
-#define gi_buildIndustrial       1103
-#define gi_buildRoad             1104
+#define menuID_SlowSpeed                1021
+#define menuID_MediumSpeed              1022
+#define menuID_FastSpeed                1023
+#define menuID_TurboSpeed               1024
+#define menuID_PauseSpeed               1025
 
-#define gi_buildPowerPlant       1105
-#define gi_buildNuclearPlant     1106
-#define gi_buildPowerLine        1107
+#define menuitemID_about                1031
+#define menuitemID_tips                 1032
 
-#define gi_buildWaterPlant       1108
-#define gi_buildWaterPipe        1109
+#define gi_buildBulldoze                1100
+#define gi_buildResidential             1101
+#define gi_buildCommercial              1102
+#define gi_buildIndustrial              1103
+#define gi_buildRoad                    1104
 
-#define gi_buildTree             1110
-#define gi_buildWater            1111
-#define gi_defenceFire           1112
-#define gi_defencePolice         1113
-#define gi_defenceMilitary       1114
+#define gi_buildPowerPlant              1105
+#define gi_buildNuclearPlant            1106
+#define gi_buildPowerLine               1107
 
-#define gi_buildExtra            1115 // pops up an extra list
+#define gi_buildWaterPlant              1108
+#define gi_buildWaterPipe               1109
 
-#define mi_CauseFire			1200
-#define mi_CauseMeltDown		1201
-#define	mi_CauseMonster			1202
-#define mi_CauseDragon			1203
-#define mi_CauseMeteor			1204
+#define gi_buildTree                    1110
+#define gi_buildWater                   1111
+#define gi_defenceFire                  1112
+#define gi_defencePolice                1113
+#define gi_defenceMilitary              1114
+#define gi_buildExtra                   1115
 
 #define listID_shifter_popup             5000
 #define listID_shifter                   5001
