@@ -243,7 +243,7 @@
 /* Controls for the Query Form */
 #define	labelID_zonetype 1001
 
-/* Strings */
+/* Resource Strings */
 #define	resstrings_base	4096
 #define	si_cash_scale	0
 #define	si_empty_land	1
@@ -251,3 +251,4 @@
 #define	si_road		3
 #define	si_real_water	4
 #define	si_forest	5
+#define	si_maprender	6
