@@ -410,6 +410,7 @@ static Boolean hPocketCity(EventPtr event)
 		UIWriteLog(c);}
 #endif
     	switch (event->data.menu.itemID) {
+		/* First menu ... game */
 	case menuitemID_loadGame:
 	    switch(FrmAlert(alertID_loadGame)) {
 	    case 0: /* save game */
@@ -465,15 +466,29 @@ static Boolean hPocketCity(EventPtr event)
 	    handled = 1;
 	    break;
 
+	    /* next menu ... build */
+
 	case mi_removeDefence:
 	    RemoveAllDefence();
 	    handled = 1;
 	    break;
 
-	case gi_buildExtra:
+	case mi_buildExtra:
 	    UIPopUpExtraBuildList();
 	    handled = 1;
 	    break;
+
+	case mi_CauseFire:
+	case mi_CauseMeltDown:
+	case mi_CauseMonster:
+	case mi_CauseDragon:
+	case mi_CauseMeteor:
+	    DoSpecificDisaster(event->data.menu.itemID - mi_CauseFire +
+			    diFireOutbreak);
+	    handled = 1;
+	    break;
+
+	    /* next menu ... speed */
 
 	case menuID_SlowSpeed:
 	    game.gameLoopSeconds = SPEED_SLOW;
@@ -501,17 +516,7 @@ static Boolean hPocketCity(EventPtr event)
 	    handled = 1;
 	    break;
 
-	case mi_CauseFire:
-	case mi_CauseMeltDown:
-	case mi_CauseMonster:
-	case mi_CauseDragon:
-	case mi_CauseMeteor:
-	    DoSpecificDisaster(event->data.menu.itemID - mi_CauseFire +
-			    diFireOutbreak);
-	    handled = 1;
-	    break;
-
-	}
+	    /* next menu ... help */
 
 	case menuitemID_about:
 	    DoAbout();
@@ -521,6 +526,7 @@ static Boolean hPocketCity(EventPtr event)
 	    FrmHelp(StrID_tips);
 	    handled = 1;
 	    break;
+	}
 
     case keyDownEvent:
         switch (event->data.keyDown.chr) {
