@@ -24,7 +24,6 @@
 #define COUNT_WATER             5
 #define COUNT_POWERLINES        6
 #define COUNT_POWERPLANTS       7
-#define COMMERCIAL_UNDEVEL      8
-#define INDUSTRIAL_UNDEVEL      9
+#define COUNT_NUCLEARPLANTS     8
 
 #define WORLDPOS(x,y)            ((x)+(y)*mapsize)

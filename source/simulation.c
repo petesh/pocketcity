@@ -518,7 +518,7 @@ void DoUpkeep()
 
     roadCount = BuildCount[COUNT_ROADS];
     powerLineCount = BuildCount[COUNT_POWERLINES];
-    powerPlantCount = BuildCount[COUNT_POWERPLANTS];
+    powerPlantCount = BuildCount[COUNT_POWERPLANTS] + BuildCount[COUNT_POWERPLANTS]*2;
     roadUpkeep = 2;
     powerLineUpkeep = 1;
     powerPlantUpkeep = 100;
