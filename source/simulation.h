@@ -4,6 +4,10 @@
 #if !defined(_SIMULATION_H_)
 #define	_SIMULATION_H_
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /*! \brief budget numbers that are obtained for reporting */
 typedef enum {
 	bnResidential = 0,
@@ -27,10 +31,6 @@ typedef enum {
 /*! \brief the bit associated with knowing if the field has been painted */
 #define PAINTEDBIT	((unsigned char)0x40)
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
 #include <zakdef.h>
 #include <compilerpragmas.h>
 
@@ -40,12 +40,6 @@ extern "C" {
  * Does all the grids needed
  */
 EXPORT void Sim_Distribute(void);
-
-/*!
- * \brief Do a grid distribution for the grid(s) specified
- * \param gridonly the grid to do
- */
-EXPORT void Sim_Distribute_Specific(Int16 type);
 
 /*!
  * \brief Perform a phase of the simulation

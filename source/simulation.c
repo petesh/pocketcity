@@ -21,6 +21,9 @@
 /*! \brief short and out bits */
 #define	SHORT_BIT	1
 #define	OUT_BIT		2
+
+#define DONTPAINT	(unsigned char)(1U<<7)
+
 /*! \brief Structure for performing distribution */
 typedef struct _distrib {
 	carryfn_t	doescarry; /*!< Does the node carry the item */
@@ -92,29 +95,40 @@ static void DoDistribute(Int16 grid);
 void
 Sim_Distribute(void)
 {
+	int paint = 0;
 	if (NeedsUpdate(GRID_POWER)) {
-		DoDistribute(GRID_POWER);
+		paint = 1;
+		DoDistribute(GRID_POWER | DONTPAINT);
 		ClearUpdate(GRID_POWER);
 	}
 	if (NeedsUpdate(GRID_WATER)) {
-		DoDistribute(GRID_WATER);
+		paint = 1;
+		DoDistribute(GRID_WATER | DONTPAINT);
 		ClearUpdate(GRID_WATER);
 	}
+	if (paint)
+		UIDrawPlayArea();
 }
 
-void
+/*!
+ * \brief Do a grid distribution for the grid(s) specified
+ * \param gridonly the grid to do
+ */
+static void
 Sim_Distribute_Specific(Int16 gridonly)
 {
 	if (gridonly == 0) gridonly = GRID_ALL;
 
-	if ((gridonly & GRID_POWER) && NeedsUpdate(GRID_POWER)) {
+	if ((gridonly & GRID_POWER)) {
 		DoDistribute(GRID_POWER);
 		ClearUpdate(GRID_POWER);
 	}
-	if ((gridonly & GRID_WATER) && NeedsUpdate(GRID_WATER)) {
+	if ((gridonly & GRID_WATER)) {
 		DoDistribute(GRID_WATER);
 		ClearUpdate(GRID_WATER);
 	}
+	if (!(gridonly & DONTPAINT))
+		UIDrawPlayArea();
 }
 
 /*!
