@@ -1,10 +1,15 @@
 #ifndef INCLUDE_ZAKDEF_H
 #define INCLUDE_ZAKDEF_H
 
-#define TBMP 1415736688
+#define TBMP 1415736688 // some palmOS stuff ;)
 
+/* how often the disasters are
+ * updated - in seconds
+ */
 #define SIM_GAME_LOOP_DISASTER  2
 
+/* the possible errors/warnings
+ */
 #define ERROR_OUT_OF_MEMORY     1
 #define ERROR_OUT_OF_MONEY      2
 #define ERROR_FIRE_OUTBREAK     3
@@ -13,12 +18,19 @@
 #define ERROR_DRAGON            6
 #define ERROR_METEOR            7
 
+/* the settings for the speeds
+ * the time is how long in seconds
+ * a single game month is
+ */
 #define SPEED_SLOW              15
 #define SPEED_MEDIUM            10
 #define SPEED_FAST              5
 #define SPEED_TURBO             1
 #define SPEED_PAUSED            0
 
+/* here's the meaning of the
+ * bytes in WorldFlags[]
+ */
 #define TYPE_DIRT               0
 #define ZONE_COMMERCIAL         1
 #define ZONE_RESIDENTIAL        2
@@ -42,6 +54,8 @@
 #define TYPE_CRATER             67
 #define TYPE_BRIDGE             81
 
+/* defines for the BuildCount[] array
+ */
 #define COUNT_RESIDENTIAL       0
 #define COUNT_COMMERCIAL        1
 #define COUNT_INDUSTRIAL        2
@@ -77,7 +91,8 @@
 #define UPKEEP_POLICE_STATIONS  100
 #define UPKEEP_MILITARY_BASES   500
 
-#define WORLDPOS(x,y)		(x+y*mapsize)
+// a very nice macro
+#define WORLDPOS(x,y)		((x)+(y)*(mapsize))
 
 
 // moveable objects
@@ -94,16 +109,20 @@ enum Objects {  OBJ_MONSTER,
                 OBJ_DRAGON,
                 OBJ_CHOPPER, // not done
                 OBJ_SHIP,    // not done
-                OBJ_TRAIN};  // not done
+                OBJ_TRAIN    // not done
+              };
 
 // defence units
 #define NUM_OF_UNITS            10 // max 10, or savegames for palm fail...
+
+// what each field in the objects[] are used for
 #define DEF_POLICE_START        0
 #define DEF_POLICE_END          2
 #define DEF_FIREMEN_START       3
 #define DEF_FIREMEN_END         7
 #define DEF_MILITARY_START      8
 #define DEF_MILITARY_END        9
+
 typedef struct _defence_unit {
         unsigned short x;
         unsigned short y;
@@ -113,6 +132,7 @@ typedef struct _defence_unit {
 
 enum DefenceUnitTypes { DEFENCE_FIREMEN,
                         DEFENCE_POLICE,
-                        DEFENCE_MILITARY};
+                        DEFENCE_MILITARY
+                      };
 
 #endif
