@@ -8,7 +8,7 @@ MDIM=$(MSIZE)x$(MSIZE)
 SHAPE=32x32
 MAPFILE=tilemapping.txt
 HEADERFILE=tileheader.h
-DEPPNGS=`sed -n -e '/^#/d' -e 's/:.*/.png/p' $(MAPFILE)`
+DEPPNGS=`sed -ne '/^#/d' -e 's/:.*/.png/p' $(HEADERFILE)`
 
 ALLFILES=$(COLORS:%=$(ICONFILE)-%)
 
@@ -17,7 +17,9 @@ ALLFILES=$(COLORS:%=$(ICONFILE)-%)
 
 all: $(ALLFILES)
 
-$(ICONFILE)-%: $(DEPPNGS:%=$$*/%) $(MAPFILE)
+$(DEPPNGS):
+
+$(ICONFILE)-%: $(MAPFILE)
 	./dotilezones.sh -t $* -d $(DIM) -s $(SHAPE) -c welem_t $(MAPFILE) \
 		$(ICONFILE)-$(DIM) tileheader.h
 	eval `identify -format "w=%w;h=%h" $(ICONFILE)-$(DIM)-$*.bmp`; \

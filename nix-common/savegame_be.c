@@ -172,7 +172,7 @@ read_palmstructure(char *mem, GameStruct *new, char **map, char **flags)
 	mem = mapm_int32(mem, (char *)&new->credits);
 	mem = mapm_int32(mem, (char *)&new->TimeElapsed);
 
-	new->tax + *mem++;
+	new->tax = *mem++;
 	new->gameLoopSeconds = *mem++;
 	new->diff_disaster = *mem++;
 	new->gas_bits = *mem++;
@@ -222,11 +222,11 @@ read_palmstructure(char *mem, GameStruct *new, char **map, char **flags)
 	map_size = sizeof (welem_t) * new->mapx * new->mapy;
 	ptr = malloc(map_size);
 	*map = ptr;
-	printf("map starting from: %p for %d\n", mem, map_size);
+	printf("map starting from: %p for [0x%x]%d\n", mem, map_size, map_size);
 	bcopy(mem, *map, new->mapx * new->mapy);
+	mem += new->mapx * new->mapy;
 	mem = mapm_int32(mem, (char *)&foo);
 	printf("%lx\n", (long)foo);
-	mem += new->mapx * new->mapy;
 	printf("status starting from: %p\n", mem);
 	//for (i = 0; i < new->mapx * new->mapy; ptr++, i++) {
 	//	mem = mapm_int8(mem, ptr);
@@ -281,32 +281,22 @@ write_palmstructure(GameStruct *new, char *map, char *flags, int fd)
 
 	i = 0;
 	while (i < NUM_OF_UNITS) {
-		new->units[i].x = 0x00ff;
 		write_int16(fd, new->units[i].x);
-		new->units[i].y = 0xee00;
 		write_int16(fd, new->units[i].y);
-		new->units[i].active = 0x00dd;
 		write_int16(fd, new->units[i].active);
-		new->units[i].type = 0xaa00;
 		write_int16(fd, new->units[i].type);
 		i++;
 	}
 	i = 0;
 	while (i < NUM_OF_OBJECTS) {
-		new->objects[i].x = 0x0011;
 		write_int16(fd, new->objects[i].x);
-		new->objects[i].y = 0x2200;
 		write_int16(fd, new->objects[i].y);
-		new->objects[i].dir = 0x0033;
 		write_int16(fd, new->objects[i].dir);
-		new->objects[i].active = 0x0044;
 		write_int16(fd, new->objects[i].active);
 		i++;
 	}
 
 	write_int32(fd, 0xffffffff);
-	setWorld(0, 0xff);
-	setWorldFlags(0, 0x3);
 	/* Now we write the map */
 	(void) write(fd, map, new->mapx * new->mapy);
 	compres_size = (new->mapx * new->mapy +

@@ -7,7 +7,8 @@ INCLUDEDIRS = -I . -I ../source -I ../nix-common -I ../graphic
 OPTFLAGS = -O2
 CPPFLAGS=$(GCPPFLAGS) -DLINUX $(INCLUDEDIRS)
 CFLAGS = $(CPPFLAGS) $(OPTFLAGS) $(GCCFLAGS)
-GLFLAGS = $(shell pkg-config --libs gtk+-win32-2.0) 
+#GLFLAGS = $(shell pkg-config --libs gtk+-win32-2.0) 
+GLFLAGS = $(shell pkg-config --libs gtk+-2.0) 
 LIBS = 
 LDLIBS = $(LIBS) $(GLFLAGS)
 # -lefence

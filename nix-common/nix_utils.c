@@ -30,7 +30,7 @@ searchForFile(Char *file, UInt16 length, Char *path)
 			*cap = '\0';
 		snprintf(buffer, max_path, "%s/%s", atp, file);
 		if (stat(buffer, &sbuf) != -1) {
-			strlcpy(file, buffer, length);
+			strncpy(file, buffer, length);
 			free(tat);
 			free(buffer);
 			return (1);

@@ -728,7 +728,7 @@ UIInitGraphic(void)
 
 	for (i = 0; image_pixmaps[i].filename != NULL; i++) {
 		ipm = image_pixmaps + i;
-		strlcpy(image_path, ipm->filename, max_path);
+		strncpy(image_path, ipm->filename, max_path - 1);
 		if (searchForFile(image_path, max_path, PATHSEARCH)) {
 			*ipm->pm = gdk_pixmap_create_from_xpm(
 			    mw.window->window, ipm->mask, NULL, image_path);
@@ -745,7 +745,7 @@ UIInitGraphic(void)
 		}
 	}
 	/* load the icon */
-	strlcpy(image_path, "pcityicon.png", max_path);
+	strncpy(image_path, "pcityicon.png", max_path - 1);
 	if (searchForFile(image_path, max_path, PATHSEARCH)) {
 		gtk_window_set_icon_from_file(GTK_WINDOW(mw.window),
 		    image_path, NULL);

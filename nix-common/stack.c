@@ -16,6 +16,7 @@
 #include <strings.h>
 #include <assert.h>
 #include <appconfig.h>
+#include <malloc.h>
 
 /*!
  * \brief the data structure for the stack object
