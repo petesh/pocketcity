@@ -100,7 +100,10 @@ BuildSomething(Int16 xpos, Int16 ypos)
 	if (be->bt == Be_OOB) return (0);
 
 	if (be->func(xpos, ypos, be->type)) {
-		welem_t elt = GetGraphicNumber(WORLDPOS(xpos, ypos));
+		welem_t elt;
+		LockZone(lz_world);
+		elt = GetGraphicNumber(WORLDPOS(xpos, ypos));
+		UnlockZone(lz_world);
 		AddGridUpdate(be->gridsToUpdate);
 		UIDrawMapField(xpos, ypos, elt);
 		UIDrawMapStatus(xpos, ypos, elt, 0);
