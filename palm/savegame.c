@@ -128,7 +128,8 @@ void _UICreateNewSaveGame(void)
                 pRec = MemHandleLock(rec);
                 // write the header and some globals
                 DmWrite(pRec, 0, "PC00", 4);
-                DmWrite(pRec, 100, (char*)game.cityname,20);
+                DmWrite(pRec, offsetof(GameStruct, cityname),
+                  (char*)game.cityname, 20);
                 MemHandleUnlock(rec);
                 DmReleaseRecord(db, index, true);
             }
