@@ -7,16 +7,18 @@ OBJECTS = stack.o simcity.o handler.o drawing.o globals.o build.o \
 PROGNAME = "Pocket City"
 PROGTOKEN = PCit
 PRCTARGETS = pcity pcity-grey pcity-color mg-pcity
-DMENU = pcitymain_opt.stm
+
+SEDIS = '/@@DEBUG@@/d'
 
 DSTAMP := $(shell date "+%Y/%m/%d@%H:%M")
 
-.PHONY: all debug clean cheat
+
+.PHONY: all debug clean cheat hires dhires
 .PRECIOUS: simcity-grey.stm zones-grey.stm simcity-color.stm zones-color.stm
 
-##################
-### make all #####
-##################
+#
+# make all
+#
 
 all debug: VER $(addsuffix .prc,$(PRCTARGETS))
 hires dhires: VER $(addsuffix .prc,$(addprefix sy-,$(PRCTARGETS)))
@@ -25,66 +27,65 @@ nearlylive: VERSION = $(shell date +%Y.%m.%d)
 nearlylive: VER dist
 
 VER:
-	rm -f version.rcp version.stm
+	@rm -f version.rcp version.stm
 
-##################
-### make cheat ###
-##################
+
+#
+# make cheat
+#
 cheat: CFLAGS += -DCHEAT
 cheat: debug
 
 ##################
 ### make debug ###
 ##################
-debug: CFLAGS += -g -DDEBUG
-debug: DMENU = pcitymain.stm
 
-hires: HCFLAGS = -DSONY_CLIE
+debug dhires: CFLAGS += -g -DDEBUG
+debug dhires: SEDIS = 's/@@DEBUG@@//'
 
-dhires: HCFLAGS = -g -DSONY_CLIE -DDEBUG
-debug: DMENU = pcitymain.stm
+dhires hires: HCFLAGS = -DSONY_CLIE
 
 #### the different versions
-pcity-%.prc: simcity-%.stm zones-%.stm game.stm grcs.stm \
-		version.stm touch.stm $(DMENU)
+pcity-%.prc: simcity-%.stm zones-%.stm game.stm version.stm touch.stm \
+		pcitymain.stm grcs.stm
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def *.grc \
 		temp$*/*.bin temp/*.bin
 
-mg-pcity.prc: game.stm grcs.stm mg.stm version.stm touch.stm $(DMENU)
+mg-pcity.prc: game.stm mg.stm version.stm touch.stm pcitymain.stm grcs.stm
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def *.grc \
 		mg/*.bin temp/*.bin
 
-pcity.prc: simcity.stm zones.stm game.stm grcs.stm \
-		version.stm touch.stm $(DMENU)
+pcity.prc: simcity.stm zones.stm game.stm version.stm touch.stm pcitymain.stm \
+		grcs.stm
 	build-prc -o pcity.prc -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		*.grc tempbw/*.bin temp/*.bin
 
 sy-pcity.prc: sy/ game.stm sy/syicons.stm simcity.stm zones.stm \
-	sy/sy.stm version.stm touch.stm $(DMENU)
+		version.stm touch.stm pcitymain.stm sy/grcs.stm
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc tempbw/*.bin temp/*.bin
 
 sy-mg-pcity.prc: sy/ game.stm sy/syicons.stm simcity.stm zones.stm \
-	sy/sy.stm mg.stm version.stm touch.stm $(DMENU)
+		mg.stm version.stm touch.stm pcitymain.stm sy/grcs.stm
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc mg/*.bin temp/*.bin sy/*.bin
 
 sy-pcity-%.prc: sy/ game.stm sy/syicons.stm simcity-%.stm zones-%.stm \
-	sy/sy.stm version.stm touch.stm $(DMENU)
+		version.stm touch.stm pcitymain.stm sy/grcs.stm
 	build-prc -o $@ -n $(PROGNAME) -c $(PROGTOKEN) pcity.def \
 		sy/*.grc temp$*/*.bin temp/*.bin sy/*.bin
 
 #### binary resources
 grcs.stm: simcity
-	m68k-palmos-obj-res simcity
-	echo touching>grcs.stm
+	@m68k-palmos-obj-res simcity
+	@echo touching>grcs.stm
 
 #### resources
 
 # for all
 game.stm: game.rcp simcity_resconsts.h
-	pilrc -q game.rcp temp
-	echo touching>$@
+	@pilrc -q game.rcp temp
+	@echo touching>$@
 
 version.stm: ../CHANGELOG
 	@echo "VERSION 1 \"$(VERSION)\"" > version.rcp
@@ -92,17 +93,11 @@ version.stm: ../CHANGELOG
 	@rm -f version.rcp
 	@echo touching>$@
 
-pcitymain_opt.stm: pcitymain.rcp
-	@sed '/@@DEBUG@@/d' pcitymain.rcp > mainmenu.rcp
-	@pilrc -q mainmenu.rcp temp
-	@rm -f mainmenu.rcp
-	@echo touching>$@
-
 pcitymain.stm: pcitymain.rcp
-	@sed 's/@@DEBUG@@//' pcitymain.rcp > mainmenu.rcp
+	@sed $(SEDIS) pcitymain.rcp > mainmenu.rcp
 	@pilrc -q mainmenu.rcp temp
 	@rm -f mainmenu.rcp
-	@echo touching>$@
+	@echo $(SEDIS)>$@
 
 touch.stm:
 	@echo "#include \"simcity_resconsts.h\"" > touch.rcp
@@ -118,12 +113,12 @@ touch.stm:
 
 # simcity_resconsts.h
 %.stm: %.rcp
-	pilrc -q $< temp$(if $(findstring -,$*),$(word 2, $(subst -, ,$*)),bw)
-	echo touching>$*.stm
-####################################
+	@pilrc -q $< temp$(if $(findstring -,$*),$(word 2, $(subst -, ,$*)),bw)
+	@echo touching>$*.stm
 
-
-#### actual source
+#
+# actual source
+#
 
 simcity: $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o simcity $(LDLIBS)
@@ -154,23 +149,25 @@ sy/%.o: ../source/%.c ../source/%.h ../source/zakdef.h ../source/ui.h
 sy/%.o: %.c
 	$(CC) $(HCFLAGS) $(CFLAGS) -c $< -o $@
 
-sy/sy.stm: sy/simcity
-	cd sy; m68k-palmos-obj-res simcity
-	echo touching>sy/sy.stm
+sy/grcs.stm: sy/simcity
+	@cd sy; m68k-palmos-obj-res simcity
+	@echo touching>sy/sy.stm
 
 sy/syicons.stm: hricons.rcp
-	pilrc -q hricons.rcp sy
-	echo touching>$@
+	@pilrc -q hricons.rcp sy
+	@echo touching>$@
 
 mg.stm: mg/ mg.rcp simcity_resconsts.h
-	pilrc -q mg.rcp mg
-	echo touching>$@
+	@pilrc -q mg.rcp mg
+	@echo touching>$@
 
 mg/:
-	mkdir -p mg/
+	@mkdir -p mg/
+
+#
+# dist
 #
 
-# dist
 DDIR=pcity-palm_$(VERSION)
 
 DISTFILES=../INSTALL ../CHANGELOG ../COPYING ../GAMEHINTS ../README
