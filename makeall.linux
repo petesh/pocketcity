@@ -12,8 +12,6 @@ echo *************
 
 cd palm
 make
-rm *.bin
-rm *.o
-rm *.stm
-rm *.grc
+make clean
+cp *.prc ../
 cd ..
