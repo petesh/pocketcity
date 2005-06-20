@@ -50,12 +50,12 @@ vGameStruct vgame;
 vGameVisuals visuals;
 
 /*! \brief the world pointer */
-void *worldPtr;
+char *worldPtr;
 /*! \brief the flags pointer */
-void *flagPtr;
+char *flagPtr;
 
 /*! \brief the growable pointer */
-void *growablePtr;
+char *growablePtr;
 
 /*! \brief This is the game configuration */
 AppConfig_t gameConfig = {

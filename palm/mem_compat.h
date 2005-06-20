@@ -5,8 +5,8 @@
  * calls for malloc, free etc.
  */
 
-#if !defined(_MEM_COMPAT_H)
-#define _MEM_COMPAT_H
+#if !defined(_MEM_COMPAT_H_)
+#define _MEM_COMPAT_H_
  
 #include <MemoryMgr.h>
 #include <SysUtils.h>
@@ -44,4 +44,4 @@ Err _MemHandleFree(MemHandle mh, char *file, int line);
 Err _MemHandleUnlock(MemHandle mh, char *file, int line);
 #endif
 
-#endif /* _MEM_COMPAT_H */
+#endif /* _MEM_COMPAT_H_ */

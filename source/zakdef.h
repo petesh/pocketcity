@@ -437,7 +437,7 @@ typedef enum {
 	de_commercial,
 	de_industrial,
 	de_end
-} desire_elts;
+} desire_elt;
 
 /*!
  * \brief the central game structure.

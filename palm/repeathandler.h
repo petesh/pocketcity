@@ -9,6 +9,9 @@
 #include <PalmOS.h>
 #include <sections.h>
 
+#if !defined(_REPEATHANDLER_H_)
+#define _REPEATHANDLER_H_
+
 /*! \brief the button mapping structure */
 typedef struct buttonmapping_tag {
 	UInt16		down; /*!< repeat button for down */
@@ -44,3 +47,5 @@ buttonmapping_t *getSpinnerFieldIndex(buttonmapping_t *map,
  */
 buttonmapping_t *processRepeater(buttonmapping_t *map, UInt16 control,
     Boolean isButton, bmPostHandler post_handle) REPEATH_SECTION;
+
+#endif

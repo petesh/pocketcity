@@ -354,7 +354,8 @@ LoadGameByIndex(UInt16 index)
 	if (rec) {
 		LockZone(lz_world);
 		LockZone(lz_flags);
-		loaded = ReadCityRecord(rec, &game, &worldPtr, &flagPtr);
+		loaded = ReadCityRecord(rec, &game, (MemPtr *)&worldPtr,
+		    (MemPtr *)&flagPtr);
 		UnlockZone(lz_flags);
 		UnlockZone(lz_world);
 	}

@@ -62,6 +62,9 @@ static Int16 FindScoreForZones(void);
 static void AddNeighbors(distrib_t *distrib, UInt32 pos);
 static UInt8 ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what);
 
+static void IncreaseDesire(desire_elt element);
+static void DecreaseDesire(desire_elt element);
+
 /*
  * The power/water grid is updated using the following mechanism:
  * 1: While there are more plants to consume do:
@@ -776,7 +779,6 @@ GetZoneScore(UInt32 pos)
 	/* XXX: Desires need updating in this loop */
 
 	if ((type == ztIndustrial) || (type == ztCommercial))  {
-		Int16 oldes;
 		/*
 		 * see if there's actually enough residential population
 		 * to support a new zone of ind or com
@@ -789,21 +791,17 @@ GetZoneScore(UInt32 pos)
 		/* pop is too low */
 		if (availPop <= 0) {
 			/* This means that we need more residential */
-			oldes = GG.desires[de_residential];
-			if (oldes < INT16_MAX)
-				GG.desires[de_residential] = oldes++;
+			IncreaseDesire(de_residential);
 			WriteLog("Pop too low to promote ind || comm\n");
 			goto unlock_ret;
 		} else {
 			/* Increase the desire for Commercial || Industrial */
-			desire_elts elt = de_end;
+			desire_elt elt = de_end;
 			if (type == ztCommercial)
 				elt = de_commercial;
 			else
 				elt = de_industrial;
-			oldes = GG.desires[elt];
-			if (oldes > -INT16_MAX)
-				GG.desires[elt] = oldes--;
+			if (elt != de_end) DecreaseDesire(elt);
 		}
 	} else if (type == ztResidential) {
 		/*
@@ -1547,4 +1545,27 @@ endSimulation(void)
 		gFree(ran_zone);
 		ran_zone = NULL;
 	}
+}
+
+/*!
+ * Increase the desire for the element specified, deals with all the range
+ * problems should they arise.
+ */
+void
+IncreaseDesire(desire_elt element)
+{
+	Int16 oldes = GG.desires[element];
+	if (oldes < INT16_MAX)
+		GG.desires[element] = oldes++;
+}
+
+/*!
+ * Decrease the desire for the element specified. Does not overflow.
+ */
+void
+DecreaseDesire(desire_elt element)
+{
+	Int16 oldes = GG.desires[element];
+	if (oldes > -INT16_MAX)
+		GG.desires[element] = oldes--;
 }

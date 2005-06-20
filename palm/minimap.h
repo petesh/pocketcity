@@ -3,6 +3,9 @@
  * interface to the minimap
  */
 
+#if !defined(_MINIMAP_H_)
+#define _MINIMAP_H_
+
 #include <PalmTypes.h>
 #include <Rect.h>
 #include <sections.h>
@@ -58,3 +61,5 @@ minimapIsTapped(PointType *point, PointType *percentage);
  */
 void
 minimapIntersect(const RectangleType *other, RectangleType *dest);
+
+#endif /* _MINIMAP_H_ */

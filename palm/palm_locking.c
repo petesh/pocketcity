@@ -13,7 +13,7 @@
 static struct tag_lockers {
 	MemHandle	handle; /*!< handle for the item when not locked */
 	int		lockcount; /*!< # of lockers of the item */
-	void		**destVar; /*!< destination value when locked */
+	char		**destVar; /*!< destination value when locked */
 } lockZones[lz_end] = {
 	{ NULL, 0, &worldPtr },
 	{ NULL, 0, &flagPtr },

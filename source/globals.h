@@ -64,9 +64,9 @@ extern GameStruct game;
 extern vGameStruct vgame;
 extern vGameVisuals visuals;
 extern AppConfig_t gameConfig;
-extern void *worldPtr;
-extern void *flagPtr;
-extern void *growablePtr;
+extern char *worldPtr;
+extern char *flagPtr;
+extern char *growablePtr;
 
 EXPORT char *getDate(char *temp);
 

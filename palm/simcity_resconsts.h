@@ -11,6 +11,10 @@
  * they need to be in the same order here as the handler entries in the
  * id2handler array in simcity.c
  */
+
+#ifndef SIMCITY_RESCONSTS_H_
+#define SIMCITY_RESCONSTS_H_
+
 #define	formID_pocketCity 1000
 #define	formID_budget 1001
 #define	formID_map 1002
@@ -337,3 +341,6 @@
 #define si_railtunnel	34
 #define si_carries	35
 #define si_needs	36
+
+
+#endif /* _SIMCITY_RESCONSTS_H_ */

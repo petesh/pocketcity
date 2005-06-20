@@ -18,7 +18,7 @@
 #define TSTR	'tSTR'
 #define	SGNAME  "Pocket City Saves"
 
-extern MemPtr worldPtr;
+extern char *worldPtr;
 
 UInt32 GetPositionClicked(void);
 /* For the 'dialogs' */

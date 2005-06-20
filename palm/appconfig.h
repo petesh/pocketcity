@@ -1,14 +1,14 @@
 /*!
  * \file
- * \brief * Palm application configuration.
+ * \brief Palm application configuration.
  *
  * This is information that is saved with the application upon termination.
  * It contains information that is not considered
  * suitable for storing with an actual game, but is instead a game based
  * option.
  */
-#if !defined(_APPCONFIG_H)
-#define	_APPCONFIG_H
+#if !defined(_APPCONFIG_H_)
+#define	_APPCONFIG_H_
 
 #include <PalmTypes.h>
 #include <sections.h>
@@ -107,4 +107,4 @@ typedef PalmAppConfig_01_t PlatformAppConfig;
 		kePopup, keMap HIRESKEY SONYEV } \
 }
 
-#endif /* _APPCONFIG_H */
+#endif /* _APPCONFIG_H_ */
