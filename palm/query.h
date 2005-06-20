@@ -9,8 +9,9 @@
 #define	_QUERY_H
 
 #include <PalmTypes.h>
-#include <sections.h>
 #include <Form.h>
+
+#include <sections.h>
 
 /*!
  * \brief Handler for the query form

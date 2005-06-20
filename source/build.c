@@ -8,16 +8,8 @@
 
 #include <config.h>
 
-#ifdef PALM
-#include <PalmOS.h>
 #include <simcity.h>
-#else
-#include <sys/types.h>
-#include <stddef.h>
-#include <assert.h>
-#endif
-#include <zakdef.h>
-#include <compilerpragmas.h>
+
 #include <build.h>
 #include <globals.h>
 #include <ui.h>
@@ -25,7 +17,6 @@
 #include <locking.h>
 #include <drawing.h>
 #include <simulation.h>
-#include <sections.h>
 
 /*! \brief Defines the build function pointer type */
 typedef int (*BuildF)(UInt16 xpos, UInt16 ypos, welem_t type);

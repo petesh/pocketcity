@@ -6,9 +6,10 @@
  * the mustard.
  */
 
+#include <string.h>
+
 #include <zonestrings.h>
 #include <simulation.h>
-#include <string.h>
 
 static const struct type_zone {
 	welem_t	tile_start; /*!< starting tile # */

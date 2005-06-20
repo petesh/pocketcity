@@ -13,11 +13,11 @@
 #include <StringMgr.h>
 #include <ErrorMgr.h>
 #include <ExgMgr.h>
+
+#include <beam.h>
 #include <palmutils.h>
 #include <mem_compat.h>
 #include <simcity.h>
-#include <appconfig.h>
-#include <beam.h>
 #include <savegame_be.h>
 #include <logging.h>
 #include <simcity_resconsts.h>

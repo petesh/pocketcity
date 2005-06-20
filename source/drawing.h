@@ -4,12 +4,11 @@
 #if !defined(_DRAWING_H_)
 #define	_DRAWING_H_
 
-#include <zakdef.h>
-
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
+#include <zakdef.h>
 #include <appconfig.h>
 #include <sections.h>
 #include <compilerpragmas.h>

@@ -3,6 +3,7 @@ HW = m68k
 
 CC = $(HW)-palmos-gcc
 AWK = gawk
+TOUCH = touch
 MULTIGEN = $(HW)-palmos-multigen
 BUILDPRC = build-prc
 RC = pilrc

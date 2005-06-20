@@ -7,6 +7,7 @@
  */
 
 #include <PalmOS.h>
+
 #include <sections.h>
 
 #if !defined(_REPEATHANDLER_H_)

@@ -11,17 +11,17 @@
 #include <Window.h>
 #include <Rect.h>
 #include <Progress.h>
+
+#include <map.h>
 #include <simcity.h>
-#include <simcity_resconsts.h>
 #include <locking.h>
 #include <logging.h>
 #include <ui.h>
-#include <map.h>
 #include <globals.h>
 #include <drawing.h>
 #include <resCompat.h>
 #include <palmutils.h>
-#include <sections.h>
+#include <simcity_resconsts.h>
 
 /*! \brief map type s */
 typedef enum e_map_type {

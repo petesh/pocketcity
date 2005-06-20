@@ -5,6 +5,7 @@
  */
 #include <PalmOS.h>
 #include <StringMgr.h>
+
 #include <globals.h>
 #include <locking.h>
 #include <mem_compat.h>
@@ -17,7 +18,7 @@ static struct tag_lockers {
 } lockZones[lz_end] = {
 	{ NULL, 0, &worldPtr },
 	{ NULL, 0, &flagPtr },
-	{ NULL, 0, &growablePtr }
+	{ NULL, 0, NULL }
 };
 
 void

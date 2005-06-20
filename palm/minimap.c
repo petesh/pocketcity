@@ -4,6 +4,8 @@
  * scroll around the real world
  */
 
+#include <UIColor.h>
+
 #include <minimap.h>
 #include <zakdef.h>
 #include <globals.h>
@@ -11,7 +13,6 @@
 #include <ui.h>
 #include <logging.h>
 #include <resCompat.h>
-#include <UIColor.h>
 
 /*! \brief structure containing information about the minimap */
 static struct minimap {

@@ -6,19 +6,17 @@
  * monsters go, etc.
  */
 
+#include <simulation.h>
 #include <handler.h>
 #include <drawing.h>
-#include <zakdef.h>
 #include <logging.h>
 #include <locking.h>
 #include <ui.h>
 #include <globals.h>
 #include <handler.h>
 #include <disaster.h>
-#include <simulation.h>
 #include <stack.h>
 #include <stdint.h>
-#include <compilerpragmas.h>
 #include <mem_compat.h>
 
 /*! \brief short and out bits */

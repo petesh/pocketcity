@@ -9,6 +9,7 @@
 #include <Chars.h>
 #include <StringMgr.h>
 #include <SysUtils.h>
+
 #include <query.h>
 #include <palmutils.h>
 #include <simcity.h>

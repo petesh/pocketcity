@@ -7,13 +7,15 @@
  * The options for the game and the options for the system (buttons)
  */
 #include <PalmOS.h>
-#include <simcity_resconsts.h>
-#include <sections.h>
+#include <Form.h>
+
 #include <options.h>
+
 #include <globals.h>
 #include <simcity.h>
 #include <logging.h>
 #include <palmutils.h>
+#include <simcity_resconsts.h>
 
 static FormPtr setupOptions(void) CONFIG_SECTION;
 static void saveOptions(void) CONFIG_SECTION;

@@ -7,14 +7,13 @@ nearlylive: VERSION = $(shell date +%Y.%m.%d)
 
 stuff:
 	@echo Use \`make\` with either \"linux\", \"palm\" or \"all\" as an argument
-#all-graphic all-linux-gtk
-all:  all-palm
+#all-graphic
+all: all-linux-gtk all-palm
 
 all-%:
 	cd $(@:all-%=%) && $(MAKE) all
 
-#debug-linux-gtk 
-debug: debug-palm
+debug: debug-linux-gtk debug-palm
 
 debug-%:
 	cd $(@:debug-%=%) && $(MAKE) debug
@@ -24,7 +23,7 @@ linux: all-linux
 palm: all-palm
 
 #clean-graphic clean-linux-gtk
-clean:  clean-palm
+clean: clean-linux-gtk clean-palm
 
 clean-%:
 	cd $(@:clean-%=%) && $(MAKE) clean

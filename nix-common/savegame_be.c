@@ -17,38 +17,19 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <inttypes.h>
+#include <strings.h>
 
-#include <main.h>
+#include <savegame_be_impl.h>
+#include <savegame_be.h>
 #include <globals.h>
 #include <sections.h>
 #include <pack.h>
 #include <handler.h>
 #include <logging.h>
 #include <simulation.h>
-#include <inttypes.h>
-#include <strings.h>
 #include <mem_compat.h>
 #include <stringsearch.h>
-
-/*!
- * \brief an embedded savegame inside a savegame
- */
-struct embedded_savegame {
-	GameStruct gs;	/*!< game structure of the savegame */
-	char *world;	/*!< world pointer of the savegame */
-	char *flags;	/*!< world pointer of the savegame */
-};
-
-/*! \brief a savegame structure */
-struct save_tag {
-	int gamecount; /*!< count of savegames in this structure */
-	struct embedded_savegame *games; /*!< the games */
-};
-
-typedef struct save_tag savegame_t;
-
-#define _SAVEGAME_BE_IMPL
-#include <savegame_be.h>
 
 /*
 static Int8

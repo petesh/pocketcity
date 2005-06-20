@@ -5,20 +5,21 @@
  * This file has all the routines to deal with the startup and general
  * main loop-executionness of the program.
  */
+
 #include <PalmOS.h>
 #include <StringMgr.h>
 #include <KeyMgr.h>
 #include <StdIOPalm.h>
 #include <simcity.h>
+
 #include <savegame.h>
 #include <savegame_be.h>
 #include <options.h>
 #include <map.h>
 #include <budget.h>
-#include <zakdef.h>
+
 #include <ui.h>
 #include <drawing.h>
-#include <build.h>
 #include <query.h>
 #include <handler.h>
 #include <globals.h>

@@ -1,11 +1,15 @@
 /*!
  * \file
  * \brief the interface routines to the main program.
+ * 
+ * This is a platform specific file, and is used to splice out a bunch of
+ * includes as well.
  *
  */
 #if !defined(_SIMCITY_H)
 #define	_SIMCITY_H
 
+#include <PalmOS.h>
 #include <zakdef.h>
 
 /* global vars from simcity.c */

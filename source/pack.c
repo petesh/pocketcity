@@ -5,7 +5,6 @@
  */
 
 #include <pack.h>
-#include <appconfig.h>
 
 #define ANDUPTO(X) \
 	((1<<((X)-1)) | (1<<((X)-2)) | (1<<((X)-3)) | (1<<((X)-4)) | \

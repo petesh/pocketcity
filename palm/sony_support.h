@@ -9,10 +9,12 @@
 
 #ifdef SONY_HIGH
 
-#include <sections.h>
 #include <Font.h>
 #include <FontSelect.h>
+#include <PalmOS.h>
 #include <SonyCLIE.h>
+
+#include <sections.h>
 
 /*!
  * \brief test if this handheld can perform sony high resolution functions

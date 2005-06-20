@@ -9,6 +9,8 @@
 extern "C" {
 #endif
 
+#include <zakdef.h>
+
 #if !defined(_SAVEGAME_BE_IMPL)
 /* Opaque to outside world */
 typedef void savegame_t;

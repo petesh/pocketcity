@@ -9,6 +9,8 @@
 extern "C" {
 #endif
 
+#include <sys/types.h>
+
 /*!
  * \brief find the item in the space concerned
  * \param space the haystack to search

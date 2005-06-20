@@ -7,6 +7,9 @@
  */
 #include <PalmOS.h>
 #include <unix_stdlib.h>
+#include <stddef.h>
+
+#include <budget.h>
 #include <palmutils.h>
 #include <simcity.h>
 #include <simcity_resconsts.h>
@@ -14,9 +17,6 @@
 #include <logging.h>
 #include <ui.h>
 #include <simulation.h>
-#include <sections.h>
-#include <budget.h>
-#include <stddef.h>
 #include <resCompat.h>
 #include <repeathandler.h>
 

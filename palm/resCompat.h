@@ -13,8 +13,9 @@
 #include <Window.h>
 #include <Form.h>
 #include <Event.h>
-#include <sony_support.h>
+
 #include <sections.h>
+#include <sony_support.h>
 
 #define	BASEWIDTH ((Coord)160)
 #define	BASEHEIGHT ((Coord)160)

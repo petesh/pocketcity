@@ -5,21 +5,13 @@
  * of the simulation, as well as displaying the date.
  */
 
+#include <globals.h>
 #include <config.h>
-
-#include <zakdef.h>
-#if defined(PALM)
-#include <StringMgr.h>
-#include <unix_stdio.h>
-#else
-#include <stdio.h>
-#endif
 #include <mem_compat.h>
 #include <logging.h>
 #include <locking.h>
 #include <ui.h>
 #include <stack.h>
-#include <globals.h>
 
 #define	MILLION 1000000
 
@@ -46,16 +38,14 @@ GameStruct game;
 /*! \brief  This is the volatile game structure (memoizing to reduce op/s) */
 vGameStruct vgame;
 
-/*! \brief the game 'visuals' - tilesize and the likes */
 vGameVisuals visuals;
 
-/*! \brief the world pointer */
 char *worldPtr;
-/*! \brief the flags pointer */
 char *flagPtr;
-
-/*! \brief the growable pointer */
-char *growablePtr;
+char *powerMap;
+char *waterMap;
+char *pollutionMap;
+char *crimeMap;
 
 /*! \brief This is the game configuration */
 AppConfig_t gameConfig = {

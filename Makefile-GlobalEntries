@@ -1,0 +1,59 @@
+
+OBJECTS_CARELESS=build.o disaster.o drawing.o globals.o handler.o pack.o \
+	simulation.o
+
+$(OBJDIR)/build.o: build.c build.h globals.h ui.h logging.h locking.h \
+	drawing.h simulation.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+build.h: zakdef.h sections.h compilerpragmas.h
+
+$(OBJDIR)/disaster.o: disaster.c disaster.h config.h handler.h drawing.h \
+	zakdef.h logging.h locking.h ui.h globals.h handler.h build.h \
+	disaster.h simulation.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+disaster.h: appconfig.h sections.h compilerpragmas.h
+
+$(OBJDIR)/drawing.o: drawing.c drawing.h locking.h ui.h zakdef.h globals.h \
+	simulation.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+drawing.h: zakdef.h appconfig.h sections.h compilerpragmas.h
+
+$(OBJDIR)/globals.o: globals.c globals.h config.h \
+	mem_compat.h logging.h locking.h ui.h stack.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+globals.h: zakdef.h compilerpragmas.h globals_include.h
+
+$(OBJDIR)/handler.o: handler.c handler.h config.h drawing.h locking.h ui.h \
+	globals.h handler.h build.h simulation.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+handler.h: zakdef.h compilerpragmas.h
+
+$(OBJDIR)/pack.o: pack.c pack.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+pack.h: appconfig.h sections.h
+
+$(OBJDIR)/simulation.o: simulation.c simulation.h handler.h drawing.h \
+	logging.h locking.h ui.h globals.h handler.h disaster.h \
+	stack.h mem_compat.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+simulation.h: zakdef.h compilerpragmas.h
+
+# files without implementations (local)
+compilerpragmas.h:
+
+locking.h:
+
+logging.h:
+
+stack.h: appconfig.h
+
+ui.h: zakdef.h build.h
+
+zakdef.h: appconfig.h

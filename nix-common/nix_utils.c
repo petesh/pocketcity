@@ -2,7 +2,6 @@
  * \brief contains the global functions for the 'nix platform
  */
 
-#include <zakdef.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <stdio.h>
@@ -10,6 +9,8 @@
 #include <string.h>
 #include <errno.h>
 #include <strings.h>
+
+#include <zakdef.h>
 #include <nix_utils.h>
 
 int

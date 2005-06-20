@@ -16,14 +16,17 @@ LIBS =
 LDLIBS = $(LIBS) $(GLFLAGS)
 # -lefence
 
-OBJECTS = main.o savegame_fe.o budget.o \
-	stack.o savegame_be.o pglobals.o nix_utils.o simulation-ui.o \
-	handler.o build.o disaster.o drawing.o globals.o simulation.o \
-	uibits.o stringsearch.o zonemon.o zonestrings.o pack.o
+default: debug
+
+VPATH=../source:../nix-common
+
+include ../Makefile-GlobalEntries
+include ../nix-common/Makefile-nixcommon
+
+OBJECTS = $(OBJECTS_CARELESS) $(OBJECTS_NIX) main.o savegame_fe.o budget.o \
+	simulation-ui.o	uibits.o zonemon.o
 
 .PHONY: all debug clean
-
-default: debug
 
 all: pocketcity
 
@@ -33,21 +36,6 @@ debug: all
 
 pocketcity: $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o $@ $(LDLIBS)
-
-%.o: %.c %.h ../source/zakdef.h ../source/ui.h
-	$(CC) $(CFLAGS) -c $< -o $@
-
-%.o: ../nix-common/%.c ../nix-common/%.h ../source/zakdef.h ../source/ui.h
-	$(CC) $(CFLAGS) -c $< -o $@
-
-%.o: ../source/%.c ../source/%.h ../source/zakdef.h ../source/ui.h
-	$(CC) $(CFLAGS) -c $< -o $@
-
-%.o: ../nix-common/%.c ../source/%.h ../source/zakdef.h ../source/ui.h
-	$(CC) $(CFLAGS) -c $< -o $@
-
-%.o: ../nix-common/%.c ../source/zakdef.h ../source/ui.h
-	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -f *.o pocketcity core* pocketcity.exe

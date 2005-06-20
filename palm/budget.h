@@ -8,6 +8,8 @@
 #if !defined(_BUDGET_H_)
 #define	_BUDGET_H_
 
+#include <PalmTypes.h>
+#include <Event.h>
 #include <sections.h>
 
 /*!

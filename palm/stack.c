@@ -12,7 +12,6 @@
 #include <ErrorMgr.h>
 #include <FeatureMgr.h>
 
-#include <ui.h>
 #include <mem_compat.h>
 
 /*! \brief stack object */

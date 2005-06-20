@@ -7,6 +7,7 @@
 
 #include <zakdef.h>
 #include <compilerpragmas.h>
+#include <globals_include.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -60,13 +61,33 @@ typedef enum {
 /*! get if the minimap is supposed to be detailed */
 #define GETMINIMAPDETAILED()	getGameBit(sb_detailedminimap)
 
+/*! This is the game structure - it is saved */
 extern GameStruct game;
+/*! This is the volatile game structure - it is not saved */
 extern vGameStruct vgame;
+/*! \brief This contains the information on the visuals
+ * tilesize and the likes
+ */
 extern vGameVisuals visuals;
+/*! This is the game configuration - system choices */
 extern AppConfig_t gameConfig;
+
+/*! This is the pointer to the world */
 extern char *worldPtr;
+/*! This is the pointer to the state of the world */
 extern char *flagPtr;
-extern char *growablePtr;
+
+/*! This is the pointer to the power state of the world */
+extern char *powerMap;
+
+/*! This is the water state of the world */
+extern char *waterMap;
+
+/*! This is the pollution map */
+extern char *pollutionMap;
+
+/*! This is the crime map. */
+extern char *crimeMap;
 
 EXPORT char *getDate(char *temp);
 

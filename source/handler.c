@@ -5,18 +5,15 @@
  * game.
  */
 
-#include <config.h>
-
 #include <handler.h>
+#include <config.h>
 #include <drawing.h>
-#include <zakdef.h>
 #include <locking.h>
 #include <ui.h>
 #include <globals.h>
 #include <handler.h>
 #include <build.h>
 #include <simulation.h>
-#include <compilerpragmas.h>
 
 /* for the palm */
 #ifdef PALM

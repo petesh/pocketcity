@@ -7,6 +7,7 @@
 #if !defined(_SAVEGAME_H)
 #define	_SAVEGAME_H
 
+#include <Event.h>
 #include <sections.h>
 
 /*!

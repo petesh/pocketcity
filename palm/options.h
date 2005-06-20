@@ -5,7 +5,9 @@
  * The only things exposed are the form handling routines. Everything
  * else is internal to the forms.
  */
+#include <PalmTypes.h>
 #include <PalmOS.h>
+
 #include <sections.h>
 
 #if !defined(_OPTIONS_H_)

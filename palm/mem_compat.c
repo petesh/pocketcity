@@ -7,7 +7,8 @@
 
 #include <PalmTypes.h>
 #include <MemoryMgr.h>
-#include <ui.h>
+
+#include <mem_compat.h>
 
 #if defined(MEM_DEBUG)
 MemPtr

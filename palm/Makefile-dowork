@@ -1,13 +1,18 @@
 
-include Makefile-include
+VPATH=../source
 
-OBJECTS := stack.o simcity.o handler.o drawing.o globals.o build.o \
-	simulation.o HiRes.o disaster.o palmutils.o \
+include Makefile-include
+include ../Makefile-GlobalEntries
+
+# Platform specific files:
+
+OBJECTS := $(OBJECTS_CARELESS) stack.o simcity.o \
+	HiRes.o palmutils.o \
 	palm_locking.o beam.o \
 	sony_support.o mem_compat.o pocketcity-sections.o \
 	options.o map.o budget.o query.o savegame.o repeathandler.o \
 	minimap.o \
-	savegame_be.o pack.o \
+	savegame_be.o
 
 BUILDENDS=nd d nd5 d5 nds ds dc
 BUILDDIRS:=$(BUILDENDS:%=out-%)
@@ -109,17 +114,88 @@ $(OBJDIR)/PocketCity-EN: $(OBJDIR) $(DESTOBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(DESTOBJS) -o $@ $(LDLIBS) \
 		$(OBJDIR)/pocketcity-sections.ld
 
-$(OBJDIR)/simcity.o: simcity.c simcity.h ../source/handler.h ../source/ui.h \
-	../source/zakdef.h simcity_resconsts.h
-
-$(OBJDIR)/%.o: ../source/%.c ../source/%.h ../source/zakdef.h ../source/ui.h \
-                Makefile-include
+$(OBJDIR)/beam.o: beam.c beam.h palmutils.h mem_compat.h simcity.h \
+	savegame_be.h logging.h simcity_resconsts.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJDIR)/%.o: frompalm/%.cpp
+beam.h: appconfig.h sections.h
+
+budget.h: sections.h
+
+$(OBJDIR)/budget.o: budget.c budget.h palmutils.h simcity.h simcity_resconsts.h \
+	globals.h logging.h ui.h simulation.h resCompat.h repeathandler.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJDIR)/%.o: %.c simcity_resconsts.h Makefile-include pcity.def
+$(OBJDIR)/HiRes.o: HiRes.c logging.h simcity.h resCompat.h palmutils.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+map.h: sections.h
+
+$(OBJDIR)/map.o: map.c map.h simcity.h locking.h logging.h ui.h globals.h \
+	drawing.h resCompat.h palmutils.h simcity_resconsts.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+mem_compat.h:
+
+$(OBJDIR)/mem_compat.o: mem_compat.c mem_compat.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJDIR)/minimap.o: minimap.c minimap.h zakdef.h globals.h simcity.h ui.h \
+	logging.h resCompat.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+options.h: sections.h
+
+$(OBJDIR)/options.o: options.c options.h globals.h simcity.h logging.h palmutils.h \
+	simcity_resconsts.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJDIR)/palm_locking.o: palm_locking.c locking.h globals.h mem_compat.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+palmutils.h: sections.h
+
+$(OBJDIR)/palmutils.o: palmutils.c palmutils.h resCompat.h simcity_resconsts.h \
+	simcity.h logging.h mem_compat.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+query.h: sections.h
+
+$(OBJDIR)/query.o: query.c query.h palmutils.h simcity.h locking.h logging.h \
+	simcity_resconsts.h zakdef.h simulation.h globals.h mem_compat.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJDIR)/repeathandler.o: repeathandler.c repeathandler.h palmutils.h mem_compat.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+resCompat.h: sections.h sony_support.h
+
+savegame.h: sections.h
+
+$(OBJDIR)/savegame.o: savegame.c savegame.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+savegame_be.h: palmutils.h sections.h
+
+$(OBJDIR)/savegame_be.o: savegame_be.c savegame_be.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+simcity.h: zakdef.h
+
+$(OBJDIR)/simcity.o: simcity.c simcity.h savegame.h savegame_be.h \
+	options.h map.h budget.h query.h resCompat.h palmutils.h \
+	mem_compat.h minimap.h beam.h simcity_resconsts.h \
+	logging.h locking.h  ui.h drawing.h handler.h globals.h \
+	simulation.h disaster.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+sony_support.h: sections.h
+
+$(OBJDIR)/sony_support.o: sony_support.c sony_support.h resCompat.h \
+	palmutils.h logging.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJDIR)/stack.o: stack.c stack.h mem_compat.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 #

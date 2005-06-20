@@ -8,6 +8,9 @@
 extern "C" {
 #endif
 
+#include <zakdef.h>
+#include <compilerpragmas.h>
+
 /*! \brief budget numbers that are obtained for reporting */
 typedef enum {
 	bnResidential = 0,
@@ -33,9 +36,6 @@ typedef enum {
 #define	SCRATCHBIT	((unsigned char)0x80)
 /*! \brief the bit associated with knowing if the field has been painted */
 #define PAINTEDBIT	((unsigned char)0x40)
-
-#include <zakdef.h>
-#include <compilerpragmas.h>
 
 /*!
  * \brief Perform a phase of the simulation
@@ -395,10 +395,6 @@ EXPORT Int16 CarryWater(welem_t x);
  */
 void endSimulation(void);
 
-#if defined(__cplusplus)
-}
-#endif
-
 #define	getScratch(i) (getWorldFlags(i) & SCRATCHBIT)
 #define	setScratch(i) orWorldFlags((i), SCRATCHBIT)
 #define	unsetScratch(i) andWorldFlags((i), (selem_t)~SCRATCHBIT)
@@ -406,5 +402,9 @@ void endSimulation(void);
 	UInt32 XXX = 0; \
 	for (; XXX < MapMul(); XXX++) unsetScratch(XXX); \
 }
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif /* _SIMULATION_H_ */

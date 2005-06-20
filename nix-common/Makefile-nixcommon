@@ -1,0 +1,24 @@
+
+OBJECTS_NIX=savegame_be.o nix_utils.o pglobals.o stack.o stringsearch.o \
+	zonestrings.o
+
+savegame_be.o: savegame_be.c savegame_be.h globals.h sections.h pack.h \
+	handler.h logging.h simulation.h mem_compat.h stringsearch.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+savegame_be.h: zakdef.h
+
+nix_utils.o: nix_utils.c nix_utils.h zakdef.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+pglobals.o: pglobals.c zakdef.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+stack.o:  stack.c stack.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+stringsearch.o: stringsearch.c stringsearch.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+zonestrings.o: zonestrings.c zonestrings.h
+	$(CC) $(CFLAGS) -c $< -o $@
