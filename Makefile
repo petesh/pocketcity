@@ -22,7 +22,7 @@ linux: all-linux
 
 palm: all-palm
 
-#clean-graphic clean-linux-gtk
+#clean-graphic
 clean: clean-linux-gtk clean-palm
 
 clean-%:

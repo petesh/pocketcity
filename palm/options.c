@@ -24,7 +24,8 @@ static void saveButtonConfig(void) CONFIG_SECTION;
 static void clearButtonConfig(void) CONFIG_SECTION;
 
 /*!
- * This is the event loop for the form, making all the appropriate calls to
+ * \brief this is the event loop for the options form.
+ * Makes all the appropriate calls to
  * set-up and save the options providing the OK button is hit.
  */
 Boolean

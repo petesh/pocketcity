@@ -28,6 +28,7 @@ static void frmShowID(FormPtr fp, UInt16 id) QUERY_SECTION;
 static void frmHideID(FormPtr fp, UInt16 id) QUERY_SECTION;
 
 /*!
+ * \brief Handle the query form.
  * takes care of the set-up, cleanup app-button selection and cleanup
  */
 Boolean

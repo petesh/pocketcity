@@ -32,7 +32,9 @@
 /*! \brief path to search for graphics */
 Char *pathsearch = (Char *)"$:$/graphic:$/graphic/icons:$/../graphic";
 
+/*! \brief number of milli seconds in a second */
 #define	MILLISECS	1000
+/*! \brief the number of ticks to make every second */
 #define	TICKPERSEC	10
 
 /*! \brief the main window's contents */
@@ -105,6 +107,7 @@ const GtkItemFactoryEntry menu_items[] = {
 	{ "/Simulation/_Redistribute", NULL, forceRedistribute, 0, NULL, NULL }
 
 };
+/*! \brief number of menu items - the standard #define */
 #define NMENU_ITEMS	(sizeof (menu_items) / sizeof (menu_items[0]))
 
 /*!
@@ -170,12 +173,18 @@ main(int argc, char **argv)
 	return (0);
 }
 
+/*!
+ * \brief get the main window widget
+ */
 GtkWidget *
 window_main_get(void)
 {
 	return (mw.window);
 }
 
+/*!
+ * \brief get the drawable for the main window
+ */
 GdkDrawable *
 drawable_main_get(void)
 {
@@ -500,6 +509,7 @@ setupToolBox(void)
 		{ Be_Defence_Military, "Tank", "interface_20.png" }
 	};
 
+/*! \brief count of elements in the actions array */
 #define SIZE_ACTIONS	(sizeof (actions) / sizeof (actions[0]))
 
 	image_path = malloc(max_path);
@@ -678,6 +688,10 @@ SetUpMainWindow(void)
 	gtk_widget_realize(mw.window);
 }
 
+/*!
+ * \brief show the main window.
+ * Simply makes sure that the window is displayed
+ */
 static void
 ShowMainWindow(void)
 {
