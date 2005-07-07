@@ -18,6 +18,7 @@
  * \return true if this depth is available
  */
 Boolean canColor(UInt16 nbits);
+
 /*!
  * \brief Change the depth
  *
@@ -58,6 +59,14 @@ Boolean isZireOld(void);
  */
 Boolean isHandEra(void);
 
+#if defined(PALM_FIVE)
+/*!
+ * \brief does this device have a 5-way navigator
+ * \return true if this device has a 5-way navigator
+ */
+ Boolean hasFiveWayNav(void);
+ #endif
+ 
 /*!
  * \brief build a string list from all the string list items from resID
  * \param resID the resource to get the strings from

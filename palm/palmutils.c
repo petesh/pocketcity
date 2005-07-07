@@ -12,6 +12,10 @@
 #include <StringMgr.h>
 #include <Form.h>
 
+#if defined(PALM_FIVE)
+#include <PalmNavigator.h>
+#endif
+
 #include <resCompat.h>
 #include <simcity_resconsts.h>
 #include <simcity.h>
@@ -60,35 +64,55 @@ Boolean
 isHandEra(void)
 {
 	UInt32 version;
+	static UInt16 rv = 3;
+	
+	if (rv != 3)
+		return ((Boolean)(rv == 1));
+	rv = 0;
 	if (FtrGet(TRGSysFtrID, TRGVgaFtrNum, &version) == 0)
 		if (sysGetROMVerMajor(version) >= 1)
-			return (true);
-	return (false);
+			rv = 1;
+	return ((Boolean)(rv == 1));
 }
 
 Boolean
 isZireOld(void)
 {
-	UInt32 vcl;
 	static UInt16 rv = 3;
+	UInt32 vcl;
 
 	if (rv != 3)
 		return ((Boolean)(rv == 1));
+	rv = 0;
 	if ((FtrGet(sysFtrCreator, sysFtrNumOEMCompanyID, &vcl) == 0) &&
 	    (vcl == PalmOEMCompanyID) &&
 	    (FtrGet(sysFtrCreator, sysFtrNumOEMDeviceID, &vcl) == 0) &&
-	    (vcl == ZireOriginalDeviceID)) {
+	    (vcl == ZireOriginalDeviceID))
 		rv = 1;
-	} else {
-		rv = 0;
-	}
 	return ((Boolean)(rv == 1));
 }
 
+#if defined(PALM_FIVE)
+Boolean
+hasFiveWayNav(void)
+{
+	static UInt16 rv = 3;
+	UInt32 vcl;
+	
+	if (rv != 3)
+		return ((Boolean)(rv == 1));
+	rv = 0;
+	if ((FtrGet(navFtrCreator, navFtrVersion, &vcl) == 0))
+		rv = 1;
+	return ((Boolean)(rv == 1));
+}
+#endif
+ 
 UInt32
 getDepth(void)
 {
 	static UInt32 avd = 0;
+	
 	if (avd != 0) {
 		WriteLog("Depth: saved == %ld\n", (long)avd);
 		return (avd);
@@ -111,6 +135,7 @@ static UInt32
 hibit(UInt32 x)
 {
 	int r = 0;
+	
 	if (x & 0xffff0000)  { x >>= 16; r += 16; }
 	if (x & 0x0000ff00)  { x >>=  8; r +=  8; }
 	if (x & 0x000000f0)  { x >>=  4; r +=  4; }

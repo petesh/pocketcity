@@ -1,5 +1,6 @@
 
 HW = m68k
+#HW = arm
 
 CC = $(HW)-palmos-gcc
 AWK = gawk
@@ -11,7 +12,8 @@ RC = pilrc
 RCFLAGS = -q -ro
 
 OPTFLAGS = -O2
-WARNFLAGS = -W -Wall -Werror -Wno-multichar -fconserve-space
+WARNFLAGS = -W -Wall -Werror -Wno-multichar 
+#-fconserve-space
 INCLUDES = -I . -I ../source -I ../graphic
 DEFINES =
 

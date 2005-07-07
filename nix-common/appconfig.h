@@ -15,7 +15,9 @@
 #endif
 
 #if !defined(LP64)
-/* assume ILP32 ... terrible, I know */
+/*!
+ * This is the Byte data type. assume ILP32 ... terrible, I know
+ */
 typedef unsigned char Byte;
 
 /*! \brief Int8 data type to correspond to palm data type */

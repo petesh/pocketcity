@@ -6,6 +6,8 @@
 #if !defined(_BEAM_H_)
 #define _BEAM_H_
 
+#include <PalmTypes.h>
+
 #include <appconfig.h>
 #include <sections.h>
 

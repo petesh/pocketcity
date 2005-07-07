@@ -315,7 +315,7 @@ struct zoneTypeValue {
 /*!
  * \brief the statistics structure.
  * 
- * This is used by the simulation to record the varoius values for use in the
+ * This is used by the simulation to record the various values for use in the
  * graph screen.
  *
  * The items are obtained using the buildcount array, so we need a mapping of

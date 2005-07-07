@@ -74,6 +74,7 @@ static const struct _bldStruct {
 	{ Be_Defence_Military, Build_Defence, DuMilitary, 0 },
 };
 
+/*! \brief the build structure list length */
 #define	BS_LEN	((sizeof (buildStructure) / sizeof (buildStructure[0])))
 
 /*!

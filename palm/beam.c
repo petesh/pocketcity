@@ -13,6 +13,7 @@
 #include <StringMgr.h>
 #include <ErrorMgr.h>
 #include <ExgMgr.h>
+#include <DataMgr.h>
 
 #include <beam.h>
 #include <palmutils.h>
@@ -21,8 +22,11 @@
 #include <savegame_be.h>
 #include <logging.h>
 #include <simcity_resconsts.h>
+#include <zakdef.h>
 
+/*! \brief this is the mime type of the pocketcity application */
 static char *mime_type = "application/x-pocketcity";
+/*! \brief this is the extension that is game cities */
 static char *pcity_extension = "cty";
 
 int

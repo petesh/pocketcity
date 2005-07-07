@@ -207,7 +207,7 @@ updateBudgetValue(FormPtr form, UInt16 label, const Char *format, long value)
 }
 
 /*!
- * \update the field in question
+ * update the field in question
  * \param item the item to update
  */
 static void

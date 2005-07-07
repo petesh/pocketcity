@@ -102,6 +102,7 @@ typedef PalmAppConfig_01_t PlatformAppConfig;
 #define	SONYEV
 #endif
 
+/*! \brief Palm Default application configuration */
 #define	DEFAULT_APPCONFIG { \
 	{ kePassthrough, keLeft, keUp, keDown, keRight, kePassthrough, \
 		kePopup, keMap HIRESKEY SONYEV } \

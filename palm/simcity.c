@@ -34,8 +34,10 @@
 #include <logging.h>
 #include <locking.h>
 
+#if defined(PALM_FIVE)
 /* 5-way navigator support needs Palm (Specific) SDK */
 #include <PalmNavigator.h>
+#endif
 
 #if defined(LOGGING)
 #include <HostControl.h>
@@ -873,10 +875,24 @@ hPocketCity(EventPtr evp)
 		handled = DoPCityMenuProcessing(evp->data.menu.itemID);
 
 	case keyDownEvent:
+#if defined(PALM_FIVE)
+		if (EvtKeydownIsVirtual(evp) && IsFiveWayNavEvent(evp)) {
+			if (NavDirectionPressed(evp, Left))
+				doKeyEvent(keLeft);
+			else if (NavDirectionPressed(evp, Right))
+				doKeyEvent(keRight);
+			else if (NavDirectionPressed(evp, Up))
+				doKeyEvent(keUp);
+			else if (NavDirectionPressed(evp, Down))
+				doKeyEvent(keDown);
+			handled = true;
+		} else // Note the fallthrough
+#endif
 		handled = (Boolean)vkDoEvent(evp->data.keyDown.chr);
 		break;
 	case keyUpEvent:
 		handled = true;
+		break;
 #if defined(HRSUPPORT)
 	case winDisplayChangedEvent:
 #if defined(SONY_CLIE)
@@ -1430,7 +1446,7 @@ UISystemErrorNotify(syserror_t error)
 	case seInvalidSaveGame:
 		FrmAlert(alertID_invalidSaveVersion);
 		break;
-	default:
+	//default:
 	}
 }
 

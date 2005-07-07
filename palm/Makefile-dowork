@@ -67,11 +67,11 @@ dlores dpalm5 dsony: DEBUG=1
 llores lpalm5 lsony: AXCFLAGS = -g -DDEBUG -DLOGGING
 llores lpalm5 lsony: DEBUG=1
 
-palm5 dpalm5: BXCFLAGS = -DPALM_HIGH
+palm5 dpalm5: BXCFLAGS = -DPALM_HIGH -DPALM_FIVE
 palm5 dpalm5: HIRES=1
 
 # Sony app also contains all the hires functionality
-sony dsony: CXCFLAGS = -DSONY_CLIE -DPALM_HIGH -DSONY_HIGH
+sony dsony: CXCFLAGS = -DSONY_CLIE -DSONY_HIGH -DPALM_HIGH -DPALM_FIVE
 sony dsony: SONY=1
 
 CFLAGS += $(AXCFLAGS) $(BXCFLAGS) $(CXCFLAGS) -DPROGTOKEN="'$(PROGTOKEN)'"
