@@ -22,11 +22,15 @@ Palm files:
 		I believe sony in their infinite wisdom have discontinued the
 		us sonypdadev site so this may be a moot point. I'll probably
 		bundle a copy of the SDK for people to use
-		[ AARGH! licenses ]
+	- Palm Specific SDK
+		- 5-way navigator support
 
 	- Palm Emulator (and appropriate ROMs)
 	- Palm Simulator.
 		http://www.palmsource.com/
+
+		[ If you're having problems with getting any of the SDKs then
+		  contact me and I'll see what I can sort out ]
 
 Linux:
 	- gtk 2.0
@@ -35,8 +39,7 @@ Linux:
 Windows/Cygwin:
 	- cygwin (reasonably modern)
 		http://www.cygwin.com/
-	- GTK for windows
-		http://web.sfc.keio.ac.jp/~s01397ms/cygwin/
+		Must have gtk2
 
 
 The usual preamble:

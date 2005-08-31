@@ -10,21 +10,29 @@ Don't forget to read the GAMEHINTS file.
 
 INSTALLATION
 -----------
-To compile for PalmOS:
- type `make` in the 'palm' folder
- 
- install:           for this:
- pcity.prc          black/white displays
- pcity-grey.prc     16 greyscale displays (like the Vx)
- pcity-color.prc    256 color displays    (like the IIIc)
- mg-pcity.prc	    can be used on b/w, grey & color devices
- sy-pcity.prc	    black & white for sony devices
- sy-pcity-grey.prc  grey scale for sony devices
- sy-pcity-color.prc color for sony devices.
+The Game is split into the program code (a .prc file) and the tiles (a .pdb
+  file).
+Currently there is only language support for English.
 
-To compile for GTK+ (Linux):
- type `make` in the 'linux-gtk' folder
- then run the game with `./pcity`
+What You Want				What You Install
+palm 3.5 - 4.99 Devices			standard-PocketCity-EN.prc
+sony 4.0+ Devices			sony-PocketCity-EN.prc
+Palm 5+ Devices				palm5-PocketCity-EN.prc
+
+The tiles are split into 5 versions, this is to reduce the memory needed
+for having specific versions (and to support animation in the future).
+
+If You Want				What You Install
+Color Tiles				PocketCity-color-1.pdb
+Greyscale Tiles				PocketCity-grey-1.pdb
+4color Tiles (limited hardware)		PocketCity-twobit-1.pdb
+Black and White				PocketCity-bw-1.pdb
+All Types (bw -> color)			PocketCity-merged-1.pdb
+
+For example if you have a color, palm 5 machine you would install:
+	palm5-PocketCity-EN.prc and
+	PocketCity-color-1.pdb	
+onto you palm.
 
 Special Features:
 =================

@@ -9,7 +9,7 @@ Legend:
  '*' = fix/modification
  '-' = removed feature
 
-Version 0.17dev
+Version 0.17
   + Support for Palm OS 5 High Resolution API [& Sony Old]
   + Query Tool Improved
   + Changed savegame format to include power/water details
@@ -20,7 +20,10 @@ Version 0.17dev
   + Minimap for the Palm Platform (scrolling)
   + Desires levels now displayed
   + reduce memory requirements for savegames
-  + Beaming Support (To/From Palm machines, To Linux (currently))
+  + 908662 Beaming Support (To/From Palm machines, To Linux (currently))
+  + 1010143 Ability to scroll without using hardware buttons
+  + 1000858 Add / Implement D-Pad functionality (5 way navigator)
+  + 1007647 Allow the assigning of tools to specific buttons
   * Fix annoying winScreenLock issue
   * 818171 Hard Crash on Sony Clie SL10
   * 818172 Index out of range (0.16)
