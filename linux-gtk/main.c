@@ -232,6 +232,7 @@ mainloop_callback(gpointer data __attribute__((unused)))
 		}
 	}
 
+	addGraphicUpdate(gu_date);
 	doRepaintDisplay();
 
 	if ((timekeeper / TICKPERSEC) >= getLoopSeconds() &&

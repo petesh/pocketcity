@@ -30,7 +30,7 @@ OBJECTS = $(OBJECTS_CARELESS) $(OBJECTS_NIX) main.o savegame_fe.o budget.o \
 
 all: pocketcity
 
-debug: CFLAGS += -g -DDEBUG -pg
+debug: CFLAGS += -g -DDEBUG -DLOGGING -pg
 debug: OPTFLAGS=
 debug: all
 
