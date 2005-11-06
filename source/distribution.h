@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief interface routines to the simulation
  */
 #if !defined(_DISTRIBUTION_H_)
@@ -16,25 +17,25 @@ extern "C" {
 /*! \brief the bit associated with water in the worldflags */
 #define	WATEREDBIT	((unsigned char)0x02)
 /*! \brief the number of fits saved into the savegame */
-#define SAVEDBITS	(2)
+#define	SAVEDBITS	(2)
 
 /*! \brief the bit associated with scratch/unvisited in the worldflags */
 #define	SCRATCHBIT	((unsigned char)0x80)
 /*! \brief the bit associated with knowing if the field has been painted */
-#define PAINTEDBIT	((unsigned char)0x40)
+#define	PAINTEDBIT	((unsigned char)0x40)
 
 /*! \brief Up Direction */
-#define DIR_UP		(1<<0)
+#define	DIR_UP		(1<<0)
 /*! \brief Down Direction */
 #define	DIR_DOWN	(1<<1)
 /*! \brief Vertical Direction */
-#define DIR_VER		((DIR_UP) | (DIR_DOWN))
+#define	DIR_VER		((DIR_UP) | (DIR_DOWN))
 /*! \brief Left Direction */
 #define	DIR_LEFT	(1<<2)
 /*! \brief Right Direction */
 #define	DIR_RIGHT	(1<<3)
 /*! \brief Horizontal Direction */
-#define DIR_HOR		((DIR_LEFT) | (DIR_RIGHT))
+#define	DIR_HOR		((DIR_LEFT) | (DIR_RIGHT))
 /*! \brief All Directions */
 #define	DIR_ALL		((DIR_HOR) | (DIR_VER))
 

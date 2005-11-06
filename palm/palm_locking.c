@@ -66,7 +66,5 @@ UnlockZone(lockZone zone)
 		*lock->destVar = NULL;
 	}
 
-	ErrFatalDisplayIf(lock->lockcount < 0,
-	    "Too many unlock calls");
+	ErrFatalDisplayIf(lock->lockcount < 0, "Too many unlock calls");
 }
-

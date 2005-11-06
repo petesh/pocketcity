@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * This file is for displaying tile information as you hover over individual
  * zones.
  *
@@ -53,8 +54,9 @@ hoverUpdate(UInt16 xpos, UInt16 ypos, int force)
 	UnlockZone(lz_flags);
 	UnlockZone(lz_world);
 
-	if ((ttg.old_xpos == xpos) && (ttg.old_ypos == ypos)) 
-		if (!force) return;
+	if ((ttg.old_xpos == xpos) && (ttg.old_ypos == ypos))
+		if (!force)
+			return;
 
 	ttg.old_xpos = xpos;
 	ttg.old_ypos = ypos;
@@ -127,7 +129,7 @@ hoverShow(void)
 	lab = GTK_LABEL(create_right_label("Value:"));
 	gtk_label_set_justify(lab, GTK_JUSTIFY_RIGHT);
 	gtk_table_attach(table, GTK_WIDGET(lab), 0, 1, 1, 2,
-    	    GTK_FILL, GTK_FILL, 0, 0);
+	    GTK_FILL, GTK_FILL, 0, 0);
 	ttg.value = create_left_label("-");
 	gtk_table_attach(table, ttg.value, 1, 3, 1, 2, GTK_FILL, GTK_FILL,
 	    0, 0);
@@ -170,4 +172,3 @@ hoverShow(void)
 	gtk_widget_show_all(GTK_WIDGET(table));
 	gtk_widget_show(ttg.win);
 }
-

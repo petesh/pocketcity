@@ -106,7 +106,7 @@ static void freeToolbarBitmap(void);
 static void pcResizeDisplay(FormPtr form, Int16 hOff, Int16 vOff, Boolean draw);
 #else
 #define	freeToolbarBitmap()
-#define pcResizeDisplay(X,Y,A,B)
+#define	pcResizeDisplay(X, Y, A, B)
 #endif
 
 /* Collects what would otherwise be several variables */
@@ -211,7 +211,7 @@ static
 FormEventHandlerType *id2handler[] = {
 	hPocketCity, /* formID_pocketCity */
 	hBudget, /* formID_budget */
-	hMap , /* formID_map */
+	hMap, /* formID_map */
 	hFiles, /* formID_files */
 	hFilesNew, /* formID_filesNew */
 	hQuickList, /* formID_quickList */
@@ -220,7 +220,7 @@ FormEventHandlerType *id2handler[] = {
 	hButtonConfig, /* formID_ButtonConfig */
 	hQuery /* formID_Query */
 };
-#define IDARLEN	(sizeof (id2handler) / sizeof (id2handler[0]))
+#define	IDARLEN	(sizeof (id2handler) / sizeof (id2handler[0]))
 
 static FormEventHandlerType *
 gitForm(UInt16 formID)
@@ -416,7 +416,7 @@ EventLoop(void)
 			 */
 			for (q = 0; q < bc_tail; q++)
 				if ((long)vgame.BuildCount[q] != 0) {
-					WriteLogX("%s=%li ", cstrings[q], 
+					WriteLogX("%s=%li ", cstrings[q],
 					    (long)vgame.BuildCount[q]);
 					pc++;
 					if (pc == 3) {
@@ -467,7 +467,6 @@ _PalmInit(void)
 	UInt16		i;
 	MemHandle	bitmaphandle;
 	BitmapPtr	bitmap;
-	//BitmapPtrV3	bmpv3;
 	WinHandle	winHandle = NULL;
 	WinHandle	privhandle;
 	UInt16		prefSize;
@@ -1166,9 +1165,9 @@ UIDoQuickList(void)
 		FrmDeleteForm(ftList);
 	} else {
 		/*
-	 * darn, I hate that 3.1 - can't do bitmapped buttons.
-	 * I'll just throw the ExtraBuildList up
-	 */
+		 * darn, I hate that 3.1 - can't do bitmapped buttons.
+		 * I'll just throw the ExtraBuildList up
+		 */
 		UIPopUpExtraBuildList();
 	}
 }
@@ -1388,7 +1387,8 @@ void
 UIDisasterNotify(disaster_t disaster)
 {
 	char string[512];
-	SysStringByIndex(st_disasters, (UInt16)(disaster - diFireOutbreak), string, (UInt16)511);
+	SysStringByIndex(st_disasters,
+	    (UInt16)(disaster - diFireOutbreak), string, (UInt16)511);
 	if (*string == '\0') StrPrintF(string, "generic disaster??");
 
 	FrmCustomAlert(alertID_generic_disaster, string, 0, 0);
@@ -1412,7 +1412,7 @@ static struct problemtable {
 	{ peOutOfWater, IsOutWaterShown, SetOutWaterShown, alertID_outWater }
 };
 
-#define PROBLEMTABLE_SIZE (sizeof (problem_table) / sizeof (problem_table[0]))
+#define	PROBLEMTABLE_SIZE (sizeof (problem_table) / sizeof (problem_table[0]))
 
 void
 UIProblemNotify(problem_t problem)
@@ -1429,8 +1429,8 @@ UIProblemNotify(problem_t problem)
 			break;
 		}
 	}
-	if (alert == 0) return;
-	FrmAlert(alert);
+	if (alert != 0)
+		FrmAlert(alert);
 }
 
 /*
@@ -1446,7 +1446,6 @@ UISystemErrorNotify(syserror_t error)
 	case seInvalidSaveGame:
 		FrmAlert(alertID_invalidSaveVersion);
 		break;
-	//default:
 	}
 }
 
@@ -1493,7 +1492,8 @@ static UInt8 lockCalls = 0;
 void
 UILockScreen(void)
 {
-	if (!Is35ROM()) return;
+	if (!Is35ROM())
+		return;
 	ErrFatalDisplayIf(lockCalls > 0, "double lock on screen attempted");
 	if (!didLock)
 		didLock = WinScreenLock(winLockCopy);
@@ -1507,7 +1507,8 @@ UILockScreen(void)
 void
 UIUnlockScreen(void)
 {
-	if (!Is35ROM()) return;
+	if (!Is35ROM())
+		return;
 	ErrFatalDisplayIf(lockCalls == 0, "double free on screen attempted");
 	if (didLock != NULL) {
 		WinScreenUnlock();
@@ -1540,26 +1541,11 @@ _UIDrawRect(Int16 nTop, Int16 nLeft, Int16 nHeight, Int16 nWidth)
 	rect.topLeft.y = nTop;
 	rect.extent.x = nWidth;
 	rect.extent.y = nHeight;
-	
+
 	StartHiresDraw();
 	_WinDrawRectangleFrame(1, &rect);
 	EndHiresDraw();
 }
-
-/*
- * Draw the border around the play area
- */
-/*
-static void
-DrawBorder()
-{
-	if (IsDeferDrawing())
-		return;
-
-	_UIDrawRect(YOFFSET, XOFFSET, (Int16)(getVisibleY() * gameTileSize()),
-	    (Int16)(getVisibleX() * gameTileSize()));
-}
-*/
 
 /*
  * Null Function.
@@ -1574,14 +1560,14 @@ UISetUpGraphic(void)
  * Would be the tracking cursor on the screen in a bigger environment
  */
 void
-UIPaintCursor(UInt16 xpos __attribute__ ((unused)),
+UIPaintCursor(UInt16 xpos __attribute__((unused)),
     UInt16 ypos __attribute__((unused)))
 {
 }
 
 /*!
  * \brief Draw a generic loss icon.
- * 
+ *
  * It is obtained from the zones bitmap.
  * The location in the zones bitmap is stated by the tilex and tiley values.
  * This specifies the overlay. The icon itself is tile pixels before this.
@@ -1609,7 +1595,8 @@ PaintLossIcon(UInt16 xpos, UInt16 ypos, welem_t elem)
 	StartHiresDraw();
 	/* first draw the overlay */
 	_WinCopyRectangle(winZones, WinGetActiveWindow(), &rect,
-	    (Coord)(xpos * gameTileSize() + XOFFSET), (Coord)(ypos * gameTileSize() + YOFFSET),
+	    (Coord)(xpos * gameTileSize() + XOFFSET),
+	    (Coord)(ypos * gameTileSize() + YOFFSET),
 	    winErase);
 	/* now draw the powerloss icon */
 	rect.topLeft.x -= gameTileSize();
@@ -1622,7 +1609,7 @@ PaintLossIcon(UInt16 xpos, UInt16 ypos, welem_t elem)
 
 /*!
  * \brief Draw the water loss icon on a field.
- * 
+ *
  * The Field has already been determined to not have water.
  */
 void
@@ -1633,7 +1620,7 @@ UIPaintWaterLoss(UInt16 xpos, UInt16 ypos)
 
 /*!
  * \brief Draw a power loss icon for the field.
- * 
+ *
  * The field has already been determined to not have power
  */
 void
@@ -1803,7 +1790,7 @@ UIPaintPlayArea(void)
 void
 UIPaintDesires(void)
 {
-	return;
+	/* return; */
 }
 
 /*
@@ -1846,7 +1833,7 @@ UIScrollDisplay(dirType direction)
 		WriteLog("(%d,%d)->(%d,%d)\n", s_x, s_y, l_x, l_y);
 
 		for (x = s_x; x <= l_x; x++) {
-			for(y = s_y; y <= l_y; y++) {
+			for (y = s_y; y <= l_y; y++) {
 				DrawFieldWithoutInit(x, y);
 			}
 		}
@@ -1950,7 +1937,7 @@ static RectangleType shapes[] = {
 
 /*! \brief the positions of the items on screen - low resolution */
 static const struct StatusPositions lrpositions[] = {
-	{ {0, 0} , {0, 1}, MIDX },  /* loc_date */
+	{ {0, 0}, {0, 1}, MIDX },  /* loc_date */
 	{ {0, 0}, {0, 1}, ENDY }, /* loc_credits */
 	{ {0, 0}, {0, 1}, MIDX | ENDY }, /* loc_population */
 	{ {0, 0}, {0, 1}, ENDX | ENDY } /* loc_position */
@@ -2117,7 +2104,7 @@ UIPaintCredits(void)
 {
 	char temp[20];
 	char scale;
-	UInt32 credits;
+	Int32 credits;
 #if defined(HRSUPPORT)
 	MemHandle bitmapHandle;
 	BitmapPtr bitmap;
@@ -2126,8 +2113,8 @@ UIPaintCredits(void)
 	if (IsDeferDrawing())
 		return;
 
-	credits = scaleNumber((UInt32)getCredits(), &scale);
-	StrPrintF(temp, "$: %ld%c", credits, scale);
+	credits = scaleNumber32((Int32)getCredits(), &scale);
+	StrPrintF(temp, "$: %li%c", credits, scale);
 	DrawItem(loc_credits, temp);
 #if defined(HRSUPPORT)
 	if (isHires()) {
@@ -2186,8 +2173,9 @@ UIPaintBuildIcon(void)
 		return;
 
 	bitmaphandle = DmGetResource(TBMP,
-	    (UInt16)(bitmapID_iconBulldoze + (((nSelectedBuildItem <= Be_Extra)) ?
-	    nSelectedBuildItem : OFFSET_EXTRA)));
+	    (UInt16)(bitmapID_iconBulldoze +
+		(((nSelectedBuildItem <= Be_Extra)) ?
+		nSelectedBuildItem : OFFSET_EXTRA)));
 
 	if (bitmaphandle == NULL)
 		/* TODO: onscreen error? +save? */
@@ -2257,21 +2245,21 @@ UIPaintPopulation(void)
 {
 	char temp[20];
 	Char scale;
-	UInt32 popul;
+	Int32 popul;
 
 	if (IsDeferDrawing())
 		return;
 
-	popul = getPopulation();
-	popul = scaleNumber(popul, &scale);
+	popul = (Int32)getPopulation();
+	popul = scaleNumber32(popul, &scale);
 
-	StrPrintF(temp, "Pop: %lu%c", popul, scale);
+	StrPrintF(temp, "Pop: %li%c", popul, scale);
 	DrawItem(loc_population, temp);
 #if defined(HRSUPPORT)
 	if (isHires()) {
 		MemHandle bitmapHandle;
 		BitmapPtr bitmap;
-		
+
 		bitmapHandle = DmGetResource(TBMP, bitmapID_popu);
 		if (bitmapHandle == NULL)
 			return;
@@ -2370,7 +2358,7 @@ static UInt8 speedslist[] = {
 	SPEED_PAUSED, SPEED_SLOW, SPEED_MEDIUM, SPEED_FAST, SPEED_TURBO
 };
 /*! \brief maximum speed */
-#define MAX_SPEED	(sizeof (speedslist) / sizeof (speedslist[0]))
+#define	MAX_SPEED	(sizeof (speedslist) / sizeof (speedslist[0]))
 
 /*!
  * \brief get the offset of the speed into the speedslist array
@@ -2557,7 +2545,7 @@ static struct _silkKeys {
 
 /*!
  * \brief find the calculator button on the screen
- * 
+ *
  * The calculator button can be a favorites button on the Zire. The problem
  * is that the Zire uses a different code on PalmOS 4 than on PalmOS 5 for
  * the key, making it not work.
@@ -2717,7 +2705,7 @@ UIPaintToolBar(void)
 		Coord bHeight;
 
 		GetBitmapDimensions(bitmapID_iconBulldoze, &bWidth, &bHeight);
-		bWidth += 4; 
+		bWidth += 4;
 
 		tbWidth = (1 + (bitmapID_iconExtra - bitmapID_iconBulldoze)) *
 		    bWidth;
@@ -2727,7 +2715,7 @@ UIPaintToolBar(void)
 		if (highDensityFeatureSet() && pToolbarBitmap != NULL) {
 			pOldBitmap = pToolbarBitmap;
 			pToolbarBitmap = (BitmapPtr)BmpCreateBitmapV3(
-			    pToolbarBitmap, kDensityLow, 
+			    pToolbarBitmap, kDensityLow,
 			    BmpGetBits(pToolbarBitmap), NULL);
 		}
 		if (pToolbarBitmap != NULL) {

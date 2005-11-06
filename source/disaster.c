@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief routines associated with disasters
  *
  * This module contains functions that are used to create disasters in the
@@ -554,4 +555,3 @@ CreateWaste(UInt16 x, UInt16 y)
 		FireSpread(x, y);
 	}
 }
-

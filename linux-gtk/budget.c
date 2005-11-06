@@ -1,6 +1,7 @@
-/*! \file
+/*!
+ * \file
  * \brief This file corresponds to the budget form.
- * 
+ *
  * This is the gtk implementation of the budget form
  */
 

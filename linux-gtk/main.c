@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief the main GTK routines for the simulation
  *
  * This file contains all the major routines to perform the simulation
@@ -108,7 +109,7 @@ const GtkItemFactoryEntry menu_items[] = {
 
 };
 /*! \brief number of menu items - the standard #define */
-#define NMENU_ITEMS	(sizeof (menu_items) / sizeof (menu_items[0]))
+#define	NMENU_ITEMS	(sizeof (menu_items) / sizeof (menu_items[0]))
 
 /*!
  * \brief the main routine
@@ -133,7 +134,7 @@ main(int argc, char **argv)
 		free(exec_dir);
 		exec_dir = cwd;
 	}
-	
+
 	/* fill in all the $'s in the pathsearch variable */
 	py = calloc(1, 1024);
 	px = pathsearch;
@@ -470,6 +471,37 @@ motion_notify_event(GtkWidget *widget __attribute__((unused)),
 	return (TRUE);
 }
 
+/* If you change the order here you need to change the xpm... */
+/*! \todo make the file names related to the items */
+const struct gaa {
+	gint entry;
+	const char *text;
+	const char *file;
+} actions[] = {
+	{ Be_Bulldozer, "Bulldozer", "interface_00.png" },
+	{ Be_Road, "Road", "interface_01.png" },
+	{ Be_Power_Line, "Power Line", "interface_02.png" },
+	{ Be_Zone_Residential, "Residential", "interface_03.png" },
+	{ Be_Zone_Commercial, "Commercial", "interface_04.png" },
+	{ Be_Zone_Industrial, "Industrial", "interface_05.png" },
+	{ Be_Tree, "Tree", "interface_06.png" },
+	{ Be_Water, "Water", "interface_07.png" },
+	{ Be_Water_Pipe, "Water Pipe", "interface_08.png" },
+	{ Be_Power_Plant, "Power Plant", "interface_09.png" },
+	{ Be_Nuclear_Plant, "Nuclear Power Plant", "interface_10.png" },
+	{ Be_Water_Pump, "Water Pump", "interface_11.png" },
+	{ Be_Fire_Station, "Fire Station", "interface_12.png" },
+	{ Be_Police_Station, "Police Station", "interface_13.png" },
+	{ Be_Military_Base, "Military Base", "interface_14.png" },
+	{ -1, NULL, NULL },
+	{ Be_Defence_Fire, "Fire Brigade", "interface_18.png" },
+	{ Be_Defence_Police, "Police Car", "interface_19.png" },
+	{ Be_Defence_Military, "Tank", "interface_20.png" }
+};
+
+/*! \brief count of elements in the actions array */
+#define	SIZE_ACTIONS	(sizeof (actions) / sizeof (actions[0]))
+
 /*!
  * \brief set up the toolbox
  * \return the widget containing the toolbox
@@ -482,36 +514,6 @@ setupToolBox(void)
 	unsigned int i;
 	Char *image_path;
 	size_t max_path = (size_t)pathconf("/", _PC_PATH_MAX) + 1;
-	/* If you change the order here you need to change the xpm... */
-	/*! \todo make the file names related to the items */
-	const struct gaa {
-		gint entry;
-		const char *text;
-		const char *file;
-	} actions[] = {
-		{ Be_Bulldozer, "Bulldozer", "interface_00.png" },
-		{ Be_Road, "Road", "interface_01.png" },
-		{ Be_Power_Line, "Power Line", "interface_02.png" },
-		{ Be_Zone_Residential, "Residential", "interface_03.png" },
-		{ Be_Zone_Commercial, "Commercial", "interface_04.png" },
-		{ Be_Zone_Industrial, "Industrial", "interface_05.png" },
-		{ Be_Tree, "Tree", "interface_06.png" },
-		{ Be_Water, "Water", "interface_07.png" },
-		{ Be_Water_Pipe, "Water Pipe", "interface_08.png" },
-		{ Be_Power_Plant, "Power Plant", "interface_09.png" },
-		{ Be_Nuclear_Plant, "Nuclear Power Plant", "interface_10.png" },
-		{ Be_Water_Pump, "Water Pump", "interface_11.png" },
-		{ Be_Fire_Station, "Fire Station", "interface_12.png" },
-		{ Be_Police_Station, "Police Station", "interface_13.png" },
-		{ Be_Military_Base, "Military Base", "interface_14.png" },
-		{ -1, NULL, NULL },
-		{ Be_Defence_Fire, "Fire Brigade", "interface_18.png" },
-		{ Be_Defence_Police, "Police Car", "interface_19.png" },
-		{ Be_Defence_Military, "Tank", "interface_20.png" }
-	};
-
-/*! \brief count of elements in the actions array */
-#define SIZE_ACTIONS	(sizeof (actions) / sizeof (actions[0]))
 
 	image_path = malloc(max_path);
 
@@ -537,20 +539,24 @@ setupToolBox(void)
 		    NULL, actions[i].text, NULL, button_image,
 		    G_CALLBACK(toolbox_callback),
 		    GINT_TO_POINTER(actions[i].entry));
-		/*gtk_container_add(GTK_CONTAINER(button), button_image);
-		gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), button,
-		    actions[i].text, NULL);
-		g_signal_connect(G_OBJECT(button), "clicked",
-		    G_CALLBACK(toolbox_callback),
-		GINT_TO_POINTER(actions[i].entry));
-		gtk_table_attach_defaults(GTK_TABLE(toolbox), button,
-		    (i%3), (i%3)+1, (i/3), (i/3)+1);*/
+		/*
+		 * gtk_container_add(GTK_CONTAINER(button), button_image);
+		 * gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), button,
+		 *   actions[i].text, NULL);
+		 * g_signal_connect(G_OBJECT(button), "clicked",
+		 *   G_CALLBACK(toolbox_callback),
+		 * GINT_TO_POINTER(actions[i].entry));
+		 * gtk_table_attach_defaults(GTK_TABLE(toolbox), button,
+		 *  (i%3), (i%3)+1, (i/3), (i/3)+1);
+		 */
 	}
 
-	/*handle = gtk_handle_box_new();
-	gtk_handle_box_set_handle_position(
-	    (GtkHandleBox *)handle, GTK_POS_TOP);
-	gtk_container_add(GTK_CONTAINER(handle), toolbox);*/
+	/*
+	 * handle = gtk_handle_box_new();
+	 * gtk_handle_box_set_handle_position(
+	 * (GtkHandleBox *)handle, GTK_POS_TOP);
+	 * gtk_container_add(GTK_CONTAINER(handle), toolbox);
+	 */
 
 	free(image_path);
 	return (toolbox);
@@ -823,7 +829,7 @@ UIDisasterNotify(disaster_t disaster)
 	UIDisplayError1(temp);
 }
 
-/*! 
+/*!
  * \brief notify that theres a problem in the city.
  * \param problem the problem to notify.
  */
@@ -1342,8 +1348,7 @@ doRepaintDisplay(void)
 		UIDrawBuildIcon();
 	if (checkGraphicUpdate(gu_speed))
 		UIDrawSpeed();
-	/*if (checkGraphicUpdate(gu_desires))
-		UIPaintDesires();*/
+	/* if (checkGraphicUpdate(gu_desires)) UIPaintDesires(); */
 	clearGraphicUpdate();
 	UIFinishDrawing();
 }

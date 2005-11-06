@@ -14,7 +14,7 @@
 #include <palmutils.h>
 #include <mem_compat.h>
 
-#define BUTTONMAPLEN	(sizeof (buttonmappings) / sizeof (buttonmappings[0]))
+#define	BUTTONMAPLEN	(sizeof (buttonmappings) / sizeof (buttonmappings[0]))
 
 buttonmapping_t *
 getSpinnerFieldIndex(buttonmapping_t *mapping, UInt16 buttonControl,
@@ -48,7 +48,8 @@ processRepeater(buttonmapping_t *map, UInt16 control,
 	Int32 fld;
 	Boolean limited = false;
 
-	if (bm == NULL) return (NULL);
+	if (bm == NULL)
+		return (NULL);
 
 	fp = (FieldPtr)GetObjectPtr(FrmGetActiveForm(), bm->field);
 	mh = FldGetTextHandle(fp);

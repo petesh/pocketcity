@@ -41,7 +41,7 @@ static void cnRepeatPressed(EventPtr event) SAVE_SECTION;
 static Boolean resizeSavegameForm(FormPtr form, Int16 hOff,
     Int16 vOff) SAVE_SECTION;
 #else
-#define resizeSavegameForm(F,H,V)
+#define	resizeSavegameForm(F, H, V)
 #endif
 
 /*! \brief constant for 'add new game' */

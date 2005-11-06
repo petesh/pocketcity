@@ -2,7 +2,7 @@
  * \file
  * \brief Contains the implementation of various palm functions
  */
-#define ALLOW_ACCESS_TO_INTERNALS_OF_BITMAPS
+#define	ALLOW_ACCESS_TO_INTERNALS_OF_BITMAPS
 #include <PalmTypes.h>
 #include <FeatureMgr.h>
 #include <ErrorBase.h>
@@ -28,8 +28,8 @@
 #define	TRGVgaFtrNum	2
 
 /* included Palm Zire (old) magic numbers */
-#define PalmOEMCompanyID	'Palm'
-#define ZireOriginalDeviceID	'Cubs'
+#define	PalmOEMCompanyID	'Palm'
+#define	ZireOriginalDeviceID	'Cubs'
 
 void
 RearrangeObjectOnly(FormPtr form, UInt16 oID, Int16 offsetX, Int16 offsetY,
@@ -65,7 +65,7 @@ isHandEra(void)
 {
 	UInt32 version;
 	static UInt16 rv = 3;
-	
+
 	if (rv != 3)
 		return ((Boolean)(rv == 1));
 	rv = 0;
@@ -98,7 +98,7 @@ hasFiveWayNav(void)
 {
 	static UInt16 rv = 3;
 	UInt32 vcl;
-	
+
 	if (rv != 3)
 		return ((Boolean)(rv == 1));
 	rv = 0;
@@ -107,12 +107,12 @@ hasFiveWayNav(void)
 	return ((Boolean)(rv == 1));
 }
 #endif
- 
+
 UInt32
 getDepth(void)
 {
 	static UInt32 avd = 0;
-	
+
 	if (avd != 0) {
 		WriteLog("Depth: saved == %ld\n", (long)avd);
 		return (avd);
@@ -135,7 +135,7 @@ static UInt32
 hibit(UInt32 x)
 {
 	int r = 0;
-	
+
 	if (x & 0xffff0000)  { x >>= 16; r += 16; }
 	if (x & 0x0000ff00)  { x >>=  8; r +=  8; }
 	if (x & 0x000000f0)  { x >>=  4; r +=  4; }
@@ -162,7 +162,7 @@ changeDepthRes(UInt32 ndepth, Boolean tryHigh)
 		SETWIDTH(BASEWIDTH);
 		SETWIDTH(BASEHEIGHT);
 	}
-	
+
 	(void) _WinScreenMode(winScreenModeGetSupportsColor, NULL, NULL, NULL,
 	    &enablecol);
 	(void) _WinScreenMode(winScreenModeGetSupportedDepths, NULL, NULL,
@@ -238,27 +238,6 @@ canColor(UInt16 nbits)
 	return (false);
 }
 
-/*
-UInt32
-GetCreatorID(void)
-{
-	static UInt32 nCreatorID = 0;
-
-	if (nCreatorID == 0) {
-		UInt16 nCard;
-		LocalID LocalDB;
-		Err err;
-		err = SysCurAppDatabase(&nCard, &LocalDB);
-		ErrFatalDisplayIf(err, "Could not get current app database.");
-		err = DmDatabaseInfo(nCard, LocalDB, 0, 0, 0, 0, 0, 0, 0, 0,
-		    0, 0, &nCreatorID);
-		ErrFatalDisplayIf(err,
-		    "Could not get app database info, looking for creator ID");
-	}
-
-	return (nCreatorID);
-}
-*/
 UInt32
 GetCreatorID(void)
 {
@@ -337,4 +316,3 @@ compatBmpGetDimensions(BitmapPtr pBmp, Coord *pWidth, Coord *pHeight,
 	} else
 		BmpGetDimensions(pBmp, pWidth, pHeight, pRowBytes);
 }
-

@@ -1,9 +1,10 @@
-/*! \file
+/*!
+ * \file
  * \brief the externally exposed budget routines
  */
 
 #if !defined(_GTK_BUDGET_H_)
-#define _GTK_BUDGET_H_
+#define	_GTK_BUDGET_H_
 #include <gtk/gtk.h>
 
 #if defined(__cplusplus)

@@ -91,9 +91,9 @@ typedef struct _PalmAppConfig_01 {
 typedef PalmAppConfig_01_t PlatformAppConfig;
 
 #if defined(PALM_HIGH) || defined(SONY_HIGH)
-#define HIRESKEY , keLeft, keRight, keIgnore
+#define	HIRESKEY , keLeft, keRight, keIgnore
 #else
-#define HIRESKEY
+#define	HIRESKEY
 #endif
 
 #if defined(SONY_CLIE)

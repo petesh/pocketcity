@@ -11,7 +11,7 @@
 #include <sections.h>
 
 #if !defined(_REPEATHANDLER_H_)
-#define _REPEATHANDLER_H_
+#define	_REPEATHANDLER_H_
 
 /*! \brief the button mapping structure */
 typedef struct buttonmapping_tag {

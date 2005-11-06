@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief simulation UI file. Contains code to debug the simulation routines.
  *
  * Displays the map/power/water distribution graphs.
@@ -37,9 +38,9 @@ struct tag_pmh {
 } pmh;
 
 /*! \brief show the power bitmap */
-#define SHOW_POWER	1
+#define	SHOW_POWER	1
 /*! \brief show the water bitmap */
-#define SHOW_WATER	(SHOW_POWER<<1)
+#define	SHOW_WATER	(SHOW_POWER<<1)
 
 /*! \brief govern the visibility of the water and power pixmaps */
 static int shown_pixmaps;
@@ -213,30 +214,30 @@ updateWater(Int16 xpos, Int16 ypos, ccr_t has_carry)
  * \brief initialize the map
  */
 /*
-static void
-initMap(void)
-{
-	Int16 xpos;
-	Int16 ypos;
-	selem_t flag;
-	welem_t content, special;
-	UInt32 worldpos;
-
-	for (xpos = 0; xpos < getMapWidth(); xpos++) {
-		for (ypos = 0; ypos < getMapHeight(); ypos++) {
-			worldpos = WORLDPOS(xpos, ypos);
-			getWorldAndFlag(worldpos, &content, &flag);
-			special = GetGraphicNumber(worldpos);
-			UIPaintMapZone(xpos, ypos, special,
-			    GDK_DRAWABLE(pmh.allmap));
-			updatePower(xpos, ypos, checkCommon(content, flag,
-				    &CarryPower, POWEREDBIT));
-			updateWater(xpos, ypos, checkCommon(content, flag,
-				    &CarryWater, WATEREDBIT));
-		}
-	}
-}
-*/
+ * static void
+ * initMap(void)
+ * {
+ * 	Int16 xpos;
+ *	Int16 ypos;
+ *	selem_t flag;
+ *	welem_t content, special;
+ *	UInt32 worldpos;
+ *
+ *	for (xpos = 0; xpos < getMapWidth(); xpos++) {
+ *		for (ypos = 0; ypos < getMapHeight(); ypos++) {
+ *			worldpos = WORLDPOS(xpos, ypos);
+ *			getWorldAndFlag(worldpos, &content, &flag);
+ *			special = GetGraphicNumber(worldpos);
+ *			UIPaintMapZone(xpos, ypos, special,
+ *			    GDK_DRAWABLE(pmh.allmap));
+ *			updatePower(xpos, ypos, checkCommon(content, flag,
+ *				    &CarryPower, POWEREDBIT));
+ *			updateWater(xpos, ypos, checkCommon(content, flag,
+ *				    &CarryWater, WATEREDBIT));
+ *		}
+ *	}
+ * }
+ */
 
 /*! \brief initialize the painting structures */
 void
@@ -401,4 +402,3 @@ resizeMap(void)
 	cleanupMap();
 	doPixPaint();
 }
-

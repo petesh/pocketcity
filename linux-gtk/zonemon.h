@@ -6,7 +6,7 @@
  */
 
 #if !defined(_ZONEMON_H)
-#define _ZONEMON_H
+#define	_ZONEMON_H
 
 #if defined(__cplusplus)
 extern "C" {

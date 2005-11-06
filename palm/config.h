@@ -7,6 +7,6 @@
 #if !defined(_CONFIG_H_)
 #define	_CONFIG_H_
 
-#define PALM
+#define	PALM
 
 #endif /* _CONFIG_H_ */

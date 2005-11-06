@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief convenience routines
  *
  * This contains routines for working on the difficulty, disaster level
@@ -17,7 +18,7 @@
 
 /*!
  * \brief contains the mapping of a field in the statistics to a counter code
- * 
+ *
  * this is used to produce the graphs.
  * As all the values in the BuildCount array are 32bit values and all the
  * statistic items are 16 bit values an amount of shifting is done to the
@@ -28,7 +29,7 @@ stat_to_value statvalues[] = {
 	{ st_pollution, bc_pollution },
 	{ st_crime, bc_crime },
 	{ st_residential, bc_value_residential },
-	{ st_commercial, bc_value_commercial }, 
+	{ st_commercial, bc_value_commercial },
 	{ st_industrial, bc_value_industrial },
 	{ st_tail, 0 }
 };
@@ -192,9 +193,9 @@ setDifficultyLevel(UInt8 value)
 
 /*!
  * \brief make the world of a certain size
- * 
+ *
  * This, naturally erases the current world map.
- * 
+ *
  * \param size the new size of the world (x*y)
  * \return 0 if it all went pear shaped.
  */
@@ -245,7 +246,7 @@ getWorld(UInt32 pos)
 {
 	if (pos > MapMul())
 		return (0);
-		
+
 	return (((welem_t *)worldPtr)[pos]);
 }
 
@@ -368,24 +369,45 @@ PurgeWorld(void)
 }
 
 /*!
- * \brief scale a number down using the K,M,B scale
+ * \brief scale a signed 32 bit number down using the K,M,B scale
  *
  * Don't use the value returned for any math! it's for display only.
  * \param old_value the value that needs to be scaled
  * \param scale (out) the scale i.e. none, K, M, B ...
  * \return the scaled value (could be the original value)
  */
-UInt32
-scaleNumber(UInt32 old_value, Char *scale)
+Int32
+scaleNumber32(Int32 old_value, Char *scale)
 {
 	const char si_scale[] = " KMBTQ";
 	const char *at_scale = si_scale;
+	int negative = 0;
+	if (old_value < 0) {
+		negative = 1;
+		old_value = -old_value;
+	}
 	while (old_value > MILLION) {
 		at_scale++;
 		old_value /= 1000;
 	}
 	*scale = *at_scale;
+	if (negative)
+		old_value = -old_value;
 	return (old_value);
+}
+
+/*!
+ * \brief scale a signed 32 bit number down using the K,M,B scale
+ *
+ * Don't use the value returned for any math! it's for display only.
+ * \param old_value the value that needs to be scaled
+ * \param scale (out) the scale i.e. none, K, M, B ...
+ * \return the scaled value (could be the original value)
+ */
+Int16
+scaleNumber16(Int16 old_value, Char *scale)
+{
+	return ((Int16)scaleNumber32((Int32)old_value, scale));
 }
 
 /*!

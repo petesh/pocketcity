@@ -4,7 +4,7 @@
  */
 
 #if !defined(_BEAM_H_)
-#define _BEAM_H_
+#define	_BEAM_H_
 
 #include <PalmTypes.h>
 

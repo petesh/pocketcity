@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief interface to routines that are used for drawing
  */
 #if !defined(_DRAWING_H_)

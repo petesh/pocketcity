@@ -1,5 +1,6 @@
 
-/*! \file
+/*!
+ * \file
  * \brief Code that deals with the building of items in the simulation.
  *
  * It is controlled by the table buildStructure, which defines all
@@ -18,13 +19,17 @@
 #include <drawing.h>
 #include <simulation.h>
 
-/*! \brief Defines the build function pointer type */
+/*!
+ * \brief Defines the build function pointer type
+ */
 typedef int (*BuildF)(UInt16 xpos, UInt16 ypos, welem_t type);
 
 static int Build_Road(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
 static int Build_Rail(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
-static int Build_PowerLine(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
-static int Build_WaterPipe(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
+static int Build_PowerLine(UInt16 xpos, UInt16 ypos, welem_t type)
+	BUILD_SECTION;
+static int Build_WaterPipe(UInt16 xpos, UInt16 ypos, welem_t type)
+	BUILD_SECTION;
 static int Build_Generic(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
 static int Build_Generic4(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
 static int Build_Defence(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
@@ -33,7 +38,8 @@ static void CreateForest(UInt32 pos, UInt16 size) BUILD_SECTION;
 static void RemoveDefence(UInt16 xpos, UInt16 ypos) BUILD_SECTION;
 static int CantBulldoze(welem_t type) BUILD_SECTION;
 static UInt16 blockSize(welem_t type) BUILD_SECTION;
-static void Doff(welem_t base, welem_t node, UInt16 *x, UInt16 *y) BUILD_SECTION;
+static void Doff(welem_t base, welem_t node, UInt16 *x, UInt16 *y)
+	BUILD_SECTION;
 static Int16 IsBulldozable(welem_t zone) BUILD_SECTION;
 
 static Int16 SpendMoney(UInt32 howMuch) BUILD_SECTION;
@@ -46,11 +52,14 @@ static Int16 SpendMoney(UInt32 howMuch) BUILD_SECTION;
  * consequence of the item being built.
  */
 static const struct _bldStruct {
-	BuildCode bt;	/*!< The code of the item to be built. */
-	BuildF func;	/*!< Function to call. */
-	welem_t type;	/*!< Type of the item (for buildcounts) */
-	UInt8 gridsToUpdate; /*!< Grids to update as a result of adding
-				the item to the simulation */
+	/*! The code of the item to be built. */
+	BuildCode bt;
+	/*! Function to call. */
+	BuildF func;
+	/*! Type of the item (for buildcounts) */
+	welem_t type;
+	/*! Grids to update as a result of adding the item to the simulation */
+	UInt8 gridsToUpdate;
 } buildStructure[] = {
 	{ Be_Bulldozer, Build_Bulldoze, 0, GRID_ALL },
 	{ Be_Zone_Residential, Build_Generic, Z_RESIDENTIAL_SLUM, GRID_ALL },
@@ -74,7 +83,9 @@ static const struct _bldStruct {
 	{ Be_Defence_Military, Build_Defence, DuMilitary, 0 },
 };
 
-/*! \brief the build structure list length */
+/*!
+ * \brief the build structure list length
+ */
 #define	BS_LEN	((sizeof (buildStructure) / sizeof (buildStructure[0])))
 
 /*!
@@ -93,7 +104,8 @@ BuildSomething(UInt16 xpos, UInt16 ypos)
 	}
 	be = (struct _bldStruct *)&(buildStructure[item]);
 
-	if (be->bt == Be_OOB) return (0);
+	if (be->bt == Be_OOB)
+		return (0);
 
 	if (be->func(xpos, ypos, be->type)) {
 		welem_t elt;
@@ -142,7 +154,9 @@ RemoveAllDefence(void)
 	}
 }
 
-/*! \brief Maps build units to locations in the build array */
+/*!
+ * \brief Maps build units to locations in the build array
+ */
 static const struct buildCounters {
 	DefenceUnitTypes	unit; /*!< unit this corresponds to */
 	UInt16			counter; /*!< counter to index */
@@ -362,7 +376,7 @@ Build_Destroy(UInt16 xpos, UInt16 ypos)
 		vgame.BuildCount[bc_fire]--;
 		goto finish;
 	}
-	
+
 	if (IsCoalPlant(type)) {
 		vgame.BuildCount[bc_coalplants]--;
 		x_destroy = 2;
@@ -402,7 +416,7 @@ Build_Destroy(UInt16 xpos, UInt16 ypos)
 		vgame.BuildCount[bc_waterpumps]--;
 		goto finish;
 	}
-	
+
 	if (IsRoad(type)) {
 		vgame.BuildCount[bc_count_roads]--;
 		vgame.BuildCount[bc_value_roads] -= ZoneValue(type);
@@ -460,9 +474,9 @@ finish:
 	} else {
 		if ((x_destroy != 1) || (y_destroy != 1)) {
 			ty_destroy = y_destroy;
-			while(ty_destroy) {
-				tx_destroy=x_destroy;
-				while(tx_destroy) {
+			while (ty_destroy) {
+				tx_destroy = x_destroy;
+				while (tx_destroy) {
 					setWorldAndFlag(
 					    WORLDPOS(xpos - 1 + tx_destroy,
 					    ypos - 1 + ty_destroy), Z_DIRT, 0);
@@ -481,9 +495,12 @@ finish:
 
 /*! \brief Mapping of zone to cost of building on a zone */
 static const struct _costMappings {
-	UInt16 type; /*!< type of zone that is built */
-	UInt32 cost; /*!< cost of building the zone in question */
-	Int16 count; /*!< counter to affect as a result of building this */
+	/*! type of zone that is built */
+	UInt16 type;
+	/*! cost of building the zone in question */
+	UInt32 cost;
+	/*! counter to affect as a result of building this */
+	Int16 count;
 } genericMappings[] = {
 	{ Z_RESIDENTIAL_SLUM, BUILD_COST_ZONE, -1 },
 	{ Z_INDUSTRIAL_SLUM, BUILD_COST_ZONE, -1 },
@@ -830,15 +847,15 @@ Build_Rail(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 		}
 		if (((check_br & DIR_LEFT) &&
 		    (getWorld(WORLDPOS(xpos - 1, ypos)) ==
-		     Z_RAILTUNNEL_RHOR)) || ((check_br & DIR_RIGHT) &&
+			Z_RAILTUNNEL_RHOR)) || ((check_br & DIR_RIGHT) &&
 		    (getWorld(WORLDPOS(xpos + 1, ypos)) ==
-		     Z_RAILTUNNEL_RHOR))) {
+			Z_RAILTUNNEL_RHOR))) {
 			tobuil = Z_RAILTUNNEL_RHOR;
 		} else if (((check_br & DIR_UP) &&
 		    (getWorld(WORLDPOS(xpos, ypos - 1)) ==
-		     Z_RAILTUNNEL_RVER)) || ((check_br & DIR_DOWN) &&
+			Z_RAILTUNNEL_RVER)) || ((check_br & DIR_DOWN) &&
 		    (getWorld(WORLDPOS(xpos, ypos + 1)) ==
-		     Z_RAILTUNNEL_RVER))) {
+			Z_RAILTUNNEL_RVER))) {
 			tobuil = Z_RAILTUNNEL_RVER;
 		}
 		if (tobuil == 0)
@@ -1140,7 +1157,9 @@ CreateForest(UInt32 pos, UInt16 size)
 			s = ((y > j) ? (y - j) : (j - y)) +
 			    ((x > i) ? (x - i) : (i - x));
 			if (GetRandomNumber(s) < 2) {
-				/*! \todo count_trees or count_real_trees */
+				/*!
+				 * \todo count_trees or count_real_trees
+				 */
 				setWorldAndFlag(WORLDPOS(i, j), Z_REALTREE, 0);
 				vgame.BuildCount[bc_count_trees]++;
 			}

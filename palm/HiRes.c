@@ -34,12 +34,12 @@ Coord sHeight;
 /*! \brief high density feature check value; holds density value */
 static UInt32 hdfs = ~0UL;
 
-#define SetBits(B,L) (((1U << ((L) - 1)) - 1U + (1U << ((L) - 1))) << (B))
-#define pinMaxConstraintSize SetBits(0, (sizeof (Coord) * 8) - 1)
+#define	SetBits(B, L) (((1U << ((L) - 1)) - 1U + (1U << ((L) - 1))) << (B))
+#define	pinMaxConstraintSize SetBits(0, (sizeof (Coord) * 8) - 1)
 
 /*!
  * \brief set the screen resolution
- * 
+ *
  * This sets the screen resolution in terms of width and height based on
  * the high density feature set or the sony library.
  *
@@ -48,7 +48,7 @@ static UInt32 hdfs = ~0UL;
 void
 setScreenRes(void)
 {
-	switch(highDensityFeatureSet()) {
+	switch (highDensityFeatureSet()) {
 	case kDensityQuadruple:
 		WriteLog("Quadruple Density\n");
 	case kDensityTriple:
@@ -131,7 +131,7 @@ isDoubleOrMoreResolution()
 
 /*!
  * \brief start high resolution drawing
- * 
+ *
  * Do not call this without having checked that the high density feature
  * set is available.
  * It is important to call the Start/End functions while on the same
@@ -167,7 +167,7 @@ void
 StartHiresFontDraw(void)
 {
 	if (hdfs) {
-		if (IsScaleModes()) 
+		if (IsScaleModes())
 			WinSetScalingMode(kBitmapScalingOff | kTextScalingOff |
 			    kTextPaddingOff);
 		else
@@ -248,7 +248,7 @@ Coord
 scaleCoord(Coord x)
 {
 	Int32 mul = sonyHires() ? kDensityDouble :
-	    ( hdfs ? hdfs : kDensityLow );
+	    (hdfs ? hdfs : kDensityLow);
 	return ((Coord)((Int32)x * mul / kDensityLow));
 }
 
@@ -305,8 +305,6 @@ StartSilk(void)
 
 	has_silk = 0;
 	WriteLog("%d)\n", has_silk);
-
-	return;
 }
 
 /*!

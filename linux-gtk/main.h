@@ -8,7 +8,7 @@
 #include <gdk/gdk.h>
 
 #if !defined(_MAIN_H_)
-#define _MAIN_H_
+#define	_MAIN_H_
 
 #if defined(__cplusplus)
 extern "C" {

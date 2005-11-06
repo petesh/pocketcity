@@ -4,7 +4,7 @@
  */
 
 #if !defined(_MINIMAP_H_)
-#define _MINIMAP_H_
+#define	_MINIMAP_H_
 
 #include <PalmTypes.h>
 #include <Rect.h>

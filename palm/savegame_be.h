@@ -42,12 +42,12 @@ void DeleteGameByName(char *name) SAVE_SECTION;
  */
 int  LoadGameByName(char *name) SAVE_SECTION;
 
-/* !
+/*!
  * \brief Create a new save game slot.
  *
  * Save the city into it.
  */
-//void CreateNewSaveGame(void) SAVE_SECTION;
+// void CreateNewSaveGame(void) SAVE_SECTION;
 
 /*!
  * \brief Check if a saved city by this name exists

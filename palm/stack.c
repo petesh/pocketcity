@@ -23,7 +23,7 @@ typedef struct tag_dsobj_palm {
 	Int32	   sl; /*<! Stack Len */
 } dsObj;
 
-#define STACK_IMPL
+#define	STACK_IMPL
 #include <stack.h>
 
 /*!

@@ -64,9 +64,9 @@ Boolean isHandEra(void);
  * \brief does this device have a 5-way navigator
  * \return true if this device has a 5-way navigator
  */
- Boolean hasFiveWayNav(void);
- #endif
- 
+Boolean hasFiveWayNav(void);
+#endif
+
 /*!
  * \brief build a string list from all the string list items from resID
  * \param resID the resource to get the strings from
@@ -141,7 +141,7 @@ void DangerWillRobinson(char *information, char *file, int line);
 #define	Warning(mesg) DangerWillRobinson(mesg, __FILE__, __LINE__)
 
 #else
-#define Warning(mesg)
+#define	Warning(mesg)
 #endif
 
 #endif /* _PALMUTILS_H_ */

@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief Packing and unpacking routines
  *
  * pack and unpack bit field arrays.
@@ -6,7 +7,7 @@
 
 #include <pack.h>
 
-#define ANDUPTO(X) \
+#define	ANDUPTO(X) \
 	((1<<((X)-1)) | (1<<((X)-2)) | (1<<((X)-3)) | (1<<((X)-4)) | \
 	(1<<((X)-5)) | (1<<((X)-6)) | (1<<((X)-7)) | (1<<((X)-8)))
 
@@ -87,4 +88,3 @@ UnpackBits(void *src, void *dest, UInt8 nbits, UInt32 count)
 		dest2++;
 	}
 }
-

@@ -205,10 +205,10 @@ void _FntSetFont(FontID font) SONY_SECTION;
 #define	hookHoldSwitch(x)
 #define	IsDrawWindowMostOfScreen() (true)
 #define	IsSony()	(false)
-#define SonySilk()	(0)
+#define	SonySilk()	(0)
 #define	SonyEndSilk()
-#define SonySetSilkResizable(X)
-#define SonyCollapsePreRedraw(X)
+#define	SonySetSilkResizable(X)
+#define	SonyCollapsePreRedraw(X)
 
 #define	_WinScreenMode WinScreenMode
 #define	_WinEraseRectangle WinEraseRectangle

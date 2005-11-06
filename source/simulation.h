@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief interface routines to the simulation
  */
 #if !defined(_SIMULATION_H_)
@@ -30,12 +31,12 @@ typedef enum {
 /*! \brief the bit associated with water in the worldflags */
 #define	WATEREDBIT	((unsigned char)0x02)
 /*! \brief the number of fits saved into the savegame */
-#define SAVEDBITS	(2)
+#define	SAVEDBITS	(2)
 
 /*! \brief the bit associated with scratch/unvisited in the worldflags */
 #define	SCRATCHBIT	((unsigned char)0x80)
 /*! \brief the bit associated with knowing if the field has been painted */
-#define PAINTEDBIT	((unsigned char)0x40)
+#define	PAINTEDBIT	((unsigned char)0x40)
 
 /*!
  * \brief Perform a phase of the simulation
@@ -60,7 +61,7 @@ EXPORT void UpdateVolatiles(void);
 
 /*!
  * \brief Update the various counter entities for the statistics
- * 
+ *
  * This updates the various fields that are not recorded directly in the system
  */
 EXPORT void UpdateCounters(void);
@@ -209,29 +210,29 @@ EXPORT Int16 IsTransport(welem_t x);
  * \param X the zone to check
  * \return true if it is real water
  */
-#define IsRealWater(X)	((X) == Z_REALWATER)
+#define	IsRealWater(X)	((X) == Z_REALWATER)
 
 /*!
  * \brief Is the node a pump
  * \param X the node to test
  * \return true if it's a pump
  */
-#define IsPump(X) ((X) == Z_PUMP)
+#define	IsPump(X) ((X) == Z_PUMP)
 
 /*!
  * \brief is the node a coal power plant
  * \param X the node to test
  * \return true if it is a coal plant
  */
-#define IsCoalPlant(X)	(((X) >= Z_COALPLANT_START) && ((X) <= Z_COALPLANT_END))
+#define	IsCoalPlant(X)	(((X) >= Z_COALPLANT_START) && ((X) <= Z_COALPLANT_END))
 
 /*!
  * \brief is the node a nuclear power pland
  * \param X the node to test
  * \return true if it is a nuclear plant
  */
-#define IsNukePlant(X)	(((X) >= Z_NUCLEARPLANT_START) && \
-    ((X) <= Z_NUCLEARPLANT_END))
+#define	IsNukePlant(X)	(((X) >= Z_NUCLEARPLANT_START) && \
+	((X) <= Z_NUCLEARPLANT_END))
 
 /*
  * \brief is the node a real tree
@@ -259,28 +260,28 @@ EXPORT Int16 IsTransport(welem_t x);
  * \param X the node to test
  * \return true if the node is real water
  */
-#define IsRealWater(X)	((X) == Z_REALWATER)
+#define	IsRealWater(X)	((X) == Z_REALWATER)
 
 /*!
  * \brief is the node fake water
  * \param X the node to test
  * \return true if the node is fake water
  */
-#define IsFakeWater(X)	((X) == Z_FAKEWATER)
+#define	IsFakeWater(X)	((X) == Z_FAKEWATER)
 
 /*!
  * \brief is the node water
  * \param X the node to test
  * \return true if the node is real water
  */
-#define IsWater(X)	(IsFakeWater(X) || IsRealWater(X))
+#define	IsWater(X)	(IsFakeWater(X) || IsRealWater(X))
 
 /*!
  * \brief is the node a slum
  * \param X the node to test
  * \return true if the node is a slum
  */
-#define IsSlum(X) (((X) >= Z_COMMERCIAL_SLUM) && ((X) <= Z_INDUSTRIAL_SLUM))
+#define	IsSlum(X) (((X) >= Z_COMMERCIAL_SLUM) && ((X) <= Z_INDUSTRIAL_SLUM))
 
 /*!
  * \brief Is a zone 'growable'.
@@ -288,7 +289,7 @@ EXPORT Int16 IsTransport(welem_t x);
  * \return true if the zone is growable (which implies score)
  */
 #define	IsGrowable(X) (IsSlum(X) || \
-    (((X) >= Z_COMMERCIAL_MIN) && ((X) <= Z_INDUSTRIAL_MAX)))
+	(((X) >= Z_COMMERCIAL_MIN) && ((X) <= Z_INDUSTRIAL_MAX)))
 
 /*!
  * \brief is the zone a Commercial one
@@ -296,7 +297,7 @@ EXPORT Int16 IsTransport(welem_t x);
  * \return true if it is
  */
 #define	IsCommercial(X)	(((X) == Z_COMMERCIAL_SLUM) || \
-    (((X) >= Z_COMMERCIAL_MIN) && ((X) <= Z_COMMERCIAL_MAX)))
+	(((X) >= Z_COMMERCIAL_MIN) && ((X) <= Z_COMMERCIAL_MAX)))
 
 /*!
  * \brief is the zone a Residential one
@@ -304,7 +305,7 @@ EXPORT Int16 IsTransport(welem_t x);
  * \return true if it is
  */
 #define	IsResidential(X)	(((X) == Z_RESIDENTIAL_SLUM) || \
-    (((X) >= Z_RESIDENTIAL_MIN) && ((X) <= Z_RESIDENTIAL_MAX)))
+	(((X) >= Z_RESIDENTIAL_MIN) && ((X) <= Z_RESIDENTIAL_MAX)))
 
 /*!
  * \brief is the zone an Industrial one
@@ -312,30 +313,30 @@ EXPORT Int16 IsTransport(welem_t x);
  * \return true if it is
  */
 #define	IsIndustrial(X)	(((X) == Z_INDUSTRIAL_SLUM) || \
-    (((X) >= Z_INDUSTRIAL_MIN) && ((X) <= Z_INDUSTRIAL_MAX)))
+	(((X) >= Z_INDUSTRIAL_MIN) && ((X) <= Z_INDUSTRIAL_MAX)))
 
 /*!
  * \brief is the node wasteland
  * \param X the node to test
  * \return true if it is wasteland
  */
-#define IsWaste(X)	((X) == Z_WASTE)
+#define	IsWaste(X)	((X) == Z_WASTE)
 
 /*!
  * \brief is the zone any of the 'fire station' nodes
  * \param X the node to test
  * \return true if it is a fire station
  */
-#define IsFireStation(X)	(((X) >= Z_FIRESTATION_START) && \
-    ((X) <= Z_FIRESTATION_END))
+#define	IsFireStation(X)	(((X) >= Z_FIRESTATION_START) && \
+	((X) <= Z_FIRESTATION_END))
 
 /*!
  * \brief is the zone any of the 'police department' nodes
  * \param X the node to test
  * \return true if it is a police department
  */
-#define IsPoliceDept(X)	(((X) >= Z_POLICEDEPT_START) && \
-    ((X) <= Z_POLICEDEPT_END))
+#define	IsPoliceDept(X)	(((X) >= Z_POLICEDEPT_START) && \
+	((X) <= Z_POLICEDEPT_END))
 
 /*!
  * \brief is the zone any of the 'army base' nodes
@@ -343,14 +344,14 @@ EXPORT Int16 IsTransport(welem_t x);
  * \return true if it is an army base
  */
 #define	IsArmyBase(X)	(((X) >= Z_ARMYBASE_START) && \
-    ((X) <= Z_ARMYBASE_END))
+	((X) <= Z_ARMYBASE_END))
 
-#define DIR_UP		(1<<0)
+#define	DIR_UP		(1<<0)
 #define	DIR_DOWN	(1<<1)
-#define DIR_VER		((DIR_UP) | (DIR_DOWN))
+#define	DIR_VER		((DIR_UP) | (DIR_DOWN))
 #define	DIR_LEFT	(1<<2)
 #define	DIR_RIGHT	(1<<3)
-#define DIR_HOR		((DIR_LEFT) | (DIR_RIGHT))
+#define	DIR_HOR		((DIR_LEFT) | (DIR_RIGHT))
 #define	DIR_ALL		((DIR_HOR) | (DIR_VER))
 
 typedef Int16 (*carryfn_t)(welem_t);

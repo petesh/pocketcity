@@ -65,7 +65,7 @@ AddMap(WinHandle handle, map_type type, map_entry code)
 {
 	if (themaps == NULL) {
 		themaps = (scr_map_t *)MemPtrNew((int)me_end *
-		    sizeof(scr_map_t));
+		    sizeof (scr_map_t));
 	}
 	themaps[code].handle = handle;
 	themaps[code].type = type;
@@ -77,7 +77,8 @@ freemaps(void)
 {
 	map_entry entry = me_basemap;
 
-	if (themaps == NULL) return;
+	if (themaps == NULL)
+		return;
 	while (entry != me_end) {
 		WinDeleteWindow(themaps[entry].handle, false);
 		entry++;
@@ -168,25 +169,25 @@ hMap(EventPtr event)
 	return (handled);
 }
 
+const RectangleType rect = {
+	{ StartX, StartY }, { getMapWidth(), getMapHeight() }
+};
+const RectangleType grect = {
+	{ 0, 0 }, { getMapWidth(), getMapHeight() }
+};
+
 /*!
  * \brief draw the active map
  */
 static void
 DrawMap(void)
 {
-	const RectangleType rect = {
-		{ StartX, StartY }, { getMapWidth(), getMapHeight() }
-	};
-	const RectangleType grect = {
-		{ 0, 0 }, { getMapWidth(), getMapHeight() }
-	};
-
 	map_entry entry = currmap;
 	WinHandle swh = WinGetDrawWindow();
 
 	WinDrawRectangleFrame(1, &rect);
 
-	while(themaps[entry].type != mt_fullpaint) {
+	while (themaps[entry].type != mt_fullpaint) {
 		entry--;
 	}
 	WinCopyRectangle(themaps[entry].handle, swh,
@@ -265,7 +266,7 @@ RenderMaps(void)
 			rg.r = 242; rg.g = 103; rg.b = 57;
 			entries[3] = WinRGBToIndex(&rg);
 			/* other */
-			//rg.r = 127; rg.g = 127; rg.b = 127;
+			// rg.r = 127; rg.g = 127; rg.b = 127;
 			rg.r = 99; rg.g = 43; rg.b = 170;
 			entries[4] = WinRGBToIndex(&rg);
 			inited++;
@@ -274,7 +275,7 @@ RenderMaps(void)
 
 	for (posits.y = 0; posits.y < getMapHeight(); posits.y++) {
 		if (Is35ROM() && (posits.y & 0xF) == 0xF) {
-			int prc = (int)(( (long)posits.y * 100 ) /
+			int prc = (int)(((long)posits.y * 100) /
 			    getMapHeight());
 			StrPrintF(perc, "%d%%", prc);
 			WinPaintChars(perc, (Int16)StrLen(perc), 20, 40);
@@ -377,5 +378,3 @@ UIPaintMapField(UInt16 xpos __attribute__((unused)),
 {
 	/* Unused on this platform */
 }
-
-

@@ -6,8 +6,8 @@
  * That's linux/unix to y'all
  */
 #if !defined(_CONFIG_H_)
-#define _CONFIG_H_
+#define	_CONFIG_H_
 
-#define LUNIX
+#define	LUNIX
 
 #endif /* _CONFIG_H_ */

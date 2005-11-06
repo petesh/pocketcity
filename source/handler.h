@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief interface to the handler functions
  */
 #if !defined(_HANDLER_H_)

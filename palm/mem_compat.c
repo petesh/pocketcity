@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief memory allocation routines for the palm platform
  *
  * This is an implementation the commin stdlib routines realloc and calloc
@@ -89,7 +90,7 @@ MemPtr
 palm_realloc(MemPtr old, UInt32 new_size)
 {
 	MemHandle mh;
-	
+
 	if (old == NULL) {
 		mh = MemHandleNew(new_size);
 		if (mh == NULL)
@@ -131,4 +132,3 @@ palm_free(MemPtr mem)
 	MemHandleUnlock(mh);
 	MemHandleFree(mh);
 }
-

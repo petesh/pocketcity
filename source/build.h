@@ -1,5 +1,6 @@
-/*! \file
- * \brief The routines for building.
+/*!
+ * \file
+ * \brief Interface to the routines for building.
  *
  * This contains the declarations for all the functions for building
  * that are used by other sections of the simulation
@@ -70,9 +71,9 @@ typedef enum BuildCode {
 #define	BUILD_COST_BRIDGE		   100
 
 /*! \brief Cost of building a rail line */
-#define BUILD_COST_RAIL			25
+#define	BUILD_COST_RAIL			25
 /*! \brief cost of building a rail tunnel */
-#define BUILD_COST_RAILTUNNEL		125
+#define	BUILD_COST_RAILTUNNEL		125
 
 /*! \brief The cost of building a fire station */
 #define	BUILD_COST_FIRE_STATION	 700
@@ -91,7 +92,8 @@ typedef enum BuildCode {
  * \param ypos Y position on the map
  * \param _unused unused.
  */
-EXPORT int Build_Bulldoze(UInt16 xpos, UInt16 ypos, welem_t _unused) \
+EXPORT int
+Build_Bulldoze(UInt16 xpos, UInt16 ypos, welem_t _unused)
     BUILD_SECTION;
 /*!
  * \brief Build something at the location specified.

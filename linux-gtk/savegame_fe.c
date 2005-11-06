@@ -46,7 +46,8 @@ struct city_listselect {
 static void
 free_listselect(struct city_listselect *sel)
 {
-	if (sel == NULL) return;
+	if (sel == NULL)
+		return;
 	if (sel->sg) savegame_close(sel->sg);
 	if (sel->store != NULL) g_object_unref(sel->store);
 	free(sel);
@@ -252,7 +253,7 @@ close_newgame(GtkWidget *widget __attribute__((unused)),
 void
 newgame_handler(void)
 {
-	GtkWidget *table, *mainbox; 
+	GtkWidget *table, *mainbox;
 	GtkWidget *label;
 
 	/* SetupNewGame(); */

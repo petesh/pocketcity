@@ -114,7 +114,7 @@ BeamReceive(ExgSocketType *ptr)
 	if (gs == NULL)
 		goto recv_done;
 	bof = (UInt8 *)gs + sizeof (GameStruct);
-	
+
 	left -= sizeof (GameStruct);
 	while (left != 0) {
 		read = ExgReceive(ptr, bof, left, &err);
@@ -188,11 +188,3 @@ BeamRegister(void)
 		    pcity_extension);
 	}
 }
-
-/*
-void
-BeamUnregister(void)
-{
-	ExgRegisterData(GetCreatorID(), exgRegTypeID, NULL);
-}
-*/

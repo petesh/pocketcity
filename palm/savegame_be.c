@@ -24,7 +24,7 @@
 
 #define	MAXSAVEGAMECOUNT	50
 #define	DEAD	"PCNO"
-#define MAGIC_GUARD		0xFFFFFFFF
+#define	MAGIC_GUARD		0xFFFFFFFF
 
 static int ReadCityRecord(MemHandle rec, GameStruct *gs,
     MemPtr *wp, MemPtr *fp) SAVE_SECTION;
@@ -42,7 +42,7 @@ DmOpenRef
 OpenMyDB(void)
 {
 	Err err = 0;
-	
+
 	if (sgref != NULL)
 		return (sgref);
 	sgref = DmOpenDatabaseByTypeCreator(SGTYP, GetCreatorID(),
@@ -140,7 +140,7 @@ saveGameSize(GameStruct *gs)
 
 	UInt32 size = (8 + sizeof (GameStruct) +
 	    gs->mapx * gs->mapy +
-	    ((gs->mapx * gs->mapy + ( (8 / 2) - 1)) / ( 8 / 2 )));
+	    ((gs->mapx * gs->mapy + ((8 / 2) - 1)) / (8 / 2)));
 	return (size);
 }
 
@@ -297,39 +297,6 @@ SaveGameByName(char *name)
 
 	SaveGameByIndex(index);
 }
-
-/*
-void
-CreateNewSaveGame(void)
-{
-	DmOpenRef db;
-	MemHandle rec;
-
-	UInt16 index = dmMaxRecordIndex;
-
-	db = OpenMyDB();
-
-	/ * no, this should NOT be an "else if" * /
-	if (db == NULL)
-		return;
-	if (DmNumRecords(db) >= MAXSAVEGAMECOUNT) {
-		/ * TODO: alert user - max is 50 savegames * /
-	} else {
-		index = dmMaxRecordIndex;
-		WriteLog("Newbie\n");
-		rec = DmNewRecord(db, &index, saveGameSize(&game));
-		if (rec) {
-			ResetViewable();
-			ResumeGame();
-			LockZone(lz_world);
-			LockZone(lz_flags);
-			WriteCityRecord(rec, &game, worldPtr, flagPtr);
-			UnlockZone(lz_flags);
-			UnlockZone(lz_world);
-			DmReleaseRecord(db, index, true);
-		}
-	}
-}*/
 
 /*!
  * \brief Load a game by index from the savegames.
@@ -660,10 +627,10 @@ CityNames(int *count)
 	*count = (int)nsIndex;
 	if (nsIndex > 10)
 		SysQSort(cities, nsIndex, sizeof (*cities),
-    		    comparator, CITYNAMELEN);
+		    comparator, CITYNAMELEN);
 	else if (nsIndex >= 2)
 		SysInsertionSort(cities, nsIndex, sizeof (*cities),
-    		    comparator, CITYNAMELEN);
+		    comparator, CITYNAMELEN);
 	return (cities);
 }
 
@@ -686,4 +653,3 @@ FreeCityNames(char **names)
 	MemPtrFree(gnat);
 	MemPtrFree(names);
 }
-

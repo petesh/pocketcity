@@ -22,10 +22,10 @@
 
 #if defined(SONY_CLIE) || defined(PALM_HIGH)
 
-#define CM_DEFAULT	(0)
-#define CM_MOVEX	(1<<1)
-#define CM_MOVEY	(1<<2)
-#define CM_MODAL	(1<<3)
+#define	CM_DEFAULT	(0)
+#define	CM_MOVEX	(1<<1)
+#define	CM_MOVEY	(1<<2)
+#define	CM_MODAL	(1<<3)
 
 #define	HRSUPPORT
 
@@ -34,8 +34,8 @@ extern Coord sHeight;
 
 #define	SETWIDTH(x)	sWidth = (x)
 #define	SETHEIGHT(y)	sHeight = (y)
-#define GETWIDTH()	(sWidth)
-#define GETHEIGHT()	(sHeight)
+#define	GETWIDTH()	(sWidth)
+#define	GETHEIGHT()	(sHeight)
 
 Boolean isDoubleOrMoreResolution(void);
 void scalePoint(PointType *pt);
@@ -57,7 +57,7 @@ Boolean collapseMove(FormPtr form, UInt8 stretchy, Int16 *roffsetX,
     Int16 *roffsetY) HIRES_SECTION;
 void collapsePreRedraw(FormPtr form) HIRES_SECTION;
 #define	StartScaleDraw	StartHiresFontDraw
-#define EndScaleDraw		EndHiresFontDraw
+#define	EndScaleDraw		EndHiresFontDraw
 
 #else
 
@@ -68,29 +68,29 @@ void collapsePreRedraw(FormPtr form) HIRES_SECTION;
 
 #define	SETWIDTH(x)
 #define	SETHEIGHT(y)
-#define GETWIDTH()	(BASEWIDTH)
-#define GETHEIGHT()	(BASEHEIGHT)
+#define	GETWIDTH()	(BASEWIDTH)
+#define	GETHEIGHT()	(BASEHEIGHT)
 
 #define	isHires() (false)
 #define	canHires() (false)
 
-#define highDensityFeatureSet()	(0)
-#define isDoubleOrMoreResolution() (0)
-#define scalePoint(e)
-#define scaleCoord(x)	(x)
-#define normalizeCoord(X)	(X)
-#define StartHiresDraw()
-#define EndHiresDraw()
-#define StartHiresFontDraw()
-#define EndHiresFontDraw()
+#define	highDensityFeatureSet()	(0)
+#define	isDoubleOrMoreResolution() (0)
+#define	scalePoint(e)
+#define	scaleCoord(x)	(x)
+#define	normalizeCoord(X)	(X)
+#define	StartHiresDraw()
+#define	EndHiresDraw()
+#define	StartHiresFontDraw()
+#define	EndHiresFontDraw()
 #define	StartScaleDraw()
-#define EndScaleDraw()
-#define setScreenRes()
-#define SetSilkResizable(X,Y)
+#define	EndScaleDraw()
+#define	setScreenRes()
+#define	SetSilkResizable(X, Y)
 #define	hasVirtualSilk()	(0)
-#define EndSilk()
-#define StartSilk()
-#define collapseMove(F,M,X,Y)
+#define	EndSilk()
+#define	StartSilk()
+#define	collapseMove(F, M, X, Y)
 #define	collapsePreRedraw(X)
 
 #endif /* SONY_CLIE || PALM_HIGH */

@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief the simulation routines
  *
  * This consists of the outines that do all the simulation work, for example
@@ -22,7 +23,7 @@
 #define	SHORT_BIT	1
 #define	OUT_BIT		2
 
-#define DONTPAINT	(unsigned char)(1U<<7)
+#define	DONTPAINT	(unsigned char)(1U<<7)
 
 static void DoTaxes(void);
 static void DoUpkeep(void);
@@ -156,7 +157,7 @@ zoneCmpFn(void *a, void *b, Int32 other __attribute__((unused)))
 
 /*!
  * \brief Regrade the zones
- * 
+ *
  * sort the zones by score. Upgrade the 12 highest scoring zones,
  * downgrade the 10 lowest scoring zones.
  */
@@ -546,7 +547,7 @@ static const struct countCosts {
 	{ bc_waterpumps, 0 }
 };
 
-#define CCSIZE	(sizeof (countCosts) / sizeof (countCosts[0]))
+#define	CCSIZE	(sizeof (countCosts) / sizeof (countCosts[0]))
 
 /*!
  * \brief get the costs of a specific node
@@ -559,7 +560,8 @@ costIt(BuildCount item)
 	UInt16 i;
 	for (i = 0; i < CCSIZE; i++)
 		if (countCosts[i].count == item)
-			return ((Int32)(vgame.BuildCount[item] * countCosts[i].cost));
+			return ((Int32)(vgame.BuildCount[item] *
+			    countCosts[i].cost));
 	WriteLog("Fell off the end of costIt here (%d)\n", item);
 	return (0);
 }
@@ -579,7 +581,7 @@ BudgetGetNumber(BudgetNumber type)
 		ret = (Int32)costIt(bc_value_industrial) * getTax() / 100;
 		break;
 	case bnIncome:
-		ret = ((costIt(bc_value_residential) + 
+		ret = ((costIt(bc_value_residential) +
 		    costIt(bc_value_commercial) +
 		    costIt(bc_value_industrial)) * getTax()) / 100;
 		break;
@@ -793,11 +795,11 @@ UpdateVolatiles(void)
 
 /*!
  * \brief shuffle an individual set of statistics
- * 
+ *
  * This moves an entire set of statistics 'down' one unit; which corresponds
  * to 3 months (12/4) for the 10 year graph and
  * to 2yr 6 months (10y/4) for the 100 year graph
- * 
+ *
  * \param ary the array of entries to shuffle
  * \param load the value to load on to the start of the stats.
  * \return the value that shuffled off the end
@@ -832,7 +834,8 @@ UpdateCounters(void)
 	    vgame.prior_credit) + getCredits());
 	/* Update the prior_credit field */
 	vgame.prior_credit = (UInt32)getCredits();
-	/*! \note
+	/*!
+	 * \note
 	 * How we calculate the pollution:
 	 *   Pollution is based on the density of a zone. The higher the
 	 *   density of the zone, the higher the pollution.
@@ -842,12 +845,13 @@ UpdateCounters(void)
 	 *   Commercial zones do not add or subtract from the pollution
 	 */
 
-	 /*! \note
-	  * How we calculate the criminal level
-	  *   Residential areas contribute based on their value
-	  *   Industrial areas contribute based on the inverse of their value
-	  *   Commercial areas contribute based on their value
-	  */
+	/*!
+	 * \note
+	 * How we calculate the criminal level
+	 *   Residential areas contribute based on their value
+	 *   Industrial areas contribute based on the inverse of their value
+	 *   Commercial areas contribute based on their value
+	 */
 }
 
 /*!
@@ -863,12 +867,12 @@ RecordStatistics(void)
 	BuildCount offset;
 	UInt16 stat_value;
 	UInt32 tmpval;
-	
+
 	for (item = st_cashflow; item < st_tail; item++) {
 		offset = statvalues[item].offset;
 		stat_value = (UInt16)vgame.BuildCount[offset];
 		stat = getStatistics(offset);
-		
+
 		tmpval = (UInt32)stat->last_ten[0] * 3 + stat_value;
 		tmpval >>= 2;
 		/* overflow */
@@ -880,7 +884,7 @@ RecordStatistics(void)
 		/* XXX: fixme! */
 		/* shuffle the statistics every month */
 		if ((getMonthsElapsed() & 3) == 3) {
-			(void)ShuffleIndividualStatistic(
+			(void) ShuffleIndividualStatistic(
 			    &stat->last_ten[0], stat_value);
 		}
 		if ((getMonthsElapsed() & (3*12)) == (3 * 12)) {
@@ -902,12 +906,14 @@ getPopulation(void)
 Int16
 CarryPower(welem_t x)
 {
-	return 
-	/* ((IsPump(x) || IsPowerLine(x) || IsPowerWater(x) ||
-	    IsSlum(x) || IsCoalPlant(x) || IsNuclearPlant(x) ||
-	    IsFireStation(x) || IsPoliceDept(x) || IsArmyBase(x) ||
-	    IsCommercial(x) || IsResidential(x) || IsIndustrial(x) ||
-	    IsPowerRoad(x) || IsRailPower(x)) ? 1 : 0); */
+	return
+	/*
+	 * ((IsPump(x) || IsPowerLine(x) || IsPowerWater(x) ||
+	 *  IsSlum(x) || IsCoalPlant(x) || IsNuclearPlant(x) ||
+	 *  IsFireStation(x) || IsPoliceDept(x) || IsArmyBase(x) ||
+	 *  IsCommercial(x) || IsResidential(x) || IsIndustrial(x) ||
+	 *  IsPowerRoad(x) || IsRailPower(x)) ? 1 : 0);
+	 */
 	    ((IsPump(x)) ||
 	    ((x >= Z_POWERLINE) && (x <= Z_POWERROAD_PVER)) ||
 	    (IsRailPower(x)) ? 1 : 0);
@@ -916,7 +922,7 @@ CarryPower(welem_t x)
 /*!
  * This is slightly more complicated because the nodes that carry water are
  * not in the same order as the nodes that carry power.
- * 
+ *
  * This is the tradeoff that has to be made. One is faster at the expense of
  * the other.
  */
@@ -945,7 +951,7 @@ IsRoadBridge(welem_t x)
 {
 	return (((x >= Z_BRIDGE_START) && (x <= Z_BRIDGE_END)) ? 1 : 0);
 }
- 
+
 Int16
 IsWaterPipe(welem_t x)
 {
@@ -967,7 +973,7 @@ ZoneValue(welem_t x)
 	else
 		return (0);
 }
- 
+
 Int16
 IsRoadPipe(welem_t x)
 {
@@ -993,7 +999,7 @@ IsZone(welem_t x, zoneType nType)
 	if (x == nType)
 		return (1);
 	nType -= Z_COMMERCIAL_SLUM;
-	if ((x >= (welem_t)(nType * 10 + Z_COMMERCIAL_MIN)) && 
+	if ((x >= (welem_t)(nType * 10 + Z_COMMERCIAL_MIN)) &&
 	    (x <= (welem_t)(nType * 10 + Z_COMMERCIAL_MAX)))
 		return (1);
 	return (0);
@@ -1067,11 +1073,12 @@ CheckNextTo(UInt32 pos, UInt8 dirs, Int16 (*checkfn)(welem_t))
 	if ((dirs & DIR_DOWN) && ((Int32)pos < (MapMul() - getMapWidth())) &&
 	    checkfn(getWorld((UInt32)(pos + getMapWidth()))))
 		rv |= DIR_DOWN;
-	if ((dirs & DIR_LEFT) && (pos % getMapWidth()) && 
+	if ((dirs & DIR_LEFT) && (pos % getMapWidth()) &&
 	    checkfn(getWorld((UInt32)(pos - 1))))
 		rv |= DIR_LEFT;
-	if ((dirs & DIR_RIGHT) && (((pos % getMapWidth()) + 1) < getMapWidth())
-		&& checkfn(getWorld((UInt32)(pos + 1))))
+	if ((dirs & DIR_RIGHT) &&
+	    (((pos % getMapWidth()) + 1) < getMapWidth()) &&
+	    checkfn(getWorld((UInt32)(pos + 1))))
 		rv |= DIR_RIGHT;
 	return (rv);
 }
@@ -1087,11 +1094,12 @@ CheckNextTo1(UInt32 pos, UInt8 dirs, carryfnarg_t checkfn, void *cfarg)
 	if ((dirs & DIR_DOWN) && ((Int32)pos < (MapMul() - getMapWidth())) &&
 	    checkfn(getWorld((UInt32)(pos + getMapWidth())), cfarg))
 		rv |= DIR_DOWN;
-	if ((dirs & DIR_LEFT) && (pos % getMapWidth()) && 
+	if ((dirs & DIR_LEFT) && (pos % getMapWidth()) &&
 	    checkfn(getWorld((UInt32)(pos - 1)), cfarg))
 		rv |= DIR_LEFT;
-	if ((dirs & DIR_RIGHT) && (((pos % getMapWidth()) + 1) < getMapWidth())
-		&& checkfn(getWorld((UInt32)(pos + 1)), cfarg))
+	if ((dirs & DIR_RIGHT) &&
+	    (((pos % getMapWidth()) + 1) < getMapWidth()) &&
+	    checkfn(getWorld((UInt32)(pos + 1)), cfarg))
 		rv |= DIR_RIGHT;
 	return (rv);
 }

@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief interface to the stack functions
  *
  * These functions are indended to to provide a simplified set of stack
@@ -59,13 +60,13 @@ void StackDoEmpty(dsObj *obj);
 Int32 StackNElements(dsObj *obj);
 
 /*! \brief create a new list */
-#define ListNew	StackNew
+#define	ListNew	StackNew
 /*! \brief delete a list */
-#define ListDelete StackDelete
+#define	ListDelete StackDelete
 /*! \brief add an item to the list */
-#define ListAdd	StackPush
+#define	ListAdd	StackPush
 /*! \brief get number of elements on a list */
-#define ListNElements StackNElements
+#define	ListNElements StackNElements
 
 /*!
  * \brief get the specific item from the list

@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief routines that are used for event dispatching
  *
  * These routines are intended to multiplex the individual steps in the
@@ -52,7 +53,7 @@ PCityShutdown(void)
 
 /*!
  * \brief initialize the game structure.
- * 
+ *
  * This is just prior to, say, making a new savegame.
  * It makes sure that all the variables are set to the correct values
  */
@@ -63,17 +64,17 @@ InitGameStruct(void)
 	memset((void *)&game, 0, sizeof (game));
 	setGameVersion(SAVEGAMEVERSION);
 	AddGridUpdate(GRID_ALL);
-	//setTimeElapsed(0);
+	// setTimeElapsed(0);
 	setMapXPos(50);
 	setMapYPos(50);
-	//setDifficultyLevel(0);
+	// setDifficultyLevel(0);
 	setDisasterLevel(1);
 	setUpkeep(0, 100);
 	setUpkeep(1, 100);
 	setUpkeep(2, 100);
 	setMapSize((Int16)100, (Int16)100);
 	setTax(8);
-	//setLoopSeconds(SPEED_PAUSED);
+	// setLoopSeconds(SPEED_PAUSED);
 	SETAUTOBULLDOZE(1);
 }
 

@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief interface to the global routines
  */
 
@@ -57,16 +58,16 @@ typedef enum {
 /*! get if the minimap is visible */
 #define	GETMINIMAPVISIBLE()	getGameBit(sb_showminimap)
 /*! set to show the minimap in a detailed form */
-#define SETMINIMAPDETAILED(X)	setGameBit(sb_detailedminimap, (X))
+#define	SETMINIMAPDETAILED(X)	setGameBit(sb_detailedminimap, (X))
 /*! get if the minimap is supposed to be detailed */
-#define GETMINIMAPDETAILED()	getGameBit(sb_detailedminimap)
+#define	GETMINIMAPDETAILED()	getGameBit(sb_detailedminimap)
 
 /*! This is the game structure - it is saved */
 extern GameStruct game;
 /*! This is the volatile game structure - it is not saved */
 extern vGameStruct vgame;
-/*! \brief This contains the information on the visuals
- * tilesize and the likes
+/*!
+ * \brief This contains the information on the visuals tilesize and the likes
  */
 extern vGameVisuals visuals;
 /*! This is the game configuration - system choices */
@@ -91,7 +92,9 @@ extern char *crimeMap;
 
 EXPORT char *getDate(char *temp);
 
-EXPORT UInt32 scaleNumber(UInt32 old_value, Char *scale);
+EXPORT Int32 scaleNumber32(Int32 old_value, Char *scale);
+EXPORT Int16 scaleNumber16(Int16 old_value, Char *scale);
+
 EXPORT void *getIndexOf(char *ary, Int16 addit, Int16 key);
 EXPORT UInt8 getDisasterLevel(void);
 EXPORT void setDisasterLevel(UInt8 value);

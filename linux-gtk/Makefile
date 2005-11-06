@@ -1,6 +1,7 @@
 VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 GCPPFLAGS := $(shell pkg-config --cflags gtk+-2.0) \
 	-DGTK_DISABLE_COMPAT_H -DGDK_DISABLE_DEPRECATED
+
 ifeq ($(CC),gcc)
 GCCFLAGS = -W -Wall -Werror
 OPTFLAGS = -O2
@@ -16,9 +17,18 @@ LIBS =
 LDLIBS = $(LIBS) $(GLFLAGS)
 # -lefence
 
-default: debug
-
 VPATH=../source:../nix-common
+
+debug : CFLAGS += -g -DDEBUG -DLOGGING -pg
+debug : OPTFLAGS=
+debug : OBJDIR= debug
+
+all: OBJDIR= default
+
+debug all:
+	$(MAKE) $(MAKEFLAGS) OBJDIR=$(OBJDIR) $(OBJDIR)/pocketcity
+
+#debug all : $(OBJDIR)/pocketcity
 
 include ../Makefile-GlobalEntries
 include ../nix-common/Makefile-nixcommon
@@ -26,22 +36,21 @@ include ../nix-common/Makefile-nixcommon
 OBJECTS = $(OBJECTS_CARELESS) $(OBJECTS_NIX) main.o savegame_fe.o budget.o \
 	simulation-ui.o	uibits.o zonemon.o
 
+OBJDEST = $(OBJECTS:%=$(OBJDIR)/%)
+
 .PHONY: all debug clean
 
-all: pocketcity
+$(OBJDIR)/pocketcity: $(OBJDIR) $(OBJDEST)
+	$(CC) $(CFLAGS) $(OBJDEST) -o $@ $(LDLIBS)
 
-debug: CFLAGS += -g -DDEBUG -DLOGGING -pg
-debug: OPTFLAGS=
-debug: all
-
-pocketcity: $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o $@ $(LDLIBS)
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
 
 clean:
-	rm -f *.o pocketcity core* pocketcity.exe
+	rm -rf default debug
 
 clobber:
-	rm -f *.o core*
+	rm -f $(OBJDIR)/*.o core*
 
 DDIR=pocketcity-linux-GTK_$(VERSION)
 
@@ -56,3 +65,6 @@ dist:
 
 splint:
 	splint $(CPPFLAGS) *.c
+
+$(OBJDIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@

@@ -1,7 +1,8 @@
-/*! \file
+/*!
+ * \file
  * \brief the user interface routines that need defining in any implementation
  *
- * These are all the functions that need implementing if you want to 
+ * These are all the functions that need implementing if you want to
  * make the game work.
  */
 #if !defined(_UI_H)

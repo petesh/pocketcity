@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief routines to deal with drawing
  *
  * This module contains all the routines that are used to
@@ -267,7 +268,7 @@ GetSpecialGraphicNumber(UInt32 pos)
 			    IsRoadPower(elt) || IsRoadPipe(elt);
 		if ((unsigned long)(pos % getMapWidth()) <
 		    (unsigned long)(getMapWidth() - 1)) {
-		    	elt = getWorld(pos + 1);
+			elt = getWorld(pos + 1);
 			b = IsRoad(elt) || IsRoadBridge(elt) ||
 			    IsRoadPower(elt) || IsRoadPipe(elt);
 		}
@@ -307,7 +308,7 @@ GetSpecialGraphicNumber(UInt32 pos)
 			    IsRailPower(elt) || IsRailPipe(elt);
 		if ((unsigned long)(pos % getMapWidth()) <
 		    (unsigned long)(getMapWidth() - 1)) {
-		    	elt = getWorld(pos + 1);
+			elt = getWorld(pos + 1);
 			b = IsRail(elt) || IsRailTunnel(elt) ||
 			    IsRailPower(elt) || IsRailPipe(elt);
 		}
@@ -342,4 +343,3 @@ GetSpecialGraphicNumber(UInt32 pos)
 
 	return (nAddMe);
 }
-

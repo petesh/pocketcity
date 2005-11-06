@@ -13,7 +13,7 @@
  */
 
 #ifndef SIMCITY_RESCONSTS_H_
-#define SIMCITY_RESCONSTS_H_
+#define	SIMCITY_RESCONSTS_H_
 
 #define	formID_pocketCity 1000
 #define	formID_budget 1001
@@ -31,7 +31,7 @@
 #define	menu_pocketCity 	1000
 #define	menu_budget 	1001
 #define	menu_map 	1002
-#define fpc_gadgetUI	1003
+#define	fpc_gadgetUI	1003
 
 #define	menuitemID_loadGame 1000
 #define	menuitemID_saveGame 1001
@@ -40,7 +40,7 @@
 
 #define	menuitemID_Configuration 1004
 #define	menuitemID_Buttons 1005
-#define menuitemID_ForceResupply	1006
+#define	menuitemID_ForceResupply	1006
 
 #define	mi_removeDefence		1007
 #define	mi_buildExtra 1008 /* pops up an extra list */
@@ -60,7 +60,7 @@
 #define	menuitemID_about 1019
 #define	menuitemID_tips 1020
 
-#define menuitemID_Beam 1021
+#define	menuitemID_Beam 1021
 
 #define	menuitemID_Funny 1022
 
@@ -136,10 +136,10 @@
 #define	alertID_majorbad 1010
 #define	alertID_programmingNiggle 1011
 #define	alertID_tilesMissing		 1012
-#define alertID_lowPower	1013
-#define alertID_outPower	1014
-#define alertID_lowWater	1015
-#define alertID_outWater	1016
+#define	alertID_lowPower	1013
+#define	alertID_outPower	1014
+#define	alertID_lowWater	1015
+#define	alertID_outWater	1016
 
 #define	st_disasters			2000
 
@@ -153,14 +153,14 @@
 #define	fieldID_budget_pow	1302
 #define	fieldID_budget_def	1303
 
-#define rbutton_taxdown		1304
-#define rbutton_taxup		1305
-#define rbutton_trafdown	1306
-#define rbutton_trafup		1307
-#define rbutton_powdown		1308
-#define rbutton_powup		1309
-#define rbutton_defdown		1310
-#define rbutton_defup		1311
+#define	rbutton_taxdown		1304
+#define	rbutton_taxup		1305
+#define	rbutton_trafdown	1306
+#define	rbutton_trafup		1307
+#define	rbutton_powdown		1308
+#define	rbutton_powup		1309
+#define	rbutton_defdown		1310
+#define	rbutton_defup		1311
 
 #define	labelID_budget_inc 1312
 
@@ -187,10 +187,10 @@
 #define	buttonID_FilesNewCancel 1012
 #define	fieldID_width	1013
 #define	fieldID_height	1014
-#define rbutton_widthdown 1015
-#define rbutton_widthup 1016
-#define rbutton_heightdown 1017
-#define rbutton_heightup 1018
+#define	rbutton_widthdown 1015
+#define	rbutton_widthup 1016
+#define	rbutton_heightdown 1017
+#define	rbutton_heightup 1018
 
 /* controls for options form  - double up on create game form */
 #define	buttonID_dis_off 1000
@@ -234,11 +234,11 @@
 #define	strID_Descriptions 1021
 #define	strID_Items 1022
 #define	wdlID_Costs 1023
-#define strID_Months 1024
-#define strID_densities 1025
-#define strID_values 1026
-#define strID_crime 1027
-#define strID_pollution 1028
+#define	strID_Months 1024
+#define	strID_densities 1025
+#define	strID_values 1026
+#define	strID_crime 1027
+#define	strID_pollution 1028
 
 #define	bitmapID_zones 1600
 #define	bitmapID_monsters 1601
@@ -280,27 +280,27 @@
 #define	List_JogOut 2520
 #define	List_JogOut_Popup 2521
 
-#define List_RockerLeft 2522
-#define List_RockerLeft_Popup 2523
-#define List_RockerRight 2524
-#define List_RockerRight_Popup 2525
-#define List_RockerCenter 2526
-#define List_RockerCenter_Popup 2527
+#define	List_RockerLeft 2522
+#define	List_RockerLeft_Popup 2523
+#define	List_RockerRight 2524
+#define	List_RockerRight_Popup 2525
+#define	List_RockerCenter 2526
+#define	List_RockerCenter_Popup 2527
 
 /* Controls for the Query Form */
 #define	labelID_zonetype 1001
-#define labelID_zonevalue 1002
-#define labelID_zonedensity 1003
+#define	labelID_zonevalue 1002
+#define	labelID_zonedensity 1003
 #define	labelID_pollution 1004
-#define labelID_crimelevel 1005
-#define labelID_ispowered 1006
-#define labelID_iswatered 1007
-#define labelID_carrypower 1008
-#define labelID_carrywater 1009
-#define labelID_zonelocation 1010
+#define	labelID_crimelevel 1005
+#define	labelID_ispowered 1006
+#define	labelID_iswatered 1007
+#define	labelID_carrypower 1008
+#define	labelID_carrywater 1009
+#define	labelID_zonelocation 1010
 
 /* strings */
-#define pcity_description	3390
+#define	pcity_description	3390
 
 /* Resource Strings */
 #define	resstrings_base	4096
@@ -334,13 +334,13 @@
 #define	si_industrial	27
 #define	si_powerroad	28
 #define	si_piperoad	29
-#define si_bridge	30
+#define	si_bridge	30
 #define	si_railpower	31
 #define	si_railpipe	32
 #define	si_railovroad	33
-#define si_railtunnel	34
-#define si_carries	35
-#define si_needs	36
+#define	si_railtunnel	34
+#define	si_carries	35
+#define	si_needs	36
 
 
 #endif /* _SIMCITY_RESCONSTS_H_ */

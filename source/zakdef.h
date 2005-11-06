@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief the core set of definitions for the game.
  *
  * This consists of all the important types and structures that are
@@ -14,16 +15,16 @@
 #define	STATS_PER	4
 
 /*! \brief number of years/decades kept */
-#define STATS_COUNT	10
+#define	STATS_COUNT	10
 
 /*! \brief number of entries in array */
-#define STAT_ENTRIES	(STATS_PER * STATS_COUNT)
+#define	STAT_ENTRIES	(STATS_PER * STATS_COUNT)
 
 #define	MAX_UINT16	(~(UInt16)0)
 /*! \brief value for normalizing the cashflow within the range */
-#define OFFSET_FOR_CASHFLOW_BC	(1UL<<31)
+#define	OFFSET_FOR_CASHFLOW_BC	(1UL<<31)
 /*! \brief this offset is 1/2 the value of an unsigned int16 */
-#define OFFSET_FOR_CASHFLOW_STAT	((~(Uint16)0) >> 1)
+#define	OFFSET_FOR_CASHFLOW_STAT	((~(Uint16)0) >> 1)
 
 /*! \brief this is the mask for setting the cashflow value */
 #define	CASHFLOW_STATMASK	(0xffff)
@@ -49,27 +50,27 @@
 
 /*
  * This begins the description of how the tile/status system works in practice.
- * 
+ *
  * Zones are assigned a base 'type' which determines their basic make-up. Some
  * tiles can possess no more state than 'it is'. That means that the value
  * of the tile at that location maps onto the underlying zone in a one-to-one
  * fashion. The value may not actually map to the tile in question.
- * 
+ *
  * This is not the case for most other tiles. These tiles possess a 'value'
  * which is a value from 0-16. This is actually 4 sets of 4 values. Each of
  * the sets corresponds to the differing densities, each of the values to the
  * corresponding 'value' of the zone.
- * 
+ *
  * Getting the icons is accomplished using the 'GetSpecialGraphic()' call which
  * is in the drawing.c file.
- * 
+ *
  * All the definitions below are intended to provide the backing definitions
  * that actually are used in the program.
- * 
+ *
  * Anything beginning with Z_ is a zone entry
  *
  * Everything has been moved to the generated tileheader.h file
- */ 
+ */
 
 /*! \brief the number of tiles that are stored laterally on a 'tilestripe' */
 #define	HORIZONTAL_TILESIZE	32
@@ -164,19 +165,19 @@
 /*! \brief save game version */
 #define	SAVEGAMEVERSION	 "PC07"
 
-#define GG	game
+#define	GG	game
 /*! \brief get the map size */
 #define	getMapWidth() (GG.mapx)
 
 /*! \brief get the map height */
-#define getMapHeight() (GG.mapy)
+#define	getMapHeight() (GG.mapy)
 
 /*!
  * \brief set the map variables for the vgame structure
  * \param X the size on the X axis
  * \param Y the size on the Y axis
  */
-#define setMapVariables(X, Y)	{ \
+#define	setMapVariables(X, Y)	{ \
 	GG.mapx = (X); \
 	GG.mapy = (Y); \
 	vgame.mapmul = (UInt16)GG.mapx * GG.mapy; \
@@ -186,7 +187,7 @@
 #define	MapMul() (vgame.mapmul)
 
 /*! \brief get the world pointer size .. based on map */
-#define WorldSize() (vgame.mapmul)
+#define	WorldSize() (vgame.mapmul)
 
 /*!
  * \brief add a grid to be updated
@@ -227,22 +228,22 @@
 /*! \brief get the number of months that have elapsed in the game */
 #define	getMonthsElapsed()	(GG.TimeElapsed >> 2)
 
-#define getMapXPos()	(GG.map_xpos)
-#define setMapXPos(x)	GG.map_xpos = (x)
-#define getMapYPos()	(GG.map_ypos)
-#define setMapYPos(y)	GG.map_ypos = (y)
-#define getLoopSeconds()	(GG.gameLoopSeconds)
-#define setLoopSeconds(L)	GG.gameLoopSeconds = (L)
-#define getCredits()	(GG.credits)
-#define setCredits(C)	GG.credits = (C)
-#define incCredits(V)	GG.credits += (V)
-#define decCredits(V)	GG.credits -= (V)
-#define getUpkeep(K)	(GG.upkeep[K])
-#define setUpkeep(K,V)	GG.upkeep[K] = (V)
-#define getStatistics(K)	(&(GG.statistics[K]))
-#define setTimeElapsed(X)	GG.TimeElapsed = (X)
-#define incrementTimeElapsed(X)	GG.TimeElapsed += (X)
-#define setGameVersion(V)	strncpy((char *)GG.version, (char *)V, 4)
+#define	getMapXPos()	(GG.map_xpos)
+#define	setMapXPos(x)	GG.map_xpos = (x)
+#define	getMapYPos()	(GG.map_ypos)
+#define	setMapYPos(y)	GG.map_ypos = (y)
+#define	getLoopSeconds()	(GG.gameLoopSeconds)
+#define	setLoopSeconds(L)	GG.gameLoopSeconds = (L)
+#define	getCredits()	(GG.credits)
+#define	setCredits(C)	GG.credits = (C)
+#define	incCredits(V)	GG.credits += (V)
+#define	decCredits(V)	GG.credits -= (V)
+#define	getUpkeep(K)	(GG.upkeep[K])
+#define	setUpkeep(K, V)	GG.upkeep[K] = (V)
+#define	getStatistics(K)	(&(GG.statistics[K]))
+#define	setTimeElapsed(X)	GG.TimeElapsed = (X)
+#define	incrementTimeElapsed(X)	GG.TimeElapsed += (X)
+#define	setGameVersion(V)	strncpy((char *)GG.version, (char *)V, 4)
 #define	setTax(T)	GG.tax = (T)
 #define	getTax()	(GG.tax)
 
@@ -314,7 +315,7 @@ struct zoneTypeValue {
 
 /*!
  * \brief the statistics structure.
- * 
+ *
  * This is used by the simulation to record the various values for use in the
  * graph screen.
  *
@@ -333,19 +334,20 @@ typedef enum {
 
 /*!
  * \brief the structure containing graphical history
- * 
+ *
  * the entries are logarithmically scaled.
  * We have: 4 entries per year for the first 10 years
  * Then we have: 4 entries per decade for the next 100 years
  */
 typedef struct _history {
-	 /*! values from last ten years */
+	/*! values from last ten years */
 	UInt16		last_ten[STATS_COUNT];
 	/*! values from last century */
 	UInt16		last_century[STATS_COUNT];
 } stat_item;
 
-/*! \note Once a tree/forest becomes adjacent to an occupied area it becomes
+/*!
+ * \note Once a tree/forest becomes adjacent to an occupied area it becomes
  * part of the 'natural' forest
  */
 /*! \brief elements for the BuildCount[] array */
@@ -514,22 +516,22 @@ typedef struct _visual_tag {
 } vGameVisuals;
 
 
-#define mapTileSize()	(visuals.MapTileSize)
-#define setMapTileSize(X)	visuals.MapTileSize = (X)
-#define gameTileSize()	(visuals.TileSize)
-#define setGameTileSize(X)	visuals.TileSize = (X)
+#define	mapTileSize()	(visuals.MapTileSize)
+#define	setMapTileSize(X)	visuals.MapTileSize = (X)
+#define	gameTileSize()	(visuals.TileSize)
+#define	setGameTileSize(X)	visuals.TileSize = (X)
 
-#define inGameTiles(X)	((X) / visuals.TileSize)
+#define	inGameTiles(X)	((X) / visuals.TileSize)
 
-#define getVisibleX()	(visuals.visible_x)
-#define getVisibleY()	(visuals.visible_y)
-#define setVisibleX(X)	visuals.visible_x = (X)
-#define setVisibleY(Y)	visuals.visible_y = (Y)
+#define	getVisibleX()	(visuals.visible_x)
+#define	getVisibleY()	(visuals.visible_y)
+#define	setVisibleX(X)	visuals.visible_x = (X)
+#define	setVisibleY(Y)	visuals.visible_y = (Y)
 
-#define getCursorX()	(visuals.cursor_xpos)
-#define setCursor(X)	visuals.cursor_xpos = (X)
-#define getCursorY()	(visuals.cursor_ypos)
-#define setCursorY(Y)	visuals.cursor_ypos = (Y)
+#define	getCursorX()	(visuals.cursor_xpos)
+#define	setCursor(X)	visuals.cursor_xpos = (X)
+#define	getCursorY()	(visuals.cursor_ypos)
+#define	setCursorY(Y)	visuals.cursor_ypos = (Y)
 
 /*!
  * \brief appliation configuration.

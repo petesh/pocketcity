@@ -1,7 +1,8 @@
-/*! \file
+/*!
+ * \file
  * \brief the user interface routines that need defining in any implementation
  *
- * These are all the functions that need implementing if you want to 
+ * These are all the functions that need implementing if you want to
  * make the game work.
  */
 #if !defined(_LOCKING_H)
@@ -14,7 +15,7 @@ extern "C" {
 /*! \brief the zones to lock/unlock */
 typedef enum {
 	lz_world = 0, /*!< lock the world zone */
-	lz_flags , /*!< lock the world flags */
+	lz_flags, /*!< lock the world flags */
 	lz_growable, /*!< lock the growable memory zone */
 	lz_end /*!< the end/guard entry for the memory zones */
 } lockZone;

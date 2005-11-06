@@ -1,7 +1,7 @@
 /*!
  * \file
  * \brief the interface routines to the main program.
- * 
+ *
  * This is a platform specific file, and is used to splice out a bunch of
  * includes as well.
  *
@@ -13,13 +13,13 @@
 #include <zakdef.h>
 
 /* global vars from simcity.c */
-#define MK4(A,B,C,D)	(((A) << 12) | ((B) << 8) | ((C) << 4) | (D))
+#define	MK4(A, B, C, D)	(((A) << 12) | ((B) << 8) | ((C) << 4) | (D))
 #define	SGTYP   'PCsg'
-#define SGSTRING	"PCsg"
+#define	SGSTRING	"PCsg"
 #define	TILEDBTYPE 'tidb'
-#define TBMP	'Tbmp'
-#define TVER	'tver'
-#define TSTR	'tSTR'
+#define	TBMP	'Tbmp'
+#define	TVER	'tver'
+#define	TSTR	'tSTR'
 #define	SGNAME  "Pocket City Saves"
 
 extern char *worldPtr;

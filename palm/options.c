@@ -1,7 +1,7 @@
 /*!
  * \file
  * \brief code for handling options
- * 
+ *
  *
  * This code deals with the two options dialogs in the palm platform
  * The options for the game and the options for the system (buttons)
@@ -86,12 +86,12 @@ setupOptions(void)
 	UInt8 tval = getDisasterLevel();
 
 	tval = (UInt8)((tval > 3) ? 3 : tval);
-	CtlSetValue((ControlPtr)GetObjectPtr(form, 
+	CtlSetValue((ControlPtr)GetObjectPtr(form,
 		(UInt16)(buttonID_dis_off + tval)), 1);
 
 	tval = getDifficultyLevel();
 	tval = (UInt8)((tval > 2) ? 2 : tval);
-	CtlSetValue((ControlPtr)GetObjectPtr(form, 
+	CtlSetValue((ControlPtr)GetObjectPtr(form,
 	    (UInt16)(buttonID_Easy + tval)), 1);
 
 	CtlSetValue((ControlPtr)GetObjectPtr(form, checkboxID_autobulldoze),

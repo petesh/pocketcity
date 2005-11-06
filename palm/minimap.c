@@ -70,7 +70,8 @@ minimapIntersect(const RectangleType *other, RectangleType *dest)
 void
 minimapPaint(void)
 {
-	if (!minimap.showing) return;
+	if (!minimap.showing)
+		return;
 
 	WinEraseRectangle(&minimap.rect, 0);
 	minimap.rout.topLeft.x = (Coord)(minimap.rect.topLeft.x +
@@ -86,7 +87,8 @@ minimapPaint(void)
 Int8
 minimapIsTapped(PointType *point, PointType *percentage)
 {
-	if (!minimap.showing) return (0);
+	if (!minimap.showing)
+		return (0);
 	if (RctPtInRectangle(point->x, point->y, &minimap.rect)) {
 		percentage->x = (Coord)(((Int32)point->x -
 		    minimap.rect.topLeft.x) * 100 /

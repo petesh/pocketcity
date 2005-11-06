@@ -171,10 +171,10 @@ static const struct updateentity {
 	const char		*formatstr; /*!< string for formatting */
 	const UInt16		label; /*!< ID of label to alter */
 } entity[] = {
-	{ bnIncome, "%lu%c", labelID_budget_inc },
-	{ bnTraffic, "%lu%c", labelID_budget_tra },
-	{ bnPower, "%lu%c", labelID_budget_pow },
-	{ bnDefence, "%lu%c", labelID_budget_def },
+	{ bnIncome, "%li%c", labelID_budget_inc },
+	{ bnTraffic, "%li%c", labelID_budget_tra },
+	{ bnPower, "%li%c", labelID_budget_pow },
+	{ bnDefence, "%li%c", labelID_budget_def },
 	{ bnCurrentBalance, "%li%c", labelID_budget_now },
 	{ bnChange, "%+li%c", labelID_budget_tot },
 	{ bnNextMonth, "%li%c", labelID_budget_bal },
@@ -182,7 +182,7 @@ static const struct updateentity {
 };
 
 /*! \brief count of budget number entities */
-#define ENTITY_COUNT	(sizeof (entity) / sizeof (entity[0]))
+#define	ENTITY_COUNT	(sizeof (entity) / sizeof (entity[0]))
 
 /*!
  * \brief update the value of a budget number field.
@@ -194,13 +194,13 @@ static const struct updateentity {
  * \param value the value of the output
  */
 static void
-updateBudgetValue(FormPtr form, UInt16 label, const Char *format, long value)
+updateBudgetValue(FormPtr form, UInt16 label, const Char *format, Int32 value)
 {
 	Char temp[12];
 	Char scale;
 
-	*temp='$';
-	value = (Int32)scaleNumber((UInt32)value, &scale);
+	*temp = '$';
+	value = (Int32)scaleNumber32((Int32)value, &scale);
 
 	StrPrintF(temp+1, format, value, scale);
 	FrmCopyLabel(form, label, temp);

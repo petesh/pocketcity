@@ -1,4 +1,5 @@
-/*! \file
+/*!
+ * \file
  * \brief the simulation routines
  *
  * This consists of the outines that do all the simulation work, for example
@@ -20,7 +21,7 @@
 #define	SHORT_BIT	1
 #define	OUT_BIT		2
 
-#define DONTPAINT	(unsigned char)(1U<<7)
+#define	DONTPAINT	(unsigned char)(1U<<7)
 
 /*! \brief Structure for performing distribution */
 typedef struct _distrib {
@@ -223,7 +224,7 @@ DoDistribute(Int16 grid)
 		if (distrib->doescarry(getWorld(i)))
 			andWorldFlags(i,
 			    (selem_t)~(distrib->flagToSet |
-			        SCRATCHBIT | PAINTEDBIT));
+				SCRATCHBIT | PAINTEDBIT));
 	}
 	for (i = 0; i < MapMul(); i++) {
 		gw = getWorld(i);
@@ -302,7 +303,7 @@ DistributeUnvisited(distrib_t *distrib)
 nextneighbor:
 		/* find the possible ways we can move on from here */
 		AddNeighbors(distrib, pos);
-	};
+	}
 }
 
 /*!
@@ -399,7 +400,7 @@ DistributeNumberOfSquaresAround(distrib_t *distrib, UInt32 pos)
 
 /*!
  * \brief Distribute supply to locations around this node.
- * 
+ *
  * this function take a position and a direction and
  * moves the position in the direction, but won't move
  * behind map borders
@@ -453,11 +454,12 @@ ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what)
 	if ((dirs & DIR_DOWN) && (pos < (UInt32)(MapMul() - getMapWidth())) &&
 	    (what == getWorld(pos + getMapWidth())))
 		rv |= DIR_DOWN;
-	if ((dirs & DIR_LEFT) && (pos % getMapWidth()) && 
+	if ((dirs & DIR_LEFT) && (pos % getMapWidth()) &&
 	    (what == getWorld(pos - 1)))
 		rv |= DIR_LEFT;
-	if ((dirs & DIR_RIGHT) && (((pos % getMapWidth()) + 1) < getMapWidth())
-		&& (what == getWorld(pos + 1)))
+	if ((dirs & DIR_RIGHT) &&
+	    (((pos % getMapWidth()) + 1) < getMapWidth()) &&
+	    (what == getWorld(pos + 1)))
 		rv |= DIR_RIGHT;
 	return (rv);
 }

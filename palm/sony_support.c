@@ -180,7 +180,7 @@ sonyCanHires(void)
 Boolean
 sonyHires(void)
 {
-	return  (hires != 0);
+	return (hires != 0);
 }
 
 Err
@@ -344,9 +344,10 @@ SonyNotifyHook(SysNotifyParamType *notifyParamsP)
 	EventType ev;
 	SysNotifyDisplayChangeDetailsType *dat =
 	    (SysNotifyDisplayChangeDetailsType *)notifyParamsP->notifyDetailsP;
-	if (dat->oldDepth != dat->newDepth) return (errNone);
+	if (dat->oldDepth != dat->newDepth)
+		return (errNone);
 	notifyParamsP->handled = false;
-	MemSet(&ev, sizeof(ev), 0);
+	MemSet(&ev, sizeof (ev), 0);
 	ev.eType = winDisplayChangedEvent;
 	EvtAddUniqueEventToQueue(&ev, 0,  true);
 	return (errNone);
@@ -404,12 +405,12 @@ SonyEndSilk(void)
 
 	WriteLog("Will Close\n");
 	if (silk_ver == 0) {
-		//SilkLibResizeDispWin(silk_ref, silkResizeNormal);
-		//SilkLibDisableResize(silk_ref);
+		// SilkLibResizeDispWin(silk_ref, silkResizeNormal);
+		// SilkLibDisableResize(silk_ref);
 		SilkLibClose(silk_ref);
 	} else {
-		//VskSetState(silk_ref, vskStateResize, vskResizeMin);
-		//VskSetState(silk_ref, vskStateEnable, 0);
+		// VskSetState(silk_ref, vskStateResize, vskResizeMin);
+		// VskSetState(silk_ref, vskStateEnable, 0);
 		VskClose(silk_ref);
 	}
 	silk_ref = -1;
@@ -434,7 +435,7 @@ SonySetSilkResizable(UInt8 state)
 		if (!state)
 			VskSetState(silk_ref, vskStateEnable, state);
 		else if (silk_ver >= 0x03)
-			VskSetState(silk_ref, vskStateEnable, 
+			VskSetState(silk_ref, vskStateEnable,
 			    vskResizeVertically | vskResizeHorizontally);
 		else
 			VskSetState(silk_ref, vskStateEnable, 1);
