@@ -1639,6 +1639,7 @@ void
 UIPaintSpecialUnit(UInt16 xpos, UInt16 ypos, Int8 i)
 {
 	RectangleType rect;
+
 	if (IsDeferDrawing() || UIClipped(xpos, ypos))
 		return;
 
@@ -1765,19 +1766,20 @@ UIPaintPlayArea(void)
 	UInt16 x = getMapXPos();
 	UInt16 y = getMapYPos();
 
-	UInt16 maxx = x + getVisibleX() < getMapWidth() ? x + getVisibleX() :
-	    getMapWidth();
-	UInt16 maxy = y + getVisibleY() < getMapHeight() ? y + getVisibleY() :
-	    getMapHeight();
+	UInt16 maxx = (x + getVisibleX()) < getMapWidth() ?
+	    x + getVisibleX() : getMapWidth();
+	UInt16 maxy = (y + getVisibleY()) < getMapHeight() ?
+	    y + getVisibleY() : getMapHeight();
 
+	WriteLog("Visible: (%d,%d)\nFullSize: (%d,%d)\n", getVisibleX(),
+	  getVisibleY(), getMapWidth(), getMapHeight());
+	WriteLog("Drawing World From (%d,%d)->(%d,%d)\n", x, y, maxx, maxy);
 	LockZone(lz_world);
 	LockZone(lz_flags);
-	for (; x < maxx; x++) {
-		for (; y < maxy; y++) {
+	for (; x < maxx; x++)
+		for (y = getMapYPos(); y < maxy; y++)
 			DrawFieldWithoutInit(x, y);
-		}
-		y = getMapYPos();
-	}
+
 	if (GETMINIMAPVISIBLE())
 		minimapPaint();
 	UnlockZone(lz_flags);
@@ -1830,7 +1832,7 @@ UIScrollDisplay(dirType direction)
 		    inGameTiles(overlap.topLeft.y - YOFFSET));
 		l_x = s_x + scaleCoord(inGameTiles(overlap.extent.x + gs_m1));
 		l_y = s_y + scaleCoord(inGameTiles(overlap.extent.y + gs_m1));
-		WriteLog("(%d,%d)->(%d,%d)\n", s_x, s_y, l_x, l_y);
+		WriteLog("Minimap(%d,%d)->(%d,%d)\n", s_x, s_y, l_x, l_y);
 
 		for (x = s_x; x <= l_x; x++) {
 			for (y = s_y; y <= l_y; y++) {
@@ -2196,9 +2198,9 @@ UIPaintBuildIcon(void)
 Int8
 UIClipped(UInt16 xpos, UInt16 ypos)
 {
-	return (xpos < (UInt16)getMapXPos() ||
+	return ((xpos < (UInt16)getMapXPos()) ||
 	    (xpos >= (UInt16)(getMapXPos() + getVisibleX())) ||
-	    ypos < (UInt16)getMapYPos() ||
+	    (ypos < (UInt16)getMapYPos()) ||
 	    (ypos >= (UInt16)(getMapYPos() + getVisibleY())));
 }
 

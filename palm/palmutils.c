@@ -72,6 +72,7 @@ isHandEra(void)
 	if (FtrGet(TRGSysFtrID, TRGVgaFtrNum, &version) == 0)
 		if (sysGetROMVerMajor(version) >= 1)
 			rv = 1;
+	WriteLog("isHandEra(%d)\n", (Boolean)(rv == 1));
 	return ((Boolean)(rv == 1));
 }
 
@@ -89,6 +90,7 @@ isZireOld(void)
 	    (FtrGet(sysFtrCreator, sysFtrNumOEMDeviceID, &vcl) == 0) &&
 	    (vcl == ZireOriginalDeviceID))
 		rv = 1;
+	WriteLog("isZireOld(%d)\n", (Boolean)(rv == 1));
 	return ((Boolean)(rv == 1));
 }
 
@@ -104,6 +106,7 @@ hasFiveWayNav(void)
 	rv = 0;
 	if ((FtrGet(navFtrCreator, navFtrVersion, &vcl) == 0))
 		rv = 1;
+	WriteLog("hasFiveWayNav(%d)\n", (Boolean)(rv == 1));
 	return ((Boolean)(rv == 1));
 }
 #endif

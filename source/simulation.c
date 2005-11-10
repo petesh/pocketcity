@@ -895,7 +895,7 @@ RecordStatistics(void)
 UInt32
 getPopulation(void)
 {
-	return ((vgame.BuildCount[bc_value_residential] +
+	return (((UInt32)vgame.BuildCount[bc_value_residential] +
 		(vgame.BuildCount[bc_value_commercial] * 8) +
 		(vgame.BuildCount[bc_value_industrial] * 8)) * 20);
 }

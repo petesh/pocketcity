@@ -9,6 +9,10 @@ Legend:
  '*' = fix/modification
  '-' = removed feature
 
+Version 0.18dev
+  * Corrected loading for differently sized screens
+  * 1345973 Sign/overflow problem for some variables
+
 Version 0.17
   + Support for Palm OS 5 High Resolution API [& Sony Old]
   + Query Tool Improved

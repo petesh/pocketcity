@@ -169,12 +169,6 @@ hMap(EventPtr event)
 	return (handled);
 }
 
-const RectangleType rect = {
-	{ StartX, StartY }, { getMapWidth(), getMapHeight() }
-};
-const RectangleType grect = {
-	{ 0, 0 }, { getMapWidth(), getMapHeight() }
-};
 
 /*!
  * \brief draw the active map
@@ -182,6 +176,12 @@ const RectangleType grect = {
 static void
 DrawMap(void)
 {
+	const RectangleType rect = {
+		{ StartX, StartY }, { getMapWidth(), getMapHeight() }
+	};
+	const RectangleType grect = {
+		{ 0, 0 }, { getMapWidth(), getMapHeight() }
+	};
 	map_entry entry = currmap;
 	WinHandle swh = WinGetDrawWindow();
 
