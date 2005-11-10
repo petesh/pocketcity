@@ -60,21 +60,29 @@ cheat: dlores
 
 # you can add: -DMEM_DEBUG to add logging of most palm memory allocation calls
 # -mdebug-labels
+#
+DBG_FLAGS=-g -DDEBUG
+LOG_FLAGS=-DLOGGING
+PALM5_FLAGS=-DPALM_HIGH -DPALM_FIVE
+SONY_FLAGS=-DSONY_CLIE $(PALM5_FLAGS)
 
-dlores dpalm5 dsony: AXCFLAGS = -g -DDEBUG
-dlores dpalm5 dsony: DEBUG=1
+# We Have: Debugging, Logging, Palm5 and Sony
 
-llores lpalm5 lsony: AXCFLAGS = -g -DDEBUG -DLOGGING
-llores lpalm5 lsony: DEBUG=1
+# Debugging and logging are debugging
+dlores dpalm5 dsony llores lpalm5 lsony: FLAG1=DBG
+dlores dpalm5 dsony llores lpalm5 lsony: DEBUG=1
 
-palm5 dpalm5: BXCFLAGS = -DPALM_HIGH -DPALM_FIVE
-palm5 dpalm5: HIRES=1
+# Logging
+llores lpalm5 lsony: FLAG2=LOG
 
-# Sony app also contains all the hires functionality
-sony dsony: CXCFLAGS = -DSONY_CLIE -DSONY_HIGH -DPALM_HIGH -DPALM_FIVE
-sony dsony: SONY=1
+palm5 dpalm5 lpalm5: FLAG3=PALM5
+palm5 dpalm5 lpalm5: HIRES=1
 
-CFLAGS += $(AXCFLAGS) $(BXCFLAGS) $(CXCFLAGS) -DPROGTOKEN="'$(PROGTOKEN)'"
+sony lsony dsony: FLAG4=SONY
+sony lsony dsony: SONY=1
+
+CFLAGS += $($(FLAG1)_FLAGS) $($(FLAG2)_FLAGS) $($(FLAG3)_FLAGS) \
+  $($(FLAG4)_FLAGS) -DPROGTOKEN="'$(PROGTOKEN)'"
 
 # the different language versions
 $(OBJDIR)/$(BINARY)-%.prc: $(OBJDIR) $(OBJDIR)/PocketCity-EN \
