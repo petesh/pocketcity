@@ -4,9 +4,9 @@ include Makefile-include
 BIN=PocketCity
 TILE=$(BIN)
 
-NDTARGETS=lores palm5 sony
-DTARGETS=dlores dpalm5 dsony cheat
-LTARGETS=llores lpalm5 lsony
+NDTARGETS=palm5 lores sony
+DTARGETS=dpalm5 dlores dsony cheat
+LTARGETS=lpalm5 llores lsony
 
 .PHONY: %-nextdir
 .NOTPARALLEL:
