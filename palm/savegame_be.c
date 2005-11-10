@@ -129,9 +129,17 @@ FindGameByName(char *name)
 void
 ResetViewable(void)
 {
-	WriteLog("Reset viewable\n");
+	WriteLog("Reset viewable(%d, %d)\n", (UInt16)(sWidth / gameTileSize()),
+	    (UInt16)((sHeight / gameTileSize()) - 2));
+
 	setVisibleX((UInt16)(sWidth / gameTileSize()));
 	setVisibleY((UInt16)((sHeight / gameTileSize()) - 2));
+
+	/* Make sure we're not not of bounds on the screen */
+	if (getMapXPos() + getVisibleX() > getMapWidth())
+	    setMapXPos(getMapWidth() - getVisibleX());
+	if (getMapYPos() + getVisibleY() > getMapHeight())
+	    setMapYPos(getMapHeight() - getVisibleY());
 }
 
 UInt32
