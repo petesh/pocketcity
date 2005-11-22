@@ -23,7 +23,7 @@ typedef unsigned char Byte;
 /*! \brief Int8 data type to correspond to palm data type */
 typedef signed char Int8;
 /*! \brief Char data type to correspond to palm data type */
-typedef signed char Char;
+typedef char Char;
 /*! \brief UInt8 data type to correspond to palm data type */
 typedef unsigned char UInt8;
 /*! \brief Int16 data type to correspond to palm data type */
