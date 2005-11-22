@@ -31,7 +31,7 @@
 #include <zonemon.h>
 
 /*! \brief path to search for graphics */
-Char *pathsearch = (Char *)"$:$/graphic:$/graphic/icons:$/../graphic";
+Char *pathsearch = (Char *)"$:$/graphic:$/graphic/icons:$/../graphic:$/../graphic/icons:$/../../graphic:$/../../graphic/icons";
 
 /*! \brief number of milli seconds in a second */
 #define	MILLISECS	1000
@@ -763,8 +763,8 @@ UIInitGraphic(void)
 			    mw.window->window, ipm->mask, NULL,
 			    (const char *)image_path);
 			if (*ipm->pm == NULL) {
-				WriteLog("Could not create pixmap from file %s",
-				    ipm->filename);
+				WriteLog("Could not create pixmap "
+				    "from file %s\n", image_path);
 				free(image_path);
 				exit(1);
 			}
@@ -818,7 +818,7 @@ UIDisasterNotify(disaster_t disaster)
 		break;
 	case diDragon:
 		strcpy(temp, "A fire dragon wants to use your city as "
-		    "it's lair!");
+		    "its lair!");
 		break;
 	case diMeteor:
 		strcpy(temp, "A gigantic meteor has hit your city!");
@@ -1388,4 +1388,5 @@ WriteLog(char *s, ...)
 	g_print(mbuf);
 	va_end(args);
 }
+
 #endif /* LOGGING */
