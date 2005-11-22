@@ -19,32 +19,34 @@ LDLIBS = $(LIBS) $(GLFLAGS)
 
 VPATH=../source:../nix-common
 
+debug : CFLAGS += -g -DDEBUG -DLOGGING -pg
+debug : OPTFLAGS=
 debug : OBJDIR=debug
 
 all: OBJDIR=default
 
-debug all :
-	$(MAKE) OBJDIR=$(OBJDIR) -f Makefile-dowork $@
+debug all: $(OBJDIR)/pocketcity
+
+include ../Makefile-GlobalEntries
+include ../nix-common/Makefile-nixcommon
+
+OBJECTS = $(OBJECTS_CARELESS) $(OBJECTS_NIX) main.o savegame_fe.o budget.o \
+	simulation-ui.o	uibits.o zonemon.o
+
+OBJDEST = $(OBJECTS:%=$(OBJDIR)/%)
 
 .PHONY: all debug clean
 
-clean:
-	rm -rf default debug
+$(OBJDIR)/pocketcity: $(OBJDIR) $(OBJDEST)
+	$(CC) $(CFLAGS) $(OBJDEST) -o $@ $(LDLIBS)
 
-clobber:
-	rm -f $(OBJDIR)/*.o core*
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
 
 DDIR=pocketcity-linux-GTK_$(VERSION)
 
-dist: default
-	@mkdir -p $(DDIR)
-	@cp ../Changelog ../Copying ../Gamehints ../Readme \
-	  default/pocketcity $(DDIR)
-	@mkdir -p $(DDIR)/graphic/icons
-	@cp graphic/*.png $(DDIR)/graphic
-	@cp graphic/icons/*.png $(DDIR)/graphic/icons
-	@tar cvzf $(DDIR).tar.gz $(DDIR)
-	@rm -rf $(DDIR)
-
 splint:
 	splint $(CPPFLAGS) *.c
+
+$(OBJDIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
