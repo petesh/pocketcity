@@ -139,7 +139,7 @@ DoSpecificDisaster(disaster_t disaster)
 	Int16 ce = 0;
 	Int16 i = 0;
 
-	while (i++ < 400 && ce == 0) {
+	do {
 		randomTile = GetRandomNumber(MapMul());
 		x = (UInt16)(randomTile % getMapWidth());
 		y = (UInt16)(randomTile / getMapHeight());
@@ -162,7 +162,7 @@ DoSpecificDisaster(disaster_t disaster)
 			break;
 		default: break;
 		}
-	}
+	} while (i++ < 400 && ce == 0);
 	if (ce) {
 		UIDisasterNotify(disaster);
 		Goto(x, y, goto_center);
