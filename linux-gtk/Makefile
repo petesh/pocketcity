@@ -19,9 +19,9 @@ LDLIBS = $(LIBS) $(GLFLAGS)
 
 VPATH=../source:../nix-common
 
-debug : OBJDIR=debug
+debug : OBJDIR=out-debug
 
-all: OBJDIR=default
+all: OBJDIR=out-default
 
 debug all :
 	$(MAKE) OBJDIR=$(OBJDIR) -f Makefile-dowork $@
@@ -29,7 +29,7 @@ debug all :
 .PHONY: all debug clean
 
 clean:
-	rm -rf default debug
+	rm -rf out-default out-debug
 
 clobber:
 	rm -f $(OBJDIR)/*.o core*
