@@ -633,11 +633,8 @@ CityNames(int *count)
 	}
 	cities[nsIndex] = NULL;
 	*count = (int)nsIndex;
-	if (nsIndex > 10)
+	if (nsIndex >= 2)
 		SysQSort(cities, nsIndex, sizeof (*cities),
-		    comparator, CITYNAMELEN);
-	else if (nsIndex >= 2)
-		SysInsertionSort(cities, nsIndex, sizeof (*cities),
 		    comparator, CITYNAMELEN);
 	return (cities);
 }
