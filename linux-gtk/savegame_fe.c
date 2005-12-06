@@ -180,51 +180,26 @@ doOpen(gchar *filename)
 }
 
 /*!
- * \brief open a savegame
- * \param sel unused
- * \param data the filename from the selection dialog
- */
-static void
-open_afile(GtkObject *sel __attribute__((unused)), gpointer data)
-{
-	GtkWidget *dat = (GtkWidget *)data;
-
-	doOpen((gchar *)gtk_file_selection_get_filename(
-		    GTK_FILE_SELECTION(dat)));
-}
-
-/*!
- * \brief free the widget and the data pointer
- * \param obj unused
- * \param data the object to destroy
- */
-static void
-free_object(GtkObject *obj __attribute__((unused)), gpointer data)
-{
-	GtkWidget *dat = (GtkWidget *)data;
-	gtk_widget_destroy(dat);
-}
-
-/*!
  * \brief open a game file from the system
  * \todo save any game in progress
  */
 void
 opengame_handler(void)
 {
-	GtkWidget *file_sel = gtk_file_selection_new(
-	    "Select saved game to open");
+	GtkWidget *file_sel = gtk_file_chooser_dialog_new(
+	    "Select saved game to open",
+	    GTK_WINDOW(window_main_get()), 
+	    GTK_FILE_CHOOSER_ACTION_OPEN,
+	    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+	    GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+	    NULL);
 
-	g_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(file_sel)->ok_button),
-	    "clicked", G_CALLBACK(open_afile), (gpointer)file_sel);
-
-	g_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(file_sel)->ok_button),
-	    "clicked", G_CALLBACK(free_object), (gpointer)file_sel);
-	g_signal_connect(
-	    GTK_OBJECT(GTK_FILE_SELECTION(file_sel)->cancel_button),
-	    "clicked", G_CALLBACK(free_object), (gpointer)file_sel);
-
-	gtk_widget_show(GTK_WIDGET(file_sel));
+	if (gtk_dialog_run(GTK_DIALOG(file_sel)) == GTK_RESPONSE_ACCEPT) {
+		char *filename = gtk_file_chooser_get_filename(
+		  GTK_FILE_CHOOSER(file_sel));
+		doOpen(filename);
+	}
+	gtk_widget_destroy(file_sel);
 }
 
 /*! \brief new game form entities */

@@ -78,8 +78,12 @@ static void SetSpeed(gpointer data, guint action, GtkWidget *w);
 static void cleanupPixmaps(void);
 static void ResetViewable(void);
 static void ShowMainWindow(void);
-static void forceRedistribute(void);
 static void doRepaintDisplay(void);
+
+#if defined(DEBUG)
+static void forceRedistribute(void);
+static void cashUp(void);
+#endif
 
 /*! \brief the menu items for the main application */
 const GtkItemFactoryEntry menu_items[] = {
@@ -104,8 +108,11 @@ const GtkItemFactoryEntry menu_items[] = {
 	{ "/Speed/_Fast", "<control>3", SetSpeed, 1 + SPEED_FAST, NULL, NULL },
 	{ "/Speed/_Turbo", "<control>4", SetSpeed, 1 + SPEED_TURBO, NULL,
 		NULL },
+#if defined(DEBUG)
 	{ "/S_imulation", NULL, NULL, 0, "<Branch>", 0 },
-	{ "/Simulation/_Redistribute", NULL, forceRedistribute, 0, NULL, NULL }
+	{ "/Simulation/_Redistribute", NULL, forceRedistribute, 0, NULL, NULL },
+	{ "/Simulation/_Cash Me Up", "<control>C", cashUp, 0, NULL, NULL },
+#endif
 
 };
 /*! \brief number of menu items - the standard #define */
@@ -211,6 +218,24 @@ SetSpeed(gpointer data __attribute__((unused)), guint speed,
 	WriteLog("Setting speed to %i\n", speed);
 	setLoopSeconds(speed);
 }
+
+#if defined(DEBUG)
+
+/*!
+ * \brief give a cash injection to the user
+ * \param data unused
+ * \param param unused
+ * \param w source widget
+ */
+static void
+cashUp(void)
+{
+	incCredits(20000);
+	addGraphicUpdate(gu_credits);
+	doRepaintDisplay();
+}
+
+#endif
 
 /*!
  * \brief time ticker that loops every second
@@ -1364,6 +1389,8 @@ QuitGame(void)
 	gtk_main_quit();
 }
 
+#if defined(DEBUG)
+
 /*!
  * \brief force a redistribution next iteration
  */
@@ -1372,6 +1399,8 @@ forceRedistribute(void)
 {
 	AddGridUpdate(GRID_ALL);
 }
+
+#endif
 
 #ifdef LOGGING
 

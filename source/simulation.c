@@ -45,7 +45,7 @@ static void DecreaseDesire(desire_elt element);
 /* Zones upgrade/downgrade */
 
 /*! \brief Zone scores */
-typedef struct {
+typedef struct _zonescore {
 	Int32 pos; /*!< position of the node */
 	Int32 score; /*!< score of the node */
 } ZoneScore;
@@ -313,7 +313,7 @@ GetZoneScore(UInt32 pos)
 	int ax, ay;
 	int maxx, maxy;
 	int bRoad = 0;
-	zoneType type = ztWhat;
+	zoneType type;
 	UInt8 zone;
 
 	LockZone(lz_world);
