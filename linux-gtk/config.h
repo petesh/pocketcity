@@ -9,5 +9,6 @@
 #define	_CONFIG_H_
 
 #define	LUNIX
+#include <assert.h>
 
 #endif /* _CONFIG_H_ */

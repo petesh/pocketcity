@@ -1,0 +1,31 @@
+
+The simulation works as follows. A zone contributes a certain set of
+influences onto the crime, pollution and transport maps.
+Each influence level is stated as a signed byte, from -128 to +127
+
+These influences 'exude' from the zone of most magnitude, decreasing in
+magnitude as you move out from the point of influence in the following
+manner:
+
+{DIAG} | {DIRE} | {DIAG} 
+-------+--------+--------
+{DIRE} |  Zone  | {DIRE}
+-------+--------+--------
+{DIAG} | {DIRE} | {DIAG}
+
+It is an absolute magnitude reduction - i.e. the goal is 0
+
+DIAG values are DIRE/2 - it makes it distribute correctly on the map.
+
+If an adjacent zone is a contributor to the influence map then for the
+purposes of distribution the zone under consideration's value is
+( v1 + max(vAdjacent) ) * {LOAD_FACTOR}.
+
+These influence maps are not kept between load/saves. {BASE} iterations of
+the influence algorithm are done after a load to get a rough average of the
+state, but we note that we need to do an additional
+Trunc((127 + {DIRE} * {BASE}) / {DIRE}) iterations before we are considered
+done with the state of the system. The distribution can be performed in the
+background while nothing is happening in the foreground.
+
+How does this influence the growth?

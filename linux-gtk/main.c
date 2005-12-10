@@ -29,6 +29,7 @@
 #include <nix_utils.h>
 #include <simulation-ui.h>
 #include <zonemon.h>
+#include <localize.h>
 
 /*! \brief path to search for graphics */
 Char *pathsearch = (Char *)"$:$/graphic:$/graphic/icons:$/../graphic:$/../graphic/icons:$/../../graphic:$/../../graphic/icons";

@@ -8,5 +8,6 @@
 #define	_CONFIG_H_
 
 #define	PALM
+#define	assert(X)	ErrFatalDisplayIf(!(X), ##X)
 
 #endif /* _CONFIG_H_ */

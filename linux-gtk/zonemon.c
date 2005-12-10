@@ -15,6 +15,7 @@
 #include <simulation.h>
 #include <zonestrings.h>
 #include <uibits.h>
+#include <localize.h>
 
 /*! \brief contents of the hover window */
 static struct tag_things {
@@ -61,10 +62,10 @@ hoverUpdate(UInt16 xpos, UInt16 ypos, int force)
 	ttg.old_xpos = xpos;
 	ttg.old_ypos = ypos;
 
-	sprintf(text, "Status (%d, %d)", (int)xpos, (int)ypos);
+	sprintf(text, _("Status (%d, %d)"), (int)xpos, (int)ypos);
 	gtk_window_set_title(GTK_WINDOW(ttg.win), text);
 	if (-1 == getFieldString(world, text, 1024)) {
-		sprintf(text, "type == %x(?)", (int)world);
+		sprintf(text, _("type == %x(?)"), (int)world);
 	}
 	gtk_label_set_text(GTK_LABEL(ttg.name), text);
 	(void) getFieldValue(world, text, 1024);
@@ -74,23 +75,29 @@ hoverUpdate(UInt16 xpos, UInt16 ypos, int force)
 	gtk_widget_hide(ttg.power);
 	if (CarryPower(world)) {
 		if (status & POWEREDBIT)
-			gtk_label_set_text(GTK_LABEL(ttg.power), "Pow+");
+			gtk_label_set_text(GTK_LABEL(ttg.power),
+			    _("Pow+"));
 		else
-			gtk_label_set_text(GTK_LABEL(ttg.power), "-Pow");
+			gtk_label_set_text(GTK_LABEL(ttg.power),
+			    _("-Pow"));
 		gtk_widget_show(ttg.power);
 	}
 	gtk_widget_hide(ttg.water);
 	if (CarryWater(world)) {
 		if (status & WATEREDBIT)
-			gtk_label_set_text(GTK_LABEL(ttg.water), "Wat+");
+			gtk_label_set_text(GTK_LABEL(ttg.water),
+			    _("Wat+"));
 		else
-			gtk_label_set_text(GTK_LABEL(ttg.water), "-Wat");
+			gtk_label_set_text(GTK_LABEL(ttg.water),
+			    _("-Wat"));
 		gtk_widget_show(ttg.water);
 	}
 	if (status & PAINTEDBIT)
-		gtk_label_set_text(GTK_LABEL(ttg.painted), "HAS");
+		gtk_label_set_text(GTK_LABEL(ttg.painted),
+		    _("HAS"));
 	else
-		gtk_label_set_text(GTK_LABEL(ttg.painted), "---");
+		gtk_label_set_text(GTK_LABEL(ttg.painted),
+		    _("---"));
 }
 
 static gint
@@ -113,20 +120,20 @@ hoverShow(void)
 	}
 
 	ttg.win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title(GTK_WINDOW(ttg.win), "Status");
+	gtk_window_set_title(GTK_WINDOW(ttg.win), _("Status"));
 	gtk_window_set_skip_taskbar_hint(GTK_WINDOW(ttg.win), TRUE);
 	g_signal_connect(G_OBJECT(ttg.win), "delete_event",
 	    G_CALLBACK(hoverClose), NULL);
 
 	table = GTK_TABLE(gtk_table_new(6, 3, TRUE));
-	lab = GTK_LABEL(create_right_label("Type:"));
+	lab = GTK_LABEL(create_right_label(_("Type:")));
 	gtk_table_attach(table, GTK_WIDGET(lab), 0, 1, 0, 1,
 	    GTK_FILL, GTK_FILL, 0, 0);
 	ttg.name = create_left_label("-");
 	gtk_table_attach(table, ttg.name, 1, 3, 0, 1, GTK_FILL, GTK_FILL,
 	    0, 0);
 
-	lab = GTK_LABEL(create_right_label("Value:"));
+	lab = GTK_LABEL(create_right_label(_("Value:")));
 	gtk_label_set_justify(lab, GTK_JUSTIFY_RIGHT);
 	gtk_table_attach(table, GTK_WIDGET(lab), 0, 1, 1, 2,
 	    GTK_FILL, GTK_FILL, 0, 0);
@@ -134,21 +141,21 @@ hoverShow(void)
 	gtk_table_attach(table, ttg.value, 1, 3, 1, 2, GTK_FILL, GTK_FILL,
 	    0, 0);
 
-	lab = GTK_LABEL(create_right_label("Density:"));
+	lab = GTK_LABEL(create_right_label(_("Density:")));
 	gtk_table_attach(table, GTK_WIDGET(lab), 0, 1, 2, 3,
 	    GTK_FILL, GTK_FILL, 0, 0);
 	ttg.density = create_left_label("-");
 	gtk_table_attach(table, ttg.density, 1, 3, 2, 3,
 	    GTK_FILL, GTK_FILL, 0, 0);
 
-	lab = GTK_LABEL(create_right_label("Pollution:"));
+	lab = GTK_LABEL(create_right_label(_("Pollution:")));
 	gtk_table_attach(table, GTK_WIDGET(lab), 0, 1, 3, 4,
 	    GTK_FILL, GTK_FILL, 0, 0);
 	ttg.pollution = create_left_label("-");
 	gtk_table_attach(table, ttg.pollution, 1, 3, 3, 4,
 	    GTK_FILL, GTK_FILL, 0, 0);
 
-	lab = GTK_LABEL(create_right_label("Crime:"));
+	lab = GTK_LABEL(create_right_label(_("Crime:")));
 	gtk_table_attach(table, GTK_WIDGET(lab), 0, 1, 4, 5,
 	    GTK_FILL, GTK_FILL, 0, 0);
 	ttg.crime = create_left_label("-");

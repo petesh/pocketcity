@@ -79,16 +79,19 @@ extern char *worldPtr;
 extern char *flagPtr;
 
 /*! This is the pointer to the power state of the world */
-extern char *powerMap;
+extern char *powerPtr;
 
 /*! This is the water state of the world */
-extern char *waterMap;
+extern char *waterPtr;
 
-/*! This is the pollution map */
-extern char *pollutionMap;
+/*! This is the pollution on the map */
+extern char *pollutionPtr;
 
-/*! This is the crime map. */
-extern char *crimeMap;
+/*! This is the crime on the map */
+extern char *crimePtr;
+
+/*! This is the transport distribution on the map */
+extern char *transportPtr;
 
 EXPORT char *getDate(char *temp);
 
@@ -106,6 +109,12 @@ EXPORT Int16 ResizeWorld(UInt32 size);
 
 EXPORT void PurgeWorld(void);
 
+/*
+ * These are the world based flags
+ * In a debug mode these are functions
+ * In non-debug mode they are #defines
+ */
+#if defined(DEBUG)
 EXPORT welem_t getWorld(UInt32 pos);
 EXPORT void setWorld(UInt32 pos, welem_t value);
 EXPORT selem_t getWorldFlags(UInt32 pos);
@@ -115,6 +124,19 @@ EXPORT void andWorldFlags(UInt32 pos, selem_t value);
 EXPORT void clearWorldFlags(UInt32 pos, selem_t value);
 EXPORT void getWorldAndFlag(UInt32 pos, welem_t *world, selem_t *flag);
 EXPORT void setWorldAndFlag(UInt32 pos, welem_t value, selem_t status);
+#else
+#define getWorld(X)	(((welem_t *)worldPtr)[(X)])
+#define setWorld(X, Y)	worldPtr[(X)] = (Y)
+#define	getWorldFlags(X)	(((selem_t *)flagPtr)[(X)])
+#define	setWorldFlags(X, Y)	((selem_t *)flagPtr)[(X)] = (Y)
+#define	orWorldFlags(X, Y)	((selem_t *)flagPtr)[(X)] |= (Y)
+#define	andWorldFlags(X, Y)	((selem_t *)flagPtr)[(X)] &= (Y) 
+#define	clearWorldFlags(X, Y)	andWorldFlags(X, ~((selem_t)(Y)))
+#define getWorldAndFlag(X, Y, Z)	do { *(Y) = getWorld(X); \
+    *(Z) = getWorldFlags(X); } while (0)
+#define setWorldAndFlag(X, Y, Z)	do { setWorld(X, Y); \
+	setWorldFlags(X, Z); } while (0)
+#endif
 
 EXPORT void addGraphicUpdate(graphicupdate_t entity);
 EXPORT void removeGraphicUpdate(graphicupdate_t entity);

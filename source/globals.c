@@ -236,6 +236,7 @@ InitWorld(void)
 	return (1);
 }
 
+#if defined(DEBUG)
 /*!
  * \brief get the item on the surface of the world
  * \param pos the position in the world map to obtain
@@ -244,9 +245,7 @@ InitWorld(void)
 welem_t
 getWorld(UInt32 pos)
 {
-	if (pos > MapMul())
-		return (0);
-
+	assert(pos < MapMul());
 	return (((welem_t *)worldPtr)[pos]);
 }
 
@@ -258,9 +257,7 @@ getWorld(UInt32 pos)
 void
 setWorld(UInt32 pos, welem_t value)
 {
-	if (pos > MapMul())
-		return;
-
+	assert(pos < MapMul());
 	((welem_t *)worldPtr)[pos] = value;
 }
 
@@ -273,9 +270,7 @@ setWorld(UInt32 pos, welem_t value)
 void
 setWorldAndFlag(UInt32 pos, welem_t value, selem_t status)
 {
-	if (pos > MapMul())
-		return;
-
+	assert(pos < MapMul());
 	((welem_t *)worldPtr)[pos] = value;
 	((selem_t *)flagPtr)[pos] = status;
 }
@@ -288,8 +283,7 @@ setWorldAndFlag(UInt32 pos, welem_t value, selem_t status)
 selem_t
 getWorldFlags(UInt32 pos)
 {
-	if (pos > MapMul())
-		return (0);
+	assert(pos < MapMul());
 	return (((selem_t *)flagPtr)[pos]);
 }
 
@@ -301,8 +295,7 @@ getWorldFlags(UInt32 pos)
 void
 setWorldFlags(UInt32 pos, selem_t value)
 {
-	if (pos > MapMul())
-		return;
+	assert(pos < MapMul());
 	((selem_t *)flagPtr)[pos] = value;
 }
 
@@ -314,8 +307,7 @@ setWorldFlags(UInt32 pos, selem_t value)
 void
 andWorldFlags(UInt32 pos, selem_t value)
 {
-	if (pos > MapMul())
-		return;
+	assert(pos < MapMul());
 	((selem_t *)flagPtr)[pos] &= value;
 }
 
@@ -338,8 +330,7 @@ clearWorldFlags(UInt32 pos, selem_t value)
 void
 orWorldFlags(UInt32 pos, selem_t value)
 {
-	if (pos > MapMul())
-		return;
+	assert(pos < MapMul());
 	((selem_t *)flagPtr)[pos] |= value;
 }
 
@@ -352,11 +343,11 @@ orWorldFlags(UInt32 pos, selem_t value)
 void
 getWorldAndFlag(UInt32 pos, welem_t *world, selem_t *flag)
 {
-	if (pos > MapMul())
-		return;
+	assert(pos < MapMul());
 	*world = ((welem_t *)worldPtr)[pos];
 	*flag = ((selem_t *)flagPtr)[pos];
 }
+#endif /* DEBUG */
 
 /*!
  * \brief free all the game related structures

@@ -11,10 +11,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <main.h>
 #include <globals.h>
@@ -30,6 +30,7 @@
 #include <compilerpragmas.h>
 #include <uibits.h>
 #include <logging.h>
+#include <localize.h>
 
 /*! \brief private city list selection object */
 struct city_listselect {
@@ -73,7 +74,8 @@ ImportOneFromGame(GtkWidget *widget, gint response, gpointer data)
 		GtkTreeIter iter;
 		int city = 0;
 
-		select = gtk_tree_view_get_selection(GTK_TREE_VIEW(sel->list));
+		select = gtk_tree_view_get_selection(
+		    GTK_TREE_VIEW(sel->list));
 		if (gtk_tree_selection_get_selected(select, &model, &iter)) {
 			gtk_tree_model_get(model, &iter, 0, &city, -1);
 		}
@@ -125,7 +127,7 @@ loadCities(savegame_t *sg)
 		    1, savegame_getcityname(sg, i),
 		    -1);
 	}
-	ls->dlg = gtk_dialog_new_with_buttons("Pick A City",
+	ls->dlg = gtk_dialog_new_with_buttons(_("Pick A City"),
 	    GTK_WINDOW(window_main_get()), GTK_DIALOG_DESTROY_WITH_PARENT,
 	    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 	    GTK_STOCK_OK, GTK_RESPONSE_OK,
@@ -133,7 +135,7 @@ loadCities(savegame_t *sg)
 
 	ls->list = gtk_tree_view_new_with_model(GTK_TREE_MODEL(ls->store));
 	gtk_tree_view_append_column(GTK_TREE_VIEW(ls->list),
-	    gtk_tree_view_column_new_with_attributes("Name",
+	    gtk_tree_view_column_new_with_attributes(_("City Name"),
 	    gtk_cell_renderer_text_new(), "text", 1, NULL));
 	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(ls->dlg)->vbox),
 	    ls->list, TRUE, TRUE, 0);
@@ -156,13 +158,13 @@ doOpen(gchar *filename)
 	savegame_t *sg = savegame_open(filename);
 
 	if (sg == NULL) {
-		WriteLog("no savegames in file\n");
+		WriteLog(_("no savegames in file\n"));
 		return;
 	}
 	setCityFileName(filename);
 
 	if (savegame_citycount(sg) == 0) {
-		WriteLog("no savegames in file\n");
+		WriteLog(_("no savegames in file\n"));
 		savegame_close(sg);
 		return;
 	}
@@ -187,7 +189,7 @@ void
 opengame_handler(void)
 {
 	GtkWidget *file_sel = gtk_file_chooser_dialog_new(
-	    "Select saved game to open",
+	    _("Select saved game to open"),
 	    GTK_WINDOW(window_main_get()), 
 	    GTK_FILE_CHOOSER_ACTION_OPEN,
 	    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
@@ -234,13 +236,14 @@ newgame_handler(void)
 	/* SetupNewGame(); */
 	/* setLoopSeconds(SPEED_PAUSED); */
 	ng.form = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title(GTK_WINDOW(ng.form), "Create New City");
+	gtk_window_set_title(GTK_WINDOW(ng.form),
+	  _("Create New City"));
 
 	mainbox = gtk_vbox_new(FALSE, 10);
 	table = gtk_table_new(12, 4, TRUE);
 	gtk_container_set_border_width(GTK_CONTAINER(mainbox), 3);
 
-	label = create_right_label("City Name:");
+	label = create_right_label(_("City Name:"));
 	gtk_table_attach_defaults(GTK_TABLE(table), label, 0, 1, 0, 1);
 
 	ng.cityName = gtk_entry_new();
@@ -277,7 +280,8 @@ store_filename(GtkWidget *sel __attribute__((unused)), gpointer data)
 		}
 	} else
 		return;
-	WriteLog("This game will be saved as %s from now on\n", name);
+	WriteLog(_("This game will be saved as %s from now on\n"),
+	  name);
 	save_defaultfilename();
 }
 
@@ -286,7 +290,7 @@ savegameas_handler(void)
 {
 	GtkWidget *fileSel;
 
-	fileSel = gtk_file_selection_new("Save game as...");
+	fileSel = gtk_file_selection_new(_("Save game as..."));
 	g_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
 	    "clicked", G_CALLBACK(store_filename), (gpointer)fileSel);
 
