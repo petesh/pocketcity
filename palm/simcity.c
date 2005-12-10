@@ -157,7 +157,7 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 	case sysAppLaunchCmdExgReceiveData:
 		if (errNone == BeamReceive((ExgSocketPtr)cmdPBP)) {
 			if (launchFlags & sysAppLaunchFlagSubCall) {
-				if (IsGameInProgress())
+				if (getGameInProgress())
 					SaveGameByName(game.cityname);
 				UILoadAutoGame();
 				FrmGotoForm(formID_pocketCity);
@@ -197,7 +197,7 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 
 	EventLoop();
 
-	if (IsGameInProgress()) {
+	if (getGameInProgress()) {
 		UISaveAutoGame();
 	}
 
@@ -352,11 +352,11 @@ EventLoop(void)
 		 * if we're faffing around in the savegame dialogs then
 		 * we're not actually playing the game.
 		 */
-		if (!IsGameInProgress())
+		if (!getGameInProgress())
 			continue;
 
 		/* Game is fully formally paused ? */
-		if (!IsGamePlaying())
+		if (!getGamePlaying())
 			continue;
 
 		if (IsBuilding())
@@ -771,7 +771,7 @@ doPocketCityOpen(FormPtr form)
 		pcResizeDisplay(form, hOff, vOff, false);
 	}
 #endif
-	SetGameInProgress();
+	setGameInProgress(1);
 	ResumeGame();
 	FrmDrawForm(form);
 	SetDrawing();
@@ -1279,27 +1279,24 @@ TESTER(void) \
 
 #define	GLOBAL
 
-BUILD_STATEBITACCESSOR(0, PauseGame, ResumeGame, IsGamePlaying, GLOBAL)
 BUILD_STATEBITACCESSOR(1, SetNotBuilding, SetBuilding, IsBuilding, static)
-BUILD_STATEBITACCESSOR(2, SetGameNotInProgress, SetGameInProgress,
-    IsGameInProgress, GLOBAL)
-BUILD_STATEBITACCESSOR(3, SetLowMoneyNotShown, SetLowMoneyShown, \
+BUILD_STATEBITACCESSOR(2, SetLowMoneyNotShown, SetLowMoneyShown, \
     IsLowMoneyShown, static)
-BUILD_STATEBITACCESSOR(4, SetOutMoneyNotShown, SetOutMoneyShown, \
+BUILD_STATEBITACCESSOR(3, SetOutMoneyNotShown, SetOutMoneyShown, \
     IsOutMoneyShown, static)
-BUILD_STATEBITACCESSOR(5, SetLowPowerNotShown, SetLowPowerShown, \
+BUILD_STATEBITACCESSOR(4, SetLowPowerNotShown, SetLowPowerShown, \
     IsLowPowerShown, static)
-BUILD_STATEBITACCESSOR(6, SetOutPowerNotShown, SetOutPowerShown, \
+BUILD_STATEBITACCESSOR(5, SetOutPowerNotShown, SetOutPowerShown, \
     IsOutPowerShown, static)
-BUILD_STATEBITACCESSOR(7, SetLowWaterNotShown, SetLowWaterShown, \
+BUILD_STATEBITACCESSOR(6, SetLowWaterNotShown, SetLowWaterShown, \
     IsLowWaterShown, static)
-BUILD_STATEBITACCESSOR(8, SetOutWaterNotShown, SetOutWaterShown, \
+BUILD_STATEBITACCESSOR(7, SetOutWaterNotShown, SetOutWaterShown, \
     IsOutWaterShown, static)
-BUILD_STATEBITACCESSOR(9, Clear35ROM, Set35ROM, Is35ROM, GLOBAL)
-BUILD_STATEBITACCESSOR(10, SetDrawing, SetDeferDrawing, IsDeferDrawing, static)
-BUILD_STATEBITACCESSOR(11, Clear40ROM, Set40ROM, Is40ROM, GLOBAL)
-BUILD_STATEBITACCESSOR(12, ClearScaleModes, SetScaleModes, IsScaleModes, GLOBAL)
-BUILD_STATEBITACCESSOR(13, ClearScrolling, SetScrolling, IsScrolling, static)
+BUILD_STATEBITACCESSOR(8, Clear35ROM, Set35ROM, Is35ROM, GLOBAL)
+BUILD_STATEBITACCESSOR(9, SetDrawing, SetDeferDrawing, IsDeferDrawing, static)
+BUILD_STATEBITACCESSOR(10, Clear40ROM, Set40ROM, Is40ROM, GLOBAL)
+BUILD_STATEBITACCESSOR(11, ClearScaleModes, SetScaleModes, IsScaleModes, GLOBAL)
+BUILD_STATEBITACCESSOR(12, ClearScrolling, SetScrolling, IsScrolling, static)
 
 /*!
  * \brief clear the low and out of power flags

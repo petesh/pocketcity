@@ -43,10 +43,11 @@ vGameVisuals visuals;
 
 char *worldPtr;
 char *flagPtr;
-char *powerMap;
-char *waterMap;
-char *pollutionMap;
-char *crimeMap;
+char *powerPtr;
+char *waterPtr;
+char *pollutionPtr;
+char *crimePtr;
+char *transportPtr;
 
 /*! \brief This is the game configuration */
 AppConfig_t gameConfig = {
@@ -191,6 +192,12 @@ setDifficultyLevel(UInt8 value)
 	GG.diff_disaster |= (UInt8)((value & 0x0f) << 4);
 }
 
+#define	nullcheck(X) \
+	if ((X) == NULL) { \
+		UISystemErrorNotify(seOutOfMemory); \
+		WriteLog("realloc failed - " #X "\n"); \
+		return (0); \
+	}
 /*!
  * \brief make the world of a certain size
  *
@@ -205,24 +212,32 @@ ResizeWorld(UInt32 size)
 	WriteLog("Resize World = %ld\n", (long)size);
 	LockZone(lz_world);
 	LockZone(lz_flags);
-	worldPtr = gRealloc(worldPtr, size);
-	flagPtr = gRealloc(flagPtr, size);
+	LockZone(lz_pollution);
+	LockZone(lz_crime);
+	LockZone(lz_transport);
+	worldPtr = gRealloc(worldPtr, size * sizeof (welem_t));
+	flagPtr = gRealloc(flagPtr, size * sizeof (selem_t));
+	pollutionPtr = gRealloc(pollutionPtr, size * sizeof (Int8));
+	crimePtr = gRealloc(crimePtr, size * sizeof (Int8));
+	transportPtr = gRealloc(transportPtr, size * sizeof (Int8));
 
-	if (worldPtr == NULL) {
-		UISystemErrorNotify(seOutOfMemory);
-		WriteLog("realloc failed - resizeworld\n");
-		return (0);
-	}
-	if (flagPtr == NULL) {
-		UISystemErrorNotify(seOutOfMemory);
-		WriteLog("realloc failed - resizeworldflags\n");
-		return (0);
-	}
+	nullcheck(worldPtr);
+	nullcheck(flagPtr);
+	nullcheck(pollutionPtr);
+	nullcheck(crimePtr);
+	nullcheck(transportPtr);
 
-	gMemSet(worldPtr, (Int32)size, 0);
-	gMemSet(flagPtr, (Int32)size, 0);
+	gMemSet(worldPtr, (Int32)size * sizeof (welem_t), 0);
+	gMemSet(flagPtr, (Int32)size * sizeof (selem_t), 0);
+	gMemSet(pollutionPtr, (Int32)size * sizeof (Int8), 0);
+	gMemSet(crimePtr, (Int32)size * sizeof (Int8), 0);
+	gMemSet(transportPtr, (Int32)size * sizeof (Int8), 0);
+
 	UnlockZone(lz_world);
 	UnlockZone(lz_flags);
+	UnlockZone(lz_pollution);
+	UnlockZone(lz_crime);
+	UnlockZone(lz_transport);
 	return (1);
 }
 

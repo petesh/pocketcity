@@ -25,18 +25,6 @@
 extern char *worldPtr;
 
 UInt32 GetPositionClicked(void);
-/* For the 'dialogs' */
-void PauseGame(void);
-void ResumeGame(void);
-UInt16 IsGamePlaying(void);
-/*
- * For the 'is there a game in progress'.
- * Faffing around with save games causes games to not be in progress.
- * Needed as separate concept from the Pause / Resume for autosave purposes.
- */
-void SetGameInProgress(void);
-void SetGameNotInProgress(void);
-UInt16 IsGameInProgress(void);
 
 void Clear35ROM(void);
 void Set35ROM(void);

@@ -248,6 +248,9 @@ mainloop_callback(gpointer data __attribute__((unused)))
 {
 	/* this will be called 10 times every second */
 	unsigned int phase = 1;
+	
+	if (!getGamePlaying() || !getGameInProgress())
+		return (TRUE);
 
 	timekeeper++;
 	timekeeperdisaster++;

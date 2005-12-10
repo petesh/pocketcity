@@ -18,6 +18,7 @@ typedef enum {
 	lz_flags, /*!< lock the world flags */
 	lz_pollution, /*!< lock the pollution memory zone */
 	lz_crime, /*!< lock the crime memory zone */
+	lz_transport, /*!< lock the transport memory zone */
 	lz_end /*!< the end/guard entry for the memory zones */
 } lockZone;
 

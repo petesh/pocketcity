@@ -196,10 +196,12 @@ opengame_handler(void)
 	    GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
 	    NULL);
 
+	PauseGame();
 	if (gtk_dialog_run(GTK_DIALOG(file_sel)) == GTK_RESPONSE_ACCEPT) {
 		char *filename = gtk_file_chooser_get_filename(
 		  GTK_FILE_CHOOSER(file_sel));
 		doOpen(filename);
+		ResumeGame();
 	}
 	gtk_widget_destroy(file_sel);
 }
@@ -233,8 +235,7 @@ newgame_handler(void)
 	GtkWidget *table, *mainbox;
 	GtkWidget *label;
 
-	/* SetupNewGame(); */
-	/* setLoopSeconds(SPEED_PAUSED); */
+	setGameInProgress(0);
 	ng.form = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(ng.form),
 	  _("Create New City"));

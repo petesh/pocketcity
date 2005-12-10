@@ -96,7 +96,7 @@ hFilesNew(EventPtr event)
 
 	switch (event->eType) {
 	case frmOpenEvent:
-		SetGameNotInProgress();
+		setGameInProgress(0);
 		form = FrmGetActiveForm();
 		SetSilkResizable(form, true);
 		collapseMove(form, CM_DEFAULT, NULL, NULL);
@@ -391,7 +391,7 @@ hFiles(EventPtr event)
 static FormPtr
 filesSetup(FormPtr form)
 {
-	SetGameNotInProgress();
+	setGameInProgress(0);
 	UpdateSaveGameList();
 
 	return (form);

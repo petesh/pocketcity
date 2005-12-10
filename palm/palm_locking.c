@@ -20,8 +20,7 @@ static struct tag_lockers {
 	{ NULL, 0, &flagPtr },
 	{ NULL, 0, &pollutionPtr },
 	{ NULL, 0, &crimePtr },
-	{ NULL, 0, &transportPtr },
-	{ NULL, 0, NULL }
+	{ NULL, 0, &transportPtr }
 };
 
 void

@@ -247,6 +247,13 @@
 #define	setTax(T)	GG.tax = (T)
 #define	getTax()	(GG.tax)
 
+#define getGameInProgress()	(vgame.gameInProgress)
+#define setGameInProgress(X)	vgame.gameInProgress = (X)
+
+#define getGamePlaying()	(vgame.playing)
+#define PauseGame()	vgame.playing = (0)
+#define ResumeGame()	vgame.playing = (1)
+
 /* Typedefs */
 
 /*! \brief the type of the world elements */
@@ -503,6 +510,8 @@ typedef struct _vgame_struct {
 	UInt32	prior_credit; /*!< last month's credit value */
 	Int16	BuildCount[bc_tail]; /*!< count of elements */
 	UInt16	oldLoopSeconds;	/*!< last selected speed - for pause */
+	Int8	gameInProgress; /*!< is game progressing */
+	Int8	playing; /*!< is game in play (paused for dialogs etc.) */
 } vGameStruct;
 
 /*! \brief game visual entities related to the game, but not the simulation */
