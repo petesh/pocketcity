@@ -39,7 +39,10 @@ typedef struct tag_dsobj_nix {
 static void
 StackResize(dsObj *sp, Int32 newSize)
 {
-	ptrdiff_t sd = sp->sp - sp->bp;
+	ptrdiff_t sd;
+
+	assert(sp);
+	sd = sp->sp - sp->bp;
 	sp->sl = newSize;
 	sp->bp = realloc(sp->bp, sp->sl * sizeof (Int32));
 	sp->se = sp->bp + (sp->sl - 1);
@@ -63,67 +66,68 @@ StackDelete(dsObj *sp)
 void
 StackPush(dsObj *sp, Int32 value)
 {
-	if (sp->sp >= sp->se) StackResize(sp, sp->sl ? sp->sl << 1 : 64);
-	*(++sp->sp) = value;
+	assert(sp);
+	if (sp->sp >= sp->se)
+		StackResize(sp, sp->sl ? sp->sl << 1 : 64);
+	*(sp->sp++) = value;
 }
 
 Int32
 StackPop(dsObj *sp)
 {
+	assert(sp);
 	assert(sp->sp != NULL);
-	if (sp->sp >= sp->bp) {
-		assert(sp->sp != NULL && sp->bp != NULL);
-		return (*sp->sp--);
-	}
-	perror("<DsObj> Object Underflow(out of elements)");
-	return (-1);
+	assert (sp->sp > sp->bp);
+	assert(sp->bp != NULL);
+	sp->sp--;
+	return (*sp->sp);
 }
 
 Int8
 StackIsEmpty(dsObj *sp)
 {
-	if (sp->sp == NULL)
-		return ((Int8)1);
-	return ((Int8)(sp->sp < sp->bp));
+	assert(sp);
+	return ((Int8)(sp->sp == sp->bp));
 }
 
 void
 StackDoEmpty(dsObj *sp)
 {
-	if (sp->sp != NULL)
-		sp->sp = sp->bp - 1;
+	assert(sp);
+	sp->sp = sp->bp;
 }
 
 int
 StackNElements(dsObj *sp)
 {
-	return ((sp->sp+1) - sp->bp);
+	assert(sp);
+	return (sp->sp - sp->bp);
 }
 
 Int32
 ListGet(dsObj *sp, Int32 index)
 {
-	if (index >= (sp->sp - sp->bp))
-		return (-1);
-	return (sp->bp[index + 1]);
+	assert(sp);
+	assert (index < (sp->sp - sp->bp));
+	return (sp->bp[index]);
 }
 
 void
 ListSet(dsObj *sp, Int32 index, Int32 element)
 {
-	if (index < (sp->sp - sp->bp))
-		sp->bp[index+1] = element;
+	assert (index < (sp->sp - sp->bp));
+	sp->bp[index] = element;
 }
 
 void
 ListInsert(dsObj *sp, Int32 index, Int32 element)
 {
-	if ((index - 1) >= (sp->sp - sp->bp)) {
+	if ((index) >= (sp->sp - sp->bp)) {
 		StackPush(sp, element);
 	} else {
 		StackPush(sp, 0);
-		bcopy(sp->bp + (index - 1), sp->bp + index,
-		    (sp->sp - (sp->bp + (index - 1))) * sizeof (Int32));
+		bcopy(sp->bp + index, sp->bp + index,
+		    (sp->sp - (sp->bp + index)) * sizeof (Int32));
 		sp->bp[index] = element;
 	}
 }
@@ -133,9 +137,7 @@ ListRemove(dsObj *ds, Int32 index)
 {
 	Int32 rv;
 
-	if (index >= (ds->sp - ds->bp))
-		return (-1);
-
+	assert (index < (ds->sp - ds->bp));
 	rv = ds->bp[index];
 	bcopy(ds->bp + (index + 1), ds->bp + index,
 	    (ds->sp - (ds->bp + index)) * sizeof(Int32));
