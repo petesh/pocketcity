@@ -103,6 +103,8 @@ ConfigureNewGame(void)
 	}
 	CreateFullRiver();
 	CreateForests();
+	setGameInProgress(1);
+	ResumeGame();
 	DrawGame(1);
 }
 
@@ -128,4 +130,6 @@ PostLoadGame(void)
 	AddGridUpdate(GRID_ALL);
 	UIMapResize();
 	UIPostLoadGame();
+	setGameInProgress(1);
+	ResumeGame();
 }

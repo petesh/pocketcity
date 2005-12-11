@@ -323,19 +323,23 @@ AddNeighbors(distrib_t *distrib, UInt32 pos)
 	distrib->NodesTotal += cross & 0x0f;
 
 	if ((cross & 0x10) == 0x10) {
-		StackPush(distrib->unvisitedNodes,
-		    (Int32)(pos - getMapWidth()));
+		if (pos > getMapWidth())
+			StackPush(distrib->unvisitedNodes,
+			    (Int32)(pos - getMapWidth()));
 	}
 	if ((cross & 0x20) == 0x20) {
-		StackPush(distrib->unvisitedNodes,
-		    (Int32)(pos + 1));
+		if ((pos + 1) < MapMul())
+			StackPush(distrib->unvisitedNodes,
+			    (Int32)(pos + 1));
 	}
 	if ((cross & 0x40) == 0x40) {
-		StackPush(distrib->unvisitedNodes,
-		    (Int32)(pos + getMapWidth()));
+		if ((pos + getMapWidth()) < MapMul())
+    		    StackPush(distrib->unvisitedNodes,
+			    (Int32)(pos + getMapWidth()));
 	}
 	if ((cross & 0x80) == 0x80) {
-		StackPush(distrib->unvisitedNodes, (Int32)(pos - 1));
+		if (pos > 0)
+			StackPush(distrib->unvisitedNodes, (Int32)(pos - 1));
 	}
 }
 
