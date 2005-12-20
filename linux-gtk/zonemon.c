@@ -109,7 +109,7 @@ hoverClose(GtkWidget *wid __attribute__((unused)),
 }
 
 void
-hoverShow(void)
+hover_show(void)
 {
 	GtkLabel *lab;
 	GtkTable *table;

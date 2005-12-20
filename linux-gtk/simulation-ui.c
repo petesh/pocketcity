@@ -328,7 +328,7 @@ expose_pw(GtkWidget *area,
  * \brief show the map
  */
 void
-showMap(void)
+map_show(void)
 {
 	GtkWidget *table;
 

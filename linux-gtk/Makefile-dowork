@@ -19,13 +19,17 @@ LDLIBS = $(LIBS) $(GLFLAGS)
 
 VPATH=../source:../nix-common
 
-debug : CFLAGS += -g -DDEBUG -DLOGGING -pg
+debug : CFLAGS += -g -DDEBUG -DLOGGING
 debug : OPTFLAGS=
 debug : OBJDIR=debug
 
+profile : CFLAGS += -pg
+profile : debug
+profile : OBJDIR=profile
+
 all: OBJDIR=default
 
-debug all: $(OBJDIR)/pocketcity
+debug all profile: $(OBJDIR)/pocketcity
 
 include ../Makefile-GlobalEntries
 include ../nix-common/Makefile-nixcommon

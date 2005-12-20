@@ -16,6 +16,7 @@
 #include <stack.h>
 #include <stdint.h>
 #include <mem_compat.h>
+#include <config.h>
 
 /*! \brief short and out bits */
 #define	SHORT_BIT	1
@@ -106,16 +107,16 @@ Sim_Distribute_Specific(Int16 gridonly)
  * \param point the value at the point
  * \param coord unused
  * \param flags unused
- * \return wheter it is one or not.
+ * \return the amount of power supplied if it is a plant, zero otherwise
  */
 static Int16
 IsItAPowerPlant(welem_t point, UInt32 coord __attribute__((unused)),
     selem_t flags __attribute__((unused)))
 {
 	if (IsCoalPlant(point))
-		return (SUPPLY_POWER_PLANT >> 2);
+		return (SUPPLY_POWER_PLANT / 4);
 	else if (IsNukePlant(point))
-		return (SUPPLY_NUCLEAR_PLANT >> 2);
+		return (SUPPLY_NUCLEAR_PLANT / 4);
 	else
 		return (0);
 }
@@ -140,20 +141,6 @@ IsItAUsableWaterPump(welem_t point, UInt32 coord, selem_t flags)
 }
 
 /*!
- * \brief Set the supplied bit for the point specified
- * \param distrib distribution glob to use
- * \param point location in array of point
- */
-static void
-SetSupplied(distrib_t *distrib, UInt32 point)
-{
-	distrib->NodesSupplied++;
-	if (!(getWorldFlags(point) & distrib->flagToSet)) {
-		orWorldFlags(point, distrib->flagToSet);
-	}
-}
-
-/*!
  * \brief Add source to the grid.
  * \param distrib the distribution structure
  * \param pos index into array of node
@@ -169,7 +156,8 @@ SupplyIfPlant(distrib_t *distrib, UInt32 pos, welem_t point, selem_t status)
 		return (0);
 	if (getScratch(pos))
 		return (0);
-	SetSupplied(distrib, pos);
+	distrib->NodesSupplied++;
+	orWorldFlags(point, distrib->flagToSet);
 	setScratch(pos);
 	distrib->NodesTotal++;
 	distrib->SourceLeft += pt;
@@ -179,7 +167,8 @@ SupplyIfPlant(distrib_t *distrib, UInt32 pos, welem_t point, selem_t status)
 		    !StackIsEmpty(distrib->needSourceList)) {
 			pos = (UInt32)StackPop(distrib->needSourceList);
 			distrib->SourceLeft--;
-			SetSupplied(distrib, pos);
+			distrib->NodesSupplied++;
+			orWorldFlags(point, distrib->flagToSet);
 		}
 	}
 	return (pt);
@@ -196,6 +185,8 @@ DoDistribute(Int16 grid)
 	UInt32 i;
 	welem_t gw;
 	distrib_t *distrib = gMalloc(sizeof (distrib_t));
+
+	assert(distrib != NULL);
 
 	distrib->SourceLeft = 0;
 	distrib->SourceTotal = 0;
@@ -283,7 +274,8 @@ DistributeUnvisited(distrib_t *distrib)
 			goto nextneighbor;
 		}
 
-		if (distrib->SourceLeft && ((flag & distrib->flagToSet) == 0)) {
+		if (distrib->SourceLeft &&
+		    ((flag & distrib->flagToSet) == 0)) {
 			/*
 			 * if this field hasn't been powered,
 			 * we need to "use" some power to move further along
@@ -292,10 +284,12 @@ DistributeUnvisited(distrib_t *distrib)
 		}
 
 		/* do we have more power left? */
-		if (distrib->SourceLeft <= 0)
+		if (distrib->SourceLeft <= 0) {
 			StackPush(distrib->needSourceList, (Int32)pos);
-		else
-			SetSupplied(distrib, pos);
+		} else {
+			distrib->NodesSupplied++;
+			orWorldFlags(pos, distrib->flagToSet);
+		}
 
 		/* now, set the flags to indicate we've been here */
 		setScratch(pos);

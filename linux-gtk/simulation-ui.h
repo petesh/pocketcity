@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-void showMap(void);
+void map_show(void);
 void resizeMap(void);
 void cleanupMap(void);
 

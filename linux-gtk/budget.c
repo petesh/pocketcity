@@ -14,6 +14,7 @@
 #include <main.h>
 #include <compilerpragmas.h>
 #include <uibits.h>
+#include <localize.h>
 
 /*! \brief handle for the budget dialog */
 static GtkWidget *dlg = 0;
@@ -145,14 +146,13 @@ close_budget(GtkWidget *widget __attribute__((unused)),
  * \param data unused
  */
 void
-ViewBudget(GtkWidget *w __attribute__((unused)),
-    gpointer data __attribute__((unused)))
+budget_show(void)
 {
 	GtkWidget *table, *mainbox;
 	GtkWidget *spinner;
 
 	dlg = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title(GTK_WINDOW(dlg), "Pocket City Budget");
+	gtk_window_set_title(GTK_WINDOW(dlg), _("Pocket City Budget"));
 
 	mainbox = gtk_vbox_new(FALSE, 10);
 	table = gtk_table_new(12, 3, TRUE);
@@ -165,31 +165,31 @@ ViewBudget(GtkWidget *w __attribute__((unused)),
 	gtk_box_pack_start(GTK_BOX(mainbox), table, TRUE, TRUE, 0);
 	/* layout the labels */
 	gtk_table_attach_defaults(GTK_TABLE(table),
-	    gtk_label_new("Income"), 0, 3, 0, 1);
+	    gtk_label_new(_("Income")), 0, 3, 0, 1);
 	gtk_table_attach_defaults(GTK_TABLE(table),
-	    create_left_label("Residential"), 0, 1, 1, 2);
+	    create_left_label(_("Residential")), 0, 1, 1, 2);
 	gtk_table_attach_defaults(GTK_TABLE(table),
-	    create_left_label("Commercial"), 0, 1, 2, 3);
+	    create_left_label(_("Commercial")), 0, 1, 2, 3);
 	gtk_table_attach_defaults(GTK_TABLE(table),
-	    create_left_label("Industrial"), 0, 1, 3, 4);
+	    create_left_label(_("Industrial")), 0, 1, 3, 4);
 
 	gtk_table_attach_defaults(GTK_TABLE(table),
-	    gtk_label_new("Expenses"), 0, 3, 5, 6);
+	    gtk_label_new(_("Expenses")), 0, 3, 5, 6);
 	gtk_table_attach_defaults(GTK_TABLE(table),
-	    create_left_label("Traffic"), 0, 3, 6, 7);
+	    create_left_label(_("Traffic")), 0, 3, 6, 7);
 	gtk_table_attach_defaults(GTK_TABLE(table),
-	    create_left_label("Power"), 0, 3, 7, 8);
+	    create_left_label(_("Power")), 0, 3, 7, 8);
 	gtk_table_attach_defaults(GTK_TABLE(table),
-	    create_left_label("Defence"), 0, 3, 8, 9);
+	    create_left_label(_("Defence")), 0, 3, 8, 9);
 
 	gtk_table_attach_defaults(GTK_TABLE(table),
-	    gtk_label_new("Total"), 0, 3, 10, 11);
+	    gtk_label_new(_("Total")), 0, 3, 10, 11);
 	gtk_table_attach_defaults(GTK_TABLE(table),
-	    create_left_label("Current balance"), 0, 2, 11, 12);
+	    create_left_label(_("Current balance")), 0, 2, 11, 12);
 	gtk_table_attach_defaults(GTK_TABLE(table),
-	    create_left_label("Change"), 0, 2, 12, 13);
+	    create_left_label(_("Change")), 0, 2, 12, 13);
 	gtk_table_attach_defaults(GTK_TABLE(table),
-	    create_left_label("Next month's balance"), 0, 2, 13, 14);
+	    create_left_label(_("Next month's balance")), 0, 2, 13, 14);
 
 	/* now the moneyflow */
 	lres = create_right_label("-");

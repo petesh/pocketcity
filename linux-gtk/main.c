@@ -75,16 +75,49 @@ static char *exec_dir;
 static void SetUpMainWindow(void);
 static gint mainloop_callback(gpointer data);
 static void QuitGame(void);
-static void SetSpeed(gpointer data, guint action, GtkWidget *w);
+
+static void set_speed_pause(void);
+static void set_speed_slow(void);
+static void set_speed_normal(void);
+static void set_speed_fast(void);
+static void set_speed_turbo(void);
+
 static void cleanupPixmaps(void);
 static void ResetViewable(void);
 static void ShowMainWindow(void);
 static void doRepaintDisplay(void);
 
 #if defined(DEBUG)
-static void forceRedistribute(void);
-static void cashUp(void);
+static void force_redistribute(void);
+static void cash_up(void);
 #endif
+
+/*! \brief a hookup set of action->event mappings as default */
+const struct _actionhooks {
+	char *action_name; /*!< name of the action */
+	void (*handler)(void);	/*!< function handler */
+} actionhooks[] = {
+	{ "game-new", newgame_handler },
+	{ "game-open", opengame_handler },
+	{ "game-save", savegame_handler },
+	{ "game-save-as", savegameas_handler },
+	{ "game-exit", QuitGame },
+	{ "budget-show", budget_show },
+	{ "map-show", map_show },
+	{ "hover-show", hover_show },
+	{ "speed-pause", set_speed_pause },
+	{ "speed-slow", set_speed_slow },
+	{ "speed-normal", set_speed_normal },
+	{ "speed-fast", set_speed_fast },
+	{ "speed-turbo", set_speed_turbo },
+#if defined(DEBUG)
+	{ "mark-redistribute", force_redistribute },
+	{ "cash-up", cash_up },
+#endif
+};
+
+/*! \brief number of action hooks */
+#define NACTIONHOOKS	(sizeof (actionhooks) / sizeof (actionhooks[0]))
 
 /*! \brief the menu items for the main application */
 const GtkItemFactoryEntry menu_items[] = {
@@ -96,23 +129,20 @@ const GtkItemFactoryEntry menu_items[] = {
 	{ "/File/sep1",	NULL, NULL, 0, "<Separator>", 0 },
 	{ "/File/E_xit", "<alt>F4", QuitGame, 0, NULL, 0 },
 	{ "/_View", NULL, NULL,	0, "<Branch>", 0 },
-	{ "/View/_Budget", "<control>B", ViewBudget, 0, NULL, 0 },
-	{ "/View/_Map", "<control>M", showMap, 0, NULL, 0 },
-	{ "/View/_Hover", "<control>H", hoverShow, 0, NULL, 0 },
+	{ "/View/_Budget", "<control>B", budget_show, 0, NULL, 0 },
+	{ "/View/_Map", "<control>M", map_show, 0, NULL, 0 },
+	{ "/View/_Hover", "<control>H", hover_show, 0, NULL, 0 },
 	{ "/_Speed", NULL, NULL, 0, "<Branch>", 0 },
-	{ "/Speed/_Pause", "<control>0", SetSpeed, 1 + SPEED_PAUSED, NULL,
-		NULL },
+	{ "/Speed/_Pause", "<control>0", set_speed_pause, 0, NULL, 0 },
 	{ "/Speed/sep1", NULL, NULL, 0, "<Separator>", 0 },
-	{ "/Speed/_Slow", "<control>1", SetSpeed, 1 + SPEED_SLOW, NULL, NULL },
-	{ "/Speed/_Medium", "<control>2", SetSpeed, 1 + SPEED_MEDIUM, NULL,
-		NULL },
-	{ "/Speed/_Fast", "<control>3", SetSpeed, 1 + SPEED_FAST, NULL, NULL },
-	{ "/Speed/_Turbo", "<control>4", SetSpeed, 1 + SPEED_TURBO, NULL,
-		NULL },
+	{ "/Speed/_Slow", "<control>1", set_speed_slow, 0, NULL, 0 },
+	{ "/Speed/_Medium", "<control>2", set_speed_normal, 0, NULL, 0 },
+	{ "/Speed/_Fast", "<control>3", set_speed_fast, 0, NULL, 0 },
+	{ "/Speed/_Turbo", "<control>4", set_speed_turbo, 0, NULL, 0 },
 #if defined(DEBUG)
 	{ "/S_imulation", NULL, NULL, 0, "<Branch>", 0 },
-	{ "/Simulation/_Redistribute", NULL, forceRedistribute, 0, NULL, NULL },
-	{ "/Simulation/_Cash Me Up", "<control>C", cashUp, 0, NULL, NULL },
+	{ "/Simulation/_Redistribute", NULL, force_redistribute, 0, NULL, NULL },
+	{ "/Simulation/_Cash Me Up", "<control>C", cash_up, 0, NULL, NULL },
 #endif
 
 };
@@ -167,7 +197,8 @@ main(int argc, char **argv)
 	ShowMainWindow();
 
 	/* start the timer */
-	timerID = g_timeout_add(MILLISECS / TICKPERSEC, (mainloop_callback), 0);
+	timerID = g_timeout_add(MILLISECS / TICKPERSEC,
+	  (mainloop_callback), 0);
 
 	gtk_main();
 	WriteLog("Cleaning up\n");
@@ -206,18 +237,59 @@ unsigned int timekeeper = 0;
 unsigned int timekeeperdisaster = 0;
 
 /*!
- * \brief set the game speed
- * \param w the widget that originated the speed message
- * \param speed the speed
- * \param data the speed number.
+ * \brief set the speed
+ * \param speed the speed to set it to
  */
 static void
-SetSpeed(gpointer data __attribute__((unused)), guint speed,
-    GtkWidget *w __attribute__((unused)))
+set_speed(int speed)
 {
-	speed -= 1;
 	WriteLog("Setting speed to %i\n", speed);
 	setLoopSeconds(speed);
+}
+
+/*!
+ * \brief set the game speed to paused
+ */
+static void
+set_speed_pause(void)
+{
+	set_speed(SPEED_PAUSED);
+}
+
+/*!
+ * \brief set the game speed to slow
+ */
+static void
+set_speed_slow(void)
+{
+	set_speed(SPEED_SLOW);
+}
+
+/*!
+ * \brief set the game speed to normal
+ */
+static void
+set_speed_normal(void)
+{
+	set_speed(SPEED_MEDIUM);
+}
+
+/*!
+ * \brief set the game speed to fast
+ */
+static void
+set_speed_fast(void)
+{
+	set_speed(SPEED_FAST);
+}
+
+/*!
+ * \brief set the game speed to fast
+ */
+static void
+set_speed_turbo(void)
+{
+	set_speed(SPEED_TURBO);
 }
 
 #if defined(DEBUG)
@@ -229,7 +301,7 @@ SetSpeed(gpointer data __attribute__((unused)), guint speed,
  * \param w source widget
  */
 static void
-cashUp(void)
+cash_up(void)
 {
 	incCredits(20000);
 	addGraphicUpdate(gu_credits);
@@ -543,16 +615,23 @@ setupToolBox(void)
 	unsigned int i;
 	Char *image_path;
 	size_t max_path = (size_t)pathconf("/", _PC_PATH_MAX) + 1;
+	GSList *list = NULL;
+	GtkToolItem *item;
+	GtkTooltips *tips;
 
 	image_path = malloc(max_path);
 
+	tips = gtk_tooltips_new();
 
 	toolbox = gtk_toolbar_new();
 	gtk_container_set_border_width(GTK_CONTAINER(toolbox), 0);
+	gtk_toolbar_set_style(GTK_TOOLBAR(toolbox), GTK_TOOLBAR_ICONS);
 
 	for (i = 0; i < SIZE_ACTIONS; i++) {
 		if (actions[i].entry == -1) {
-			gtk_toolbar_append_space(GTK_TOOLBAR(toolbox));
+			item = gtk_separator_tool_item_new();
+			gtk_toolbar_insert(GTK_TOOLBAR(toolbox),
+			    GTK_TOOL_ITEM(item), -1);
 			continue;
 		}
 
@@ -564,10 +643,26 @@ setupToolBox(void)
 			perror((const char *)image_path);
 			exit(1);
 		}
-		gtk_toolbar_append_item(GTK_TOOLBAR(toolbox),
-		    NULL, actions[i].text, NULL, button_image,
+
+		if (list == NULL) {
+			item = gtk_radio_tool_button_new(NULL);
+			list = gtk_radio_tool_button_get_group(
+			    GTK_RADIO_TOOL_BUTTON(item));
+		} else {
+			item = gtk_radio_tool_button_new(list);
+		}
+
+		WriteLog("item = %p, list = %p\n", item, list);
+
+		gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), GTK_WIDGET(item),
+		    actions[i].text, NULL);
+		g_signal_connect(G_OBJECT(item), "clicked",
 		    G_CALLBACK(toolbox_callback),
 		    GINT_TO_POINTER(actions[i].entry));
+		gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(item),
+		    button_image);
+		gtk_toolbar_insert(GTK_TOOLBAR(toolbox), GTK_TOOL_ITEM(item),
+		    -1);
 		/*
 		 * gtk_container_add(GTK_CONTAINER(button), button_image);
 		 * gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), button,
@@ -638,27 +733,38 @@ hoveringDrawing(GtkWidget *widget __attribute__((unused)),
 void
 SetUpMainWindow(void)
 {
-	GtkWidget *fieldbox, *box, *toolbox, *headerbox;
+	GtkWidget *footerbox, *toolbox, *headerbox;
 	GtkWidget *playingbox, *main_box;
 	GtkAccelGroup *accel_group;
 
 	mw.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title(GTK_WINDOW(mw.window), "Pocket City");
+	gtk_window_set_title(GTK_WINDOW(mw.window), _("Pocket City"));
 	g_signal_connect(G_OBJECT(mw.window), "delete_event",
 	    G_CALLBACK(delete_event), NULL);
 
+	/* practically everything is in this */
 	main_box = gtk_vbox_new(FALSE, 0);
-	box = gtk_vbox_new(FALSE, 0);
-	fieldbox = gtk_vbox_new(FALSE, 0);
+
+	/* Toolbar */
+	toolbox = setupToolBox();
 	headerbox = gtk_hbox_new(FALSE, 0);
 	playingbox = gtk_table_new(2, 2, FALSE);
+	footerbox = gtk_hbox_new(FALSE, 0);
 
 	gtk_container_add(GTK_CONTAINER(mw.window), main_box);
 
+	accel_group = createMenu(main_box);
+	gtk_window_add_accel_group(GTK_WINDOW(mw.window), accel_group);
+
 	mw.l_credits = gtk_label_new("Credits");
+	mw.l_time = gtk_label_new("Game Time");
+	gtk_box_pack_start(GTK_BOX(headerbox), mw.l_credits, TRUE, TRUE, 0);
+	gtk_box_pack_end(GTK_BOX(headerbox), mw.l_time, TRUE, TRUE, 0);
 	mw.l_location = gtk_label_new("Location");
 	mw.l_pop = gtk_label_new("Population");
-	mw.l_time = gtk_label_new("Game Time");
+	gtk_box_pack_start(GTK_BOX(footerbox), mw.l_location, TRUE, TRUE, 0);
+	gtk_misc_set_alignment(GTK_MISC(mw.l_location), 0, 0);
+	gtk_box_pack_end(GTK_BOX(footerbox), mw.l_pop, TRUE, TRUE, 0);
 
 	/* the actual playfield is a Gtkmw.drawing */
 	mw.drawing = gtk_drawing_area_new();
@@ -682,19 +788,10 @@ SetUpMainWindow(void)
 	g_signal_connect(G_OBJECT(mw.drawing), "configure_event",
 	    G_CALLBACK(check_configure), NULL);
 
-	/* arange in boxes  */
-	toolbox = setupToolBox();
-	gtk_box_pack_end(GTK_BOX(main_box), box, TRUE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(box), toolbox, FALSE, FALSE, 0);
-	gtk_box_pack_end(GTK_BOX(box), fieldbox, TRUE, TRUE, 0);
-
-	gtk_box_pack_start(GTK_BOX(fieldbox), headerbox, FALSE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(fieldbox), playingbox, TRUE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(fieldbox), mw.l_location, FALSE, TRUE, 0);
-	gtk_box_pack_end(GTK_BOX(fieldbox), mw.l_pop, FALSE, TRUE, 0);
-
-	gtk_box_pack_start(GTK_BOX(headerbox), mw.l_credits, TRUE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(headerbox), mw.l_time, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(main_box), toolbox, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(main_box), headerbox, FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(main_box), playingbox, TRUE, TRUE, 0);
+	gtk_box_pack_end(GTK_BOX(main_box), footerbox, FALSE, FALSE, 0);
 
 	g_signal_connect(G_OBJECT(mw.drawing), "expose_event",
 	    G_CALLBACK(drawing_exposed_callback), NULL);
@@ -714,9 +811,6 @@ SetUpMainWindow(void)
 	gtk_widget_set_events(mw.drawing, GDK_EXPOSURE_MASK |
 	    GDK_LEAVE_NOTIFY_MASK | GDK_BUTTON_PRESS_MASK |
 	    GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK);
-
-	accel_group = createMenu(main_box);
-	gtk_window_add_accel_group(GTK_WINDOW(mw.window), accel_group);
 
 	/* show all the widgets */
 	gtk_widget_show_all(main_box);
@@ -1399,7 +1493,7 @@ QuitGame(void)
  * \brief force a redistribution next iteration
  */
 static void
-forceRedistribute(void)
+force_redistribute(void)
 {
 	AddGridUpdate(GRID_ALL);
 }

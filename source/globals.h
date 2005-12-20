@@ -64,25 +64,24 @@ typedef enum {
 
 /*! This is the game structure - it is saved */
 extern GameStruct game;
+
 /*! This is the volatile game structure - it is not saved */
 extern vGameStruct vgame;
+
 /*!
- * \brief This contains the information on the visuals tilesize and the likes
+ * \brief This contains the information on the visuals.
+ * tilesize, window size, etc
  */
 extern vGameVisuals visuals;
+
 /*! This is the game configuration - system choices */
 extern AppConfig_t gameConfig;
 
 /*! This is the pointer to the world */
 extern char *worldPtr;
+
 /*! This is the pointer to the state of the world */
 extern char *flagPtr;
-
-/*! This is the pointer to the power state of the world */
-extern char *powerPtr;
-
-/*! This is the water state of the world */
-extern char *waterPtr;
 
 /*! This is the pollution on the map */
 extern char *pollutionPtr;
@@ -114,7 +113,7 @@ EXPORT void PurgeWorld(void);
  * In a debug mode these are functions
  * In non-debug mode they are #defines
  */
-#if defined(DEBUG)
+#if defined(DEBUG) || defined(SHARED)
 EXPORT welem_t getWorld(UInt32 pos);
 EXPORT void setWorld(UInt32 pos, welem_t value);
 EXPORT selem_t getWorldFlags(UInt32 pos);
@@ -124,6 +123,16 @@ EXPORT void andWorldFlags(UInt32 pos, selem_t value);
 EXPORT void clearWorldFlags(UInt32 pos, selem_t value);
 EXPORT void getWorldAndFlag(UInt32 pos, welem_t *world, selem_t *flag);
 EXPORT void setWorldAndFlag(UInt32 pos, welem_t value, selem_t status);
+
+EXPORT Int8 getPollution(UInt32 pos);
+EXPORT void setPollution(UInt32 pos, Int8 value);
+
+EXPORT Int8 getCrime(UInt32 pos);
+EXPORT void setCrime(UInt32 pos, Int8 value);
+
+EXPORT Int8 getTransport(UInt32 pos);
+EXPORT void setTransport(UInt32 pos, Int8 value);
+
 #else
 #define getWorld(X)	(((welem_t *)worldPtr)[(X)])
 #define setWorld(X, Y)	worldPtr[(X)] = (Y)
@@ -136,6 +145,15 @@ EXPORT void setWorldAndFlag(UInt32 pos, welem_t value, selem_t status);
     *(Z) = getWorldFlags(X); } while (0)
 #define setWorldAndFlag(X, Y, Z)	do { setWorld(X, Y); \
 	setWorldFlags(X, Z); } while (0)
+
+#define	getPollution(X) (pollutionPtr[(X)])
+#define	setPollution(X, Y) pollutionPtr[(X)] = (Y)
+
+#define	getCrime(X) (crimePtr[(X)])
+#define	setCrime(X, Y) crimePtr[(X)] = (Y)
+
+#define	getTransport(X) (transportPtr[(X)])
+#define	setTransport(X, Y) transportPtr[(X)] = (Y)
 #endif
 
 EXPORT void addGraphicUpdate(graphicupdate_t entity);

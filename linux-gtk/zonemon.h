@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-void hoverShow(void);
+void hover_show(void);
 void hoverUpdate(UInt16 xpos, UInt16 ypos, int force);
 
 #if defined(__cplusplus)

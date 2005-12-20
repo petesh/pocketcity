@@ -34,17 +34,12 @@ stat_to_value statvalues[] = {
 	{ st_tail, 0 }
 };
 
-/*! \brief this is the central game struct */
 GameStruct game;
-/*! \brief  This is the volatile game structure (memoizing to reduce op/s) */
 vGameStruct vgame;
-
 vGameVisuals visuals;
 
 char *worldPtr;
 char *flagPtr;
-char *powerPtr;
-char *waterPtr;
 char *pollutionPtr;
 char *crimePtr;
 char *transportPtr;
@@ -251,7 +246,7 @@ InitWorld(void)
 	return (1);
 }
 
-#if defined(DEBUG)
+#if defined(DEBUG) || defined(SHARED)
 /*!
  * \brief get the item on the surface of the world
  * \param pos the position in the world map to obtain
@@ -261,6 +256,7 @@ welem_t
 getWorld(UInt32 pos)
 {
 	assert(pos < MapMul());
+	assert(worldPtr != NULL);
 	return (((welem_t *)worldPtr)[pos]);
 }
 
@@ -273,6 +269,7 @@ void
 setWorld(UInt32 pos, welem_t value)
 {
 	assert(pos < MapMul());
+	assert(worldPtr != NULL);
 	((welem_t *)worldPtr)[pos] = value;
 }
 
@@ -286,6 +283,8 @@ void
 setWorldAndFlag(UInt32 pos, welem_t value, selem_t status)
 {
 	assert(pos < MapMul());
+	assert(worldPtr != NULL);
+	assert(flagPtr != NULL);
 	((welem_t *)worldPtr)[pos] = value;
 	((selem_t *)flagPtr)[pos] = status;
 }
@@ -299,6 +298,7 @@ selem_t
 getWorldFlags(UInt32 pos)
 {
 	assert(pos < MapMul());
+	assert(flagPtr != NULL);
 	return (((selem_t *)flagPtr)[pos]);
 }
 
@@ -311,6 +311,7 @@ void
 setWorldFlags(UInt32 pos, selem_t value)
 {
 	assert(pos < MapMul());
+	assert(flagPtr != NULL);
 	((selem_t *)flagPtr)[pos] = value;
 }
 
@@ -323,6 +324,7 @@ void
 andWorldFlags(UInt32 pos, selem_t value)
 {
 	assert(pos < MapMul());
+	assert(flagPtr != NULL);
 	((selem_t *)flagPtr)[pos] &= value;
 }
 
@@ -346,6 +348,7 @@ void
 orWorldFlags(UInt32 pos, selem_t value)
 {
 	assert(pos < MapMul());
+	assert(flagPtr != NULL);
 	((selem_t *)flagPtr)[pos] |= value;
 }
 
@@ -359,10 +362,97 @@ void
 getWorldAndFlag(UInt32 pos, welem_t *world, selem_t *flag)
 {
 	assert(pos < MapMul());
+	assert(worldPtr != NULL);
+	assert(flagPtr != NULL);
 	*world = ((welem_t *)worldPtr)[pos];
 	*flag = ((selem_t *)flagPtr)[pos];
 }
-#endif /* DEBUG */
+
+/*
+ * \brief get the pollution level at the position specified
+ * \param pos the position on the map to query
+ * \return the value at the position
+ * The function can issue an assertion error if you access out of bounds
+ */
+Int8
+getPollution(UInt32 pos)
+{
+	assert(pos < MapMul());
+	assert(pollutionPtr != NULL);
+	return (pollutionPtr[pos]);
+}
+
+/*
+ * \brief set the pollution level at the position specified
+ * \param pos the position on the map to set
+ * \param value the new value at the position
+ * The function can issue an assertion error if you access out of bounds
+ */
+void
+setPollution(UInt32 pos, Int8 value)
+{
+	assert(pos < MapMul());
+	assert(pollutionPtr != NULL);
+	pollutionPtr[pos] = value;
+}
+
+/*
+ * \brief get the crime level at the position specified
+ * \param pos the position on the map to query
+ * \return the value at the position
+ * The function can issue an assertion error if you access out of bounds
+ */
+Int8
+getCrime(UInt32 pos)
+{
+	assert(pos < MapMul());
+	assert(crimePtr != NULL);
+	return (crimePtr[pos]);
+}
+
+/*
+ * \brief set the crime level at the position specified
+ * \param pos the position on the map to set
+ * \param value the new value at the position
+ * The function can issue an assertion error if you access out of bounds
+ */
+void
+setCrime(UInt32 pos, Int8 value)
+{
+	assert(pos < MapMul());
+	assert(crimePtr != NULL);
+	crimePtr[pos] = value;
+}
+
+/*
+ * \brief get the transport level at the position specified
+ * \param pos the position on the map to query
+ * \return the value at the position
+ * The function can issue an assertion error if you access out of bounds
+ */
+Int8
+getTransport(UInt32 pos)
+{
+	assert(pos < MapMul());
+	assert(transportPtr != NULL);
+	return (transportPtr[pos]);
+}
+
+/*
+ * \brief set the transport level at the position specified
+ * \param pos the position on the map to set
+ * \param value the new value at the position
+ * The function can issue an assertion error if you access out of bounds
+ */
+void
+setTransport(UInt32 pos, Int8 value)
+{
+	assert(pos < MapMul());
+	assert(transportPtr != NULL);
+	transportPtr[pos] = value;
+}
+
+#endif /* DEBUG || SHARED*/
 
 /*!
  * \brief free all the game related structures

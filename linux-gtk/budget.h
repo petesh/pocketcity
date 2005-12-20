@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-void ViewBudget(GtkWidget *w, gpointer data);
+void budget_show(void);
 void UIUpdateBudget(void);
 
 #if defined(__cplusplus)
