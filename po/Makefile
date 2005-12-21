@@ -10,15 +10,15 @@ MSGFMT=msgfmt
 SRCFILES=$(wildcard ../source/*.[ch] ../nix-common/*.[ch] ../linux-gtk/*.[ch])
 
 LANGUAGES=en
-TARGETMOS=$(foreach la,$(LANGUAGES),LC_MESSAGES/$(la)/$(DOMAIN).mo)
-TARGETLANGS=$(foreach la,$(LANGUAGES),LC_MESSAGES/$(la))
+TARGETMOS=$(foreach la,$(LANGUAGES),$(la)/LC_MESSAGES/$(DOMAIN).mo)
+TARGETLANGS=$(foreach la,$(LANGUAGES),$(la)/LC_MESSAGES)
 
 all: $(TARGETLANGS) $(TARGETMOS)
 
 $(TARGETLANGS):
 	mkdir -p $@
 
-LC_MESSAGES/%/$(DOMAIN).mo: $(DOMAIN)-%.po
+%/LC_MESSAGES/$(DOMAIN).mo: $(DOMAIN)-%.po
 	$(MSGFMT) -o $@ $<
 
 pocketcity-%.po: pocketcity.pot

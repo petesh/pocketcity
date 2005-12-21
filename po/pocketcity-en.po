@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pocketcity VERSION\n"
 "Report-Msgid-Bugs-To: pete@petesh.com\n"
-"POT-Creation-Date: 2005-12-21 22:54+0000\n"
+"POT-Creation-Date: 2005-12-21 23:30+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -141,11 +141,11 @@ msgstr ""
 msgid "mark-redistribute"
 msgstr "_Redistribute"
 
-#: ../linux-gtk/main.c:119
+#: ../linux-gtk/main.c:119 ../linux-gtk/main.c:171
 msgid "cash-up"
 msgstr "_Cash Me Up"
 
-#: ../linux-gtk/main.c:747
+#: ../linux-gtk/main.c:748
 msgid "Pocket City"
 msgstr ""
 
