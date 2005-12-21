@@ -1,0 +1,244 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2005 Pete Shanahan
+# This file is distributed under the same license as the pocketcity package.
+# Pete Shanahan <pete@petesh.com>, 2005.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: pocketcity VERSION\n"
+"Report-Msgid-Bugs-To: pete@petesh.com\n"
+"POT-Creation-Date: 2005-12-21 22:54+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../linux-gtk/budget.c:155
+msgid "Pocket City Budget"
+msgstr ""
+
+#: ../linux-gtk/budget.c:168
+msgid "Income"
+msgstr ""
+
+#: ../linux-gtk/budget.c:170
+msgid "Residential"
+msgstr ""
+
+#: ../linux-gtk/budget.c:172
+msgid "Commercial"
+msgstr ""
+
+#: ../linux-gtk/budget.c:174
+msgid "Industrial"
+msgstr ""
+
+#: ../linux-gtk/budget.c:177
+msgid "Expenses"
+msgstr ""
+
+#: ../linux-gtk/budget.c:179
+msgid "Traffic"
+msgstr ""
+
+#: ../linux-gtk/budget.c:181
+msgid "Power"
+msgstr ""
+
+#: ../linux-gtk/budget.c:183
+msgid "Defence"
+msgstr ""
+
+#: ../linux-gtk/budget.c:186
+msgid "Total"
+msgstr ""
+
+#: ../linux-gtk/budget.c:188
+msgid "Current balance"
+msgstr ""
+
+#: ../linux-gtk/budget.c:190
+msgid "Change"
+msgstr ""
+
+#: ../linux-gtk/budget.c:192
+msgid "Next month's balance"
+msgstr ""
+
+#: ../linux-gtk/main.c:100
+msgid "file-action"
+msgstr ""
+
+#: ../linux-gtk/main.c:101
+msgid "game-new"
+msgstr "_New"
+
+#: ../linux-gtk/main.c:102
+msgid "game-open"
+msgstr "_Open"
+
+#: ../linux-gtk/main.c:103
+msgid "game-save"
+msgstr "_Save"
+
+#: ../linux-gtk/main.c:104
+msgid "game-save-as"
+msgstr "Save _As"
+
+#: ../linux-gtk/main.c:105
+msgid "game-exit"
+msgstr "E_xit"
+
+#: ../linux-gtk/main.c:106
+msgid "view-action"
+msgstr ""
+
+#: ../linux-gtk/main.c:107
+msgid "budget-show"
+msgstr "_Budget"
+
+#: ../linux-gtk/main.c:108
+msgid "map-show"
+msgstr "_Map"
+
+#: ../linux-gtk/main.c:109
+msgid "hover-show"
+msgstr "_Query"
+
+#: ../linux-gtk/main.c:110
+#, fuzzy
+msgid "speed-action"
+msgstr "_Fast"
+
+#: ../linux-gtk/main.c:111
+msgid "speed-pause"
+msgstr "_Pause"
+
+#: ../linux-gtk/main.c:112
+msgid "speed-slow"
+msgstr "_Slow"
+
+#: ../linux-gtk/main.c:113
+msgid "speed-medium"
+msgstr "_Medium"
+
+#: ../linux-gtk/main.c:114
+msgid "speed-fast"
+msgstr "_Fast"
+
+#: ../linux-gtk/main.c:115
+msgid "speed-turbo"
+msgstr "_Turbo"
+
+#: ../linux-gtk/main.c:116
+msgid "simulation-action"
+msgstr ""
+
+#: ../linux-gtk/main.c:118
+msgid "mark-redistribute"
+msgstr "_Redistribute"
+
+#: ../linux-gtk/main.c:119
+msgid "cash-up"
+msgstr "_Cash Me Up"
+
+#: ../linux-gtk/main.c:747
+msgid "Pocket City"
+msgstr ""
+
+#: ../linux-gtk/savegame_fe.c:130
+msgid "Pick A City"
+msgstr ""
+
+#: ../linux-gtk/savegame_fe.c:138
+msgid "City Name"
+msgstr ""
+
+#: ../linux-gtk/savegame_fe.c:192
+msgid "Select saved game to open"
+msgstr ""
+
+#: ../linux-gtk/savegame_fe.c:241
+msgid "Create New City"
+msgstr ""
+
+#: ../linux-gtk/savegame_fe.c:247
+msgid "City Name:"
+msgstr ""
+
+#: ../linux-gtk/savegame_fe.c:293
+msgid "Save game as..."
+msgstr ""
+
+#: ../linux-gtk/simulation-ui.c:342
+msgid "Power/Water Distribution"
+msgstr ""
+
+#: ../linux-gtk/simulation-ui.c:351
+msgid "Power Grid"
+msgstr ""
+
+#: ../linux-gtk/simulation-ui.c:353
+msgid "Water Supply"
+msgstr ""
+
+#: ../linux-gtk/zonemon.c:65
+#, c-format
+msgid "Status (%d, %d)"
+msgstr ""
+
+#: ../linux-gtk/zonemon.c:68
+#, c-format
+msgid "type == %x(?)"
+msgstr ""
+
+#: ../linux-gtk/zonemon.c:79
+msgid "Pow+"
+msgstr ""
+
+#: ../linux-gtk/zonemon.c:82
+msgid "-Pow"
+msgstr ""
+
+#: ../linux-gtk/zonemon.c:89
+msgid "Wat+"
+msgstr ""
+
+#: ../linux-gtk/zonemon.c:92
+msgid "-Wat"
+msgstr ""
+
+#: ../linux-gtk/zonemon.c:97
+msgid "HAS"
+msgstr ""
+
+#: ../linux-gtk/zonemon.c:100
+msgid "---"
+msgstr ""
+
+#: ../linux-gtk/zonemon.c:123
+msgid "Status"
+msgstr ""
+
+#: ../linux-gtk/zonemon.c:129
+msgid "Type:"
+msgstr ""
+
+#: ../linux-gtk/zonemon.c:136
+msgid "Value:"
+msgstr ""
+
+#: ../linux-gtk/zonemon.c:144
+msgid "Density:"
+msgstr ""
+
+#: ../linux-gtk/zonemon.c:151
+msgid "Pollution:"
+msgstr ""
+
+#: ../linux-gtk/zonemon.c:158
+msgid "Crime:"
+msgstr ""
