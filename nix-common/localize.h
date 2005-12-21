@@ -12,6 +12,7 @@ extern "C" {
 #include <libintl.h>
 
 #define	_(S)	gettext(S)
+#define N_(S)	S
 
 #if defined(__cplusplus)
 }

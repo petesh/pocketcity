@@ -78,7 +78,7 @@ static void QuitGame(void);
 
 static void set_speed_pause(void);
 static void set_speed_slow(void);
-static void set_speed_normal(void);
+static void set_speed_medium(void);
 static void set_speed_fast(void);
 static void set_speed_turbo(void);
 
@@ -97,22 +97,26 @@ const struct _actionhooks {
 	char *action_name; /*!< name of the action */
 	void (*handler)(void);	/*!< function handler */
 } actionhooks[] = {
-	{ "game-new", newgame_handler },
-	{ "game-open", opengame_handler },
-	{ "game-save", savegame_handler },
-	{ "game-save-as", savegameas_handler },
-	{ "game-exit", QuitGame },
-	{ "budget-show", budget_show },
-	{ "map-show", map_show },
-	{ "hover-show", hover_show },
-	{ "speed-pause", set_speed_pause },
-	{ "speed-slow", set_speed_slow },
-	{ "speed-normal", set_speed_normal },
-	{ "speed-fast", set_speed_fast },
-	{ "speed-turbo", set_speed_turbo },
+	{ N_("file-action"), NULL },
+	{ N_("game-new"), newgame_handler },
+	{ N_("game-open"), opengame_handler },
+	{ N_("game-save"), savegame_handler },
+	{ N_("game-save-as"), savegameas_handler },
+	{ N_("game-exit"), QuitGame },
+	{ N_("view-action"), NULL },
+	{ N_("budget-show"), budget_show },
+	{ N_("map-show"), map_show },
+	{ N_("hover-show"), hover_show },
+	{ N_("speed-action"), NULL },
+	{ N_("speed-pause"), set_speed_pause },
+	{ N_("speed-slow"), set_speed_slow },
+	{ N_("speed-medium"), set_speed_medium },
+	{ N_("speed-fast"), set_speed_fast },
+	{ N_("speed-turbo"), set_speed_turbo },
+	{ N_("simulation-action"), NULL },
 #if defined(DEBUG)
-	{ "mark-redistribute", force_redistribute },
-	{ "cash-up", cash_up },
+	{ N_("mark-redistribute"), force_redistribute },
+	{ N_("cash-up"), cash_up },
 #endif
 };
 
@@ -136,7 +140,7 @@ const GtkItemFactoryEntry menu_items[] = {
 	{ "/Speed/_Pause", "<control>0", set_speed_pause, 0, NULL, 0 },
 	{ "/Speed/sep1", NULL, NULL, 0, "<Separator>", 0 },
 	{ "/Speed/_Slow", "<control>1", set_speed_slow, 0, NULL, 0 },
-	{ "/Speed/_Medium", "<control>2", set_speed_normal, 0, NULL, 0 },
+	{ "/Speed/_Medium", "<control>2", set_speed_medium, 0, NULL, 0 },
 	{ "/Speed/_Fast", "<control>3", set_speed_fast, 0, NULL, 0 },
 	{ "/Speed/_Turbo", "<control>4", set_speed_turbo, 0, NULL, 0 },
 #if defined(DEBUG)
@@ -162,6 +166,9 @@ main(int argc, char **argv)
 	gint timerID;
 	char *px, *ax, *py;
 
+	bindtextdomain(PACKAGE, "../../po/");
+	textdomain(PACKAGE);
+	printf("%s\n", _("cash-up"));
 	exec_dir = strdup(argv[0]);
 	px = strrchr(exec_dir, '/');
 	if (px != NULL) {
@@ -269,7 +276,7 @@ set_speed_slow(void)
  * \brief set the game speed to normal
  */
 static void
-set_speed_normal(void)
+set_speed_medium(void)
 {
 	set_speed(SPEED_MEDIUM);
 }
@@ -650,9 +657,9 @@ setupToolBox(void)
 			    GTK_RADIO_TOOL_BUTTON(item));
 		} else {
 			item = gtk_radio_tool_button_new(list);
+			list = gtk_radio_tool_button_get_group(
+			    GTK_RADIO_TOOL_BUTTON(item));
 		}
-
-		WriteLog("item = %p, list = %p\n", item, list);
 
 		gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), GTK_WIDGET(item),
 		    actions[i].text, NULL);
@@ -886,6 +893,7 @@ UIInitGraphic(void)
 			    mw.window->window, ipm->mask, NULL,
 			    (const char *)image_path);
 			if (*ipm->pm == NULL) {
+				/* XXX: Show dialog */
 				WriteLog("Could not create pixmap "
 				    "from file %s\n", image_path);
 				free(image_path);

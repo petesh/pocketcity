@@ -130,8 +130,9 @@ beam.h: appconfig.h sections.h
 
 budget.h: sections.h
 
-$(OBJDIR)/budget.o: budget.c budget.h palmutils.h simcity.h simcity_resconsts.h \
-	globals.h logging.h ui.h simulation.h resCompat.h repeathandler.h
+$(OBJDIR)/budget.o: budget.c budget.h palmutils.h simcity.h \
+	simcity_resconsts.h globals.h logging.h ui.h simulation.h \
+	resCompat.h repeathandler.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJDIR)/HiRes.o: HiRes.c logging.h simcity.h resCompat.h palmutils.h
@@ -154,8 +155,8 @@ $(OBJDIR)/minimap.o: minimap.c minimap.h zakdef.h globals.h simcity.h ui.h \
 
 options.h: sections.h
 
-$(OBJDIR)/options.o: options.c options.h globals.h simcity.h logging.h palmutils.h \
-	simcity_resconsts.h
+$(OBJDIR)/options.o: options.c options.h globals.h simcity.h logging.h \
+	palmutils.h simcity_resconsts.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJDIR)/palm_locking.o: palm_locking.c locking.h globals.h mem_compat.h
@@ -173,7 +174,8 @@ $(OBJDIR)/query.o: query.c query.h palmutils.h simcity.h locking.h logging.h \
 	simcity_resconsts.h zakdef.h simulation.h globals.h mem_compat.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJDIR)/repeathandler.o: repeathandler.c repeathandler.h palmutils.h mem_compat.h
+$(OBJDIR)/repeathandler.o: repeathandler.c repeathandler.h \
+	palmutils.h mem_compat.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 resCompat.h: sections.h sony_support.h

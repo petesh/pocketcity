@@ -11,6 +11,8 @@
 
 #include <appconfig.h>
 
+#define	PACKAGE	"pocketcity"
+
 /*! \brief the number of statistics held for a year/decade */
 #define	STATS_PER	4
 

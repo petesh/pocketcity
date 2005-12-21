@@ -158,13 +158,13 @@ doOpen(gchar *filename)
 	savegame_t *sg = savegame_open(filename);
 
 	if (sg == NULL) {
-		WriteLog(_("no savegames in file\n"));
+		WriteLog("no savegames in file\n");
 		return;
 	}
 	setCityFileName(filename);
 
 	if (savegame_citycount(sg) == 0) {
-		WriteLog(_("no savegames in file\n"));
+		WriteLog("no savegames in file\n");
 		savegame_close(sg);
 		return;
 	}
@@ -281,8 +281,7 @@ store_filename(GtkWidget *sel __attribute__((unused)), gpointer data)
 		}
 	} else
 		return;
-	WriteLog(_("This game will be saved as %s from now on\n"),
-	  name);
+	WriteLog("This game will be saved as %s from now on\n", name);
 	save_defaultfilename();
 }
 
