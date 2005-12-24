@@ -30,10 +30,13 @@
 #include <simulation-ui.h>
 #include <zonemon.h>
 #include <localize.h>
+#include <actions.h>
+#include <assert.h>
 
 /*! \brief path to search for graphics */
-Char *pathsearch = (Char *)"$:$/graphic:$/graphic/icons:$/../graphic:$/../graphic/icons:$/../../graphic:$/../../graphic/icons";
+Char *pathsearch = (Char *)"$:$/..:$/graphic:$/graphic/icons:$/../graphic:$/../graphic/icons:$/../../graphic:$/../../graphic/icons";
 
+static size_t max_path;
 /*! \brief number of milli seconds in a second */
 #define	MILLISECS	1000
 /*! \brief the number of ticks to make every second */
@@ -76,6 +79,8 @@ static void SetUpMainWindow(void);
 static gint mainloop_callback(gpointer data);
 static void QuitGame(void);
 
+static void set_speed_handler(GtkAction *action, gpointer data);
+static void toolbox_callback(GtkAction *action, gpointer data);
 static void set_speed_pause(void);
 static void set_speed_slow(void);
 static void set_speed_medium(void);
@@ -92,32 +97,128 @@ static void force_redistribute(void);
 static void cash_up(void);
 #endif
 
+static void s_nothing(void) { }
+
+const struct _stockitems {
+	const char *name;
+	const char *imagefile;
+	const char *accelerator;
+} stockitems[] = {
+	{ A_SPEED_PAUSE, "speed_paused.png", "<Control>0" },
+	{ A_SPEED_SLOW, "speed_slow.png", "<Control>1" },
+	{ A_SPEED_MEDIUM, "speed_medium.png", "<Control>2" },
+	{ A_SPEED_FAST, "speed_fast.png", "<Control>3" },
+	{ A_SPEED_TURBO, "speed_turbo.png", "<Control>4" },
+	{ A_BULLDOZER, "interface_00.png", NULL },
+	{ A_ROAD, "interface_01.png", NULL },
+	{ A_POWERLINE, "interface_02.png", NULL },
+	{ A_RESIDENTIAL, "interface_03.png", NULL },
+	{ A_COMMERCIAL, "interface_04.png", NULL },
+	{ A_INDUSTRIAL, "interface_05.png", NULL },
+	{ A_TREE, "interface_06.png", NULL },
+	{ A_WATER, "interface_07.png", NULL },
+	{ A_WATERPIPE, "interface_08.png", NULL },
+	{ A_COALPLANT, "interface_09.png", NULL },
+	{ A_NUKEPLANT, "interface_10.png", NULL },
+	{ A_WATERPUMP, "interface_11.png", NULL },
+	{ A_FIRESTATION, "interface_12.png", NULL },
+	{ A_POLICESTATION, "interface_13.png", NULL },
+	{ A_MILITARYBASE, "interface_14.png", NULL },
+	{ A_FIREBRIGADE, "interface_18.png", NULL },
+	{ A_POLICECAR, "interface_19.png", NULL },
+	{ A_TANK, "interface_20.png", NULL },
+	{ BUDGET_SHOW, NULL, "<Control>B" },
+	{ MAP_SHOW, NULL, "<Control>M" },
+	{ HOVER_SHOW, NULL, "<Control>H" }
+};
+
+#define NSTOCKITEMS	(sizeof (stockitems) / sizeof (stockitems[0]))
+
 /*! \brief a hookup set of action->event mappings as default */
 const struct _actionhooks {
-	char *action_name; /*!< name of the action */
-	void (*handler)(void);	/*!< function handler */
+	char *name; /*!< name of the action */
+	char *label; /*!< the text for the action (base) */
+	char *tooltip; /*!< the tooltip for the action (base) */
+	char *icon; /*!< the name of the icon for the action */
+	GCallback handler;	/*!< function handler */
+	gint parameter;
 } actionhooks[] = {
-	{ N_("file-action"), NULL },
-	{ N_("game-new"), newgame_handler },
-	{ N_("game-open"), opengame_handler },
-	{ N_("game-save"), savegame_handler },
-	{ N_("game-save-as"), savegameas_handler },
-	{ N_("game-exit"), QuitGame },
-	{ N_("view-action"), NULL },
-	{ N_("budget-show"), budget_show },
-	{ N_("map-show"), map_show },
-	{ N_("hover-show"), hover_show },
-	{ N_("speed-action"), NULL },
-	{ N_("speed-pause"), set_speed_pause },
-	{ N_("speed-slow"), set_speed_slow },
-	{ N_("speed-medium"), set_speed_medium },
-	{ N_("speed-fast"), set_speed_fast },
-	{ N_("speed-turbo"), set_speed_turbo },
-	{ N_("simulation-action"), NULL },
+	{ "file-action", N_("_File"), NULL, NULL, s_nothing, 0 },
+	{ "game-new", N_("_New"), N_("Create a new game"), GTK_STOCK_NEW,
+	  newgame_handler, 0 },
+	{ "game-open", N_("_Open"), N_("Open a save game"), GTK_STOCK_OPEN,
+	  opengame_handler, 0 },
+	{ "game-save", N_("_Save"), N_("Save a game in progress"),
+	  GTK_STOCK_SAVE, savegame_handler, 0 },
+	{ "game-save-as", N_("Save _As"),
+	  N_("Save a city into a new file"), GTK_STOCK_SAVE_AS,
+	  savegameas_handler, 0 },
+	{ "game-exit", N_("E_xit"), N_("Leave the game"),
+	  GTK_STOCK_QUIT, QuitGame, 0 },
+	{ "view-action", N_("_View"), NULL, NULL, s_nothing, 0 },
+	{ BUDGET_SHOW, N_("_Budget"), N_("Show the budget information"),
+	  NULL, budget_show, 0 },
+	{ MAP_SHOW, N_("_Map"), N_("Show the mini map"), NULL,
+	  map_show, 0 },
+	{ HOVER_SHOW, N_("_Hover"), N_("Query what's under the mouse"),
+	  NULL, hover_show, 0 },
+	{ "speed-action", N_("_Speed"), NULL, NULL, s_nothing, 0 },
+
+	{ A_SPEED_PAUSE, N_("_Pause"), N_("Pause the game"), NULL,
+	  G_CALLBACK(set_speed_handler), SPEED_PAUSED },
+	{ A_SPEED_SLOW, N_("_Slow"), N_("Set speed to slowest rate"), NULL,
+	  G_CALLBACK(set_speed_handler), SPEED_SLOW },
+	{ A_SPEED_MEDIUM, N_("_Medium"), N_("Set the speed to medium rate"),
+	  NULL, G_CALLBACK(set_speed_handler), SPEED_MEDIUM },
+	{ A_SPEED_FAST, N_("_Fast"), N_("Set speed to fast rate"),
+	  NULL, G_CALLBACK(set_speed_handler), SPEED_FAST },
+	{ A_SPEED_TURBO, N_("_Turbo"), N_("Set speed to fastest rate"),
+	  NULL, G_CALLBACK(set_speed_handler), SPEED_TURBO },
+
+	{ "simulation-action", N_("S_imulation"), NULL, NULL, s_nothing, 0 },
 #if defined(DEBUG)
-	{ N_("mark-redistribute"), force_redistribute },
-	{ N_("cash-up"), cash_up },
+	{ "mark-redistribute", N_("_Redistribute"), N_("ask to recheck the "
+	  "power circuit"), NULL, force_redistribute, 0 },
+	{ "cash-up", N_("_Cash me up"), N_("give user money"), NULL,
+	  cash_up, 0 },
 #endif
+
+	{ A_BULLDOZER, N_("Bulldozer"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Bulldozer },
+	{ A_ROAD, N_("Road"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Road },
+	{ A_POWERLINE, N_("Power Line"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Power_Line },
+	{ A_RESIDENTIAL, N_("Residential"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Zone_Residential },
+	{ A_COMMERCIAL, N_("Commercial"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Zone_Commercial },
+	{ A_INDUSTRIAL, N_("Industrial"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Zone_Industrial },
+	{ A_TREE, N_("Tree"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Tree },
+	{ A_WATER, N_("Water"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Water },
+	{ A_WATERPIPE, N_("Water Pipe"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Water_Pipe },
+	{ A_COALPLANT, N_("Coal Power Plant"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Power_Plant },
+	{ A_NUKEPLANT, N_("Nuclear Power Plant"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Nuclear_Plant },
+	{ A_WATERPUMP, N_("Water Pump"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Water_Pump },
+	{ A_FIRESTATION, N_("Fire Station"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Fire_Station },
+	{ A_POLICESTATION, N_("Police Station"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Police_Station },
+	{ A_MILITARYBASE, N_("Military Base"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Military_Base },
+	{ A_FIREBRIGADE, N_("Fire Brigade"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Defence_Fire },
+	{ A_POLICECAR, N_("Police Car"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Defence_Police },
+	{ A_TANK, N_("Tank"), NULL, NULL,
+	  G_CALLBACK(toolbox_callback), Be_Defence_Military },
 };
 
 /*! \brief number of action hooks */
@@ -166,9 +267,7 @@ main(int argc, char **argv)
 	gint timerID;
 	char *px, *ax, *py;
 
-	bindtextdomain(PACKAGE, "../../po/");
-	textdomain(PACKAGE);
-	printf("%s\n", _("cash-up"));
+	max_path = (size_t)pathconf("/", _PC_PATH_MAX) + 1;
 	exec_dir = strdup(argv[0]);
 	px = strrchr(exec_dir, '/');
 	if (px != NULL) {
@@ -180,6 +279,7 @@ main(int argc, char **argv)
 		exec_dir = cwd;
 	}
 
+	srand(time(NULL));
 	/* fill in all the $'s in the pathsearch variable */
 	py = calloc(1, 1024);
 	px = pathsearch;
@@ -192,7 +292,9 @@ main(int argc, char **argv)
 	pathsearch = py;
 
 	gtk_init(&argc, &argv);
-	srand(time(NULL));
+
+	bindtextdomain(PACKAGE, "../po");
+	textdomain(PACKAGE);
 
 	ResetViewable();
 	SetUpMainWindow();
@@ -252,6 +354,18 @@ set_speed(int speed)
 {
 	WriteLog("Setting speed to %i\n", speed);
 	setLoopSeconds(speed);
+}
+
+/*!
+ * \brief handler for the event trigger
+ * \param action unused
+ * \param data converted to the parameter type
+ */
+static void
+set_speed_handler(GtkAction *action __attribute__((unused)),
+  gpointer data)
+{
+	set_speed(GPOINTER_TO_INT(data));
 }
 
 /*!
@@ -317,6 +431,61 @@ cash_up(void)
 
 #endif
 
+static int
+searchFile(char *origfile)
+{
+
+	return (searchForFile(origfile, max_path, pathsearch));
+}
+
+static GdkPixbuf *
+load_pixbuf(const char *name)
+{
+	char *buffer;
+	GError *error = NULL;
+	GdkPixbuf *ret;
+
+	buffer = alloca(max_path + 1);
+	assert(buffer != NULL);
+	strncpy(buffer, name, max_path);
+	if (searchFile(buffer)) {
+		ret = gdk_pixbuf_new_from_file(buffer, &error);
+		if (error != NULL) {
+			WriteLog("Could not open file: %s\n",
+			  error->message);
+			g_error_free(error);
+			exit(1);
+		} else {
+			return (ret);
+		}
+	} else {
+		/* XXX: Show dialog */
+		WriteLog("Could not create pixbuf from file %s\n",
+		  buffer);
+		exit (1);
+	}
+}
+
+static GdkPixmap *
+load_pixmap(const char *name, GdkBitmap **mask)
+{
+	char *buffer;
+
+	buffer = alloca(max_path + 1);
+	assert(buffer != NULL);
+	strncpy(buffer, name, max_path);
+	if (searchFile(buffer)) {
+		return (gdk_pixmap_create_from_xpm(mw.window->window,
+		  mask, NULL, buffer));
+	} else {
+		/* XXX: Show dialog */
+		WriteLog("Could not create pixmap from file %s\n",
+		  buffer);
+		exit(1);
+	}
+}
+
+
 /*!
  * \brief time ticker that loops every second
  * \param data unused in this context
@@ -364,15 +533,13 @@ static UInt8 selectedBuildItem = 0;
 
 /*!
  * \brief set the item that will be build upon clicking on the play surface
- * \param widget unused
+ * \param action unused
  * \param data the identifier of the toolbar item
- * \return false, handled
  */
-static gint
-toolbox_callback(GtkWidget *widget __attribute__((unused)), gpointer data)
+static void
+toolbox_callback(GtkAction *action __attribute__((unused)), gpointer data)
 {
 	selectedBuildItem = GPOINTER_TO_INT(data);
-	return (FALSE);
 }
 
 /*! \brief set the tile size */
@@ -579,37 +746,7 @@ motion_notify_event(GtkWidget *widget __attribute__((unused)),
 	return (TRUE);
 }
 
-/* If you change the order here you need to change the xpm... */
-/*! \todo make the file names related to the items */
-const struct gaa {
-	gint entry;
-	const char *text;
-	const char *file;
-} actions[] = {
-	{ Be_Bulldozer, "Bulldozer", "interface_00.png" },
-	{ Be_Road, "Road", "interface_01.png" },
-	{ Be_Power_Line, "Power Line", "interface_02.png" },
-	{ Be_Zone_Residential, "Residential", "interface_03.png" },
-	{ Be_Zone_Commercial, "Commercial", "interface_04.png" },
-	{ Be_Zone_Industrial, "Industrial", "interface_05.png" },
-	{ Be_Tree, "Tree", "interface_06.png" },
-	{ Be_Water, "Water", "interface_07.png" },
-	{ Be_Water_Pipe, "Water Pipe", "interface_08.png" },
-	{ Be_Power_Plant, "Power Plant", "interface_09.png" },
-	{ Be_Nuclear_Plant, "Nuclear Power Plant", "interface_10.png" },
-	{ Be_Water_Pump, "Water Pump", "interface_11.png" },
-	{ Be_Fire_Station, "Fire Station", "interface_12.png" },
-	{ Be_Police_Station, "Police Station", "interface_13.png" },
-	{ Be_Military_Base, "Military Base", "interface_14.png" },
-	{ -1, NULL, NULL },
-	{ Be_Defence_Fire, "Fire Brigade", "interface_18.png" },
-	{ Be_Defence_Police, "Police Car", "interface_19.png" },
-	{ Be_Defence_Military, "Tank", "interface_20.png" }
-};
-
-/*! \brief count of elements in the actions array */
-#define	SIZE_ACTIONS	(sizeof (actions) / sizeof (actions[0]))
-
+#if 0
 /*!
  * \brief set up the toolbox
  * \return the widget containing the toolbox
@@ -670,16 +807,6 @@ setupToolBox(void)
 		    button_image);
 		gtk_toolbar_insert(GTK_TOOLBAR(toolbox), GTK_TOOL_ITEM(item),
 		    -1);
-		/*
-		 * gtk_container_add(GTK_CONTAINER(button), button_image);
-		 * gtk_tooltips_set_tip(GTK_TOOLTIPS(tips), button,
-		 *   actions[i].text, NULL);
-		 * g_signal_connect(G_OBJECT(button), "clicked",
-		 *   G_CALLBACK(toolbox_callback),
-		 * GINT_TO_POINTER(actions[i].entry));
-		 * gtk_table_attach_defaults(GTK_TABLE(toolbox), button,
-		 *  (i%3), (i%3)+1, (i/3), (i/3)+1);
-		 */
 	}
 
 	/*
@@ -715,6 +842,7 @@ createMenu(GtkWidget *main_box)
 
 	return (accel_group);
 }
+#endif
 
 /*!
  * \brief hovering over the drawing area
@@ -740,28 +868,115 @@ hoveringDrawing(GtkWidget *widget __attribute__((unused)),
 void
 SetUpMainWindow(void)
 {
-	GtkWidget *footerbox, *toolbox, *headerbox;
+	GtkWidget *footerbox, *headerbox;
+	GtkWidget *toolbox;
 	GtkWidget *playingbox, *main_box;
-	GtkAccelGroup *accel_group;
+	//GtkAccelGroup *accel_group;
+	GtkActionGroup *act_group;
+	GtkAction *action;
+	GtkStockItem stock_item;
+	GtkIconFactory *icon_factory;
+	GtkUIManager *gum;
+	char *gumfile = alloca(max_path);
+	char *nel = alloca(max_path);
+	unsigned int i;
 
 	mw.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(mw.window), _("Pocket City"));
 	g_signal_connect(G_OBJECT(mw.window), "delete_event",
 	    G_CALLBACK(delete_event), NULL);
 
+	/* Create the stock items */
+	icon_factory = gtk_icon_factory_new();
+	stock_item.translation_domain = PACKAGE;
+	for (i = 0; i < NSTOCKITEMS; i++) {
+		stock_item.stock_id = (char *)stockitems[i].name;
+		stock_item.label = NULL;
+		stock_item.modifier = 0;
+		stock_item.keyval = 0;
+		if (stockitems[i].accelerator != NULL) {
+			gtk_accelerator_parse(stockitems[i].accelerator,
+			    &stock_item.keyval,
+			    &stock_item.modifier);
+		}
+		if (stockitems[i].imagefile != NULL) {
+			GdkPixbuf *buf;
+			GtkIconSet *set;
+			
+			buf = load_pixbuf(stockitems[i].imagefile);
+			set = gtk_icon_set_new_from_pixbuf(buf);
+			gtk_icon_factory_add(icon_factory,
+			  stockitems[i].name, set);
+		}
+
+		gtk_stock_add(&stock_item, 1);
+	}
+	gtk_icon_factory_add_default(icon_factory);
+
+	act_group = gtk_action_group_new("actions");
+	for (i = 0; i < NACTIONHOOKS; i++) {
+		char *label = gettext(actionhooks[i].label);
+		action = gtk_action_new(actionhooks[i].name,
+		  label,
+		  actionhooks[i].tooltip == NULL ? label :
+		  gettext(actionhooks[i].tooltip),
+		  actionhooks[i].icon == NULL ? actionhooks[i].name :
+		  actionhooks[i].icon);
+		sprintf(nel, "<Actions>/actions/%s", actionhooks[i].name);
+		gtk_action_set_accel_path(action, nel);
+		//gtk_action_connect_accelerator(action);
+		g_signal_connect(G_OBJECT(action), "activate",
+		    actionhooks[i].handler,
+		    GINT_TO_POINTER(actionhooks[i].parameter));
+		gtk_action_group_add_action_with_accel(act_group, action,
+		  NULL);
+	}
+
 	/* practically everything is in this */
 	main_box = gtk_vbox_new(FALSE, 0);
 
+	/* Load the remainder of the UI */
+	strcpy(gumfile, "ui.xml");
+	if (searchFile(gumfile)) {
+		GError *err = NULL;
+		gum = gtk_ui_manager_new();
+		gtk_ui_manager_insert_action_group(gum, act_group, 0);
+		gtk_ui_manager_add_ui_from_file(gum, gumfile, &err);
+		if (err != NULL) {
+			printf("ui could not be loaded: %s\n",
+			    err->message);
+			exit(0);
+		}
+#if defined(DEBUG)
+		strcpy(gumfile, "ui-debug.xml");
+		if (searchFile(gumfile)) {
+			gtk_ui_manager_add_ui_from_file(gum, gumfile, &err);
+			if (err != NULL) {
+				printf("ui could not be loaded: %s\n",
+				    err->message);
+				exit(0);
+			}
+		}
+#endif
+		gtk_window_add_accel_group(GTK_WINDOW(mw.window),
+		    gtk_ui_manager_get_accel_group(gum));
+		toolbox = gtk_ui_manager_get_widget(gum, "/mainmenu");
+		WriteLog("toolbox = %p\n", toolbox);
+		gtk_box_pack_start(GTK_BOX(main_box), toolbox, FALSE,
+		    TRUE, 0);
+		toolbox = gtk_ui_manager_get_widget(gum, "/buildtoolbar");
+		gtk_toolbar_set_style(GTK_TOOLBAR(toolbox),
+		  GTK_TOOLBAR_ICONS);
+	}
+
 	/* Toolbar */
-	toolbox = setupToolBox();
+	//toolbox = setupToolBox();
 	headerbox = gtk_hbox_new(FALSE, 0);
 	playingbox = gtk_table_new(2, 2, FALSE);
 	footerbox = gtk_hbox_new(FALSE, 0);
 
 	gtk_container_add(GTK_CONTAINER(mw.window), main_box);
 
-	accel_group = createMenu(main_box);
-	gtk_window_add_accel_group(GTK_WINDOW(mw.window), accel_group);
 
 	mw.l_credits = gtk_label_new("Credits");
 	mw.l_time = gtk_label_new("Game Time");
@@ -877,41 +1092,21 @@ cleanupPixmaps(void)
 void
 UIInitGraphic(void)
 {
-	Char *image_path;
 	int i;
 	struct image_pms *ipm;
-	size_t max_path = (size_t)pathconf("/", _PC_PATH_MAX) + 1;
-
-	image_path = malloc(max_path);
+	char *image_path;
 
 	for (i = 0; image_pixmaps[i].filename != NULL; i++) {
 		ipm = image_pixmaps + i;
-		strncpy((char *)image_path, ipm->filename,
-		    max_path - 1);
-		if (searchForFile(image_path, max_path, pathsearch)) {
-			*ipm->pm = gdk_pixmap_create_from_xpm(
-			    mw.window->window, ipm->mask, NULL,
-			    (const char *)image_path);
-			if (*ipm->pm == NULL) {
-				/* XXX: Show dialog */
-				WriteLog("Could not create pixmap "
-				    "from file %s\n", image_path);
-				free(image_path);
-				exit(1);
-			}
-		} else {
-			perror((const char *)image_path);
-			free(image_path);
-			exit(1);
-		}
+		*ipm->pm = load_pixmap(ipm->filename, ipm->mask);
 	}
 	/* load the icon */
-	strncpy((char *)image_path, "pcityicon.png", max_path - 1);
-	if (searchForFile(image_path, max_path, pathsearch)) {
+	image_path = alloca((size_t)pathconf("/", _PC_PATH_MAX) + 1);
+	strcpy((char *)image_path, "pcityicon.png");
+	if (searchFile(image_path)) {
 		gtk_window_set_icon_from_file(GTK_WINDOW(mw.window),
 		    (char const *)image_path, NULL);
 	}
-	free(image_path);
 }
 
 /*!

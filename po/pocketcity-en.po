@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pocketcity VERSION\n"
 "Report-Msgid-Bugs-To: pete@petesh.com\n"
-"POT-Creation-Date: 2005-12-21 23:30+0000\n"
+"POT-Creation-Date: 2005-12-24 13:29+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,15 +24,15 @@ msgstr ""
 msgid "Income"
 msgstr ""
 
-#: ../linux-gtk/budget.c:170
+#: ../linux-gtk/budget.c:170 ../linux-gtk/main.c:192
 msgid "Residential"
 msgstr ""
 
-#: ../linux-gtk/budget.c:172
+#: ../linux-gtk/budget.c:172 ../linux-gtk/main.c:194
 msgid "Commercial"
 msgstr ""
 
-#: ../linux-gtk/budget.c:174
+#: ../linux-gtk/budget.c:174 ../linux-gtk/main.c:196
 msgid "Industrial"
 msgstr ""
 
@@ -68,84 +68,203 @@ msgstr ""
 msgid "Next month's balance"
 msgstr ""
 
-#: ../linux-gtk/main.c:100
-msgid "file-action"
+#: ../linux-gtk/main.c:146
+msgid "_File"
 msgstr ""
 
-#: ../linux-gtk/main.c:101
-msgid "game-new"
-msgstr "_New"
-
-#: ../linux-gtk/main.c:102
-msgid "game-open"
-msgstr "_Open"
-
-#: ../linux-gtk/main.c:103
-msgid "game-save"
-msgstr "_Save"
-
-#: ../linux-gtk/main.c:104
-msgid "game-save-as"
-msgstr "Save _As"
-
-#: ../linux-gtk/main.c:105
-msgid "game-exit"
-msgstr "E_xit"
-
-#: ../linux-gtk/main.c:106
-msgid "view-action"
+#: ../linux-gtk/main.c:147
+msgid "_New"
 msgstr ""
 
-#: ../linux-gtk/main.c:107
-msgid "budget-show"
-msgstr "_Budget"
-
-#: ../linux-gtk/main.c:108
-msgid "map-show"
-msgstr "_Map"
-
-#: ../linux-gtk/main.c:109
-msgid "hover-show"
-msgstr "_Query"
-
-#: ../linux-gtk/main.c:110
-#, fuzzy
-msgid "speed-action"
-msgstr "_Fast"
-
-#: ../linux-gtk/main.c:111
-msgid "speed-pause"
-msgstr "_Pause"
-
-#: ../linux-gtk/main.c:112
-msgid "speed-slow"
-msgstr "_Slow"
-
-#: ../linux-gtk/main.c:113
-msgid "speed-medium"
-msgstr "_Medium"
-
-#: ../linux-gtk/main.c:114
-msgid "speed-fast"
-msgstr "_Fast"
-
-#: ../linux-gtk/main.c:115
-msgid "speed-turbo"
-msgstr "_Turbo"
-
-#: ../linux-gtk/main.c:116
-msgid "simulation-action"
+#: ../linux-gtk/main.c:147
+msgid "Create a new game"
 msgstr ""
 
-#: ../linux-gtk/main.c:118
-msgid "mark-redistribute"
-msgstr "_Redistribute"
+#: ../linux-gtk/main.c:149
+msgid "_Open"
+msgstr ""
 
-#: ../linux-gtk/main.c:119 ../linux-gtk/main.c:171
-msgid "cash-up"
-msgstr "_Cash Me Up"
+#: ../linux-gtk/main.c:149
+msgid "Open a save game"
+msgstr ""
 
-#: ../linux-gtk/main.c:748
+#: ../linux-gtk/main.c:151
+msgid "_Save"
+msgstr ""
+
+#: ../linux-gtk/main.c:151
+msgid "Save a game in progress"
+msgstr ""
+
+#: ../linux-gtk/main.c:153
+msgid "Save _As"
+msgstr ""
+
+#: ../linux-gtk/main.c:154
+msgid "Save a city into a new file"
+msgstr ""
+
+#: ../linux-gtk/main.c:156
+msgid "E_xit"
+msgstr ""
+
+#: ../linux-gtk/main.c:156
+msgid "Leave the game"
+msgstr ""
+
+#: ../linux-gtk/main.c:158
+msgid "_View"
+msgstr ""
+
+#: ../linux-gtk/main.c:159
+msgid "_Budget"
+msgstr ""
+
+#: ../linux-gtk/main.c:159
+msgid "Show the budget information"
+msgstr ""
+
+#: ../linux-gtk/main.c:161
+msgid "_Map"
+msgstr ""
+
+#: ../linux-gtk/main.c:161
+msgid "Show the mini map"
+msgstr ""
+
+#: ../linux-gtk/main.c:163
+msgid "_Hover"
+msgstr ""
+
+#: ../linux-gtk/main.c:163
+msgid "Query what's under the mouse"
+msgstr ""
+
+#: ../linux-gtk/main.c:165
+msgid "_Speed"
+msgstr ""
+
+#: ../linux-gtk/main.c:167
+msgid "_Pause"
+msgstr ""
+
+#: ../linux-gtk/main.c:167
+msgid "Pause the game"
+msgstr ""
+
+#: ../linux-gtk/main.c:169
+msgid "_Slow"
+msgstr ""
+
+#: ../linux-gtk/main.c:169
+msgid "Set speed to slowest rate"
+msgstr ""
+
+#: ../linux-gtk/main.c:171
+msgid "_Medium"
+msgstr ""
+
+#: ../linux-gtk/main.c:171
+msgid "Set the speed to medium rate"
+msgstr ""
+
+#: ../linux-gtk/main.c:173
+msgid "_Fast"
+msgstr ""
+
+#: ../linux-gtk/main.c:173
+msgid "Set speed to fast rate"
+msgstr ""
+
+#: ../linux-gtk/main.c:175
+msgid "_Turbo"
+msgstr ""
+
+#: ../linux-gtk/main.c:175
+msgid "Set speed to fastest rate"
+msgstr ""
+
+#: ../linux-gtk/main.c:178
+msgid "S_imulation"
+msgstr ""
+
+#: ../linux-gtk/main.c:180
+msgid "_Redistribute"
+msgstr ""
+
+#: ../linux-gtk/main.c:180
+msgid "ask to recheck the power circuit"
+msgstr ""
+
+#: ../linux-gtk/main.c:182
+msgid "_Cash me up"
+msgstr ""
+
+#: ../linux-gtk/main.c:182
+msgid "give user money"
+msgstr ""
+
+#: ../linux-gtk/main.c:186
+msgid "Bulldozer"
+msgstr ""
+
+#: ../linux-gtk/main.c:188
+msgid "Road"
+msgstr ""
+
+#: ../linux-gtk/main.c:190
+msgid "Power Line"
+msgstr ""
+
+#: ../linux-gtk/main.c:198
+msgid "Tree"
+msgstr ""
+
+#: ../linux-gtk/main.c:200
+msgid "Water"
+msgstr ""
+
+#: ../linux-gtk/main.c:202
+msgid "Water Pipe"
+msgstr ""
+
+#: ../linux-gtk/main.c:204
+msgid "Coal Power Plant"
+msgstr ""
+
+#: ../linux-gtk/main.c:206
+msgid "Nuclear Power Plant"
+msgstr ""
+
+#: ../linux-gtk/main.c:208
+msgid "Water Pump"
+msgstr ""
+
+#: ../linux-gtk/main.c:210
+msgid "Fire Station"
+msgstr ""
+
+#: ../linux-gtk/main.c:212
+msgid "Police Station"
+msgstr ""
+
+#: ../linux-gtk/main.c:214
+msgid "Military Base"
+msgstr ""
+
+#: ../linux-gtk/main.c:216
+msgid "Fire Brigade"
+msgstr ""
+
+#: ../linux-gtk/main.c:218
+msgid "Police Car"
+msgstr ""
+
+#: ../linux-gtk/main.c:220
+msgid "Tank"
+msgstr ""
+
+#: ../linux-gtk/main.c:885
 msgid "Pocket City"
 msgstr ""
 

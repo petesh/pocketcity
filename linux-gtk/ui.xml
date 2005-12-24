@@ -1,0 +1,58 @@
+<ui>
+	<menubar name="mainmenu">
+		<menu name="FileMenu" action="file-action">
+			<menuitem name="FileNew" action="game-new" />
+			<menuitem name="FileOpen" action="game-open" />
+			<menuitem name="FileSave" action="game-save" />
+			<menuitem name="FileSaveAs" action="game-save-as" />
+			<separator />
+			<menuitem name="FileExit" action="game-exit" />
+		</menu>
+		<menu name="ViewMenu" action="view-action">
+			<menuitem name="ViewBudget" action="budget-show" />
+			<menuitem name="ViewMap" action="map-show" />
+			<menuitem name="ViewHover" action="hover-show" />
+		</menu>
+		<menu name="SpeedMenu" action="speed-action">
+			<menuitem name="SpeedPause" action="speed-pause" />
+			<separator />
+			<menuitem name="SpeedSlow" action="speed-slow" />
+			<menuitem name="SpeedMedium" action="speed-medium" />
+			<menuitem name="SpeedFast" action="speed-fast" />
+			<menuitem name="SpeedTurbo" action="speed-turbo" />
+		</menu>
+		<menu name="SimulationMenu" action="simulation-action">
+			<placeholder name="SimulationMenuAdditions" />
+		</menu>
+	</menubar>
+	<toolbar name="buildtoolbar">
+		<toolitem name="ToolBulldozer" action="tool-bulldozer" />
+		<toolitem name="ToolRoad" action="tool-road" />
+		<toolitem name="ToolPowerLine" action="tool-power-line" />
+		<toolitem name="ToolResidential" action="tool-residential" />
+		<toolitem name="ToolCommercial" action="tool-commercial" />
+		<toolitem name="ToolIndustrial" action="tool-industrial" />
+		<toolitem name="ToolTree" action="tool-tree" />
+		<toolitem name="ToolWater" action="tool-water" />
+		<toolitem name="ToolWaterPipe" action="tool-water-pipe" />
+		<toolitem name="ToolPowerPlant" action="tool-power-plant" />
+		<toolitem name="ToolNuclearPlant" action="tool-nuclear-plant" />
+		<toolitem name="ToolWaterPump" action="tool-water-pump" />
+		<toolitem name="ToolFireStation" action="tool-fire-station" />
+		<toolitem name="ToolPoliceStation"
+		  action="tool-police-station" />
+	  	<toolitem name="ToolMilitaryBase" action="tool-military-base" />
+		<separator />
+		<toolitem name="ToolDefenceFire" action="tool-defence-fire" />
+		<toolitem name="ToolPoliceCar" action="tool-police-car" />
+		<toolitem name="ToolTank" action="tool-tank" />
+	</toolbar>
+	<accelerator name="speedpause" action="speed-pause" />
+	<accelerator name="speedslow" action="speed-slow" />
+	<accelerator name="speedmedium" action="speed-medium" />
+	<accelerator name="speedfast" action="speed-fast" />
+	<accelerator name="speedturbo" action="speed-turbo" />
+	<accelerator name="budgetshow" action="budget-show" />
+	<accelerator name="mapshow" action="map-show" />
+	<accelerator name="hovershow" action="hover-show" />
+</ui>

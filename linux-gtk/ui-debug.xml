@@ -1,0 +1,9 @@
+<ui>
+	<menubar name="mainmenu">
+		<menu name="SimulationMenu" action="simulation-action">
+			<menuitem name="SimRedistribute"
+				action="mark-redistribute" />
+			<menuitem name="SimCashUp" action="cash-up" />
+		</menu>
+	</menubar>
+</ui>
