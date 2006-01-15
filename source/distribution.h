@@ -19,10 +19,14 @@ extern "C" {
 /*! \brief the number of fits saved into the savegame */
 #define	SAVEDBITS	(2)
 
-/*! \brief the bit associated with scratch/unvisited in the worldflags */
-#define	SCRATCHBIT	((unsigned char)0x80)
-/*! \brief the bit associated with knowing if the field has been painted */
-#define	PAINTEDBIT	((unsigned char)0x40)
+/*! \brief marking nodes visited for power */
+#define	SCRATCHPOWER	((unsigned char)0x80)
+/*! \brief marking nodes visited for water */
+#define	SCRATCHWATER	((unsigned char)0x40)
+/*! \brief marking nodes that haven't been painted */
+#define	PAINTEDBIT	((unsigned char)0x20)
+/*! \brief disaster check */
+#define SCRATCHDISASTER ((unsigned char)0x10)
 
 /*! \brief Up Direction */
 #define	DIR_UP		(1<<0)
@@ -39,13 +43,17 @@ extern "C" {
 /*! \brief All Directions */
 #define	DIR_ALL		((DIR_HOR) | (DIR_VER))
 
-#define	getScratch(i) (getWorldFlags(i) & SCRATCHBIT)
-#define	setScratch(i) orWorldFlags((i), SCRATCHBIT)
-#define	unsetScratch(i) andWorldFlags((i), (selem_t)~SCRATCHBIT)
-#define	clearScratch() { \
+#define	getScratchPower(i) (getWorldFlags(i) & SCRATCHPOWER)
+#define	getScratchWater(i) (getWorldFlags(i) & SCRATCHWATER)
+#define	setScratchPower(i) orWorldFlags((i), SCRATCHPOWER)
+#define	setScratchWater(i) orWorldFlags((i), SCRATCHWATER)
+#define unsetScratch(i,j) andWorldFlags((i), (selem_t)~(j))
+#define	unsetScratchWater(i) andWorldFlags((i), (selem_t)~SCRATCHWATER)
+#define	unsetScratchPower(i) andWorldFlags((i), (selem_t)~SCRATCHPOWER)
+#define	clearScratch(X) do { \
 	UInt32 XXX = 0; \
-	for (; XXX < MapMul(); XXX++) unsetScratch(XXX); \
-}
+	for (; XXX < MapMul(); XXX++) unsetScratch(XXX, X); \
+} while (0)
 
 /*!
  * \brief Do a grid distribution for the grid(s) specified

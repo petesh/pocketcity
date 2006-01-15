@@ -26,18 +26,6 @@ typedef enum {
 	bnNextMonth
 } BudgetNumber;
 
-/*! \brief the bit associated with power in the worldflags */
-#define	POWEREDBIT	((unsigned char)0x01)
-/*! \brief the bit associated with water in the worldflags */
-#define	WATEREDBIT	((unsigned char)0x02)
-/*! \brief the number of fits saved into the savegame */
-#define	SAVEDBITS	(2)
-
-/*! \brief the bit associated with scratch/unvisited in the worldflags */
-#define	SCRATCHBIT	((unsigned char)0x80)
-/*! \brief the bit associated with knowing if the field has been painted */
-#define	PAINTEDBIT	((unsigned char)0x40)
-
 /*!
  * \brief Perform a phase of the simulation
  * \param nPhase the phase number to do
@@ -396,13 +384,6 @@ EXPORT Int16 CarryWater(welem_t x);
  */
 void endSimulation(void);
 
-#define	getScratch(i) (getWorldFlags(i) & SCRATCHBIT)
-#define	setScratch(i) orWorldFlags((i), SCRATCHBIT)
-#define	unsetScratch(i) andWorldFlags((i), (selem_t)~SCRATCHBIT)
-#define	clearScratch() { \
-	UInt32 XXX = 0; \
-	for (; XXX < MapMul(); XXX++) unsetScratch(XXX); \
-}
 
 #if defined(__cplusplus)
 }

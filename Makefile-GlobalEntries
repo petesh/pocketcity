@@ -10,7 +10,7 @@ build.h: zakdef.h sections.h compilerpragmas.h
 
 $(OBJDIR)/disaster.o: disaster.c disaster.h config.h handler.h drawing.h \
 	zakdef.h logging.h locking.h ui.h globals.h handler.h build.h \
-	disaster.h simulation.h
+	disaster.h simulation.h distribution.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 disaster.h: appconfig.h sections.h compilerpragmas.h

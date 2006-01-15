@@ -58,7 +58,7 @@ static const struct _bldStruct {
 	BuildF func;
 	/*! Type of the item (for buildcounts) */
 	welem_t type;
-	/*! Grids to update as a result of adding the item to the simulation */
+	/*! Grids to update as a result of adding the item */
 	UInt8 gridsToUpdate;
 } buildStructure[] = {
 	{ Be_Bulldozer, Build_Bulldoze, 0, GRID_ALL },

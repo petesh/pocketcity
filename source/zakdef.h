@@ -9,7 +9,12 @@
 #if !defined(_ZAKDEF_H_)
 #define	_ZAKDEF_H_
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <appconfig.h>
+#include <list.h>
 
 #define	PACKAGE	"pocketcity"
 
@@ -147,8 +152,6 @@
 #define	DEF_MILITARY_START	8
 /*! \brief index in object array that military units end at */
 #define	DEF_MILITARY_END	9
-
-
 
 /* Update codes for grids */
 /*! \brief code to say to update the power grid */
@@ -500,7 +503,6 @@ extern stat_to_value statvalues[];
 /*! \brief currently supported save game version */
 typedef GameStruct06	GameStruct;
 
-
 /*!
  * \brief volatile game structure
  *
@@ -514,6 +516,8 @@ typedef struct _vgame_struct {
 	UInt16	oldLoopSeconds;	/*!< last selected speed - for pause */
 	Int8	gameInProgress; /*!< is game progressing */
 	Int8	playing; /*!< is game in play (paused for dialogs etc.) */
+	list_t	*powers; /*!< list of power supplies */
+	list_t	*waters; /*!< list of water supplies */
 } vGameStruct;
 
 /*! \brief game visual entities related to the game, but not the simulation */
@@ -570,5 +574,9 @@ typedef appConfig_01_t AppConfig_t;
  * \return the month in a string
  */
 Char *getMonthString(UInt16 month, Char *string, UInt16 length);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif /* _ZAKDEF_H */

@@ -23,6 +23,7 @@
 #include <drawing.h>
 #include <globals.h>
 #include <build.h>
+#include <distribution.h>
 #include <simulation.h>
 #include <disaster.h>
 #include <compilerpragmas.h>
@@ -943,7 +944,7 @@ SetUpMainWindow(void)
 		gtk_ui_manager_insert_action_group(gum, act_group, 0);
 		gtk_ui_manager_add_ui_from_file(gum, gumfile, &err);
 		if (err != NULL) {
-			printf("ui could not be loaded: %s\n",
+			WriteLog("ui could not be loaded: %s\n",
 			    err->message);
 			exit(0);
 		}
@@ -952,10 +953,14 @@ SetUpMainWindow(void)
 		if (searchFile(gumfile)) {
 			gtk_ui_manager_add_ui_from_file(gum, gumfile, &err);
 			if (err != NULL) {
-				printf("ui could not be loaded: %s\n",
+				WriteLog("ui could not be loaded: %s\n",
 				    err->message);
 				exit(0);
 			}
+		} else {
+			WriteLog("ui file (%s) could not be found\n",
+			    gumfile);
+			exit(0);
 		}
 #endif
 		gtk_window_add_accel_group(GTK_WINDOW(mw.window),
@@ -967,10 +972,12 @@ SetUpMainWindow(void)
 		toolbox = gtk_ui_manager_get_widget(gum, "/buildtoolbar");
 		gtk_toolbar_set_style(GTK_TOOLBAR(toolbox),
 		  GTK_TOOLBAR_ICONS);
+	} else {
+		// XXX: Show error message
+		WriteLog("ui file (%s) could not be found\n", gumfile);
+		exit(0);
 	}
 
-	/* Toolbar */
-	//toolbox = setupToolBox();
 	headerbox = gtk_hbox_new(FALSE, 0);
 	playingbox = gtk_table_new(2, 2, FALSE);
 	footerbox = gtk_hbox_new(FALSE, 0);

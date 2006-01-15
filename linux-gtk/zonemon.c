@@ -15,6 +15,7 @@
 #include <simulation.h>
 #include <zonestrings.h>
 #include <uibits.h>
+#include <distribution.h>
 #include <localize.h>
 
 /*! \brief contents of the hover window */

@@ -14,6 +14,7 @@
 #include <gdk/gdk.h>
 #include <zakdef.h>
 #include <simulation.h>
+#include <distribution.h>
 #include <ui.h>
 #include <globals.h>
 #include <main.h>

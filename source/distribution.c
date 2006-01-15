@@ -27,20 +27,19 @@
 /*! \brief Structure for performing distribution */
 typedef struct _distrib {
 	carryfn_t	doescarry; /*!< Does the node carry the item */
-	/*! Is the node a supplier */
 	problem_t	error_flag; /*!< Error flag */
+	/*! Is the node a supplier */
 	Int16 (*isplant)(welem_t, UInt32, selem_t);
-	void *needSourceList; /*!< list of nodes that need to be powered */
-	void *unvisitedNodes; /*!< nodes that have not been visited */
+	dsObj *needSourceList; /*!< list of nodes that need to be powered */
+	dsObj *unvisitedNodes; /*!< nodes that have not been visited */
 	selem_t flagToSet; /*!< flag that is being set in this loop */
+	selem_t visited; /*!< visited flag */
 	Int16 SourceLeft; /*!< amount of source left */
 	Int16 SourceTotal; /*!< total source available */
 	Int16 NodesTotal; /*!< nodes visited */
 	Int16 NodesSupplied; /*!< nodes supplied */
 	Int16 ShortOrOut; /*!< was short or out of the chosen item */
 } distrib_t;
-
-static Int16 DistributeNumberOfSquaresAround(distrib_t *distrib, UInt32 pos);
 
 static UInt32 DistributeMoveOn(UInt32 pos, dirType direction);
 static void DistributeUnvisited(distrib_t *distrib);
@@ -68,8 +67,8 @@ static UInt8 ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what);
  *  |||| `----
  *  |||`------
  *  ||`-------
- *  |`--------
- *  `--------- 1 = Scratch / Visited
+ *  |`-------- 1 = Visited for Water
+ *  `--------- 1 = Visited for Power
  *
  * If you intend to use any of the free flags for any form of permanent state
  * then you need to alter the savegame code to add the bits that are being
@@ -154,11 +153,10 @@ SupplyIfPlant(distrib_t *distrib, UInt32 pos, welem_t point, selem_t status)
 	Int16 pt;
 	if (!(pt = distrib->isplant(point, pos, status)))
 		return (0);
-	if (getScratch(pos))
+	if (getWorldFlags(pos) & distrib->visited)
 		return (0);
 	distrib->NodesSupplied++;
-	orWorldFlags(point, distrib->flagToSet);
-	setScratch(pos);
+	orWorldFlags(point, distrib->flagToSet | distrib->visited);
 	distrib->NodesTotal++;
 	distrib->SourceLeft += pt;
 	distrib->SourceTotal += pt;
@@ -184,6 +182,7 @@ DoDistribute(Int16 grid)
 	/* type == GRID_POWER | GRID_POWER */
 	UInt32 i;
 	welem_t gw;
+	selem_t sw;
 	distrib_t *distrib = gMalloc(sizeof (distrib_t));
 
 	assert(distrib != NULL);
@@ -201,11 +200,13 @@ DoDistribute(Int16 grid)
 		distrib->isplant = &IsItAPowerPlant;
 		distrib->doescarry = &CarryPower;
 		distrib->flagToSet = POWEREDBIT;
+		distrib->visited = SCRATCHPOWER;
 		distrib->error_flag = peFineOnPower;
 	} else {
 		distrib->isplant = &IsItAUsableWaterPump;
 		distrib->doescarry = &CarryWater;
 		distrib->flagToSet = WATEREDBIT;
+		distrib->visited = SCRATCHWATER;
 		distrib->error_flag = peFineOnWater;
 	}
 
@@ -215,12 +216,12 @@ DoDistribute(Int16 grid)
 		if (distrib->doescarry(getWorld(i)))
 			andWorldFlags(i,
 			    (selem_t)~(distrib->flagToSet |
-				SCRATCHBIT | PAINTEDBIT));
+				distrib->visited | PAINTEDBIT));
 	}
 	for (i = 0; i < MapMul(); i++) {
-		gw = getWorld(i);
-		if (!getScratch(i)) {
-			if (SupplyIfPlant(distrib, i, gw, getWorldFlags(i))) {
+		getWorldAndFlag(i, &gw, &sw);
+		if (!(sw & distrib->visited)) {
+			if (SupplyIfPlant(distrib, i, gw, sw)) {
 				AddNeighbors(distrib, i);
 				DistributeUnvisited(distrib);
 				/* unpowered points are removed */
@@ -231,11 +232,10 @@ DoDistribute(Int16 grid)
 				    (int)distrib->NodesTotal,
 				    (int)distrib->SourceLeft,
 				    (int)distrib->SourceTotal);
-				if (distrib->SourceLeft < 25) {
+				if (distrib->SourceLeft < 25)
 					distrib->ShortOrOut |= SHORT_BIT;
-					if (distrib->SourceLeft == 0)
-						distrib->ShortOrOut |= OUT_BIT;
-				}
+				if (distrib->SourceLeft == 0)
+					distrib->ShortOrOut |= OUT_BIT;
 				distrib->SourceLeft = 0;
 				distrib->SourceTotal = 0;
 				distrib->NodesSupplied = 0;
@@ -292,48 +292,11 @@ DistributeUnvisited(distrib_t *distrib)
 		}
 
 		/* now, set the flags to indicate we've been here */
-		setScratch(pos);
+		orWorldFlags(pos, distrib->visited);
 
 nextneighbor:
 		/* find the possible ways we can move on from here */
 		AddNeighbors(distrib, pos);
-	}
-}
-
-/*!
- * \brief Add all the neighbors to this node to the unvisited list.
- * \param distrib the distribution structure
- * \param pos location of node on list
- */
-static void
-AddNeighbors(distrib_t *distrib, UInt32 pos)
-{
-	Int16 cross = DistributeNumberOfSquaresAround(distrib, pos);
-
-	/* if there's "no way out", return */
-	if ((cross & 0x0f) == 0)
-		return;
-
-	distrib->NodesTotal += cross & 0x0f;
-
-	if ((cross & 0x10) == 0x10) {
-		if (pos > getMapWidth())
-			StackPush(distrib->unvisitedNodes,
-			    (Int32)(pos - getMapWidth()));
-	}
-	if ((cross & 0x20) == 0x20) {
-		if ((pos + 1) < MapMul())
-			StackPush(distrib->unvisitedNodes,
-			    (Int32)(pos + 1));
-	}
-	if ((cross & 0x40) == 0x40) {
-		if ((pos + getMapWidth()) < MapMul())
-    		    StackPush(distrib->unvisitedNodes,
-			    (Int32)(pos + getMapWidth()));
-	}
-	if ((cross & 0x80) == 0x80) {
-		if (pos > 0)
-			StackPush(distrib->unvisitedNodes, (Int32)(pos - 1));
 	}
 }
 
@@ -346,54 +309,54 @@ AddNeighbors(distrib_t *distrib, UInt32 pos)
  * \param pos location of item.
  */
 static Int16
-Carries(Int16 (*doescarry)(welem_t), UInt32 pos)
+Carries(Int16 (*doescarry)(welem_t), UInt32 pos, selem_t statusbit)
 {
-	if (getScratch(pos))
+	welem_t world;
+	selem_t status;
+
+	getWorldAndFlag(pos, &world, &status);
+	if (statusbit & status)
 		return (0);
-	return (doescarry(getWorld(pos)));
+	return (doescarry(status));
 }
 
 /*!
- * \brief gives a status of the situation around us
- *
- * Checks all the nodes around this position to see if they should be
- * visited to supply them with the appropriate supply item.
- * 0001 00xx if up
- * 0010 00xx if right
- * 0100 00xx if down
- * 1000 00xx if left
- * xx = number of directions
- * \param distrib the distribution glob to use for searching
- * \param pos map location to perfrm distribution on.
- * \return fields & quantity in an overloaded array
+ * \brief Add all the neighbors to this node to the unvisited list.
+ * \param distrib the distribution structure
+ * \param pos location of node on list
  */
-static Int16
-DistributeNumberOfSquaresAround(distrib_t *distrib, UInt32 pos)
+static void
+AddNeighbors(distrib_t *distrib, UInt32 pos)
 {
-	Int16 retval = 0;
-	Int8 number = 0;
 	Int16 (*carries)(welem_t) = distrib->doescarry;
+	selem_t vis = distrib->visited;
+	Int8 number = 0;
 
-	if (Carries(carries, DistributeMoveOn(pos, dtUp))) {
-		retval |= 0x10;
+	if ((pos > getMapWidth()) &&
+	    Carries(carries, DistributeMoveOn(pos, dtUp), vis)) {
+		StackPush(distrib->unvisitedNodes,
+		    (Int32)(pos - getMapWidth()));
 		number++;
 	}
-	if (Carries(carries, DistributeMoveOn(pos, dtRight))) {
-		retval |= 0x20;
+	if ((pos + 1 < MapMul()) &&
+	    Carries(carries, DistributeMoveOn(pos, dtRight), vis)) {
+		StackPush(distrib->unvisitedNodes,
+		    (Int32)(pos + 1));
 		number++;
 	}
-	if (Carries(carries, DistributeMoveOn(pos, dtDown))) {
-		retval |= 0x40;
+	if ((pos + getMapWidth() < MapMul()) &&
+	    Carries(carries, DistributeMoveOn(pos, dtDown), vis)) {
+		StackPush(distrib->unvisitedNodes,
+		    (Int32)(pos + getMapWidth()));
 		number++;
 	}
-	if (Carries(carries, DistributeMoveOn(pos, dtLeft))) {
-		retval |= 0x80;
+	if ((pos > 0) && Carries(carries,
+	    DistributeMoveOn(pos, dtLeft), vis)) {
+		StackPush(distrib->unvisitedNodes, (Int32)(pos - 1));
 		number++;
 	}
 
-	retval |= number;
-
-	return (retval);
+	distrib->NodesTotal += number;
 }
 
 /*!

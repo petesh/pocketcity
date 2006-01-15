@@ -11,6 +11,7 @@
 #include <globals.h>
 #include <drawing.h>
 #include <simulation.h>
+#include <distribution.h>
 
 void
 InitGraphic(void)

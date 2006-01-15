@@ -19,6 +19,7 @@
 #include <build.h>
 #include <disaster.h>
 #include <simulation.h>
+#include <distribution.h>
 
 #if defined(PALM)
 #include <StringMgr.h>
@@ -180,12 +181,12 @@ UpdateDisasters(void)
 
 	LockZone(lz_world);
 	LockZone(lz_flags);
-	clearScratch();
+	clearScratch(SCRATCHDISASTER);
 	for (i = 0; i < getMapHeight(); i++) {
 		for (j = 0; j < getMapWidth(); j++) {
 			type = getWorld(WORLDPOS(i, j));
 			/* already looked at this one? */
-			if (getScratch(WORLDPOS(i, j)) == 0) {
+			if (getWorldFlags(WORLDPOS(i, j)) & SCRATCHDISASTER) {
 				if (type == Z_FIRE2) {
 					retval = 1;
 					if (GetRandomNumber(5) != 0) {
@@ -255,7 +256,7 @@ BurnField(UInt16 x, UInt16 y, Int16 forceit)
 	    ContainsDefence(x, y) == 0)) {
 		Build_Destroy(x, y);
 		setWorldAndFlag(WORLDPOS(x, y), Z_FIRE1, 1);
-		setScratch(WORLDPOS(x, y));
+		orWorldFlags(WORLDPOS(x, y), SCRATCHDISASTER);
 		DrawCross(x, y, 1, 1);
 		vgame.BuildCount[bc_fire]++;
 		rv = 1;
