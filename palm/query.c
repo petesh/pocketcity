@@ -18,6 +18,7 @@
 #include <simcity_resconsts.h>
 #include <zakdef.h>
 #include <simulation.h>
+#include <distribution.h>
 #include <globals.h>
 #include <mem_compat.h>
 
@@ -170,11 +171,11 @@ querySetup(void)
 	selem_t status;
 	Int16 valdens;
 
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 	getWorldAndFlag(GetPositionClicked(), &element, &status);
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 
 	form = FrmGetActiveForm();
 	temp = (Char *)MemPtrNew(255);

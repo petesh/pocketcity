@@ -11,13 +11,13 @@
 int
 main(int argc, char **argv)
 {
-	dsObj *obj = ListNew();
+	lsObj_t *obj = ListNew();
 	int i;
 
 	for (i = 0; i < 8192; i++) {
 		ListAdd(obj, i);
 	}
-	for (i = 8190; i < 8194; i++)
+	for (i = 8190; i < 8192; i++)
 		printf("%ld ", (long)ListGet(obj, i));
 	printf("\n");
 
@@ -27,22 +27,22 @@ main(int argc, char **argv)
 	for (i = 195; i < 205; i++)
 		printf("%ld ", (long)ListGet(obj, i));
 	printf("\n");
-	for (i = 8190; i < 8194; i++)
+	for (i = 8190; i < 8191; i++)
 		printf("%ld ", (long)ListGet(obj, i));
 	printf("\n");
 	ListInsert(obj, 200, 100);
 	for (i = 195; i < 205; i++)
 		printf("%ld ", (long)ListGet(obj, i));
 	printf("\n");
-	for (i = 8190; i < 8194; i++)
+	for (i = 8189; i < 8192; i++)
 		printf("%ld ", (long)ListGet(obj, i));
 	printf("\n");
 	ListInsert(obj, 9000, 100);
-	for (i = 8190; i < 8194; i++)
+	for (i = 8190; i < 8192; i++)
 		printf("%ld ", (long)ListGet(obj, i));
 	printf("\n");
 	ListInsert(obj, 8194, 200);
-	for (i = 8190; i < 8194; i++)
+	for (i = 8190; i < 8193; i++)
 		printf("%ld ", (long)ListGet(obj, i));
 	printf("\n");
 

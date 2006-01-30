@@ -15,7 +15,7 @@ extern "C" {
 /*!
  * \brief Application level initialization routines
  */
-EXPORT void PCityMain(void);
+EXPORT int PCityStartup(void);
 
 /*
  * \brief clean up any state that may be lying around

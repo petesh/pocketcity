@@ -26,12 +26,13 @@
 #include <stdlib.h>
 #endif
 
-void
-PCityMain(void)
+int
+PCityStartup(void)
 {
+	InitGameStruct();
 	InitWorld();
-	InitGraphic();
 	setLoopSeconds(SPEED_PAUSED);
+	return (InitializeGraphics());
 }
 
 void
@@ -39,16 +40,19 @@ setMapSize(UInt8 X, UInt8 Y)
 {
 	setMapVariables(X, Y);
 
-	LockZone(lz_world);
 	ResizeWorld(WorldSize());
-	UnlockZone(lz_world);
 	UIMapResize();
 }
+
+static void CleanupGameStruct(void);
 
 void
 PCityShutdown(void)
 {
 	endSimulation();
+	CleanupGraphics();
+	CleanupGameStruct();
+	PurgeWorld();
 }
 
 /*!
@@ -60,7 +64,20 @@ PCityShutdown(void)
 void
 InitGameStruct(void)
 {
-	memset((void *)&vgame, 0, sizeof (vgame));
+	/* vgame.mapmul =; set by setMapSize */
+	vgame.prior_credit = 0;
+	memset((void *)&vgame.BuildCount, 0, sizeof (vgame.BuildCount));
+	vgame.oldLoopSeconds = 0;
+	vgame.gameInProgress = 0;
+	vgame.playing = 0;
+	if (vgame.powers != NULL)
+		ListDoEmpty(vgame.powers);
+	else
+		vgame.powers = ListNew();
+	if (vgame.waters != NULL)
+		ListDoEmpty(vgame.waters);
+	else
+		vgame.waters = ListNew();
 	memset((void *)&game, 0, sizeof (game));
 	setGameVersion(SAVEGAMEVERSION);
 	AddGridUpdate(GRID_ALL);
@@ -76,6 +93,23 @@ InitGameStruct(void)
 	setTax(8);
 	// setLoopSeconds(SPEED_PAUSED);
 	SETAUTOBULLDOZE(1);
+}
+
+/*!
+ * \brief cleanup the game structure
+ * Makes sure that any data as part of the game structure has been released
+ */
+static void
+CleanupGameStruct(void)
+{
+	if (vgame.powers != NULL) {
+		ListDelete(vgame.powers);
+		vgame.powers = NULL;
+	}
+	if (vgame.waters != NULL) {
+		ListDelete(vgame.waters);
+		vgame.waters = NULL;
+	}
 }
 
 /*!
@@ -130,6 +164,8 @@ PostLoadGame(void)
 	AddGridUpdate(GRID_ALL);
 	UIMapResize();
 	UIPostLoadGame();
+	MapHasJumped();
 	setGameInProgress(1);
+	DrawGame(1);
 	ResumeGame();
 }

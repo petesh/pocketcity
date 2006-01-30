@@ -42,6 +42,8 @@ static Int16 FindScoreForZones(void);
 static void IncreaseDesire(desire_elt element);
 static void DecreaseDesire(desire_elt element);
 
+static void CheckMoney(void);
+
 /* Zones upgrade/downgrade */
 
 /*! \brief Zone scores */
@@ -110,13 +112,13 @@ FindScoreForZones(void)
 
 	counter += 20;
 
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 
 	for (i = counter - 20; i < (Int16)counter; i++) {
 		if (i >= at_pos) {
 			counter = 0;
-			UnlockZone(lz_world);
+			zone_unlock(lz_world);
 			return (0);
 		}
 		score = GetZoneScore((UInt32)ran_zone[i].pos);
@@ -131,8 +133,8 @@ FindScoreForZones(void)
 			ran_zone[i].pos = -1;
 		}
 	}
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 	return (1); /* there's still more zones that need a score. */
 }
 
@@ -210,8 +212,8 @@ DowngradeZone(UInt32 pos)
 	UInt16 xpos = (UInt16)(pos % getMapWidth());
 	UInt16 ypos = (UInt16)(pos / getMapWidth());
 
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 	type = getWorld(pos);
 	ntype = type;
 	if (IsCommercial(type) && type != Z_COMMERCIAL_SLUM) {
@@ -239,8 +241,8 @@ DowngradeZone(UInt32 pos)
 		DrawFieldWithoutInit(xpos, ypos);
 	}
 
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 }
 
 /*
@@ -254,8 +256,8 @@ UpgradeZone(UInt32 pos)
 	UInt16 xpos = (UInt16)(pos % getMapWidth());
 	UInt16 ypos = (UInt16)(pos / getMapWidth());
 
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 	type = getWorld(pos);
 	ntype = type;
 	if (IsCommercial(type) && type < Z_COMMERCIAL_MAX) {
@@ -283,8 +285,8 @@ UpgradeZone(UInt32 pos)
 		DrawFieldWithoutInit(xpos, ypos);
 	}
 
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 }
 
 /*!
@@ -316,8 +318,8 @@ GetZoneScore(UInt32 pos)
 	zoneType type;
 	UInt8 zone;
 
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 	zone = getWorld(pos);
 	type = (IsZone(zone, ztCommercial) ? ztCommercial :
 	    (IsZone(zone, ztResidential) ? ztResidential : ztIndustrial));
@@ -428,8 +430,8 @@ GetZoneScore(UInt32 pos)
 	WriteLog("score: %d\n", score);
 
 unlock_ret:
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 	return (score);
 }
 
@@ -508,19 +510,19 @@ GetRandomZone(void)
 	UInt16 i;
 	UInt8 type;
 
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 	for (i = 0; i < 5; i++) { /* try five times to hit a valid zone */
 		pos = GetRandomNumber(MapMul());
 		type = getWorld(pos);
 		if (IsGrowable(type)) {
-			UnlockZone(lz_world);
+			zone_unlock(lz_world);
 			return ((Int32)pos);
 		}
 	}
 
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 	return (-1);
 }
 
@@ -712,7 +714,7 @@ Sim_DoPhase(Int16 nPhase)
 		addGraphicUpdate(gu_credits);
 		addGraphicUpdate(gu_population);
 		addGraphicUpdate(gu_desires);
-		UICheckMoney();
+		CheckMoney();
 		DoUpkeep();
 		break;
 	}
@@ -725,8 +727,11 @@ UpdateVolatiles(void)
 {
 	UInt32 p;
 
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
+
+	ListDoEmpty(vgame.powers);
+	ListDoEmpty(vgame.waters);
 
 	for (p = 0; p < MapMul(); p++) {
 		UInt8 elt = getWorld(p);
@@ -734,7 +739,8 @@ UpdateVolatiles(void)
 		/* Gahd this is terrible. I need to fix it. */
 		if (IsCommercial(elt)) {
 			vgame.BuildCount[bc_count_commercial]++;
-			vgame.BuildCount[bc_value_commercial] += ZoneValue(elt);
+			vgame.BuildCount[bc_value_commercial] +=
+			    ZoneValue(elt);
 		}
 		if (IsResidential(elt)) {
 			vgame.BuildCount[bc_count_residential]++;
@@ -743,7 +749,8 @@ UpdateVolatiles(void)
 		}
 		if (IsIndustrial(elt)) {
 			vgame.BuildCount[bc_count_industrial]++;
-			vgame.BuildCount[bc_value_industrial] += ZoneValue(elt);
+			vgame.BuildCount[bc_value_industrial] +=
+			    ZoneValue(elt);
 		}
 		if (IsRoad(elt)) {
 			vgame.BuildCount[bc_count_roads]++;
@@ -762,10 +769,14 @@ UpdateVolatiles(void)
 		}
 		if (IsPowerLine(elt))
 			vgame.BuildCount[bc_powerlines]++;
-		if (elt == Z_COALPLANT)
+		if (elt == Z_COALPLANT) {
 			vgame.BuildCount[bc_coalplants]++;
-		if (elt == Z_NUCLEARPLANT)
+			StackPush(vgame.powers, p);
+		}
+		if (elt == Z_NUCLEARPLANT) {
 			vgame.BuildCount[bc_nuclearplants]++;
+			StackPush(vgame.powers, p);
+		}
 		if (elt == Z_WASTE) vgame.BuildCount[bc_waste]++;
 		if (elt >= Z_FIRE1 && elt <= Z_FIRE3)
 			vgame.BuildCount[bc_fire]++;
@@ -786,11 +797,13 @@ UpdateVolatiles(void)
 			vgame.BuildCount[bc_waterpipes]++;
 			vgame.BuildCount[bc_powerlines]++;
 		}
-		if (IsPump(elt))
+		if (IsPump(elt)) {
 			vgame.BuildCount[bc_waterpumps]++;
+			StackPush(vgame.waters, p);
+		}
 	}
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 }
 
 /*!
@@ -1134,4 +1147,17 @@ DecreaseDesire(desire_elt element)
 	Int16 oldes = GG.desires[element];
 	if (oldes > -INT16_MAX)
 		GG.desires[element] = oldes--;
+}
+
+/*!
+ * \brief check the money situation
+ * Posts messages if the level has reached low/out situations
+ */
+void
+CheckMoney(void)
+{
+	if (getCredits() == 0)
+		UIProblemNotify(peOutOfMoney);
+	else if (getCredits() <= 1000)
+		UIProblemNotify(peLowOnMoney);
 }

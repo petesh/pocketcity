@@ -145,7 +145,7 @@ hMap(EventPtr event)
 		break;
 	case popSelectEvent:
 		if (event->data.popSelect.controlID == listID_shifter_popup) {
-			UIGotoForm(event->data.popSelect.selection);
+			GotoForm(event->data.popSelect.selection);
 			handled = true;
 		}
 		break;
@@ -234,7 +234,7 @@ RenderMaps(void)
 		return;
 	}
 
-	LockZone(lz_world);
+	zone_lock(lz_world);
 
 	swh = WinSetDrawWindow(wh);
 	WinSetDrawWindow(swh);
@@ -347,7 +347,7 @@ RenderMaps(void)
 		}
 	}
 	AddMap(wh, mt_fullpaint, me_basemap);
-	UnlockZone(lz_world);
+	zone_unlock(lz_world);
 }
 
 void

@@ -22,8 +22,6 @@
 #define	TSTR	'tSTR'
 #define	SGNAME  "Pocket City Saves"
 
-extern char *worldPtr;
-
 UInt32 GetPositionClicked(void);
 
 void Clear35ROM(void);
@@ -40,5 +38,7 @@ UInt16 IsScaleModes(void);
 
 void clearProblemFlags(void);
 void ResGetString(UInt16 index, char *string, UInt16 length);
+
+void GotoForm(Int16 n);
 
 #endif

@@ -6,7 +6,7 @@ include ../Makefile-GlobalEntries
 
 # Platform specific files:
 
-OBJECTS := $(OBJECTS_CARELESS) stack.o simcity.o \
+OBJECTS := $(OBJECTS_CARELESS) simcity.o \
 	HiRes.o palmutils.o \
 	palm_locking.o beam.o \
 	sony_support.o mem_compat.o pocketcity-sections.o \
@@ -203,9 +203,6 @@ sony_support.h: sections.h
 
 $(OBJDIR)/sony_support.o: sony_support.c sony_support.h resCompat.h \
 	palmutils.h logging.h
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(OBJDIR)/stack.o: stack.c stack.h mem_compat.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 #

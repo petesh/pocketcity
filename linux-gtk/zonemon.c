@@ -50,11 +50,11 @@ hoverUpdate(UInt16 xpos, UInt16 ypos, int force)
 	if (ttg.win == NULL)
 		return;
 
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 	getWorldAndFlag(WORLDPOS(xpos, ypos), &world, &status);
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 
 	if ((ttg.old_xpos == xpos) && (ttg.old_ypos == ypos))
 		if (!force)

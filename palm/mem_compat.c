@@ -9,9 +9,8 @@
 #include <PalmTypes.h>
 #include <MemoryMgr.h>
 
-#include <mem_compat.h>
-
 #if defined(MEM_DEBUG)
+
 MemPtr
 _MemPtrNew(UInt32 size, char *file, int line)
 {
@@ -78,6 +77,7 @@ _MemPtrFree(MemPtr mp, char *file, int line)
 	return (err);
 }
 #endif
+
 #include <mem_compat.h>
 
 /*!

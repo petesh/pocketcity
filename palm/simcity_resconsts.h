@@ -140,6 +140,7 @@
 #define	alertID_outPower	1014
 #define	alertID_lowWater	1015
 #define	alertID_outWater	1016
+#define	alertID_unknownBuildItem	1017
 
 #define	st_disasters			2000
 

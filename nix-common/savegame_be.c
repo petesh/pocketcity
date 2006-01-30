@@ -27,9 +27,11 @@
 #include <pack.h>
 #include <handler.h>
 #include <logging.h>
+#include <locking.h>
 #include <simulation.h>
 #include <mem_compat.h>
 #include <stringsearch.h>
+#include <ui.h>
 
 /*
 static Int8
@@ -138,7 +140,7 @@ read_palmstructure(unsigned char *mem, GameStruct *new,
 	size_t map_size;
 	UInt32 foo;
 
-	printf("starting from: %p\n", mem);
+	WriteLog("palmstructure starting from: %p\n", mem);
 	bzero(new, sizeof (*new));
 
 	/* savegame identifier */
@@ -168,7 +170,7 @@ read_palmstructure(unsigned char *mem, GameStruct *new,
 	mem = mapm_int16(mem, (unsigned char *)&new->desires[de_residential]);
 	mem = mapm_int16(mem, (unsigned char *)&new->desires[de_commercial]);
 	mem = mapm_int16(mem, (unsigned char *)&new->desires[de_industrial]);
-	printf("stats starting at %p\n", mem);
+	WriteLog("stats starting at %p\n", mem);
 	i = 0;
 	while (i < st_tail) {
 		for (j = 0; j < STATS_COUNT; j++) {
@@ -181,7 +183,7 @@ read_palmstructure(unsigned char *mem, GameStruct *new,
 		}
 		i++;
 	}
-	printf("units starting at %p\n", mem);
+	WriteLog("units starting at %p\n", mem);
 	i = 0;
 	while (i < NUM_OF_UNITS) {
 		mem = mapm_int16(mem, (unsigned char *)&new->units[i].x);
@@ -190,7 +192,7 @@ read_palmstructure(unsigned char *mem, GameStruct *new,
 		mem = mapm_int16(mem, (unsigned char *)&new->units[i].type);
 		i++;
 	}
-	printf("objects starting at %p\n", mem);
+	WriteLog("objects starting at %p\n", mem);
 	i = 0;
 	while (i < NUM_OF_OBJECTS) {
 		mem = mapm_int16(mem, (unsigned char *)&new->objects[i].x);
@@ -200,20 +202,22 @@ read_palmstructure(unsigned char *mem, GameStruct *new,
 		i++;
 	}
 	mem = mapm_int32(mem, (unsigned char *)&foo);
-	printf("%lx\n", (long)foo);
+	WriteLog("guard: %lx\n", (long)foo);
 	map_size = sizeof (welem_t) * new->mapx * new->mapy;
 	ptr = calloc(map_size, 1);
 	*map = ptr;
-	printf("map starting from: %p for [0x%x]%d\n", mem, map_size, map_size);
+	WriteLog("map starting from: %p for [0x%x]%d\n", mem, map_size,
+	    map_size);
 	bcopy(mem, *map, new->mapx * new->mapy);
 	mem += new->mapx * new->mapy;
 	mem = mapm_int32(mem, (unsigned char *)&foo);
-	printf("%lx\n", (long)foo);
-	printf("status starting from: %p\n", mem);
+	WriteLog("guard: %lx\n", (long)foo);
+	WriteLog("status starting from: %p\n", mem);
 	map_size = sizeof (selem_t) * new->mapx * new->mapy;
 	ptr = calloc(map_size, 1);
 	*flags = ptr;
 	UnpackBits(mem, ptr, 2, new->mapx * new->mapy);
+	WriteLog("palmstructure ended\n");
 	return (mem);
 }
 
@@ -362,8 +366,10 @@ savegame_close(savegame_t *sg)
 	int index;
 
 	for (index = 0; index < sg->gamecount; index++) {
-		free(sg->games[index].world);
-		free(sg->games[index].flags);
+		if (sg->games[index].world)
+			free(sg->games[index].world);
+		if (sg->games[index].flags)
+			free(sg->games[index].flags);
 	}
 	free(sg->games);
 	free(sg);
@@ -393,6 +399,24 @@ savegame_getcity(savegame_t *sg, int item, GameStruct *gs, char **map,
 	*flags = (char *)realloc(*flags, newl);
 	bcopy(sg->games[item].flags, *flags, newl);
 	return (0);
+}
+
+void
+savegame_gametransfer(char *map, char *flags, int dofree)
+{
+	if ((NULL != map) && (NULL != flags)) {
+		setMapSize(getMapWidth(), getMapHeight());
+		zone_lock(lz_world);
+		bcopy(worldPtr, map, zone_size(lz_world));
+		zone_unlock(lz_world);
+		zone_lock(lz_flags);
+		bcopy(flagPtr, flags, zone_size(lz_flags));
+		zone_unlock(lz_flags);
+		if (dofree) {
+			free(map);
+			free(flags);
+		}
+	}
 }
 
 int
@@ -466,44 +490,9 @@ save_filename(char *sel, GameStruct *gs, char *world, char *flags)
 		perror("open"); /* TODO: make this nicer */
 		return (-1);
 	}
-	
+
 	write_palmstructure(gs, world, flags, fd);
-	/*
-	ret = write(fd, (void*)gs, sizeof (GameStruct));
-	if (ret == -1) {
-		perror("write game"); / * TODO: make this nicer * /
-		return (-1);
-	} else if (ret != sizeof (GameStruct)) {
-		WriteLog("Whoops, couldn't write full length of game\n");
-		return (-1);
-	}
 
-	/ * and now the great worldPtr :D * /
-	ret = write(fd, (void*)world, (size_t)worldsize);
-	if (ret == -1) {
-		perror("write world"); / * TODO: make this nicer * /
-		return (-1);
-	} else if (ret != worldsize) {
-		WriteLog("Whoops, couldn't write full length of world\n");
-		return (-1);
-	}
-
-	compres_size = (gs->mapx * gs->mapy +  (sizeof (selem_t))) /
-	    (sizeof (selem_t) / 2);
-	nbuf = malloc(compres_size);
-	PackBits(worldFlags, nbuf, 2, gs->mapx * gs->mapy);
-	ret = write(fd, (void *)nbuf, (size_t)compres_size);
-	if (ret == -1) {
-		perror("write world flags"); / * TODO: make this nicer * /
-		free(nbuf);
-		return (-1);
-	} else if (ret != compres_size) {
-		WriteLog("Whoops, couldn't write the full length of world\n");
-		free(nbuf);
-		return (-1);
-	}
-	free(nbuf);
-	*/
 	if (close(fd) == -1) {
 		perror("close"); /* TODO: make this nicer */
 		return (-1);

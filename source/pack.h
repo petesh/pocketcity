@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-#include <appconfig.h>
+#include <config.h>
 #include <sections.h>
 
 void PackBits(void *src, void *dest, UInt8 nbits, UInt32 count) PACK_SECTION;

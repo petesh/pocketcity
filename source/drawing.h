@@ -15,7 +15,10 @@ extern "C" {
 #include <compilerpragmas.h>
 
 /*! \brief initialize the graphics. */
-void InitGraphic(void);
+EXPORT int InitializeGraphics(void);
+
+/*! \brief cleanup the graphics. */
+EXPORT void CleanupGraphics(void);
 
 /*!
  * \brief Draw everything on the screen.
@@ -97,6 +100,11 @@ typedef enum { goto_plain = 0, goto_center } goto_code;
  * \param center should I center on this location?
  */
 EXPORT void Goto(UInt16 x, UInt16 y, goto_code center);
+
+/*!
+ * mark the world as unpainted
+ */
+EXPORT void UnpaintWorld(void);
 
 #if defined(__cplusplus)
 }

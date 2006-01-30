@@ -14,28 +14,6 @@
 	#pragma pack(2)
 #endif
 
-#if !defined(LP64)
-/*!
- * This is the Byte data type. assume ILP32 ... terrible, I know
- */
-typedef unsigned char Byte;
-
-/*! \brief Int8 data type to correspond to palm data type */
-typedef signed char Int8;
-/*! \brief Char data type to correspond to palm data type */
-typedef char Char;
-/*! \brief UInt8 data type to correspond to palm data type */
-typedef unsigned char UInt8;
-/*! \brief Int16 data type to correspond to palm data type */
-typedef signed short Int16;
-/*! \brief UInt16 data type to correspond to palm data type */
-typedef unsigned short UInt16;
-/*! \brief Int32 data type to correspond to palm data type */
-typedef signed int Int32;
-/*! \brief UInt32 data type to correspond to palm data type */
-typedef unsigned int UInt32;
-#endif
-
 /*! \brief the unix application configuration */
 typedef struct _NixAppConfig_01 {
     int         window_x;	/*!< horizontal window size */

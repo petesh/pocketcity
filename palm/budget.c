@@ -134,7 +134,7 @@ hBudget(EventPtr event)
 		break;
 	case popSelectEvent:
 		if (event->data.popSelect.controlID == listID_shifter_popup) {
-			UIGotoForm(event->data.popSelect.selection);
+			GotoForm(event->data.popSelect.selection);
 			handled = true;
 		}
 		break;

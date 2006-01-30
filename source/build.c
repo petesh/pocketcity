@@ -30,9 +30,14 @@ static int Build_PowerLine(UInt16 xpos, UInt16 ypos, welem_t type)
 	BUILD_SECTION;
 static int Build_WaterPipe(UInt16 xpos, UInt16 ypos, welem_t type)
 	BUILD_SECTION;
-static int Build_Generic(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
-static int Build_Generic4(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
-static int Build_Defence(UInt16 xpos, UInt16 ypos, welem_t type) BUILD_SECTION;
+static int Build_Generic(UInt16 xpos, UInt16 ypos, welem_t type)
+    BUILD_SECTION;
+static int Build_Generic4(UInt16 xpos, UInt16 ypos, welem_t type)
+    BUILD_SECTION;
+static int Build_Plant(UInt16 xpos, UInt16 ypos, welem_t type)
+    BUILD_SECTION;
+static int Build_Defence(UInt16 xpos, UInt16 ypos, welem_t type)
+    BUILD_SECTION;
 
 static void CreateForest(UInt32 pos, UInt16 size) BUILD_SECTION;
 static void RemoveDefence(UInt16 xpos, UInt16 ypos) BUILD_SECTION;
@@ -67,8 +72,8 @@ static const struct _bldStruct {
 	{ Be_Zone_Industrial, Build_Generic, Z_INDUSTRIAL_SLUM, GRID_ALL},
 	{ Be_Road, Build_Road, 0, 0 },
 	{ Be_Rail, Build_Rail, 0, 0 },
-	{ Be_Power_Plant, Build_Generic4, Z_COALPLANT, GRID_ALL },
-	{ Be_Nuclear_Plant, Build_Generic4, Z_NUCLEARPLANT, GRID_ALL },
+	{ Be_Power_Plant, Build_Plant, Z_COALPLANT, GRID_ALL },
+	{ Be_Nuclear_Plant, Build_Plant, Z_NUCLEARPLANT, GRID_ALL },
 	{ Be_Power_Line, Build_PowerLine, 0, GRID_ALL },
 	{ Be_Water_Pump, Build_Generic, Z_PUMP, GRID_ALL },
 	{ Be_Water_Pipe, Build_WaterPipe, 0, GRID_WATER },
@@ -99,7 +104,7 @@ BuildSomething(UInt16 xpos, UInt16 ypos)
 	struct _bldStruct *be;
 
 	if (item >= BS_LEN) {
-		UIDisplayError1("Unknown Build Item");
+		UISystemErrorNotify(seUnknownBuildItem);
 		return (0);
 	}
 	be = (struct _bldStruct *)&(buildStructure[item]);
@@ -109,9 +114,9 @@ BuildSomething(UInt16 xpos, UInt16 ypos)
 
 	if (be->func(xpos, ypos, be->type)) {
 		welem_t elt;
-		LockZone(lz_world);
+		zone_lock(lz_world);
 		elt = GetGraphicNumber(WORLDPOS(xpos, ypos));
-		UnlockZone(lz_world);
+		zone_unlock(lz_world);
 		AddGridUpdate(be->gridsToUpdate);
 		UIPaintMapField(xpos, ypos, elt);
 		UIPaintMapStatus(xpos, ypos, elt, 0);
@@ -262,11 +267,11 @@ Build_Defence(UInt16 xpos, UInt16 ypos, welem_t type)
 	game.units[sel].active = newactive;
 	game.units[sel].type = (DefenceUnitTypes)type;
 
-	LockZone(lz_world);
+	zone_lock(lz_world);
 	rv = 1;
 	DrawCross(oldx, oldy, 1, 1);
 	DrawCross(xpos, ypos, 1, 1);
-	UnlockZone(lz_world);
+	zone_unlock(lz_world);
 	return (rv);
 }
 
@@ -294,12 +299,13 @@ blockSize(welem_t type)
 }
 
 int
-Build_Bulldoze(UInt16 xpos, UInt16 ypos, welem_t _type __attribute__((unused)))
+Build_Bulldoze(UInt16 xpos, UInt16 ypos,
+    welem_t _type __attribute__((unused)))
 {
 	int rv = 0;
 	welem_t type;
 
-	LockZone(lz_world);
+	zone_lock(lz_world);
 	type = getWorld(WORLDPOS(xpos, ypos));
 
 	WriteLog("BuildBulldoze(type=%d)\n", (int)type);
@@ -314,7 +320,7 @@ Build_Bulldoze(UInt16 xpos, UInt16 ypos, welem_t _type __attribute__((unused)))
 		UIProblemNotify(peOutOfMoney);
 	}
 end:
-	UnlockZone(lz_world);
+	zone_unlock(lz_world);
 	return (rv);
 }
 
@@ -336,13 +342,15 @@ void
 Build_Destroy(UInt16 xpos, UInt16 ypos)
 {
 	welem_t type;
-	/* Destroy a 1x1 square area */
+	/* Destroy a 1x1 square area by default */
 	UInt16 x_destroy = 1;
 	UInt16 tx_destroy = 1;
 	UInt16 y_destroy = 1;
 	UInt16 ty_destroy = 1;
+	lsObj_t *affected = NULL;
+	UInt32 pos = WORLDPOS(xpos, ypos);
 
-	type = getWorld(WORLDPOS(xpos, ypos));
+	type = getWorld(pos);
 	RemoveDefence(xpos, ypos);
 
 	if (IsCommercial(type)) {
@@ -382,6 +390,8 @@ Build_Destroy(UInt16 xpos, UInt16 ypos)
 		x_destroy = 2;
 		y_destroy = 2;
 		Doff(Z_COALPLANT_START, type, &xpos, &ypos);
+		pos = WORLDPOS(xpos, ypos);
+		affected = vgame.powers;
 		goto finish;
 	}
 	if (IsNukePlant(type)) {
@@ -389,6 +399,8 @@ Build_Destroy(UInt16 xpos, UInt16 ypos)
 		x_destroy = 2;
 		y_destroy = 2;
 		Doff(Z_NUCLEARPLANT_START, type, &xpos, &ypos);
+		pos = WORLDPOS(xpos, ypos);
+		affected = vgame.powers;
 		goto finish;
 	}
 	if (IsFireStation(type)) {
@@ -396,6 +408,7 @@ Build_Destroy(UInt16 xpos, UInt16 ypos)
 		x_destroy = 2;
 		y_destroy = 2;
 		Doff(Z_FIRESTATION_START, type, &xpos, &ypos);
+		pos = WORLDPOS(xpos, ypos);
 		goto finish;
 	}
 	if (IsPoliceDept(type)) {
@@ -403,6 +416,7 @@ Build_Destroy(UInt16 xpos, UInt16 ypos)
 		x_destroy = 2;
 		y_destroy = 2;
 		Doff(Z_POLICEDEPT_START, type, &xpos, &ypos);
+		pos = WORLDPOS(xpos, ypos);
 		goto finish;
 	}
 	if (IsArmyBase(type)) {
@@ -410,10 +424,12 @@ Build_Destroy(UInt16 xpos, UInt16 ypos)
 		x_destroy = 2;
 		y_destroy = 2;
 		Doff(Z_ARMYBASE_START, type, &xpos, &ypos);
+		pos = WORLDPOS(xpos, ypos);
 		goto finish;
 	}
 	if (IsPump(type)) {
 		vgame.BuildCount[bc_waterpumps]--;
+		affected = vgame.waters;
 		goto finish;
 	}
 
@@ -466,11 +482,23 @@ Build_Destroy(UInt16 xpos, UInt16 ypos)
 finish:
 	AddGridUpdate(GRID_ALL);
 
-	LockZone(lz_flags);
+	zone_lock(lz_flags);
+
+	if (affected != NULL) {
+		UInt32 llen = ListNElements(affected);
+		UInt32 i;
+
+		for (i = 0; i < llen; i++) {
+			if ((UInt32)ListGet(affected, i) == pos) {
+				ListRemove(affected, i);
+				break;
+			}
+		}
+	}
 
 	if (IsRoadBridge(type) || IsRailTunnel(type) || IsRealWater(type)) {
-		/* A bridge turns into real_water when detroyed */
-		setWorldAndFlag(WORLDPOS(xpos, ypos), Z_REALWATER, 0);
+		/* A bridge turns into real_water when destroyed */
+		setWorldAndFlag(pos, Z_REALWATER, 0);
 	} else {
 		if ((x_destroy != 1) || (y_destroy != 1)) {
 			ty_destroy = y_destroy;
@@ -485,12 +513,12 @@ finish:
 				ty_destroy--;
 			}
 		} else {
-			setWorldAndFlag(WORLDPOS(xpos, ypos), Z_DIRT, 0);
+			setWorldAndFlag(pos, Z_DIRT, 0);
 		}
 	}
 
 	DrawCross(xpos, ypos, x_destroy, y_destroy);
-	UnlockZone(lz_flags);
+	zone_unlock(lz_flags);
 }
 
 /*! \brief Mapping of zone to cost of building on a zone */
@@ -536,27 +564,30 @@ IsBulldozable(welem_t zone)
  * \param xpos the xposition to build the item at
  * \param ypos the yposition to build the item at
  * \param type type of item to be built
+ * \param add the list of suppliers to add to
  */
 static int
-Build_Generic4(UInt16 xpos, UInt16 ypos, welem_t type)
+Build_Generic4_add(UInt16 xpos, UInt16 ypos, welem_t type, lsObj_t *add)
 {
-	unsigned char worldItem;
+	welem_t worldItem;
 	unsigned long toSpend = 0;
 	UInt16 loopx, loopy;
 	Int8 canbuild = 1;
 	int rv = 0;
-
 	struct _costMappings *cmi = (struct _costMappings *)getIndexOf(
 	    (char *)&genericMappings[0], sizeof (genericMappings[0]), type);
+
+#if defined (DEBUG)
 #ifdef PALM
 	ErrFatalDisplayIf(cmi == NULL, "No generic->item mapping");
 #else
 	assert(cmi != NULL);
 #endif
+#endif
 	if (cmi == NULL)
 		return (rv);
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 
 	toSpend = cmi->cost;
 
@@ -572,8 +603,8 @@ Build_Generic4(UInt16 xpos, UInt16 ypos, welem_t type)
 		}
 	}
 	if (!canbuild) {
-		LockZone(lz_flags);
-		UnlockZone(lz_world);
+		zone_lock(lz_flags);
+		zone_unlock(lz_world);
 		return (rv);
 	}
 
@@ -586,15 +617,46 @@ Build_Generic4(UInt16 xpos, UInt16 ypos, welem_t type)
 
 		if (cmi->count != -1)
 			vgame.BuildCount[cmi->count]++;
+		if (add != NULL)
+			ListAdd(add, WORLDPOS(xpos, ypos));
 
 		DrawCross(xpos, ypos, 2, 2);
 		rv = 1;
 	} else {
 		UIProblemNotify(peOutOfMoney);
 	}
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 	return (rv);
+}
+
+/*!
+ * \brief built a generic 4 block item that doesn't affect the power
+ * \param xpos the x position on the map
+ * \param ypos the y position on the map
+ * \param type the type of item to build
+ * \return success or failure condition
+ */
+static int
+Build_Generic4(UInt16 xpos, UInt16 ypos, welem_t type)
+{
+	return (Build_Generic4_add(xpos, ypos, type, NULL));
+}
+
+/*!
+ * \brief Build a power plant / water pump
+ *
+ * type to build is based on the type passed in
+ * \param xpos the xposition to build the item at
+ * \param ypos the yposition to build the item at
+ * \param type type of item to be built
+ */
+static int
+Build_Plant(UInt16 xpos, UInt16 ypos, welem_t type)
+{
+	lsObj_t *add = vgame.powers;
+
+	return (Build_Generic4_add(xpos, ypos, type, add));
 }
 
 /*!
@@ -611,35 +673,38 @@ Build_Generic(UInt16 xpos, UInt16 ypos, welem_t type)
 	welem_t worldItem;
 	UInt32 toSpend = 0;
 	int rv = 0;
+	UInt32 pos = WORLDPOS(xpos, ypos);
 
 	struct _costMappings *cmi = (struct _costMappings *)getIndexOf(
 	    (char *)&genericMappings[0], sizeof (genericMappings[0]), type);
+#if defined(DEBUG)
 #ifdef PALM
 	ErrFatalDisplayIf(cmi == NULL, "No generic->item mapping");
 #else
 	assert(cmi != NULL);
 #endif
+#endif
 	if (cmi == NULL)
 		return (rv);
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 
 	toSpend = cmi->cost;
 
-	worldItem = getWorld(WORLDPOS(xpos, ypos));
+	worldItem = getWorld(pos);
 
+	/* Don't build trees over trees (auto bulldoze) */
 	if ((type == Z_FAKETREE) && ((worldItem == Z_REALTREE) ||
 		    (worldItem == Z_FAKETREE))) {
-		UnlockZone(lz_world);
-		UnlockZone(lz_flags);
+		zone_unlock(lz_world);
+		zone_unlock(lz_flags);
 		return (rv);
 	}
 
 	if (IsBulldozable(worldItem)) {
 		if (worldItem == Z_REALTREE) toSpend += BUILD_COST_BULLDOZER;
 		if (SpendMoney(toSpend)) {
-			setWorldAndFlag(WORLDPOS(xpos, ypos),
-			    (welem_t)type, 0);
+			setWorldAndFlag(pos, (welem_t)type, 0);
 			DrawCross(xpos, ypos, 1, 1);
 
 			/*  update counter */
@@ -648,14 +713,16 @@ Build_Generic(UInt16 xpos, UInt16 ypos, welem_t type)
 			} else {
 				if (cmi->count != -1)
 					vgame.BuildCount[cmi->count]++;
+				if (IsPump(type))
+					ListAdd(vgame.waters, pos);
 			}
 			rv = 1;
 		} else {
 			UIProblemNotify(peOutOfMoney);
-			}
+		}
 	}
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 	return (rv);
 }
 
@@ -674,8 +741,8 @@ Build_Road(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 	UInt32 toSpend = 0;
 	int rv = 0;
 
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 	old = getWorld(WORLDPOS(xpos, ypos));
 	toSpend = BUILD_COST_ROAD;
 	if (IsPowerLine(old) || IsWaterPipe(old) || IsRail(old)) {
@@ -767,8 +834,8 @@ success_build:
 		}
 	}
 leaveme:
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 	return (rv);
 }
 
@@ -787,8 +854,8 @@ Build_Rail(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 	UInt32 toSpend = 0;
 	int rv = 0;
 
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 	old = getWorld(WORLDPOS(xpos, ypos));
 	toSpend = BUILD_COST_RAIL;
 	if (IsPowerLine(old) || IsWaterPipe(old) || IsRoad(old)) {
@@ -882,8 +949,8 @@ success_build:
 		}
 	}
 leaveme:
-	UnlockZone(lz_world);
-	UnlockZone(lz_flags);
+	zone_unlock(lz_world);
+	zone_unlock(lz_flags);
 	return (rv);
 }
 
@@ -902,8 +969,8 @@ Build_PowerLine(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 	UInt32 toSpend = 0;
 	int rv = 0;
 
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 
 	old = getWorld(WORLDPOS(xpos, ypos));
 	toSpend = BUILD_COST_POWER_LINE;
@@ -953,8 +1020,8 @@ Build_PowerLine(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 		}
 	}
 leaveme:
-	UnlockZone(lz_world);
-	UnlockZone(lz_flags);
+	zone_unlock(lz_world);
+	zone_unlock(lz_flags);
 	return (rv);
 }
 
@@ -974,8 +1041,8 @@ Build_WaterPipe(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 	welem_t elt = 0;
 	int rv = 0;
 
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 
 	toSpend = BUILD_COST_WATER_PIPE;
 	old = getWorld(WORLDPOS(xpos, ypos));
@@ -1025,8 +1092,8 @@ Build_WaterPipe(UInt16 xpos, UInt16 ypos, welem_t type __attribute__((unused)))
 		}
 	}
 leaveme:
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 	return (rv);
 }
 
@@ -1068,8 +1135,8 @@ CreateFullRiver(void)
 	/* This is the start position of the center of the river */
 	j = (UInt16)GetRandomNumber(kmax);
 
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 
 	for (i = 0; i < kmax; i++) {
 		for (k = j; k < (width + j); k++) {
@@ -1108,8 +1175,8 @@ CreateFullRiver(void)
 			break;
 		}
 	}
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 }
 
 /*!
@@ -1142,8 +1209,8 @@ CreateForest(UInt32 pos, UInt16 size)
 
 	x = (UInt16)(pos % getMapWidth());
 	y = (UInt16)(pos / getMapWidth());
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 	i = x - size > 0 ? x - size : 0;
 	j = y - size > 0 ? y - size : 0;
 
@@ -1166,6 +1233,6 @@ CreateForest(UInt32 pos, UInt16 size)
 		}
 		j = y - size > 0 ? y - size : 0;
 	}
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 }

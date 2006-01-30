@@ -30,6 +30,7 @@
 #include <compilerpragmas.h>
 #include <uibits.h>
 #include <logging.h>
+#include <locking.h>
 #include <localize.h>
 
 /*! \brief private city list selection object */
@@ -72,6 +73,7 @@ ImportOneFromGame(GtkWidget *widget, gint response, gpointer data)
 		GtkTreeSelection *select;
 		GtkTreeModel *model;
 		GtkTreeIter iter;
+		MemPtr world = NULL, flags = NULL;
 		int city = 0;
 
 		select = gtk_tree_view_get_selection(
@@ -80,13 +82,13 @@ ImportOneFromGame(GtkWidget *widget, gint response, gpointer data)
 			gtk_tree_model_get(model, &iter, 0, &city, -1);
 		}
 
-		savegame_getcity(sel->sg, city, &game, (char **)&worldPtr,
-		    (char **)&flagPtr);
+		savegame_getcity(sel->sg, city, &game, (char **)&world,
+		    (char **)&flags);
+		savegame_gametransfer(world, flags, 1);
 		PostLoadGame();
-		DrawGame(1);
-		MapHasJumped();
 	}
 	savegame_close(sel->sg);
+	sel->sg = NULL;
 	free_listselect(sel);
 	gtk_widget_destroy(widget);
 }
@@ -156,9 +158,10 @@ static void
 doOpen(gchar *filename)
 {
 	savegame_t *sg = savegame_open(filename);
+	MemPtr world = NULL, flags = NULL;
 
 	if (sg == NULL) {
-		WriteLog("no savegames in file\n");
+		WriteLog("A null file is not a valid file\n");
 		return;
 	}
 	setCityFileName(filename);
@@ -172,11 +175,10 @@ doOpen(gchar *filename)
 	if (savegame_citycount(sg) > 1) {
 		loadCities(sg);
 	} else {
-		savegame_getcity(sg, 0, &game, (char **)&worldPtr,
-		    (char **)&flagPtr);
+		savegame_getcity(sg, 0, &game, (char **)&world,
+		    (char **)&flags);
+		savegame_gametransfer(world, flags, 1);
 		PostLoadGame();
-		DrawGame(1);
-		MapHasJumped();
 		savegame_close(sg);
 	}
 }

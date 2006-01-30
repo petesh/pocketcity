@@ -14,7 +14,8 @@ extern "C" {
 #endif
 
 #include <appconfig.h>
-#include <list.h>
+#include <tileheader.h>
+#include <stack.h>
 
 #define	PACKAGE	"pocketcity"
 
@@ -81,8 +82,6 @@ extern "C" {
 
 /*! \brief the number of tiles that are stored laterally on a 'tilestripe' */
 #define	HORIZONTAL_TILESIZE	32
-
-#include <tileheader.h>
 
 /* Supply units per plant */
 /*! \brief number of power units supplied by a coal power plant */
@@ -284,7 +283,8 @@ typedef enum {
 
 typedef enum {
 	seOutOfMemory = 1, /*!< out of memory error */
-	seInvalidSaveGame /*!< invalid save game load was attempted */
+	seInvalidSaveGame, /*!< invalid save game load was attempted */
+	seUnknownBuildItem /*!< Unknown Build Item */
 } syserror_t;
 
 typedef enum {
@@ -516,8 +516,8 @@ typedef struct _vgame_struct {
 	UInt16	oldLoopSeconds;	/*!< last selected speed - for pause */
 	Int8	gameInProgress; /*!< is game progressing */
 	Int8	playing; /*!< is game in play (paused for dialogs etc.) */
-	list_t	*powers; /*!< list of power supplies */
-	list_t	*waters; /*!< list of water supplies */
+	lsObj_t	*powers; /*!< list of power supplies */
+	lsObj_t	*waters; /*!< list of water supplies */
 } vGameStruct;
 
 /*! \brief game visual entities related to the game, but not the simulation */

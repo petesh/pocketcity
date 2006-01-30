@@ -82,13 +82,7 @@ static void QuitGame(void);
 
 static void set_speed_handler(GtkAction *action, gpointer data);
 static void toolbox_callback(GtkAction *action, gpointer data);
-static void set_speed_pause(void);
-static void set_speed_slow(void);
-static void set_speed_medium(void);
-static void set_speed_fast(void);
-static void set_speed_turbo(void);
 
-static void cleanupPixmaps(void);
 static void ResetViewable(void);
 static void ShowMainWindow(void);
 static void doRepaintDisplay(void);
@@ -225,36 +219,6 @@ const struct _actionhooks {
 /*! \brief number of action hooks */
 #define NACTIONHOOKS	(sizeof (actionhooks) / sizeof (actionhooks[0]))
 
-/*! \brief the menu items for the main application */
-const GtkItemFactoryEntry menu_items[] = {
-	{ "/_File", NULL, NULL, 0, "<Branch>", 0 },
-	{ "/File/_New", "<control>N", newgame_handler, 0, NULL, 0 },
-	{ "/File/_Open", "<control>O", opengame_handler, 0, NULL, NULL },
-	{ "/File/_Save", "<control>S", savegame_handler, 0, NULL, 0 },
-	{ "/File/Save _As", NULL, savegameas_handler, 0, NULL, 0 },
-	{ "/File/sep1",	NULL, NULL, 0, "<Separator>", 0 },
-	{ "/File/E_xit", "<alt>F4", QuitGame, 0, NULL, 0 },
-	{ "/_View", NULL, NULL,	0, "<Branch>", 0 },
-	{ "/View/_Budget", "<control>B", budget_show, 0, NULL, 0 },
-	{ "/View/_Map", "<control>M", map_show, 0, NULL, 0 },
-	{ "/View/_Hover", "<control>H", hover_show, 0, NULL, 0 },
-	{ "/_Speed", NULL, NULL, 0, "<Branch>", 0 },
-	{ "/Speed/_Pause", "<control>0", set_speed_pause, 0, NULL, 0 },
-	{ "/Speed/sep1", NULL, NULL, 0, "<Separator>", 0 },
-	{ "/Speed/_Slow", "<control>1", set_speed_slow, 0, NULL, 0 },
-	{ "/Speed/_Medium", "<control>2", set_speed_medium, 0, NULL, 0 },
-	{ "/Speed/_Fast", "<control>3", set_speed_fast, 0, NULL, 0 },
-	{ "/Speed/_Turbo", "<control>4", set_speed_turbo, 0, NULL, 0 },
-#if defined(DEBUG)
-	{ "/S_imulation", NULL, NULL, 0, "<Branch>", 0 },
-	{ "/Simulation/_Redistribute", NULL, force_redistribute, 0, NULL, NULL },
-	{ "/Simulation/_Cash Me Up", "<control>C", cash_up, 0, NULL, NULL },
-#endif
-
-};
-/*! \brief number of menu items - the standard #define */
-#define	NMENU_ITEMS	(sizeof (menu_items) / sizeof (menu_items[0]))
-
 /*!
  * \brief the main routine
  *
@@ -300,8 +264,7 @@ main(int argc, char **argv)
 	ResetViewable();
 	SetUpMainWindow();
 
-	PCityMain();
-	InitGameStruct();
+	PCityStartup();
 	ConfigureNewGame();
 
 	ShowMainWindow();
@@ -313,12 +276,10 @@ main(int argc, char **argv)
 	gtk_main();
 	WriteLog("Cleaning up\n");
 	g_source_remove(timerID);
-	PurgeWorld();
 	free(exec_dir);
 	free(pathsearch);
 	PCityShutdown();
 	cleanupMap();
-	cleanupPixmaps();
 
 	return (0);
 }
@@ -367,51 +328,6 @@ set_speed_handler(GtkAction *action __attribute__((unused)),
   gpointer data)
 {
 	set_speed(GPOINTER_TO_INT(data));
-}
-
-/*!
- * \brief set the game speed to paused
- */
-static void
-set_speed_pause(void)
-{
-	set_speed(SPEED_PAUSED);
-}
-
-/*!
- * \brief set the game speed to slow
- */
-static void
-set_speed_slow(void)
-{
-	set_speed(SPEED_SLOW);
-}
-
-/*!
- * \brief set the game speed to normal
- */
-static void
-set_speed_medium(void)
-{
-	set_speed(SPEED_MEDIUM);
-}
-
-/*!
- * \brief set the game speed to fast
- */
-static void
-set_speed_fast(void)
-{
-	set_speed(SPEED_FAST);
-}
-
-/*!
- * \brief set the game speed to fast
- */
-static void
-set_speed_turbo(void)
-{
-	set_speed(SPEED_TURBO);
 }
 
 #if defined(DEBUG)
@@ -1074,10 +990,33 @@ static struct image_pms {
 };
 
 /*!
- * \brief clean up the pixmaps
+ * \brief load and configure the pixmaps
  */
-static void
-cleanupPixmaps(void)
+int
+UIInitializeGraphics(void)
+{
+	int i;
+	struct image_pms *ipm;
+	char *image_path;
+
+	for (i = 0; image_pixmaps[i].filename != NULL; i++) {
+		ipm = image_pixmaps + i;
+		*ipm->pm = load_pixmap(ipm->filename, ipm->mask);
+		if (NULL == *ipm->pm)
+			return (1);
+	}
+	/* load the icon */
+	image_path = alloca((size_t)pathconf("/", _PC_PATH_MAX) + 1);
+	strcpy((char *)image_path, "pcityicon.png");
+	if (searchFile(image_path)) {
+		gtk_window_set_icon_from_file(GTK_WINDOW(mw.window),
+		    (char const *)image_path, NULL);
+	}
+	return (0);
+}
+
+void
+UICleanupGraphics(void)
 {
 	int elt;
 
@@ -1094,34 +1033,11 @@ cleanupPixmaps(void)
 }
 
 /*!
- * \brief load and configure the pixmaps
- */
-void
-UIInitGraphic(void)
-{
-	int i;
-	struct image_pms *ipm;
-	char *image_path;
-
-	for (i = 0; image_pixmaps[i].filename != NULL; i++) {
-		ipm = image_pixmaps + i;
-		*ipm->pm = load_pixmap(ipm->filename, ipm->mask);
-	}
-	/* load the icon */
-	image_path = alloca((size_t)pathconf("/", _PC_PATH_MAX) + 1);
-	strcpy((char *)image_path, "pcityicon.png");
-	if (searchFile(image_path)) {
-		gtk_window_set_icon_from_file(GTK_WINDOW(mw.window),
-		    (char const *)image_path, NULL);
-	}
-}
-
-/*!
  * \brief Display and error dialog with one parameter.
  * \param error the message to use in the dialog
  */
 void
-UIDisplayError1(char *error)
+DisplayError(char *error)
 {
 	GtkWidget * dialog;
 	dialog = gtk_message_dialog_new(GTK_WINDOW(mw.window),
@@ -1159,7 +1075,7 @@ UIDisasterNotify(disaster_t disaster)
 	default:
 		return;
 	}
-	UIDisplayError1(temp);
+	DisplayError(temp);
 }
 
 /*!
@@ -1175,32 +1091,32 @@ UIProblemNotify(problem_t problem)
 	case peFineOnMoney:
 		return;
 	case peLowOnMoney:
-		strcpy(temp, "Low on money");
+		strcpy(temp, _("Low on money"));
 		break;
 	case peOutOfMoney:
-		strcpy(temp, "Out of money");
+		strcpy(temp, _("Out of money"));
 		break;
 	case peFineOnPower:
 		return;
 	case peLowOnPower:
-		strcpy(temp, "Low On Power");
+		strcpy(temp, _("Low On Power"));
 		break;
 	case peOutOfPower:
-		strcpy(temp, "Out of Power");
+		strcpy(temp, _("Out of Power"));
 		break;
 	case peFineOnWater:
 		return;
 	case peLowOnWater:
-		strcpy(temp, "Low on Water");
+		strcpy(temp, _("Low on Water"));
 		break;
 	case peOutOfWater:
-		strcpy(temp, "Out of Water");
+		strcpy(temp, _("Out of Water"));
 		break;
 	default:
 		return;
 	}
 
-	UIDisplayError1(temp);
+	DisplayError(temp);
 }
 
 void
@@ -1213,7 +1129,7 @@ UISystemErrorNotify(syserror_t error)
 	} else {
 		return;
 	}
-	UIDisplayError1(temp);
+	DisplayError(temp);
 }
 
 /*! unused */
@@ -1338,13 +1254,6 @@ UIGotoForm(Int16 n __attribute__((unused)))
 	/* */
 }
 
-/*! unused */
-void
-UICheckMoney(void)
-{
-	/* */
-}
-
 /*!
  * \brief scroll the map in the appropriate direction
  *
@@ -1355,17 +1264,6 @@ UIScrollDisplay(dirType direction __attribute__((unused)))
 {
 	RedrawAllFields();
 	gtk_widget_queue_draw(mw.drawing);
-}
-
-/*!
- * \brief in theory draw a rectangle.
- */
-void
-_UIDrawRect(Int16 nTop __attribute__((unused)),
-    Int16 nLeft __attribute__((unused)), Int16 nHeight __attribute__((unused)),
-    Int16 nWidth __attribute__((unused)))
-{
-	WriteLog("_UIDrawRect\n");
 }
 
 void
@@ -1545,35 +1443,9 @@ UIGetSelectedBuildItem(void)
 	return (selectedBuildItem);
 }
 
-/*! \brief painted flag - for play area back-buffer */
-static int painted_flag;
-
-/*! \brief clear the painted flag */
-void
-clearPaintedFlag(void)
-{
-	painted_flag = 0;
-}
-
-/*! \brief set the painted flag */
-void
-setPaintedFlag(void)
-{
-	painted_flag = 1;
-}
-
 /*!
- * \brief test painted flag
- * \return the painted flag state
- */
-int
-getPaintedFlag(void)
-{
-	return (painted_flag);
-}
-
-/*!
- * \todo render the entire play area into an offscreen pixmap, making this call
+ * \todo render the entire play area into an offscreen pixmap,
+ * making this call
  * a non-op (the expose code for the drawing area will take care of it).
  */
 void
@@ -1586,12 +1458,16 @@ UIDrawPlayArea(void)
 	Int16 maxy = getMapYPos() + getVisibleY() >= getMapHeight() ?
 	    getMapHeight() : getMapYPos() + getVisibleY();
 
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 	for (x = getMapXPos(); x < maxx; x++) {
 		for (y = getMapYPos(); y < maxy; y++) {
 			if (!(getWorldFlags(WORLDPOS(x, y)) & PAINTEDBIT))
 				DrawFieldWithoutInit(x, y);
 		}
 	}
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 
 	gtk_widget_queue_draw(mw.drawing);
 }
@@ -1607,7 +1483,7 @@ UIMapResize(void)
 	mw.p_play = gdk_pixmap_new(drawable_main_get(),
 	    getMapWidth() * gameTileSize(),
 	    getMapHeight() * gameTileSize(), -1);
-	clearPaintedFlag();
+	UnpaintWorld();
 	resizeMap();
 }
 
@@ -1618,31 +1494,10 @@ UIClipped(UInt16 xpos __attribute__((unused)),
 	return (FALSE);
 }
 
-void
-LockZone(lockZone zone __attribute__((unused)))
-{
-	/* not used on this platform */
-}
-
-void
-UnlockZone(lockZone zone __attribute__((unused)))
-{
-	/* not used on this platform */
-}
-
-void
-ReleaseZone(lockZone zone)
-{
-	if (zone == lz_world) {
-		free(worldPtr);
-		worldPtr = NULL;
-	}
-}
-
 UInt32
 GetRandomNumber(UInt32 max)
 {
-	/* se `man 3 rand` why I'm not using: return (rand() % max) */
+	/* see 'man 3 rand' why I'm not using: return (rand() % max) */
 	return ((UInt32)((float)max*rand()/(RAND_MAX+1.0)));
 }
 

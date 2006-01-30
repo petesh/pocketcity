@@ -1,6 +1,6 @@
 
 OBJECTS_CARELESS=build.o disaster.o drawing.o globals.o handler.o pack.o \
-	simulation.o distribution.o
+	simulation.o distribution.o locking.o stack.o
 
 $(OBJDIR)/build.o: build.c build.h globals.h ui.h logging.h locking.h \
 	drawing.h simulation.h
@@ -47,12 +47,20 @@ $(OBJDIR)/distribution.o: distribution.c distribution.h logging.h \
 	locking.h ui.h globals.h stack.h mem_compat.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(OBJDIR)/locking.o: locking.c locking.h globals.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJDIR)/stack.o: stack.c mem_compat.h stack.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
 simulation.h: zakdef.h compilerpragmas.h
 
 # files without implementations (local)
 compilerpragmas.h:
 
-locking.h:
+locking.c: locking.h
+
+locking.h: appconfig.h
 
 logging.h:
 

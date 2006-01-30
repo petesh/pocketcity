@@ -24,16 +24,28 @@
 
 #define	DONTPAINT	(unsigned char)(1U<<7)
 
-/*! \brief Structure for performing distribution */
-typedef struct _distrib {
-	carryfn_t	doescarry; /*!< Does the node carry the item */
-	problem_t	error_flag; /*!< Error flag */
+/*! \brief Common structure for distribution checks */
+typedef struct _cdistrib {
 	/*! Is the node a supplier */
 	Int16 (*isplant)(welem_t, UInt32, selem_t);
-	dsObj *needSourceList; /*!< list of nodes that need to be powered */
-	dsObj *unvisitedNodes; /*!< nodes that have not been visited */
+	carryfn_t	doescarry; /*!< Does the node carry the item */
+
+	problem_t	error_flag; /*!< Error flag */
 	selem_t flagToSet; /*!< flag that is being set in this loop */
 	selem_t visited; /*!< visited flag */
+} cdistrib_t;
+
+typedef enum {
+	de_power = 0,
+	de_water = 1
+} dist_entry;
+
+/*! \brief Structure for performing distribution */
+typedef struct _distrib {
+	dist_entry de;	/*!< Common distribution elements */
+	lsObj_t *suppliers; /*!< list of suppliers for this type */
+	lsObj_t *needSourceList; /*!< list of nodes that need to be powered */
+	lsObj_t *unvisitedNodes; /*!< nodes that have not been visited */
 	Int16 SourceLeft; /*!< amount of source left */
 	Int16 SourceTotal; /*!< total source available */
 	Int16 NodesTotal; /*!< nodes visited */
@@ -44,8 +56,24 @@ typedef struct _distrib {
 static UInt32 DistributeMoveOn(UInt32 pos, dirType direction);
 static void DistributeUnvisited(distrib_t *distrib);
 
-static void AddNeighbors(distrib_t *distrib, UInt32 pos);
+static void AddCarryNeighbors(distrib_t *distrib, UInt32 pos);
 static UInt8 ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what);
+
+static Int16 IsItAPowerPlant(welem_t point, UInt32 coord, selem_t flags);
+static Int16 IsItAUsableWaterPump(welem_t point, UInt32 coord, selem_t flags);
+
+const cdistrib_t cdist[] = {
+	{ IsItAPowerPlant,
+	CarryPower,
+	peFineOnPower,
+	POWEREDBIT,
+	SCRATCHPOWER },
+	{ IsItAUsableWaterPump,
+	CarryWater,
+	peFineOnWater,
+	WATEREDBIT,
+	SCRATCHWATER }
+};
 
 /*
  * The power/water grid is updated using the following mechanism:
@@ -151,12 +179,14 @@ static Int16
 SupplyIfPlant(distrib_t *distrib, UInt32 pos, welem_t point, selem_t status)
 {
 	Int16 pt;
-	if (!(pt = distrib->isplant(point, pos, status)))
+	const cdistrib_t *ct = &cdist[distrib->de];
+
+	if (!(pt = ct->isplant(point, pos, status)))
 		return (0);
-	if (getWorldFlags(pos) & distrib->visited)
+	if (getWorldFlags(pos) & ct->visited)
 		return (0);
 	distrib->NodesSupplied++;
-	orWorldFlags(point, distrib->flagToSet | distrib->visited);
+	orWorldFlags(point, ct->flagToSet | ct->visited);
 	distrib->NodesTotal++;
 	distrib->SourceLeft += pt;
 	distrib->SourceTotal += pt;
@@ -166,7 +196,7 @@ SupplyIfPlant(distrib_t *distrib, UInt32 pos, welem_t point, selem_t status)
 			pos = (UInt32)StackPop(distrib->needSourceList);
 			distrib->SourceLeft--;
 			distrib->NodesSupplied++;
-			orWorldFlags(point, distrib->flagToSet);
+			orWorldFlags(point, ct->flagToSet);
 		}
 	}
 	return (pt);
@@ -184,8 +214,18 @@ DoDistribute(Int16 grid)
 	welem_t gw;
 	selem_t sw;
 	distrib_t *distrib = gMalloc(sizeof (distrib_t));
+	const cdistrib_t *ct;
+	UInt32 count_powers;
+	UInt32 pos;
 
+#if defined(DEBUG)
 	assert(distrib != NULL);
+#else
+	if (distrib == NULL) {
+		UISystemErrorNotify(seOutOfMemory);
+		return;
+	}
+#endif
 
 	distrib->SourceLeft = 0;
 	distrib->SourceTotal = 0;
@@ -197,63 +237,61 @@ DoDistribute(Int16 grid)
 
 	/* Step 1: Find all the powerplants and move out from there */
 	if (grid == GRID_POWER) {
-		distrib->isplant = &IsItAPowerPlant;
-		distrib->doescarry = &CarryPower;
-		distrib->flagToSet = POWEREDBIT;
-		distrib->visited = SCRATCHPOWER;
-		distrib->error_flag = peFineOnPower;
+		distrib->de = de_power;
+		distrib->suppliers = vgame.powers;
 	} else {
-		distrib->isplant = &IsItAUsableWaterPump;
-		distrib->doescarry = &CarryWater;
-		distrib->flagToSet = WATEREDBIT;
-		distrib->visited = SCRATCHWATER;
-		distrib->error_flag = peFineOnWater;
+		distrib->de = de_water;
+		distrib->suppliers = vgame.waters;
+	}
+	ct = &cdist[distrib->de];
+
+	zone_lock(lz_world); /* this lock locks for ALL power subs */
+	zone_lock(lz_flags);
+	for (i = 0; i < MapMul(); i++) {
+		if (ct->doescarry(getWorld(i)))
+			andWorldFlags(i,
+			    (selem_t)~(ct->flagToSet |
+				ct->visited | PAINTEDBIT));
 	}
 
-	LockZone(lz_world); /* this lock locks for ALL power subs */
-	LockZone(lz_flags);
-	for (i = 0; i < MapMul(); i++) {
-		if (distrib->doescarry(getWorld(i)))
-			andWorldFlags(i,
-			    (selem_t)~(distrib->flagToSet |
-				distrib->visited | PAINTEDBIT));
-	}
-	for (i = 0; i < MapMul(); i++) {
-		getWorldAndFlag(i, &gw, &sw);
-		if (!(sw & distrib->visited)) {
-			if (SupplyIfPlant(distrib, i, gw, sw)) {
-				AddNeighbors(distrib, i);
-				DistributeUnvisited(distrib);
-				/* unpowered points are removed */
-				StackDoEmpty(distrib->needSourceList);
-				WriteLog("Grid#%d Supplied Nodes: %d/%d "
-				    "SrcRemain: %d/%d\n", (int)grid,
-				    (int)distrib->NodesSupplied,
-				    (int)distrib->NodesTotal,
-				    (int)distrib->SourceLeft,
-				    (int)distrib->SourceTotal);
-				if (distrib->SourceLeft < 25)
-					distrib->ShortOrOut |= SHORT_BIT;
-				if (distrib->SourceLeft == 0)
-					distrib->ShortOrOut |= OUT_BIT;
-				distrib->SourceLeft = 0;
-				distrib->SourceTotal = 0;
-				distrib->NodesSupplied = 0;
-				distrib->NodesTotal = 0;
-			}
+	count_powers = ListNElements(distrib->suppliers);
+
+	for (i = 0; i < count_powers; i++) {
+		pos = ListGet(distrib->suppliers, i);
+		getWorldAndFlag(pos, &gw, &sw);
+		if (!(sw & ct->visited)) {
+			StackPush(distrib->unvisitedNodes, pos);
+			distrib->NodesTotal++;
 		}
+		DistributeUnvisited(distrib);
+		/* unpowered points are removed */
+		StackDoEmpty(distrib->needSourceList);
+		WriteLog("Grid#%d Supplied Nodes: %d/%d "
+		    "SrcRemain: %d/%d\n", (int)grid,
+		    (int)distrib->NodesSupplied,
+		    (int)distrib->NodesTotal,
+		    (int)distrib->SourceLeft,
+		    (int)distrib->SourceTotal);
+		if (distrib->SourceLeft < 25)
+			distrib->ShortOrOut |= SHORT_BIT;
+		if (distrib->SourceLeft == 0)
+			distrib->ShortOrOut |= OUT_BIT;
+		distrib->SourceLeft = 0;
+		distrib->SourceTotal = 0;
+		distrib->NodesSupplied = 0;
+		distrib->NodesTotal = 0;
 	}
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 	StackDelete(distrib->needSourceList);
 	StackDelete(distrib->unvisitedNodes);
 	if (distrib->ShortOrOut & OUT_BIT) {
-		UIProblemNotify(distrib->error_flag + 2);
+		UIProblemNotify(ct->error_flag + 2);
 	} else if (distrib->ShortOrOut & SHORT_BIT) {
-		UIProblemNotify(distrib->error_flag + 1);
+		UIProblemNotify(ct->error_flag + 1);
 	} else {
 		/* This isn't really a problem. */
-		UIProblemNotify(distrib->error_flag);
+		UIProblemNotify(ct->error_flag);
 	}
 	gFree(distrib);
 }
@@ -265,17 +303,20 @@ static void
 DistributeUnvisited(distrib_t *distrib)
 {
 	UInt32 pos;
-	UInt8 flag;
+	selem_t flag;
+	welem_t wor;
+	const cdistrib_t *ct = &cdist[distrib->de];
 
 	while (!StackIsEmpty(distrib->unvisitedNodes)) {
 		pos = (UInt32)StackPop(distrib->unvisitedNodes);
-		flag = getWorldFlags(pos);
-		if (SupplyIfPlant(distrib, pos, getWorld(pos), flag)) {
+		getWorldAndFlag(pos, &wor, &flag);
+		if (SupplyIfPlant(distrib, pos, wor, flag)) {
+			orWorldFlags(pos, ct->flagToSet);
 			goto nextneighbor;
 		}
 
 		if (distrib->SourceLeft &&
-		    ((flag & distrib->flagToSet) == 0)) {
+		    ((flag & ct->flagToSet) == 0)) {
 			/*
 			 * if this field hasn't been powered,
 			 * we need to "use" some power to move further along
@@ -288,15 +329,15 @@ DistributeUnvisited(distrib_t *distrib)
 			StackPush(distrib->needSourceList, (Int32)pos);
 		} else {
 			distrib->NodesSupplied++;
-			orWorldFlags(pos, distrib->flagToSet);
+			orWorldFlags(pos, ct->flagToSet);
 		}
 
-		/* now, set the flags to indicate we've been here */
-		orWorldFlags(pos, distrib->visited);
-
 nextneighbor:
+		/* now, set the flags to indicate we've been here */
+		orWorldFlags(pos, ct->visited);
+
 		/* find the possible ways we can move on from here */
-		AddNeighbors(distrib, pos);
+		AddCarryNeighbors(distrib, pos);
 	}
 }
 
@@ -317,7 +358,7 @@ Carries(Int16 (*doescarry)(welem_t), UInt32 pos, selem_t statusbit)
 	getWorldAndFlag(pos, &world, &status);
 	if (statusbit & status)
 		return (0);
-	return (doescarry(status));
+	return (doescarry(world));
 }
 
 /*!
@@ -326,10 +367,10 @@ Carries(Int16 (*doescarry)(welem_t), UInt32 pos, selem_t statusbit)
  * \param pos location of node on list
  */
 static void
-AddNeighbors(distrib_t *distrib, UInt32 pos)
+AddCarryNeighbors(distrib_t *distrib, UInt32 pos)
 {
-	Int16 (*carries)(welem_t) = distrib->doescarry;
-	selem_t vis = distrib->visited;
+	Int16 (*carries)(welem_t) = cdist[distrib->de].doescarry;
+	selem_t vis = cdist[distrib->de].visited;
 	Int8 number = 0;
 
 	if ((pos > getMapWidth()) &&
@@ -355,7 +396,6 @@ AddNeighbors(distrib_t *distrib, UInt32 pos)
 		StackPush(distrib->unvisitedNodes, (Int32)(pos - 1));
 		number++;
 	}
-
 	distrib->NodesTotal += number;
 }
 

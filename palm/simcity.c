@@ -182,13 +182,12 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 		return (error);
 
 	WriteLog("Starting Pocket City\n");
-	if (0 != (pir = _PalmInit())) {
+	if (0 != (pir = PCityStartup())) {
 		WriteLog("Init Didn't Happen right [%d]\n", (int)pir);
-		_PalmFini();
+		PCityShutdown();
 		return (1);
 	}
 
-	PCityMain();
 	if (-1 != UILoadAutoGame()) {
 		FrmGotoForm(formID_pocketCity);
 	} else {
@@ -203,7 +202,6 @@ PilotMain(UInt16 cmd, MemPtr cmdPBP, UInt16 launchFlags)
 
 	PCityShutdown();
 
-	_PalmFini();
 	return (0);
 }
 
@@ -589,14 +587,16 @@ _PalmFini(void)
 	unhookHoldSwitch();
 	freeToolbarBitmap();
 
-	PurgeWorld();
 	/* clean up handles */
 	for (i = 0; i < (sizeof (handles) / sizeof (handles[0])); i++) {
-		if (*(handles[i].handle) != NULL)
+		if (*(handles[i].handle) != NULL) {
 			WinDeleteWindow(*(handles[i].handle), 0);
+			*(handles[i].handle) = NULL;
+		}
 	}
 	restoreDepthRes();
 	if (_refTiles != 0) DmCloseDatabase(_refTiles);
+	_refTiles = 0;
 	PrefSetAppPreferences(GetCreatorID(), 0, CONFIG_VERSION,
 	    &gameConfig, sizeof (AppConfig_t), true);
 	/* Close the forms */
@@ -952,7 +952,7 @@ UIPostLoadGame(void)
  * Only if we're not already at that form to begin with.
  */
 void
-UIGotoForm(Int16 n)
+GotoForm(Int16 n)
 {
 	UInt16 formid = FrmGetActiveFormID();
 	switch (n) {
@@ -1234,11 +1234,21 @@ UIGetSelectedBuildItem(void)
 /*
  * initialize graphics
  */
-void
-UIInitGraphic(void)
+int
+UIInitializeGraphics(void)
 {
 	setGameTileSize(16);
 	setMapTileSize(4);
+	return (_PalmInit());
+}
+
+/*
+ * cleanup the graphics
+ */
+void
+UICleanupGraphics(void)
+{
+	_PalmFini();
 }
 
 /*
@@ -1370,9 +1380,9 @@ _UIGetFieldToBuildOn(Int16 x, Int16 y)
 	if (RctPtInRectangle(x, y, &rect)) {
 		Coord xpos = (x - XOFFSET) / gameTileSize() + getMapXPos();
 		Coord ypos = (y - YOFFSET) / gameTileSize() + getMapYPos();
-		LockZone(lz_world); // OK
+		zone_lock(lz_world); // OK
 		SetPositionClicked(WORLDPOS(xpos, ypos));
-		UnlockZone(lz_world); // OK
+		zone_unlock(lz_world); // OK
 		if (UIGetSelectedBuildItem() != Be_Query)
 			BuildSomething((UInt16)xpos, (UInt16)ypos);
 		else
@@ -1442,6 +1452,9 @@ UISystemErrorNotify(syserror_t error)
 		break;
 	case seInvalidSaveGame:
 		FrmAlert(alertID_invalidSaveVersion);
+		break;
+	case seUnknownBuildItem:
+		FrmAlert(alertID_unknownBuildItem);
 		break;
 	}
 }
@@ -1771,16 +1784,16 @@ UIPaintPlayArea(void)
 	WriteLog("Visible: (%d,%d)\nFullSize: (%d,%d)\n", getVisibleX(),
 	  getVisibleY(), getMapWidth(), getMapHeight());
 	WriteLog("Drawing World From (%d,%d)->(%d,%d)\n", x, y, maxx, maxy);
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 	for (; x < maxx; x++)
 		for (y = getMapYPos(); y < maxy; y++)
 			DrawFieldWithoutInit(x, y);
 
 	if (GETMINIMAPVISIBLE())
 		minimapPaint();
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 }
 
 /*!
@@ -1815,8 +1828,8 @@ UIScrollDisplay(dirType direction)
 
 	SetScrolling();
 
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 	UIInitDrawing();
 
 	if (GETMINIMAPVISIBLE()) {
@@ -1876,8 +1889,8 @@ UIScrollDisplay(dirType direction)
 	}
 	UIFinishDrawing();
 
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 }
 
 /*
@@ -2271,23 +2284,6 @@ UIPaintPopulation(void)
 		DmReleaseResource(bitmapHandle);
 	}
 #endif
-}
-
-/*!
- * \brief Check if we've got dosh to do what we're asking to do.
- *
- * If we're nearly broke show us a warning dialog.
- * If we're broke then show us a we're broke dialog.
- * Only show them once per load cycle.
- */
-void
-UICheckMoney(void)
-{
-	if (getCredits() == 0) {
-		UIProblemNotify(peOutOfMoney);
-	} else if (getCredits() <= 1000) {
-		UIProblemNotify(peLowOnMoney);
-	}
 }
 
 void

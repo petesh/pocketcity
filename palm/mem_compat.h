@@ -21,7 +21,8 @@ MemPtr palm_malloc(UInt32 size);
 #define	gFree palm_free
 #define	gRealloc palm_realloc
 #define	gCalloc palm_calloc
-#define	gMemSet(P, L, C) MemSet(P, L, C)
+#define	gMemSet(P, L, C) MemSet((P), (L), (C))
+#define gMemMove(D, S, C) MemMove((D), (S), (C))
 
 #define	QSort(a, b, c, d) SysQSort(a, (UInt16)b, (Int16)c, d, (Int32)1)
 

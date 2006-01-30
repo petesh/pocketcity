@@ -276,11 +276,11 @@ SaveGameByIndex(UInt16 index)
 		rec = DmNewRecord(db, &index, saveGameSize(&game));
 	}
 	if (rec) {
-		LockZone(lz_world);
-		LockZone(lz_flags);
+		zone_lock(lz_world);
+		zone_lock(lz_flags);
 		WriteCityRecord(rec, &game, worldPtr, flagPtr);
-		UnlockZone(lz_flags);
-		UnlockZone(lz_world);
+		zone_unlock(lz_flags);
+		zone_unlock(lz_world);
 		DmReleaseRecord(db, index, true);
 	}
 
@@ -327,12 +327,12 @@ LoadGameByIndex(UInt16 index)
 		index = DmNumRecords(db) - 1;
 	rec = DmQueryRecord(db, index);
 	if (rec) {
-		LockZone(lz_world);
-		LockZone(lz_flags);
+		zone_lock(lz_world);
+		zone_lock(lz_flags);
 		loaded = ReadCityRecord(rec, &game, (MemPtr *)&worldPtr,
 		    (MemPtr *)&flagPtr);
-		UnlockZone(lz_flags);
-		UnlockZone(lz_world);
+		zone_unlock(lz_flags);
+		zone_unlock(lz_world);
 	}
 	if (loaded != -1) {
 		PostLoadGame();

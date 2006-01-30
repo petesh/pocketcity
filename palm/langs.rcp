@@ -277,6 +277,11 @@ BEGIN
     "M_TILESMISSING" = "There is no tile database found on this device " \
         "Please add one of the .pdb files and try again"
 
+    "T_UNKNOWNBUILDITEM" = "Unknown Build Item"
+    "MSG_UNKNOWNBUILDITEM" = "An unknown item has been selected for " \
+	"building. This indicates an application malfunction. Please " \
+	"choose another item to build and try again."
+
 	"POCKETCITY_DESCRIPTION" = "Pocket City Applications"
 
 	"CASH_SCALE" = " KMBTQ"

@@ -204,36 +204,15 @@ setDifficultyLevel(UInt8 value)
 Int16
 ResizeWorld(UInt32 size)
 {
+	int rv;
 	WriteLog("Resize World = %ld\n", (long)size);
-	LockZone(lz_world);
-	LockZone(lz_flags);
-	LockZone(lz_pollution);
-	LockZone(lz_crime);
-	LockZone(lz_transport);
-	worldPtr = gRealloc(worldPtr, size * sizeof (welem_t));
-	flagPtr = gRealloc(flagPtr, size * sizeof (selem_t));
-	pollutionPtr = gRealloc(pollutionPtr, size * sizeof (Int8));
-	crimePtr = gRealloc(crimePtr, size * sizeof (Int8));
-	transportPtr = gRealloc(transportPtr, size * sizeof (Int8));
+	rv = zone_resize(lz_world, size * sizeof (welem_t));
+	rv += zone_resize(lz_flags, size * sizeof (selem_t));
+	rv += zone_resize(lz_pollution, size * sizeof (Int8));
+	rv += zone_resize(lz_crime, size * sizeof (Int8));
+	rv += zone_resize(lz_transport, size * sizeof (Int8));
 
-	nullcheck(worldPtr);
-	nullcheck(flagPtr);
-	nullcheck(pollutionPtr);
-	nullcheck(crimePtr);
-	nullcheck(transportPtr);
-
-	gMemSet(worldPtr, (Int32)size * sizeof (welem_t), 0);
-	gMemSet(flagPtr, (Int32)size * sizeof (selem_t), 0);
-	gMemSet(pollutionPtr, (Int32)size * sizeof (Int8), 0);
-	gMemSet(crimePtr, (Int32)size * sizeof (Int8), 0);
-	gMemSet(transportPtr, (Int32)size * sizeof (Int8), 0);
-
-	UnlockZone(lz_world);
-	UnlockZone(lz_flags);
-	UnlockZone(lz_pollution);
-	UnlockZone(lz_crime);
-	UnlockZone(lz_transport);
-	return (1);
+	return (rv == 5); /* Not magic zone_alloc returns 1 on success */
 }
 
 /*!
@@ -460,8 +439,7 @@ setTransport(UInt32 pos, Int8 value)
 void
 PurgeWorld(void)
 {
-	ReleaseZone(lz_world);
-	ReleaseZone(lz_flags);
+	zone_release(lz_end);
 }
 
 /*!

@@ -78,6 +78,15 @@ int savegame_setcity(savegame_t *sg, int item, GameStruct *gs, char *map,
  * \return 0 if the file was saved successfully, -1 otherwise
  */
 int save_game(char *name, GameStruct *gs, char *world, char *flags);
+
+/*!
+ * \brief copy the map and flag pointers into the world elements
+ * \param map the map pointer
+ * \param flags the flags pointer
+ * \param dofree perform a free on map and flags
+ */
+void savegame_gametransfer(char *map, char *flags, int dofree);
+
 /*!
  * \brief save the default savegame file and map
  * \return -1 if something went wrong, 0 otherwise

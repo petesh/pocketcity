@@ -13,10 +13,16 @@
 #include <simulation.h>
 #include <distribution.h>
 
-void
-InitGraphic(void)
+int
+InitializeGraphics(void)
 {
-	UIInitGraphic();
+	return (UIInitializeGraphics());
+}
+
+void
+CleanupGraphics(void)
+{
+	UICleanupGraphics();
 }
 
 /*!
@@ -97,8 +103,8 @@ MoveCursor(dirType direction)
 	UInt16 old_x = getCursorX();
 	UInt16 old_y = getCursorY();
 
-	LockZone(lz_world);
-	LockZone(lz_flags);
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
 
 	switch (direction) {
 	case dtUp:
@@ -133,8 +139,8 @@ MoveCursor(dirType direction)
 	DrawField(old_x, old_y);
 	DrawField(getCursorX(), getCursorY());
 
-	UnlockZone(lz_flags);
-	UnlockZone(lz_world);
+	zone_unlock(lz_flags);
+	zone_unlock(lz_world);
 }
 
 void
@@ -226,6 +232,17 @@ DrawFieldWithoutInit(UInt16 xpos, UInt16 ypos)
 			UIPaintSpecialUnit(xpos, ypos, (Int8)i);
 		}
 	}
+}
+
+void
+UnpaintWorld(void)
+{
+	UInt32 i;
+
+	zone_lock(lz_flags);
+	for (i = 0; i < MapMul(); i++)
+		clearWorldFlags(i, PAINTEDBIT);
+	zone_unlock(lz_flags);
 }
 
 welem_t

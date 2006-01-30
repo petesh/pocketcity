@@ -10,63 +10,90 @@
 #include <locking.h>
 #include <mem_compat.h>
 
-/*! \brief items to be locked/unlocked */
-static struct tag_lockers {
-	MemHandle	handle; /*!< handle for the item when not locked */
-	int		lockcount; /*!< # of lockers of the item */
-	char		**destVar; /*!< destination value when locked */
-} lockZones[lz_end] = {
-	{ NULL, 0, &worldPtr },
-	{ NULL, 0, &flagPtr },
-	{ NULL, 0, &pollutionPtr },
-	{ NULL, 0, &crimePtr },
-	{ NULL, 0, &transportPtr }
-};
+int
+mem_alloc(lockmem_t *str, UInt32 size)
+{
+	int rv;
+
+	rv = mem_resize(str, size);
+	if (rv) {
+		mem_lock(str);
+		MemSet(str->ptr, size, 0);
+		mem_unlock(str);
+	}
+	return (rv);
+}
 
 void
-LockZone(lockZone zone)
+mem_lock(lockmem_t *mem)
 {
-	struct tag_lockers *lock = lockZones + zone;
-
-	lock->lockcount += 1;
-	if (lock->lockcount == 1) {
-		if (lock->handle) {
-			MemPtr mp = MemHandleLock(lock->handle);
-			*(lock->destVar) = mp;
+	mem->lock_count += 1;
+	if (mem->lock_count == 1) {
+		if (mem->handle) {
+			mem->ptr = MemHandleLock(mem->handle);
+			if (mem->pptr)
+				*(mem->pptr) = mem->ptr;
 		}
-		lock->handle = NULL;
 	}
 }
 
 void
-ReleaseZone(lockZone zone)
+mem_unlock(lockmem_t *mem)
 {
-	struct tag_lockers *lock = lockZones + zone;
+	mem->lock_count -= 1;
 
-	LockZone(zone);
-	if (*lock->destVar != NULL) {
-		MemPtrFree(*lock->destVar);
+	if (mem->lock_count == 0) {
+		if (mem->handle != NULL)
+			MemHandleUnlock(mem->handle);
+		if (mem->pptr != NULL)
+			*mem->pptr = NULL;
+		mem->ptr = NULL;
 	}
-	lock->handle = NULL;
-	lock->destVar = NULL;
-	lock->lockcount = 0;
+
+	ErrFatalDisplayIf(mem->lock_count < 0, "Too many unlock calls");
+}
+
+int
+mem_resize(lockmem_t *mem, UInt32 size)
+{
+	if (size == 0) {
+		mem_release(mem);
+		return (1);
+	} else {
+		Err e = 0;
+		if (mem->ptr != NULL) {
+			MemHandleUnlock(mem->handle);
+			mem->ptr = NULL;
+			mem->lock_count = 0;
+			if (mem->pptr != NULL)
+				*mem->pptr = NULL;
+		}
+		if (mem->handle != NULL) {
+			e = MemHandleResize(mem->handle, size);
+			if (0 == e)
+				mem->size = size;
+		} else {
+			mem->handle = MemHandleNew(size);
+			if (NULL == mem->handle)
+				e = memErrNotEnoughSpace;
+			else
+				mem->size = size;
+		}
+		return (0 == e);
+	}
 }
 
 void
-UnlockZone(lockZone zone)
+mem_release(lockmem_t *mem)
 {
-	struct tag_lockers *lock = lockZones + zone;
-	MemPtr mp = *lock->destVar;
-
-	if (mp != NULL) {
-		lock->handle = MemPtrRecoverHandle(mp);
-	}
-	lock->lockcount -= 1;
-	if (lock->lockcount == 0) {
-		if (mp != NULL)
-			MemHandleUnlock(lock->handle);
-		*lock->destVar = NULL;
-	}
-
-	ErrFatalDisplayIf(lock->lockcount < 0, "Too many unlock calls");
+	if (mem->ptr != NULL)
+		MemHandleUnlock(mem->handle);
+	MemHandleFree(mem->handle);
+	mem->handle = NULL;
+	if (mem->pptr != NULL)
+		*mem->pptr = NULL;
+	mem->ptr = NULL;
+	mem->lock_count = 0;
+	mem->size = 0;
 }
+

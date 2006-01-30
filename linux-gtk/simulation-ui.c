@@ -247,9 +247,12 @@ doPixPaint(void)
 {
 	GdkDrawable *dwa = drawable_main_get();
 
+#if defined(DEBUG)
 	assert(mapTileSize());
 	assert(getMapWidth());
 	assert(getMapHeight());
+#endif
+
 	pmh.allmap = gdk_pixmap_new(dwa,
 	    getMapWidth() * mapTileSize(),
 	    getMapHeight() * mapTileSize(), -1);

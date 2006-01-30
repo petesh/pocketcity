@@ -3,7 +3,9 @@
  * \brief the user interface routines that need defining in any implementation
  *
  * These are all the functions that need implementing if you want to
- * make the game work.
+ * make the game visuals function correctly on a platform. They are called
+ * out by non platform specific code.
+ *
  */
 #if !defined(_UI_H)
 #define	_UI_H
@@ -17,11 +19,28 @@
 extern "C" {
 #endif
 
+/*!
+ * Notify the user that a disaster has happened
+ * \param disaster is the disaster to notify the user of.
+ * This typically takes the form of a display of a dialog.
+ */
 void UIDisasterNotify(disaster_t disaster);
+
+/*!
+ * \brief Notify the user that a problem has occurred.
+ * These are problems relating to a shortage or complete lack of power, water
+ * or money.
+ * \param problem the problem that happened
+ * \todo this should be extended to support other issues such as needing 
+ * housing, needing factories, needing roads.
+ */
 void UIProblemNotify(problem_t problem);
 
+/*!
+ * Something system related has happened to the application
+ * Currently this can be an invalid save game or an out of memory situation
+ */
 void UISystemErrorNotify(syserror_t error);
-void UIDisplayError1(char *message);
 
 /*! \brief Initialize the drawing area */
 void UIInitDrawing(void);
@@ -37,23 +56,21 @@ void UILockScreen(void);
 /*! \brief UI post load game handler */
 void UIPostLoadGame(void);
 
-/*!
- * \brief initialize the graphics
- * \todo fix this routine.
- */
-void UIInitGraphic(void);
-void UIGotoForm(Int16);
-
 /*! \brief Draw the amount of credits on screen. */
 void UIPaintCredits(void);
+
 /*! \brief Draw the population on screen. */
 void UIPaintPopulation(void);
+
 /*! \brief Draw the date on screen.  */
 void UIPaintDate(void);
+
 /*! \brief Draw the map position on screen */
 void UIPaintLocation(void);
+
 /*! \brief Update the build icon on screen */
 void UIPaintBuildIcon(void);
+
 /*! \brief Draw the speed icon on screen */
 void UIPaintSpeed(void);
 
@@ -63,12 +80,21 @@ void UIPaintDesires(void);
 /*! \brief draw the play area */
 void UIPaintPlayArea(void);
 
-/*! \brief Setup the graphics */
-void UISetUpGraphic(void);
+/*!
+ * \brief Initialize the graphics
+ * \return 0 if the call succeeds, non-zero otherwise
+ * \passed back from a call to InitializeGraphics
+ */
+int UIInitializeGraphics(void);
 
-void UICheckMoney(void);
+/*! \brief Cleanup the graphics */
+void UICleanupGraphics(void);
+
+/*!
+ * \brief called to scroll the display in a specific direction
+ * \param direction the direction to scroll the display
+ */
 void UIScrollDisplay(dirType direction);
-void _UIDrawRect(Int16 nTop, Int16 nLeft, Int16 nHeight, Int16 nWidth);
 
 /*!
  * \brief draw a field
