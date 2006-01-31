@@ -1,0 +1,10 @@
+dox-docs
+cscope.*
+build_cscope.sh
+.*
+Doxy.warn
+THOUGHTS
+tags
+*.mk
+gmon.out
+*.pdb
