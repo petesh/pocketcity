@@ -1,0 +1,5 @@
+out-*
+*.cty
+.cvsignore
+Makefile.windows
+gmon.out
