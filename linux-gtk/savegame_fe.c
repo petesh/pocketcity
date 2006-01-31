@@ -73,7 +73,7 @@ ImportOneFromGame(GtkWidget *widget, gint response, gpointer data)
 		GtkTreeSelection *select;
 		GtkTreeModel *model;
 		GtkTreeIter iter;
-		MemPtr world = NULL, flags = NULL;
+		char *world = NULL, *flags = NULL;
 		int city = 0;
 
 		select = gtk_tree_view_get_selection(
@@ -158,7 +158,7 @@ static void
 doOpen(gchar *filename)
 {
 	savegame_t *sg = savegame_open(filename);
-	MemPtr world = NULL, flags = NULL;
+	char *world = NULL, *flags = NULL;
 
 	if (sg == NULL) {
 		WriteLog("A null file is not a valid file\n");

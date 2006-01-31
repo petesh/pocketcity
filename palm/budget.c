@@ -5,6 +5,7 @@
  * This code deals with the code for the budget form from the pocketcity
  * application
  */
+
 #include <PalmOS.h>
 #include <unix_stdlib.h>
 #include <stddef.h>
@@ -23,6 +24,7 @@
 static FormPtr budgetSetup(FormPtr form) BUDGET_SECTION;
 static void dealRepeats(EventPtr event) BUDGET_SECTION;
 static void dealFieldContentChange(UInt16 fieldID) BUDGET_SECTION;
+/* \brief update the value of a budget number field on the budget form */
 static void updateBudgetValue(FormPtr form, UInt16 label, const Char *format,
     long value) BUDGET_SECTION;
 static void updateBudgetNumber(BudgetNumber bn) BUDGET_SECTION;
@@ -185,8 +187,6 @@ static const struct updateentity {
 #define	ENTITY_COUNT	(sizeof (entity) / sizeof (entity[0]))
 
 /*!
- * \brief update the value of a budget number field.
- *
  * Scales the number with the K,M... scaling.
  * \param form the form containing the items
  * \param label the label to alter
@@ -207,6 +207,8 @@ updateBudgetValue(FormPtr form, UInt16 label, const Char *format, Int32 value)
 }
 
 /*!
+ * \brief update a budget number on screen.
+ *
  * update the field in question
  * \param item the item to update
  */

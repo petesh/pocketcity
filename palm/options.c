@@ -6,6 +6,7 @@
  * This code deals with the two options dialogs in the palm platform
  * The options for the game and the options for the system (buttons)
  */
+
 #include <PalmOS.h>
 #include <Form.h>
 
@@ -75,7 +76,8 @@ hOptions(EventPtr event)
 }
 
 /*!
- * \brief Set the state of the various fields in the options form.
+/* brief Set the state of the various fields in the options form.
+ *
  * sets the values for the combo-boxes
  * \return the form pointer
  */

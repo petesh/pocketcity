@@ -102,10 +102,14 @@ static void HoldHook(UInt32);
 #if defined(HRSUPPORT)
 static void toolBarCheck(Coord);
 static void UIPaintToolBar(void);
+/*! \brief free Tool Bar bitmap */
 static void freeToolbarBitmap(void);
-static void pcResizeDisplay(FormPtr form, Int16 hOff, Int16 vOff, Boolean draw);
+static void pcResizeDisplay(FormPtr form, Int16 hOff, Int16 vOff,
+  Boolean draw);
 #else
+/*! \brief null defined freeToolBar - we don't suport toolbars in lowres */
 #define	freeToolbarBitmap()
+/*! \brief null defined resize - we don't suport resize in lowres */
 #define	pcResizeDisplay(X, Y, A, B)
 #endif
 
@@ -119,6 +123,17 @@ static UInt16 IsDeferDrawing(void);
 
 static void performPaintDisplay(void);
 
+/*!
+ * \brief get a resource string
+ *
+ * gets a resource string into the buffer passed. Assumes that the buffer
+ * can hold the string in question.
+ * \param index the index into the resstrings_base string list that we are
+ * obtaining
+ * \param buffer the buffer to fill with the string
+ * \param length the length of the buffer to fill
+ * \todo error check the result - we need a string
+ */
 void
 ResGetString(UInt16 index, char *buffer, UInt16 length)
 {
@@ -1495,7 +1510,7 @@ static UInt8 *didLock = NULL;
 static UInt8 lockCalls = 0;
 
 /*!
- * \Try to lock the screen from updates.
+ * \brief Try to lock the screen from updates.
  *
  * This allows bulk updates to the screen without repainting until unlocked.
  */

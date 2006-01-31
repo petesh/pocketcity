@@ -13,8 +13,6 @@
 #include <zakdef.h>
 #include <build.h>
 
-#define	MSG_QUESTION_REALLY_QUIT	1
-
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -81,9 +79,10 @@ void UIPaintDesires(void);
 void UIPaintPlayArea(void);
 
 /*!
- * \brief Initialize the graphics
+ * \brief Initialize the graphics.
+ *
+ * the result is passed back to InitializeGraphics
  * \return 0 if the call succeeds, non-zero otherwise
- * \passed back from a call to InitializeGraphics
  */
 int UIInitializeGraphics(void);
 

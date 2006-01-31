@@ -1,10 +1,11 @@
 /*!
  * \file
- * \brief Implementation of the query form
+ * \brief Implementation of the query form.
  *
  * Contains the handler code, as well as the code to translate an identified
  * zone into a string for display.
  */
+
 #include <PalmTypes.h>
 #include <Chars.h>
 #include <StringMgr.h>
@@ -22,9 +23,11 @@
 #include <globals.h>
 #include <mem_compat.h>
 
+/* \brief Set up the display items for the query form. */
 static FormPtr querySetup(void) QUERY_SECTION;
 static void queryCleanup(void) QUERY_SECTION;
-static void zonetoPtr(Char *zonemsg, welem_t tile, UInt16 maxlen) QUERY_SECTION;
+static void zonetoPtr(Char *zonemsg, welem_t tile,
+    UInt16 maxlen) QUERY_SECTION;
 static void frmShowID(FormPtr fp, UInt16 id) QUERY_SECTION;
 static void frmHideID(FormPtr fp, UInt16 id) QUERY_SECTION;
 
@@ -157,7 +160,7 @@ frmHideID(FormPtr fp, UInt16 id)
 }
 
 /*!
- * \brief Set up the display items for the query form.
+ * configure the query form
  * \return the form pointer
  */
 static FormPtr

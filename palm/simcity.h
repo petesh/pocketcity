@@ -37,6 +37,13 @@ void SetScaleModes(void);
 UInt16 IsScaleModes(void);
 
 void clearProblemFlags(void);
+
+/*!
+ * \brief get a resource string
+ * \param index the index into the resstrings to get the string from
+ * \param string the destination buffer to fill
+ * \param length the maximum length of string to fill
+ */
 void ResGetString(UInt16 index, char *string, UInt16 length);
 
 void GotoForm(Int16 n);

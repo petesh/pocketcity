@@ -398,9 +398,8 @@ filesSetup(FormPtr form)
 }
 
 #if defined(HRSUPPORT)
+
 /*!
- * \brief Resize the savegame form.
- *
  * Deal with the change of the dimensions of the old form
  * \param form the pointer to the form that is to be resized
  * \param hOff the offset of the form horizontally

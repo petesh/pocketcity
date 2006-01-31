@@ -80,10 +80,10 @@ int mem_resize(lockmem_t *str, UInt32 size);
 
 /*!
  * \brief get the size of the memory structure
- * \param str the structure to resize
- * \param size the new size of the data
- * \return true if the memory has been resized
+ *
  * resizing to 0 has the same effect as calling mem_release
+ * \param str the structure to resize
+ * \return true if the memory has been resized
  */
 UInt32 mem_size(lockmem_t *str);
 

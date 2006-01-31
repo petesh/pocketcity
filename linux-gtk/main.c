@@ -94,10 +94,17 @@ static void cash_up(void);
 
 static void s_nothing(void) { }
 
+/*!
+ * \brief The collection of stock items.
+ *
+ * It contains their image files and their default shortcuts. When you
+ * construct an action from a stock item it will use these items/strings
+ * for the creation, thus putting images on toolbars and menus.
+ */
 const struct _stockitems {
-	const char *name;
-	const char *imagefile;
-	const char *accelerator;
+	const char *name; /*!< the name of the item */
+	const char *imagefile; /*!< the image file to use (searchpath used) */
+	const char *accelerator; /*!< Accelerator key (or NULL) */
 } stockitems[] = {
 	{ A_SPEED_PAUSE, "speed_paused.png", "<Control>0" },
 	{ A_SPEED_SLOW, "speed_slow.png", "<Control>1" },

@@ -126,13 +126,10 @@ budget_defence(GtkAdjustment *adj)
  * Clears the dlg flag to prevent the accidental writing of values into the
  * form fields.
  *
- * \param widget unused
- * \param data unused
  * \return always returns false(0) to allow the form to close.
  */
 static gint
-close_budget(GtkWidget *widget __attribute__((unused)),
-    gpointer data __attribute__((unused)))
+close_budget(void)
 {
 	dlg = NULL;
 	return (FALSE);
@@ -142,8 +139,6 @@ close_budget(GtkWidget *widget __attribute__((unused)),
  * \brief View the budget form
  *
  * This is the GTK handler for displaying the budget form.
- * \param w owner widget (unused)
- * \param data unused
  */
 void
 budget_show(void)
