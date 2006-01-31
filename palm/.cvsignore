@@ -1,0 +1,9 @@
+.cvsignore
+.temp-*
+out-*
+*.pdb
+*.ro
+PocketCity-*-1.rcp
+push-sourceforge.sh
+*.gz
+*.zip
