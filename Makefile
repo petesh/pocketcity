@@ -42,3 +42,12 @@ docs:
 		echo "Warnings in Doxy.warn"; \
 		exit 1; \
 	fi
+
+cscope:
+	( find nix-common -name \*.\[ch\] -type f -print; \
+	  find linux-gtk -name \*.\[ch\] -type f -print; \
+	  find source -name \*.\[ch\] -type f -print; \
+	  find palm -name \*.\[ch\] -type f -print) > cscope.files
+	cscope -I nix-common -I linux-gtk -I source \
+	  -I /usr/include/gtk-2.0 -bq
+
