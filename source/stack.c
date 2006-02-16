@@ -30,7 +30,7 @@ StackResize(lsObj_t *sp, Int32 newSize)
 	assert(sp);
 	sd = sp->sp - sp->bp;
 	sp->sl = newSize;
-	sp->bp = gRealloc(sp->bp, sp->sl * sizeof (Int32));
+	sp->bp = grealloc(sp->bp, sp->sl * sizeof (Int32));
 	sp->se = sp->bp + (sp->sl - 1);
 	sp->sp = sp->bp + sd;
 }
@@ -38,7 +38,7 @@ StackResize(lsObj_t *sp, Int32 newSize)
 lsObj_t *
 StackNew(void)
 {
-	lsObj_t *rv = gCalloc(sizeof (lsObj_t), 1);
+	lsObj_t *rv = gcalloc(sizeof (lsObj_t), 1);
 	return (rv);
 }
 
@@ -47,8 +47,8 @@ StackDelete(lsObj_t *sp)
 {
 	if (sp == NULL)
 		return;
-	if (sp->bp) gFree(sp->bp);
-	gFree(sp);
+	if (sp->bp) gfree(sp->bp);
+	gfree(sp);
 }
 
 void
@@ -116,7 +116,7 @@ ListInsert(lsObj_t *sp, Int32 index, Int32 element)
 		StackPush(sp, element);
 	} else {
 		StackPush(sp, 0);
-		gMemMove(sp->bp + index + 1, sp->bp + index,
+		gmemmove(sp->bp + index + 1, sp->bp + index,
 		    (sp->sp - (sp->bp + index)) * sizeof (Int32));
 		sp->bp[index] = element;
 	}
@@ -130,7 +130,7 @@ ListRemove(lsObj_t *ds, Int32 index)
 	assert(ds);
 	assert(index < (ds->sp - ds->bp));
 	rv = ds->bp[index];
-	gMemMove(ds->bp + index, ds->bp + (index + 1),
+	gmemmove(ds->bp + index, ds->bp + (index + 1),
 	    (ds->sp - (ds->bp + index)) * sizeof (Int32));
 	(void)StackPop(ds);
 

@@ -95,8 +95,8 @@ mapm_int8(char *mem, char *val)
  * \param val the value to fill
  * \return pointer to after the read structure
  */
-static unsigned char *
-mapm_int16(unsigned char *mem, unsigned char *val)
+static Byte *
+mapm_int16(Byte *mem, Byte *val)
 {
 	*(Int16 *)val = (mem[0] << 8 | mem[1]);
 	return (mem + 2);
@@ -108,8 +108,8 @@ mapm_int16(unsigned char *mem, unsigned char *val)
  * \param val the value to populate with the value
  * \return pointer to just after the data
  */
-static unsigned char *
-mapm_int32(unsigned char *mem, unsigned char *val)
+static Byte *
+mapm_int32(Byte *mem, Byte *val)
 {
 	*(Int32 *)val = (mem[0] << 24 | mem[1] << 16 | mem[2] << 8 | mem[3]);
 	return (mem + 4);
@@ -130,13 +130,13 @@ mapm_int32(unsigned char *mem, unsigned char *val)
  * in order to eliminate the potential confusion every time the structure
  * changes (e.g. using the stabs information to generate this)
  */
-static unsigned char *
-read_palmstructure(unsigned char *mem, GameStruct *new,
-    unsigned char **map, unsigned char **flags)
+static Byte *
+read_palmstructure(Byte *mem, GameStruct *new,
+    Byte **map, Byte **flags)
 {
 	int i;
 	int j;
-	unsigned char *ptr = (unsigned char *)new;
+	Byte *ptr = (Byte *)new;
 	size_t map_size;
 	UInt32 foo;
 
@@ -152,65 +152,65 @@ read_palmstructure(unsigned char *mem, GameStruct *new,
 
 	new->map_xpos = *mem++;
 	new->map_ypos = *mem++;
-	
-	mem = mapm_int32(mem, (unsigned char *)&new->credits);
-	mem = mapm_int32(mem, (unsigned char *)&new->TimeElapsed);
+
+	mem = mapm_int32(mem, (Byte *)&new->credits);
+	mem = mapm_int32(mem, (Byte *)&new->TimeElapsed);
 
 	new->tax = *mem++;
 	new->gameLoopSeconds = *mem++;
 	new->diff_disaster = *mem++;
 	new->gas_bits = *mem++;
-	bcopy(mem, new->cityname, CITYNAMELEN);
+	memmove(new->cityname, mem, CITYNAMELEN);
 	mem += CITYNAMELEN;
 	for (i = 0; i < ue_tail; i++)
 		new->upkeep[i] = *mem++;
 	new->gridsToUpdate = *mem++;
 
-	mem = mapm_int16(mem, (unsigned char *)&new->desires[de_evaluation]);
-	mem = mapm_int16(mem, (unsigned char *)&new->desires[de_residential]);
-	mem = mapm_int16(mem, (unsigned char *)&new->desires[de_commercial]);
-	mem = mapm_int16(mem, (unsigned char *)&new->desires[de_industrial]);
+	mem = mapm_int16(mem, (Byte *)&new->desires[de_evaluation]);
+	mem = mapm_int16(mem, (Byte *)&new->desires[de_residential]);
+	mem = mapm_int16(mem, (Byte *)&new->desires[de_commercial]);
+	mem = mapm_int16(mem, (Byte *)&new->desires[de_industrial]);
 	WriteLog("stats starting at %p\n", mem);
 	i = 0;
 	while (i < st_tail) {
 		for (j = 0; j < STATS_COUNT; j++) {
 			mem = mapm_int16(mem,
-			    (unsigned char *)&new->statistics[i].last_ten[j]);
+			    (Byte *)&new->statistics[i].last_ten[j]);
 		}
 		for (j = 0; j < STATS_COUNT; j++) {
 			mem = mapm_int16(mem,
-			    (unsigned char *)&new->statistics[i].last_century[j]);
+			    (Byte *)&new->statistics[i].last_century[j]);
 		}
 		i++;
 	}
 	WriteLog("units starting at %p\n", mem);
 	i = 0;
 	while (i < NUM_OF_UNITS) {
-		mem = mapm_int16(mem, (unsigned char *)&new->units[i].x);
-		mem = mapm_int16(mem, (unsigned char *)&new->units[i].y);
-		mem = mapm_int16(mem, (unsigned char *)&new->units[i].active);
-		mem = mapm_int16(mem, (unsigned char *)&new->units[i].type);
+		mem = mapm_int16(mem, (Byte *)&new->units[i].x);
+		mem = mapm_int16(mem, (Byte *)&new->units[i].y);
+		mem = mapm_int16(mem, (Byte *)&new->units[i].active);
+		mem = mapm_int16(mem, (Byte *)&new->units[i].type);
 		i++;
 	}
 	WriteLog("objects starting at %p\n", mem);
 	i = 0;
 	while (i < NUM_OF_OBJECTS) {
-		mem = mapm_int16(mem, (unsigned char *)&new->objects[i].x);
-		mem = mapm_int16(mem, (unsigned char *)&new->objects[i].y);
-		mem = mapm_int16(mem, (unsigned char *)&new->objects[i].dir);
-		mem = mapm_int16(mem, (unsigned char *)&new->objects[i].active);
+		mem = mapm_int16(mem, (Byte *)&new->objects[i].x);
+		mem = mapm_int16(mem, (Byte *)&new->objects[i].y);
+		mem = mapm_int16(mem, (Byte *)&new->objects[i].dir);
+		mem = mapm_int16(mem, (Byte *)&new->objects[i].active);
 		i++;
 	}
-	mem = mapm_int32(mem, (unsigned char *)&foo);
+	mem = mapm_int32(mem, (Byte *)&foo);
 	WriteLog("guard: %lx\n", (long)foo);
 	map_size = sizeof (welem_t) * new->mapx * new->mapy;
 	ptr = calloc(map_size, 1);
 	*map = ptr;
 	WriteLog("map starting from: %p for [0x%x]%d\n", mem, map_size,
 	    map_size);
-	bcopy(mem, *map, new->mapx * new->mapy);
+	memmove(*map, mem, new->mapx * new->mapy);
 	mem += new->mapx * new->mapy;
-	mem = mapm_int32(mem, (unsigned char *)&foo);
+	mem = mapm_int32(mem, (Byte *)&foo);
 	WriteLog("guard: %lx\n", (long)foo);
 	WriteLog("status starting from: %p\n", mem);
 	map_size = sizeof (selem_t) * new->mapx * new->mapy;
@@ -222,12 +222,12 @@ read_palmstructure(unsigned char *mem, GameStruct *new,
 }
 
 static void
-write_palmstructure(GameStruct *new, char *map, char *flags, int fd)
+write_palmstructure(GameStruct *new, Byte *map, Byte *flags, int fd)
 {
 	int i;
 	int j;
 	size_t compres_size;
-	char *compres_buf;
+	Byte *compres_buf;
 
 	write(fd, new->version, 4);
 	write_int8(fd, new->mapx);
@@ -294,7 +294,7 @@ savegame_open(char *filename)
 	struct stat st;
 	savegame_t *rv = (savegame_t *)calloc(1, sizeof (savegame_t));
 	int fd = open(filename, O_RDONLY, 0666);
-	unsigned char *buf, *buf2, *buf3;
+	Byte *buf, *buf2, *buf3;
 	size_t size;
 
 	if (rv == NULL) {
@@ -316,7 +316,7 @@ savegame_open(char *filename)
 	}
 	size = st.st_size;
 
-	buf = (unsigned char *)mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
+	buf = (Byte *)mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
 	if (buf == MAP_FAILED) {
 		perror("mmap");
 		close(fd);
@@ -329,8 +329,8 @@ savegame_open(char *filename)
 		rv->gamecount = 1;
 		rv->games = calloc(1, sizeof (struct embedded_savegame));
 		read_palmstructure(buf, &rv->games[0].gs,
-			(unsigned char **)&rv->games[0].world,
-			(unsigned char **)&rv->games[0].flags);
+			(Byte **)&rv->games[0].world,
+			(Byte **)&rv->games[0].flags);
 		munmap((char *)buf, st.st_size);
 		close(fd);
 		return(rv);
@@ -343,7 +343,7 @@ savegame_open(char *filename)
 		free(rv);
 		return (NULL);
 	}
-	
+
 	while (buf2 != NULL) {
 		rv->gamecount++;
 		rv->games = realloc(rv->games,
@@ -351,8 +351,8 @@ savegame_open(char *filename)
 		buf3 = buf2;
 		buf2 = read_palmstructure(buf2,
 		    &rv->games[rv->gamecount - 1].gs,
-		    (unsigned char **)&rv->games[rv->gamecount - 1].world,
-		    (unsigned char **)&rv->games[rv->gamecount - 1].flags);
+		    (Byte **)&rv->games[rv->gamecount - 1].world,
+		    (Byte **)&rv->games[rv->gamecount - 1].flags);
 		size -= (buf2 - buf3);
 		buf2 = inMem((const char *)buf2, size, SAVEGAMEVERSION, 4);
 	}
@@ -385,32 +385,33 @@ savegame_getcityname(savegame_t *sg, int item)
 }
 
 int
-savegame_getcity(savegame_t *sg, int item, GameStruct *gs, char **map,
-    char **flags)
+savegame_getcity(savegame_t *sg, int item, GameStruct *gs, Byte **map,
+    Byte **flags)
 {
 	size_t newl = 0;
 	if (sg == NULL || item >= sg->gamecount)
 		return (-1);
-	bcopy(&sg->games[item].gs, gs, sizeof (GameStruct));
+	memmove(gs, &sg->games[item].gs, sizeof (GameStruct));
 	newl = (sizeof (welem_t)) * gs->mapx * gs->mapy;
-	*map = (char *)realloc (*map, newl);
-	bcopy(sg->games[item].world, *map, newl);
+	*map = (Byte *)realloc (*map, newl);
+	memmove(*map, sg->games[item].world, newl);
 	newl = (sizeof (selem_t)) * gs->mapx * gs->mapy;
-	*flags = (char *)realloc(*flags, newl);
-	bcopy(sg->games[item].flags, *flags, newl);
+	*flags = (Byte *)realloc(*flags, newl);
+	memmove(*flags, sg->games[item].flags, newl);
 	return (0);
 }
 
 void
-savegame_gametransfer(char *map, char *flags, int dofree)
+savegame_gametransfer(Byte *map, Byte *flags, int dofree)
 {
 	if ((NULL != map) && (NULL != flags)) {
 		setMapSize(getMapWidth(), getMapHeight());
+
 		zone_lock(lz_world);
-		bcopy(worldPtr, map, zone_size(lz_world));
+		memmove(worldPtr, map, zone_size(lz_world));
 		zone_unlock(lz_world);
 		zone_lock(lz_flags);
-		bcopy(flagPtr, flags, zone_size(lz_flags));
+		memmove(flagPtr, flags, zone_size(lz_flags));
 		zone_unlock(lz_flags);
 		if (dofree) {
 			free(map);
@@ -420,20 +421,20 @@ savegame_gametransfer(char *map, char *flags, int dofree)
 }
 
 int
-savegame_setcity(savegame_t *sg, int item, GameStruct *gs, char *map,
-    char *flags)
+savegame_setcity(savegame_t *sg, int item, GameStruct *gs, Byte *map,
+    Byte *flags)
 {
 	size_t newl;
 
 	if (map == NULL || sg == NULL || item >= sg->gamecount)
 		return (-1);
-	bcopy(gs, &sg->games[item].gs, sizeof (GameStruct));
+	memmove(&sg->games[item].gs, gs, sizeof (GameStruct));
 	newl = sizeof (welem_t) * gs->mapx * gs->mapy;
 	sg->games[item].world = realloc(sg->games[item].world, newl);
-	bcopy(map, sg->games[item].world, newl);
+	memmove(sg->games[item].world, map, newl);
 	newl = sizeof (selem_t) * gs->mapx * gs->mapy;
 	sg->games[item].flags = realloc(sg->games[item].flags, newl);
-	bcopy(flags, sg->games[item].flags, newl);
+	memmove(sg->games[item].flags, flags, newl);
 	return (0);
 }
 
@@ -447,31 +448,37 @@ savegame_citycount(savegame_t *sg)
 int
 load_defaultfilename(void)
 {
+	Byte *world, *flags;
 	savegame_t *sg = savegame_open(getCityFileName());
+
 	if (sg == NULL)
 		return (-1);
-	if (worldPtr != NULL) {
-		free(worldPtr);
-		worldPtr = NULL;
-	}
-	if (flagPtr != NULL) {
-		free(flagPtr);
-		flagPtr = NULL;
-	}
-	savegame_getcity(sg, 0, &game, (char **)&worldPtr,
-	    (char **)&flagPtr);
+
+	savegame_getcity(sg, 0, &game, (Byte **)&world,
+	    (Byte **)&flags);
+	savegame_gametransfer(world, flags, 1);
 	savegame_close(sg);
+
 	return (0);
 }
 
 int
 save_defaultfilename()
 {
-	return(save_filename(getCityFileName(), &game, worldPtr, flagPtr));
+	int rv;
+
+	zone_lock(lz_world);
+	zone_lock(lz_flags);
+	rv = save_filename(getCityFileName(), &game,
+	    (Byte *)worldPtr, (Byte *)flagPtr);
+	zone_unlock(lz_world);
+	zone_unlock(lz_flags);
+
+	return (rv);
 }
 
 int
-save_filename(char *sel, GameStruct *gs, char *world, char *flags)
+save_filename(char *sel, GameStruct *gs, Byte *world, Byte *flags)
 {
 	int fd;//, ret;
 	//ssize_t worldsize = gs->mapx * gs->mapy * (sizeof (welem_t));

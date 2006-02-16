@@ -12,14 +12,14 @@
 #include <string.h>
 #include <strings.h>
 
-#define gMalloc	malloc
-#define gFree free
-#define gRealloc realloc
-#define gCalloc calloc
+#define gmalloc	malloc
+#define gfree free
+#define grealloc realloc
+#define gcalloc calloc
 /*! \brief swap arguments for character and length */
-#define gMemSet(P,L,C) memset((P),(C),(L))
-#define gMemMove(D, S, L) memmove((D), (S), (L))
-#define	QSort(a,b,c,d)	qsort(a, b, c, \
+#define gmemset(P,L,C) memset((P),(C),(L))
+#define gmemmove(D, S, L) memmove((D), (S), (L))
+#define	gqsort(a,b,c,d)	qsort(a, b, c, \
     (int (*)(const void *, const void *))d)
 
 #endif /* _MEM_COMPAT_H */

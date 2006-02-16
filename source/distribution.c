@@ -31,8 +31,8 @@ typedef struct _cdistrib {
 	carryfn_t	doescarry; /*!< Does the node carry the item */
 
 	problem_t	error_flag; /*!< Error flag */
-	selem_t flagToSet; /*!< flag that is being set in this loop */
-	selem_t visited; /*!< visited flag */
+	selem_t		flagToSet; /*!< flag that is being set in this loop */
+	selem_t		visited; /*!< visited flag */
 } cdistrib_t;
 
 typedef enum {
@@ -59,16 +59,16 @@ static void DistributeUnvisited(distrib_t *distrib);
 static void AddCarryNeighbors(distrib_t *distrib, UInt32 pos);
 static UInt8 ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what);
 
-static Int16 IsItAPowerPlant(welem_t point, UInt32 coord, selem_t flags);
-static Int16 IsItAUsableWaterPump(welem_t point, UInt32 coord, selem_t flags);
+static Int16 GetPowerPlantSupply(welem_t point, UInt32 coord, selem_t flags);
+static Int16 GetWaterPumpSupply(welem_t point, UInt32 coord, selem_t flags);
 
 const cdistrib_t cdist[] = {
-	{ IsItAPowerPlant,
+	{ GetPowerPlantSupply,
 	CarryPower,
 	peFineOnPower,
 	POWEREDBIT,
 	SCRATCHPOWER },
-	{ IsItAUsableWaterPump,
+	{ GetWaterPumpSupply,
 	CarryWater,
 	peFineOnWater,
 	WATEREDBIT,
@@ -137,7 +137,7 @@ Sim_Distribute_Specific(Int16 gridonly)
  * \return the amount of power supplied if it is a plant, zero otherwise
  */
 static Int16
-IsItAPowerPlant(welem_t point, UInt32 coord __attribute__((unused)),
+GetPowerPlantSupply(welem_t point, UInt32 coord __attribute__((unused)),
     selem_t flags __attribute__((unused)))
 {
 	if (IsCoalPlant(point))
@@ -159,7 +159,7 @@ IsItAPowerPlant(welem_t point, UInt32 coord __attribute__((unused)),
  *
  */
 static Int16
-IsItAUsableWaterPump(welem_t point, UInt32 coord, selem_t flags)
+GetWaterPumpSupply(welem_t point, UInt32 coord, selem_t flags)
 {
 	if (IsPump(point) && (flags & POWEREDBIT) &&
 	    ExistsNextto(coord, DIR_ALL, Z_REALWATER))
@@ -213,7 +213,7 @@ DoDistribute(Int16 grid)
 	UInt32 i;
 	welem_t gw;
 	selem_t sw;
-	distrib_t *distrib = gMalloc(sizeof (distrib_t));
+	distrib_t *distrib = gmalloc(sizeof (distrib_t));
 	const cdistrib_t *ct;
 	UInt32 count_powers;
 	UInt32 pos;
@@ -293,7 +293,7 @@ DoDistribute(Int16 grid)
 		/* This isn't really a problem. */
 		UIProblemNotify(ct->error_flag);
 	}
-	gFree(distrib);
+	gfree(distrib);
 }
 
 /*!

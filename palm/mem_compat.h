@@ -17,14 +17,14 @@ MemPtr palm_calloc(UInt32 size, UInt32 count);
 void palm_free(MemPtr mem);
 MemPtr palm_malloc(UInt32 size);
 
-#define	gMalloc	palm_malloc
-#define	gFree palm_free
-#define	gRealloc palm_realloc
-#define	gCalloc palm_calloc
-#define	gMemSet(P, L, C) MemSet((P), (L), (C))
-#define gMemMove(D, S, C) MemMove((D), (S), (C))
+#define	gmalloc	palm_malloc
+#define	gfree palm_free
+#define	grealloc palm_realloc
+#define	gcalloc palm_calloc
+#define	gmemset(P, L, C) MemSet((P), (L), (C))
+#define gmemmove(D, S, C) MemMove((D), (S), (C))
 
-#define	QSort(a, b, c, d) SysQSort(a, (UInt16)b, (Int16)c, d, (Int32)1)
+#define	gqsort(a, b, c, d) SysQSort(a, (UInt16)b, (Int16)c, d, (Int32)1)
 
 #if defined(MEM_DEBUG)
 #define	MemHandleResize(M, S) _MemHandleResize(M, S, __FILE__, __LINE__)

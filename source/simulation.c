@@ -79,7 +79,7 @@ FindZonesForUpgrading(void)
 	if (ran_zone == NULL) {
 		max_list = (getMapWidth() < getMapHeight() ? getMapHeight() :
 		    (UInt16)(getMapWidth())) * 3;
-		ran_zone = (ZoneScore *)gCalloc(max_list, sizeof (ZoneScore));
+		ran_zone = (ZoneScore *)gcalloc(max_list, sizeof (ZoneScore));
 	}
 
 	at_pos = 0;
@@ -170,7 +170,7 @@ reGradeZones(void)
 	Int16 downCount = 10;
 	Int16 upCount = 12;
 
-	QSort(ran_zone, at_pos, sizeof (ZoneScore), zoneCmpFn);
+	gqsort(ran_zone, at_pos, sizeof (ZoneScore), zoneCmpFn);
 	WriteLog("Used: %ld\n", at_pos);
 	/* upgrade the upCount best */
 	for (i = at_pos - 1; i >= 0 && i > (at_pos - upCount); i--) {
@@ -1121,7 +1121,7 @@ void
 endSimulation(void)
 {
 	if (ran_zone != NULL) {
-		gFree(ran_zone);
+		gfree(ran_zone);
 		ran_zone = NULL;
 	}
 }

@@ -73,7 +73,7 @@ ImportOneFromGame(GtkWidget *widget, gint response, gpointer data)
 		GtkTreeSelection *select;
 		GtkTreeModel *model;
 		GtkTreeIter iter;
-		char *world = NULL, *flags = NULL;
+		Byte *world = NULL, *flags = NULL;
 		int city = 0;
 
 		select = gtk_tree_view_get_selection(
@@ -82,8 +82,8 @@ ImportOneFromGame(GtkWidget *widget, gint response, gpointer data)
 			gtk_tree_model_get(model, &iter, 0, &city, -1);
 		}
 
-		savegame_getcity(sel->sg, city, &game, (char **)&world,
-		    (char **)&flags);
+		savegame_getcity(sel->sg, city, &game, (Byte **)&world,
+		    (Byte **)&flags);
 		savegame_gametransfer(world, flags, 1);
 		PostLoadGame();
 	}
@@ -158,7 +158,7 @@ static void
 doOpen(gchar *filename)
 {
 	savegame_t *sg = savegame_open(filename);
-	char *world = NULL, *flags = NULL;
+	Byte *world = NULL, *flags = NULL;
 
 	if (sg == NULL) {
 		WriteLog("A null file is not a valid file\n");
@@ -175,8 +175,8 @@ doOpen(gchar *filename)
 	if (savegame_citycount(sg) > 1) {
 		loadCities(sg);
 	} else {
-		savegame_getcity(sg, 0, &game, (char **)&world,
-		    (char **)&flags);
+		savegame_getcity(sg, 0, &game, (Byte **)&world,
+		    (Byte **)&flags);
 		savegame_gametransfer(world, flags, 1);
 		PostLoadGame();
 		savegame_close(sg);

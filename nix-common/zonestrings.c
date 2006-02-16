@@ -71,7 +71,7 @@ getFieldString(welem_t world, char *dest, int destlen)
 		i++;
 	}
 	if (type_zones[i].zonestring == NULL) return (-1);
-	strncpy(dest, type_zones[i].zonestring, destlen - 1);
+	strncpy(dest, gettext(type_zones[i].zonestring), destlen - 1);
 	dest[destlen - 1] = '\0';
 	return (0);
 }
@@ -93,7 +93,7 @@ char *values[] = {
 int
 getFieldValue(welem_t world, char *dest, int destlen)
 {
-	strncpy(dest, values[ZoneValue(world) % 4], destlen - 1);
+	strncpy(dest, gettext(values[ZoneValue(world) % 4]), destlen - 1);
 	values[destlen - 1] = '\0';
 
 	return (0);
@@ -102,7 +102,7 @@ getFieldValue(welem_t world, char *dest, int destlen)
 int
 getFieldDensity(welem_t world, char *dest, int destlen)
 {
-	strncpy(dest, values[(ZoneValue(world) / 4) % 4], destlen - 1);
+	strncpy(dest, gettext(values[(ZoneValue(world) / 4) % 4]), destlen - 1);
 	values[destlen - 1] = '\0';
 
 	return (0);

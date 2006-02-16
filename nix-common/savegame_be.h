@@ -22,17 +22,20 @@ typedef void savegame_t;
  * \return the savegame, or NULL if the file could not be processed.
  */
 savegame_t *savegame_open(char *filename);
+
 /*!
  * \brief close a previously created savegame structure
  * \param sg the gamestructure from an savegame_open call
  */
 void savegame_close(savegame_t *sg);
+
 /*!
  * \brief get the count of the cities in a savegame structure
  * \param sg the savegame structure
  * \return the count of the cities, or -1 on error
  */
 int savegame_citycount(savegame_t *sg);
+
 /*!
  * \brief get the name of a city in the savegame structure
  * \param sg the savegame structure allocated from savegame_open
@@ -40,6 +43,7 @@ int savegame_citycount(savegame_t *sg);
  * \return a pointer to the savegame, or NULL on error
  */
 char *savegame_getcityname(savegame_t *sg, int item);
+
 /*!
  * \brief get a city structure from the savegame structure
  * \param sg the savegame structure allocated from savegame_open
@@ -54,8 +58,8 @@ char *savegame_getcityname(savegame_t *sg, int item);
  * the map parameter will have it's value overwritten, so if you've allocated
  * a pointer into it you need to free it beforehand.
  */
-int savegame_getcity(savegame_t *sg, int item, GameStruct *gs, char **map,
-    char **flags);
+int savegame_getcity(savegame_t *sg, int item, GameStruct *gs, Byte **map,
+    Byte **flags);
 
 /*!
  * \brief store the contents of a city into the savegame structure
@@ -66,8 +70,8 @@ int savegame_getcity(savegame_t *sg, int item, GameStruct *gs, char **map,
  * \param flags the map flags to store
  * \return 0 on success, -1 on error
  */
-int savegame_setcity(savegame_t *sg, int item, GameStruct *gs, char *map,
-    char *flags);
+int savegame_setcity(savegame_t *sg, int item, GameStruct *gs, Byte *map,
+    Byte *flags);
 
 /*!
  * \brief save the game into the file specified
@@ -77,7 +81,7 @@ int savegame_setcity(savegame_t *sg, int item, GameStruct *gs, char *map,
  * \param flags the world flags to save
  * \return 0 if the file was saved successfully, -1 otherwise
  */
-int save_game(char *name, GameStruct *gs, char *world, char *flags);
+int save_game(char *name, GameStruct *gs, Byte *world, Byte *flags);
 
 /*!
  * \brief copy the map and flag pointers into the world elements
@@ -85,13 +89,14 @@ int save_game(char *name, GameStruct *gs, char *world, char *flags);
  * \param flags the flags pointer
  * \param dofree perform a free on map and flags
  */
-void savegame_gametransfer(char *map, char *flags, int dofree);
+void savegame_gametransfer(Byte *map, Byte *flags, int dofree);
 
 /*!
  * \brief save the default savegame file and map
  * \return -1 if something went wrong, 0 otherwise
  */
 int save_defaultfilename(void);
+
 /*!
  * \brief load the default file name into the default game structures
  * \return -1 if something went wrong, 0 otherwise
@@ -106,7 +111,7 @@ int load_defaultfilename(void);
  * \param flags the world flags to save
  * \return -1 on error, 0 otherwise.
  */
-int save_filename(char *sel, GameStruct *gs, char *world, char *flags);
+int save_filename(char *sel, GameStruct *gs, Byte *world, Byte *flags);
 
 /*!
  * \brief Initialize the game structures for a new game
@@ -118,6 +123,7 @@ void NewGame(void);
  * \return -1 if the name was rejected (ended in .pdb)
  */
 int setCityFileName(char *name);
+
 /*!
  * \brief get the name of default city file
  * \return NULL if it's not set.

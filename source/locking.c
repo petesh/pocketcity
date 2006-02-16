@@ -8,6 +8,9 @@
 #include <locking.h>
 #include <globals.h>
 
+/*!
+ * These are the lockzones corresponding to map related items
+ */
 static lockmem_t lockzones[lz_end] = {
 	{ NULL, NULL, &worldPtr, 0, 0 },
 	{ NULL, NULL, &flagPtr, 0, 0 },
@@ -16,20 +19,38 @@ static lockmem_t lockzones[lz_end] = {
 	{ NULL, NULL, &transportPtr, 0, 0 }
 };
 
+/*!
+ * These represent the sizes of the various elements in lockzones. These
+ * are needed to ensure that the correct memory is allocated to the
+ * structures when they are resized.
+ */
+static Int8 zonesize[lz_end] = {
+	sizeof (welem_t), sizeof (selem_t), sizeof (Int8),
+	sizeof (Int8), sizeof (Int8)
+};
+
 void
 zone_lock(lockZone zone)
 {
-	lockmem_t *mem = lockzones + zone;
-
-	mem_lock(mem);
+	if (zone == lz_end) {
+		zone = lz_world;
+		while (zone < lz_end)
+			mem_lock(lockzones + zone++);
+	} else {
+		mem_lock(lockzones + zone);
+	}
 }
 
 void
 zone_unlock(lockZone zone)
 {
-	lockmem_t *mem = lockzones + zone;
-
-	mem_unlock(mem);
+	if (zone == lz_end) {
+		zone = lz_world;
+		while (zone < lz_end)
+			mem_lock(lockzones + zone++);
+	} else {
+		mem_unlock(lockzones + zone);
+	}
 }
 
 int
@@ -42,7 +63,7 @@ zone_resize(lockZone zone, UInt32 size)
 		zone = lz_world;
 		while (zone < lz_end) {
 			mem = lockzones + zone;
-			rv += mem_resize(mem, size);
+			rv += mem_resize(mem, size * zonesize[zone]);
 			if (rv == 0)
 				return (0);
 			zone++;
@@ -63,7 +84,7 @@ zone_alloc(lockZone zone, UInt32 size)
 		zone = lz_world;
 		while (zone < lz_end) {
 			mem = lockzones + zone;
-			rv += mem_alloc(mem, size);
+			rv += mem_alloc(mem, size * zonesize[zone]);
 			if (rv == 0)
 				return (0);
 			zone++;

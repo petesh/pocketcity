@@ -72,7 +72,7 @@ void mem_unlock(lockmem_t *str);
 /*!
  * \brief resize the memory - may not already be allocated memory
  * \param str the structure to resize
- * \param size the new size of the data
+ * \param size the new size of the data in bytes
  * \return true if the memory has been resized
  * resizing to 0 has the same effect as calling mem_release
  */

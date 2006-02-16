@@ -206,11 +206,11 @@ ResizeWorld(UInt32 size)
 {
 	int rv;
 	WriteLog("Resize World = %ld\n", (long)size);
-	rv = zone_resize(lz_world, size * sizeof (welem_t));
-	rv += zone_resize(lz_flags, size * sizeof (selem_t));
-	rv += zone_resize(lz_pollution, size * sizeof (Int8));
-	rv += zone_resize(lz_crime, size * sizeof (Int8));
-	rv += zone_resize(lz_transport, size * sizeof (Int8));
+	rv = zone_resize(lz_world, size);
+	rv += zone_resize(lz_flags, size);
+	rv += zone_resize(lz_pollution, size);
+	rv += zone_resize(lz_crime, size);
+	rv += zone_resize(lz_transport, size);
 
 	return (rv == 5); /* Not magic zone_alloc returns 1 on success */
 }

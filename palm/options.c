@@ -76,7 +76,7 @@ hOptions(EventPtr event)
 }
 
 /*!
-/* brief Set the state of the various fields in the options form.
+ * brief Set the state of the various fields in the options form.
  *
  * sets the values for the combo-boxes
  * \return the form pointer
