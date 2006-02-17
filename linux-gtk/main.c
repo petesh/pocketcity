@@ -35,7 +35,7 @@
 #include <assert.h>
 
 /*! \brief path to search for graphics */
-Char *pathsearch = (Char *)"$:$/..:$/graphic:$/graphic/icons:$/../graphic:$/../graphic/icons:$/../../graphic:$/../../graphic/icons";
+Char *pathsearch = (Char *)"$:$/..:$/graphic:$/graphic/icons:$/../graphic:$/../graphic/color:$/../graphic/icons:$/../../graphic:$/../../graphic/color:$/../../graphic/icons";
 
 static size_t max_path;
 /*! \brief number of milli seconds in a second */
@@ -136,15 +136,18 @@ const struct _stockitems {
 
 #define NSTOCKITEMS	(sizeof (stockitems) / sizeof (stockitems[0]))
 
+
 /*! \brief a hookup set of action->event mappings as default */
-const struct _actionhooks {
+struct _actionhooks {
 	char *name; /*!< name of the action */
 	char *label; /*!< the text for the action (base) */
 	char *tooltip; /*!< the tooltip for the action (base) */
 	char *icon; /*!< the name of the icon for the action */
 	GCallback handler;	/*!< function handler */
-	gint parameter;
-} actionhooks[] = {
+	gint parameter; /*!< possible parameter for the handler */
+};
+
+static const struct _actionhooks normalhooks[] = {
 	{ "file-action", N_("_File"), NULL, NULL, s_nothing, 0 },
 	{ "game-new", N_("_New"), N_("Create a new game"), GTK_STOCK_NEW,
 	  newgame_handler, 0 },
@@ -177,7 +180,6 @@ const struct _actionhooks {
 	{ A_SPEED_TURBO, N_("_Turbo"), N_("Set speed to fastest rate"),
 	  NULL, G_CALLBACK(set_speed_handler), SPEED_TURBO },
 
-	{ "simulation-action", N_("S_imulation"), NULL, NULL, s_nothing, 0 },
 #if defined(DEBUG)
 	{ "mark-redistribute", N_("_Redistribute"), N_("ask to recheck the "
 	  "power circuit"), NULL, force_redistribute, 0 },
@@ -185,6 +187,10 @@ const struct _actionhooks {
 	  cash_up, 0 },
 #endif
 
+	{ "simulation-action", N_("S_imulation"), NULL, NULL, s_nothing, 0 }
+};
+
+static const struct _actionhooks radiogroup1[] = {
 	{ A_BULLDOZER, N_("Bulldozer"), NULL, NULL,
 	  G_CALLBACK(toolbox_callback), Be_Bulldozer },
 	{ A_ROAD, N_("Road"), NULL, NULL,
@@ -223,8 +229,115 @@ const struct _actionhooks {
 	  G_CALLBACK(toolbox_callback), Be_Defence_Military },
 };
 
-/*! \brief number of action hooks */
-#define NACTIONHOOKS	(sizeof (actionhooks) / sizeof (actionhooks[0]))
+/*!
+ * \brief get the number of items in an array
+ */
+#define ARYSIZE(X)	(sizeof (X) / sizeof (X[0]))
+
+typedef enum {
+	at_normal = 0,
+	at_radio,
+	at_toggle
+} action_types;
+
+struct action_arrays {
+	action_types type;
+	const struct _actionhooks *ahs;
+	size_t count;
+} game_actions[] = {
+	{ at_normal, normalhooks, ARYSIZE(normalhooks) },
+	{ at_radio, radiogroup1, ARYSIZE(radiogroup1) }
+};
+
+void
+actions_normal_add(GtkActionGroup *act_group, const struct _actionhooks *ahs,
+    int count)
+{
+	int i;
+	GtkAction *action;
+	char *nel = malloc(max_path);
+
+	for (i = 0; i < count; i++) {
+		char *label = gettext(ahs[i].label);
+		action = gtk_action_new(ahs[i].name,
+		  label, ahs[i].tooltip == NULL ? label :
+		  gettext(ahs[i].tooltip),
+		  ahs[i].icon == NULL ? ahs[i].name : ahs[i].icon);
+		sprintf(nel, "<Actions>/actions/%s", ahs[i].name);
+		gtk_action_set_accel_path(action, nel);
+		//gtk_action_connect_accelerator(action);
+		g_signal_connect(G_OBJECT(action), "activate",
+		    ahs[i].handler,
+		    GINT_TO_POINTER(ahs[i].parameter));
+		gtk_action_group_add_action_with_accel(act_group, action,
+		  NULL);
+	}
+	free(nel);
+}
+
+void
+actions_radio_add(GtkActionGroup *act_group, const struct _actionhooks *ahs,
+    int count)
+{
+	int i;
+	GtkRadioAction *action;
+	char *nel = malloc(max_path);
+	GSList *list = NULL;
+
+	for (i = 0; i < count; i++) {
+		char *label = gettext(ahs[i].label);
+		action = gtk_radio_action_new(ahs[i].name,
+		  label, ahs[i].tooltip == NULL ? label :
+		  gettext(ahs[i].tooltip),
+		  ahs[i].icon == NULL ? ahs[i].name : ahs[i].icon,
+		  ahs[i].parameter);
+		sprintf(nel, "<Actions>/actions/%s", ahs[i].name);
+		gtk_action_set_accel_path(GTK_ACTION(action), nel);
+		gtk_radio_action_set_group(action, list);
+		list = gtk_radio_action_get_group(action);
+		//gtk_action_connect_accelerator(action);
+		g_signal_connect(G_OBJECT(action), "activate",
+		    ahs[i].handler,
+		    GINT_TO_POINTER(ahs[i].parameter));
+		gtk_action_group_add_action_with_accel(act_group,
+		    GTK_ACTION(action),
+		  NULL);
+	}
+	free(nel);
+}
+
+void
+actions_toggle_add(GtkActionGroup *act_group, const struct _actionhooks *ahs,
+    int count)
+{
+	int i;
+	GtkToggleAction *action;
+	char *nel = malloc(max_path);
+
+	for (i = 0; i < count; i++) {
+		char *label = gettext(ahs[i].label);
+		action = gtk_toggle_action_new(ahs[i].name,
+		  label, ahs[i].tooltip == NULL ? label :
+		  gettext(ahs[i].tooltip),
+		  ahs[i].icon == NULL ? ahs[i].name : ahs[i].icon);
+		sprintf(nel, "<Actions>/actions/%s", ahs[i].name);
+		gtk_action_set_accel_path(GTK_ACTION(action), nel);
+		//gtk_action_connect_accelerator(action);
+		g_signal_connect(G_OBJECT(action), "activate",
+		    ahs[i].handler,
+		    GINT_TO_POINTER(ahs[i].parameter));
+		gtk_action_group_add_action_with_accel(act_group,
+		    GTK_ACTION(action),
+		  NULL);
+	}
+	free(nel);
+}
+
+static void(*actioneers[3])(GtkActionGroup *, const struct _actionhooks *,
+  int) = {
+	actions_normal_add, actions_radio_add, actions_toggle_add
+};
+
 
 /*!
  * \brief the main routine
@@ -797,12 +910,10 @@ SetUpMainWindow(void)
 	GtkWidget *playingbox, *main_box;
 	//GtkAccelGroup *accel_group;
 	GtkActionGroup *act_group;
-	GtkAction *action;
 	GtkStockItem stock_item;
 	GtkIconFactory *icon_factory;
 	GtkUIManager *gum;
 	char *gumfile = alloca(max_path);
-	char *nel = alloca(max_path);
 	unsigned int i;
 
 	mw.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -838,22 +949,9 @@ SetUpMainWindow(void)
 	gtk_icon_factory_add_default(icon_factory);
 
 	act_group = gtk_action_group_new("actions");
-	for (i = 0; i < NACTIONHOOKS; i++) {
-		char *label = gettext(actionhooks[i].label);
-		action = gtk_action_new(actionhooks[i].name,
-		  label,
-		  actionhooks[i].tooltip == NULL ? label :
-		  gettext(actionhooks[i].tooltip),
-		  actionhooks[i].icon == NULL ? actionhooks[i].name :
-		  actionhooks[i].icon);
-		sprintf(nel, "<Actions>/actions/%s", actionhooks[i].name);
-		gtk_action_set_accel_path(action, nel);
-		//gtk_action_connect_accelerator(action);
-		g_signal_connect(G_OBJECT(action), "activate",
-		    actionhooks[i].handler,
-		    GINT_TO_POINTER(actionhooks[i].parameter));
-		gtk_action_group_add_action_with_accel(act_group, action,
-		  NULL);
+	for (i = 0; i < ARYSIZE(game_actions); i++) {
+		actioneers[game_actions[i].type](act_group,
+		    game_actions[i].ahs, game_actions[i].count);
 	}
 
 	/* practically everything is in this */
