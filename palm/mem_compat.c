@@ -8,6 +8,7 @@
 
 #include <PalmTypes.h>
 #include <MemoryMgr.h>
+#include <logging.h>
 
 #if defined(MEM_DEBUG)
 
@@ -15,7 +16,7 @@ MemPtr
 _MemPtrNew(UInt32 size, char *file, int line)
 {
 	MemPtr mp = MemPtrNew(size);
-	WriteLog("%lx = MemPtrNew(%lx) [%s:%d]\n", mp, size, file, line);
+	WriteLog("MemPtrNew(%lx) = %lx [%s:%d]\n", size, mp, file, line);
 	return (mp);
 }
 
@@ -23,7 +24,7 @@ MemPtr
 _MemHandleLock(MemHandle mh, char *file, int line)
 {
 	MemPtr mp = MemHandleLock(mh);
-	WriteLog("%lx = MemHandleLock(%lx) [%s:%d]\n", mp, mh, file, line);
+	WriteLog("MemHandleLock(%lx) = %lx [%s:%d]\n", mh, mp, file, line);
 	return (mp);
 }
 
@@ -31,7 +32,7 @@ Err
 _MemHandleUnlock(MemHandle mh, char *file, int line)
 {
 	Err err = MemHandleUnlock(mh);
-	WriteLog("%x = MemHandleUnlock(%lx) [%s:%d]\n", err, mh, file, line);
+	WriteLog("MemHandleUnlock(%lx) = %x [%s:%d]\n", mh, err, file, line);
 	return (err);
 }
 
@@ -39,7 +40,7 @@ MemHandle
 _MemHandleNew(UInt32 size, char *file, int line)
 {
 	MemHandle mh = MemHandleNew(size);
-	WriteLog("%lx = MemHandleNew(%lx) [%s:%d]\n", mh, size, file, line);
+	WriteLog("MemHandleNew(%lx) = %lx [%s:%d]\n", size, mh, file, line);
 	return (mh);
 }
 
@@ -47,7 +48,7 @@ MemHandle
 _MemPtrRecoverHandle(MemPtr mp, char *file, int line)
 {
 	MemHandle mh = MemPtrRecoverHandle(mp);
-	WriteLog("%lx = MemPtrRecoverHandle(%lx) [%s:%d]\n", mh, mp, file,
+	WriteLog("MemPtrRecoverHandle(%lx) = %lx [%s:%d]\n", mp, mh, file,
 	    line);
 	return (mh);
 }
@@ -56,8 +57,8 @@ Err
 _MemHandleResize(MemHandle mh, UInt32 size, char *file, int line)
 {
 	Err err = MemHandleResize(mh, size);
-	WriteLog("%d = MemHandleResize(%lx, %lx) [%s:%d]\n", err, mh,
-	    size, file, line);
+	WriteLog("MemHandleResize(%lx, %lx) = %x [%s:%d]\n", mh, size, err,
+	    file, line);
 	return (err);
 }
 
@@ -65,7 +66,7 @@ Err
 _MemHandleFree(MemHandle mh, char *file, int line)
 {
 	Err err = MemHandleFree(mh);
-	WriteLog("%d = MemHandleFree(%lx) [%s:%d]\n", err, mh, file, line);
+	WriteLog("MemHandleFree(%lx) = %x [%s:%d]\n", mh, err, file, line);
 	return (err);
 }
 
@@ -73,7 +74,7 @@ Err
 _MemPtrFree(MemPtr mp, char *file, int line)
 {
 	Err err = MemPtrFree(mp);
-	WriteLog("%d = MemPtrFree(%lx) [%s:%d]\n", err, mp, file, line);
+	WriteLog("MemPtrFree(%lx) = %x [%s:%d]\n", mp, err, file, line);
 	return (err);
 }
 #endif
@@ -90,18 +91,21 @@ MemPtr
 palm_realloc(MemPtr old, UInt32 new_size)
 {
 	MemHandle mh;
+	MemPtr rv;
 
 	if (old == NULL) {
 		mh = MemHandleNew(new_size);
 		if (mh == NULL)
 			return (mh);
-		return (MemHandleLock(mh));
+		rv = MemHandleLock(mh);
+		return (rv);
 	}
 
 	mh = MemPtrRecoverHandle(old);
 	MemPtrUnlock(old);
 	MemHandleResize(mh, new_size);
-	return (MemHandleLock(mh));
+	rv = MemHandleLock(mh);
+	return (rv);
 }
 
 MemPtr
@@ -121,8 +125,10 @@ palm_calloc(UInt32 size, UInt32 count)
 MemPtr
 palm_malloc(UInt32 size)
 {
+	MemPtr mp;
 	MemHandle mh = MemHandleNew(size);
-	return (MemHandleLock(mh));
+	mp = MemHandleLock(mh);
+	return (mp);
 }
 
 void

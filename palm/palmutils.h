@@ -68,6 +68,15 @@ Boolean hasFiveWayNav(void);
 #endif
 
 /*!
+ * \brief check if the draw-window occupies most of the screen.
+ *
+ * This is a jog assist support routine. If the drawing window is
+ * over 80% of the screen then we've not popped up a menu.
+ * \return true if the current draw window occupies 80% of the screen.
+ */
+Boolean IsDrawWindowMostOfScreen(void);
+
+/*!
  * \brief build a string list from all the string list items from resID
  * \param resID the resource to get the strings from
  * \param length (out) the # of items in the list

@@ -11,6 +11,7 @@ extern "C" {
 
 #include <zakdef.h>
 #include <compilerpragmas.h>
+#include <sections.h>
 
 /*! \brief the bit associated with power in the worldflags */
 #define	POWEREDBIT	((unsigned char)0x01)

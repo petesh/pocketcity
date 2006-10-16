@@ -79,6 +79,11 @@ mem_resize(lockmem_t *mem, UInt32 size)
 			else
 				mem->size = size;
 		}
+		if (e == 0) {
+			MemPtr ml = MemHandleLock(mem->handle);
+			MemSet(ml, mem->size, 0);
+			MemPtrUnlock(ml);
+		}
 		return (0 == e);
 	}
 }

@@ -4,10 +4,10 @@ GCPPFLAGS := $(shell pkg-config --cflags gtk+-2.0) \
 
 ifeq ($(CC),suncc)
 GCCFLAGS = -v -erroff=%none -errwarn=%all
-OPTFLAGS = -xO2
+XOPTFLAGS = -xO2
 else
 GCCFLAGS = -W -Wall -Werror
-OPTFLAGS = -O2
+XOPTFLAGS = -O2
 endif
 INCLUDEDIRS = -I . -I ../source -I ../nix-common -I ../graphic
 CPPFLAGS=$(GCPPFLAGS) -DLINUX $(INCLUDEDIRS)
@@ -19,17 +19,19 @@ LDLIBS = $(LIBS) $(GLFLAGS)
 
 VPATH=../source:../nix-common
 
-debug : CFLAGS += -g -DDEBUG -DLOGGING
-debug : OPTFLAGS=
-debug : OBJDIR=debug
+CFLAGS_debug=-g -DDEBUG -DLOGGING
+OPTFLAGS_debug=
 
-profile : CFLAGS += -pg
-profile : debug
-profile : OBJDIR=profile
+CFLAGS_release=
+OPTFLAGS_release=$(XOPTFLAGS)
 
-all: OBJDIR=default
+CFLAGS_profile=-pg
+OPTFLAGS_profile=
 
-debug all profile: $(OBJDIR)/pocketcity
+OPTFLAGS=$(OPTFLAGS_$(BUILD_MODE))
+CFLAGS += $(CFLAGS_$(BUILD_MODE))
+
+debug all release profile: $(OBJDIR)/pocketcity
 
 include ../Makefile-GlobalEntries
 include ../nix-common/Makefile-nixcommon
@@ -39,7 +41,7 @@ OBJECTS = $(OBJECTS_CARELESS) $(OBJECTS_NIX) main.o savegame_fe.o budget.o \
 
 OBJDEST = $(OBJECTS:%=$(OBJDIR)/%)
 
-.PHONY: all debug clean
+.PHONY: all release debug clean
 
 $(OBJDIR)/pocketcity: $(OBJDIR) $(OBJDEST)
 	$(CC) $(CFLAGS) $(OBJDEST) -o $@ $(LDLIBS)

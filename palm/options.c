@@ -214,15 +214,11 @@ static const struct bc_chelts {
 } bc_elts[] = {
 	{ List_Cal_Popup, List_Cal, BkCalendar },
 	{ List_Addr_Popup, List_Addr, BkAddress },
-	{ List_HrUp_Popup, List_HrUp, BkHardUp },
-	{ List_HrDn_Popup, List_HrDn, BkHardDown },
 	{ List_ToDo_Popup, List_ToDo, BkToDo },
 	{ List_Memo_Popup, List_Memo, BkMemo },
 	{ List_Calc_Popup, List_Calc, BkCalc },
 	{ List_Find_Popup, List_Find, BkFind },
 #if defined(PALM_HIGH)
-	{ List_RockerLeft_Popup, List_RockerLeft, BkHardLeft },
-	{ List_RockerRight_Popup, List_RockerRight, BkHardRight },
 	{ List_RockerCenter_Popup, List_RockerCenter, BkRockerCenter },
 #if defined(SONY_CLIE)
 	{ List_JogUp_Popup, List_JogUp, BkJogUp },

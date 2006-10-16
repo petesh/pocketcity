@@ -14,6 +14,8 @@
 #define BUILD_SECTION
 #define DISASTER_SECTION
 #define PACK_SECTION
+#define DRAWING_SECTION
+#define DISTRIBUTION_SECTION
 
 #endif /* _SECTIONS_H_ */
 

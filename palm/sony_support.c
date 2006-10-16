@@ -308,15 +308,6 @@ _WinGetDrawWindowBounds(RectangleType *rP)
 		WinGetDrawWindowBounds(rP);
 }
 
-int
-IsDrawWindowMostOfScreen()
-{
-	RectangleType rt;
-	_WinGetDrawWindowBounds(&rt);
-	return (((UInt32)rt.extent.x * rt.extent.y * 12) >=
-	    ((UInt32)sWidth * sHeight * 10));
-}
-
 Boolean
 IsSony(void)
 {

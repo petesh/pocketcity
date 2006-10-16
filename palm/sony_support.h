@@ -46,15 +46,6 @@ void unhookHoldSwitch(void) SONY_SECTION;
 void hookHoldSwitch(void (*CallBack)(UInt32)) SONY_SECTION;
 
 /*!
- * \brief check if the draw-window occupies most of the screen.
- *
- * This is a jog assist support routine. If the drawing window is
- * over 80% of the screen then we've not popped up a menu.
- * \return true if the current draw window occupies 80% of the screen.
- */
-int IsDrawWindowMostOfScreen(void) SONY_SECTION;
-
-/*!
  * \brief Check if this device is a Sony. For Jog Navigation Support
  * \return true if device is a sony.
  */
@@ -194,6 +185,13 @@ void _WinDrawRectangleFrame(FrameType frame, RectangleType *rP) SONY_SECTION;
  */
 void _FntSetFont(FontID font) SONY_SECTION;
 
+/*!
+ * \brief get the bounds of the current draw window
+ * \param the rectangle to set to the size of it
+ */
+void _WinGetDrawWindowBounds(RectangleType *rP) SONY_SECTION;
+ 
+
 #else
 
 /* turn all the calls into collapsed constants */
@@ -203,7 +201,6 @@ void _FntSetFont(FontID font) SONY_SECTION;
 #define	unloadHiRes() (0)
 #define	unhookHoldSwitch()
 #define	hookHoldSwitch(x)
-#define	IsDrawWindowMostOfScreen() (true)
 #define	IsSony()	(false)
 #define	SonySilk()	(0)
 #define	SonyEndSilk()
@@ -221,6 +218,7 @@ void _FntSetFont(FontID font) SONY_SECTION;
 #define	_FntSetFont FntSetFont
 #define	_WinCreateOffscreenWindow WinCreateOffscreenWindow
 #define	_WinCreateBitmapWindow WinCreateBitmapWindow
+#define _WinGetDrawWindowBounds WinGetDrawWindowBounds
 
 #endif /* SONY_CLIE */
 

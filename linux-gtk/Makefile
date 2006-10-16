@@ -1,13 +1,16 @@
 VPATH=../source:../nix-common
 
-debug : OBJDIR=out-debug
+include ../Makefile-settings
 
-all: OBJDIR=out-default
+OBJDIR=out-$(BUILD_MODE)
 
-profile: OBJDIR=out-profile
+TARGET_debug=debug
+TARGET_release=release
 
-debug all profile:
-	$(MAKE) OBJDIR=$(OBJDIR) -f Makefile-dowork $@
+debug release profile:
+	$(MAKE) OBJDIR=$(OBJDIR) BUILD_MODE=$(BUILD_MODE) -f Makefile-dowork $@
+
+all: $(TARGET_$(BUILD_MODE))
 
 .PHONY: all debug clean
 

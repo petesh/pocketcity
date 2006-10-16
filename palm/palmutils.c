@@ -111,6 +111,20 @@ hasFiveWayNav(void)
 }
 #endif
 
+Boolean
+IsDrawWindowMostOfScreen()
+{
+	RectangleType rt;
+	UInt32 ts;
+
+	if (IsSony())
+		ts = (UInt32)sWidth * sHeight * 5;
+	else 
+		ts = (UInt32)BASEWIDTH * BASEHEIGHT * 5;
+	_WinGetDrawWindowBounds(&rt);
+	return (Boolean)(((UInt32)rt.extent.x * rt.extent.y * 6) >= ts);
+}
+
 UInt32
 getDepth(void)
 {

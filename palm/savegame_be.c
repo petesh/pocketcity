@@ -183,13 +183,13 @@ ReadCityRecord(MemHandle rec, GameStruct *gs, MemPtr *wp, MemPtr *fp)
 			goto leave_me;
 		}
 		ptemp += 4;
-		*wp = gRealloc(*wp, size);
+		*wp = grealloc(*wp, size);
 		if (*wp == NULL) {
 			UISystemErrorNotify(seOutOfMemory);
 			goto leave_me;
 		}
 		MemMove(*wp, ptemp, (Int32)size);
-		*fp = gRealloc(*fp, size);
+		*fp = grealloc(*fp, size);
 		if (*fp == NULL) {
 			UISystemErrorNotify(seOutOfMemory);
 			goto leave_me;
@@ -242,11 +242,11 @@ WriteCityRecord(MemHandle rec, GameStruct *gs, MemPtr wp, MemPtr fp)
 	offset += 4;
 	size = (gs->mapx * gs->mapy + (((sizeof (selem_t) * 8) / 2) - 1)) /
 	    ((sizeof (selem_t) * 8) / 2);
-	pRec2 = gMalloc(size);
+	pRec2 = gmalloc(size);
 	PackBits(fp, pRec2, 2, gs->mapx * gs->mapy);
 	DmWrite(pRec, offset, (void *)pRec2, size);
 	offset += size;
-	gFree(pRec2);
+	gfree(pRec2);
 	MemHandleUnlock(rec);
 }
 
@@ -317,6 +317,8 @@ LoadGameByIndex(UInt16 index)
 	DmOpenRef db;
 	MemHandle rec;
 	short int loaded = -1;
+	MemPtr newWorld = NULL;
+	MemPtr newFlags = NULL;
 
 	db = OpenMyDB();
 
@@ -327,14 +329,22 @@ LoadGameByIndex(UInt16 index)
 		index = DmNumRecords(db) - 1;
 	rec = DmQueryRecord(db, index);
 	if (rec) {
-		zone_lock(lz_world);
-		zone_lock(lz_flags);
-		loaded = ReadCityRecord(rec, &game, (MemPtr *)&worldPtr,
-		    (MemPtr *)&flagPtr);
-		zone_unlock(lz_flags);
-		zone_unlock(lz_world);
+		loaded = ReadCityRecord(rec, &game, &newWorld,
+		    &newFlags);
 	}
 	if (loaded != -1) {
+		UInt32 newSize = game.mapx * game.mapy;
+
+		WriteLog("Copying into the world structure\n");
+		zone_resize(lz_end, newSize);
+		zone_lock(lz_world);
+		MemMove(worldPtr, newWorld, newSize * sizeof (welem_t));
+		zone_unlock(lz_world);
+		gfree(newWorld);
+		zone_lock(lz_flags);
+		MemMove(flagPtr, newFlags, newSize * sizeof (selem_t));
+		zone_unlock(lz_flags);
+		gfree(newFlags);
 		PostLoadGame();
 		game.units[NUM_OF_UNITS - 1].type = 0xbb;
 		game.objects[0].x = 0x2222;

@@ -1,5 +1,7 @@
 # Create the montage image of the individual icons.
 # requires imagemagick in the path (montage)
+#
+include ../../Makefile-settings
 
 MONTAGE=montage
 
@@ -8,15 +10,17 @@ TYPES=bw color
 TARGETS=speed
 
 DIRS=icons icons-color
-ALLDIRS=$(DIRS:%=all-%)
+RELEASEDIRS=$(DIRS:%=release-%)
 DEBUGDIRS=$(DIRS:%=debug-%)
 CLEANDIRS=$(DIRS:%=clean-%)
 
-all: $(ALLDIRS) $(TYPES)
 debug: $(DEBUGDIRS) $(TYPES)
+release: $(RELEASEDIRS) $(TYPES)
 
-all-%:
-	cd $(@:all-%=%) && $(MAKE) all
+all: $(BUILD_MODE)
+
+release-%:
+	cd $(@:release-%=%) && $(MAKE) release
 debug-%:
 	cd $(@:debug-%=%) && $(MAKE) debug
 clean-%:

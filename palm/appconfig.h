@@ -63,15 +63,11 @@ typedef enum skeyEvent {
 typedef enum buttonKeys {
 	BkCalendar = 0,
 	BkAddress,
-	BkHardUp,
-	BkHardDown,
 	BkToDo,
 	BkMemo,
 	BkCalc, /* This is not a real key! */
 	BkFind, /* This is not a real key! */
-#if defined(PALM_HIGH) || defined(SONY_CLIE)
-	BkHardLeft,
-	BkHardRight,
+#if defined(PALM_FIVE) || defined(SONY_CLIE)
 	BkRockerCenter,
 #if defined(SONY_CLIE)
 	BkJogUp,
@@ -90,8 +86,8 @@ typedef struct _PalmAppConfig_01 {
 /*! \brief the palm application configuration */
 typedef PalmAppConfig_01_t PlatformAppConfig;
 
-#if defined(PALM_HIGH) || defined(SONY_HIGH)
-#define	HIRESKEY , keLeft, keRight, keIgnore
+#if defined(PALM_FIVE) || defined(SONY_HIGH)
+#define	HIRESKEY , keIgnore
 #else
 #define	HIRESKEY
 #endif
@@ -104,7 +100,7 @@ typedef PalmAppConfig_01_t PlatformAppConfig;
 
 /*! \brief Palm Default application configuration */
 #define	DEFAULT_APPCONFIG { \
-	{ kePassthrough, keLeft, keUp, keDown, keRight, kePassthrough, \
+	{ kePassthrough, keLeft, keRight, kePassthrough, \
 		kePopup, keMap HIRESKEY SONYEV } \
 }
 

@@ -1,5 +1,6 @@
 
 include Makefile-include
+include ../Makefile-settings
 
 BIN=PocketCity
 TILE=$(BIN)
@@ -24,15 +25,15 @@ TARGETS=$(NDTARGETS)
 
 BINNAME=$(BIN)
 
-lores: TDIR =standard
-dlores: TDIR =debug
-llores: TDIR =logging
+lores: TDIR =release-standard
+dlores: TDIR =debug-standard
+llores: TDIR =logging-standard
 
-palm5: TDIR =palm5
+palm5: TDIR =release-palm5
 dpalm5: TDIR =debug-palm5
 lpalm5: TDIR =logging-palm5
 
-sony: TDIR =sony
+sony: TDIR =release-sony
 dsony: TDIR =debug-sony
 lsony: TDIR =logging-sony
 
@@ -48,10 +49,12 @@ nearlylive: VERSION = $(shell date +%Y.%m.%d)
 DSTAMP := $(shell date "+%Y/%m/%d@%H:%M")
 
 debug: debug-nextdir $(DTARGETS)
-all: all-nextdir $(TARGETS)
 logging: debug-nextdir $(LTARGETS)
+release: release-nextdir $(TARGETS)
 nearlylive: all-nextdir
 dist: all-nextdir
+
+all: $(BUILD_MODE)
 
 TARGETDIRPRE=standard debug palm5 debug-palm5 sony debug-sony cheat \
     logging logging-palm5 logging-sony
@@ -99,12 +102,12 @@ DISTFILES=../INSTALL ../CHANGELOG ../COPYING ../GAMEHINTS ../README
 # This is the first target listed; hence it is the default target.
 full: $(TARGETS)
 
-dist nearlylive: all-nextdir $(NDTARGETS)
+dist nearlylive: release-nextdir $(NDTARGETS)
 	@mkdir -p $(DDIR)
 	@cp $(DISTFILES) *.pdb $(DDIR)
-	@for dir in out-*; do \
+	@for dir in out-release-*; do \
 		for file in $$dir/*.prc; do \
-			cp $$file $(DDIR)/`echo $$file | sed -e 's/out-//' -e 's/\//-/'`; \
+			cp $$file $(DDIR)/`echo $$file | sed -e 's/out-release-//' -e 's/\//-/'`; \
 		done; \
 	done
 	@tar cvf - $(DDIR) | gzip -9c >$(DDIR).tar.gz

@@ -15,36 +15,36 @@ extern "C" {
 #include <compilerpragmas.h>
 
 /*! \brief initialize the graphics. */
-EXPORT int InitializeGraphics(void);
+EXPORT int InitializeGraphics(void) DRAWING_SECTION;
 
 /*! \brief cleanup the graphics. */
-EXPORT void CleanupGraphics(void);
+EXPORT void CleanupGraphics(void) DRAWING_SECTION;
 
 /*!
  * \brief Draw everything on the screen.
  *
  * The Game area, Credits and population.
  */
-EXPORT void RedrawAllFields(void);
+EXPORT void RedrawAllFields(void) DRAWING_SECTION;
 
 /*!
  * \brief Scroll the map in the direction specified
  * \param direction the direction to scroll map in
  */
-EXPORT void ScrollDisplay(dirType direction);
+EXPORT void ScrollDisplay(dirType direction) DRAWING_SECTION;
 
 /*!
  * \brief Move the cursor in the location specified.
  * \param direction the direction to scroll map in
  */
-EXPORT void MoveCursor(dirType direction);
+EXPORT void MoveCursor(dirType direction) DRAWING_SECTION;
 
 /*!
  * \brief Draw the field at the specified location
  * \param xpos horizontal position
  * \param ypos vertical position
  */
-EXPORT void DrawField(UInt16 xpos, UInt16 ypos);
+EXPORT void DrawField(UInt16 xpos, UInt16 ypos) DRAWING_SECTION;
 
 /*!
  * \brief Draw all zones around the point that is being painted.
@@ -56,14 +56,15 @@ EXPORT void DrawField(UInt16 xpos, UInt16 ypos);
  * \param xsize the size on the x-axis
  * \param ysize the size on the y-axis
  */
-EXPORT void DrawCross(UInt16 xpos, UInt16 ypos, UInt16 xsize, UInt16 ysize);
+EXPORT void DrawCross(UInt16 xpos, UInt16 ypos, UInt16 xsize, UInt16 ysize)
+  DRAWING_SECTION;
 
 /*!
  * \brief Get the graphic to use for the position in question.
  * \param pos index into map array
  * \return the graphic to paint at this location
  */
-EXPORT welem_t GetGraphicNumber(UInt32 pos);
+EXPORT welem_t GetGraphicNumber(UInt32 pos) DRAWING_SECTION;
 
 /*
  * \brief Deals with special graphics fields
@@ -71,7 +72,7 @@ EXPORT welem_t GetGraphicNumber(UInt32 pos);
  * \param ntype the type of the node.
  * \return the special graphic number for this place.
  */
-EXPORT welem_t GetSpecialGraphicNumber(UInt32 pos);
+EXPORT welem_t GetSpecialGraphicNumber(UInt32 pos) DRAWING_SECTION;
 
 /*!
  * \brief draw a field without initializing something.
@@ -85,7 +86,7 @@ EXPORT welem_t GetSpecialGraphicNumber(UInt32 pos);
  * \param xpos horizontal position
  * \param ypos vertical position
  */
-EXPORT void DrawFieldWithoutInit(UInt16 xpos, UInt16 ypos);
+EXPORT void DrawFieldWithoutInit(UInt16 xpos, UInt16 ypos) DRAWING_SECTION;
 
 /*! \brief codes for goto function */
 typedef enum { goto_plain = 0, goto_center } goto_code;
@@ -99,12 +100,12 @@ typedef enum { goto_plain = 0, goto_center } goto_code;
  * \param y vertical position
  * \param center should I center on this location?
  */
-EXPORT void Goto(UInt16 x, UInt16 y, goto_code center);
+EXPORT void Goto(UInt16 x, UInt16 y, goto_code center) DRAWING_SECTION;
 
 /*!
  * mark the world as unpainted
  */
-EXPORT void UnpaintWorld(void);
+EXPORT void UnpaintWorld(void) DRAWING_SECTION;
 
 #if defined(__cplusplus)
 }

@@ -64,8 +64,6 @@ zone_resize(lockZone zone, UInt32 size)
 		while (zone < lz_end) {
 			mem = lockzones + zone;
 			rv += mem_resize(mem, size * zonesize[zone]);
-			if (rv == 0)
-				return (0);
 			zone++;
 		}
 	} else {
@@ -115,7 +113,7 @@ UInt32
 zone_size(lockZone zone)
 {
 	lockmem_t *mem = lockzones + zone;
-	return (mem_size(mem));
+	return (mem->size);
 }
 
 UInt32

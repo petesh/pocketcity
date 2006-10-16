@@ -110,10 +110,7 @@ EXPORT int BuildSomething(UInt16 xpos, UInt16 ypos) BUILD_SECTION;
  * \param ypos the Y position on the map
  */
 EXPORT void Build_Destroy(UInt16 xpos, UInt16 ypos) BUILD_SECTION;
-/*! \brief Create a river on the map */
-EXPORT void CreateFullRiver(void) BUILD_SECTION;
-/*! \brief Create the forests on the map. */
-EXPORT void CreateForests(void) BUILD_SECTION;
+
 /*! \brief Remove all the defences on the map */
 EXPORT void RemoveAllDefence(void) BUILD_SECTION;
 

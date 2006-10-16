@@ -260,33 +260,25 @@
 #define	List_Cal_Popup 2501
 #define	List_Addr 2502
 #define	List_Addr_Popup 2503
-#define	List_HrUp 2504
-#define	List_HrUp_Popup 2505
-#define	List_HrDn 2506
-#define	List_HrDn_Popup 2507
-#define	List_ToDo 2508
-#define	List_ToDo_Popup 2509
-#define	List_Memo 2510
-#define	List_Memo_Popup 2511
+#define	List_ToDo 2504
+#define	List_ToDo_Popup 2505
+#define	List_Memo 2506
+#define	List_Memo_Popup 2507
 
-#define	List_Calc	2512
-#define	List_Calc_Popup	2513
-#define	List_Find	2514
-#define	List_Find_Popup	2515
+#define	List_Calc	2508
+#define	List_Calc_Popup	2509
+#define	List_Find	2510
+#define	List_Find_Popup	2511
 
-#define	List_JogUp 2516
-#define	List_JogUp_Popup 2517
-#define	List_JogDn 2518
-#define	List_JogDn_Popup 2519
-#define	List_JogOut 2520
-#define	List_JogOut_Popup 2521
+#define	List_JogUp 2520
+#define	List_JogUp_Popup 2521
+#define	List_JogDn 2522
+#define	List_JogDn_Popup 2523
+#define	List_JogOut 2524
+#define	List_JogOut_Popup 2525
 
-#define	List_RockerLeft 2522
-#define	List_RockerLeft_Popup 2523
-#define	List_RockerRight 2524
-#define	List_RockerRight_Popup 2525
-#define	List_RockerCenter 2526
-#define	List_RockerCenter_Popup 2527
+#define List_RockerCenter 2530
+#define List_RockerCenter_Popup 2531
 
 /* Controls for the Query Form */
 #define	labelID_zonetype 1001

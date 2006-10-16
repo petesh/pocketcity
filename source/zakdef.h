@@ -164,7 +164,7 @@ extern "C" {
 #define	CITYNAMELEN 20
 
 /*! \brief version number of the configuration file */
-#define	CONFIG_VERSION 1
+#define	CONFIG_VERSION 2
 
 /*! \brief save game version */
 #define	SAVEGAMEVERSION	 "PC07"
@@ -549,7 +549,7 @@ typedef struct _visual_tag {
 #define	setCursorY(Y)	visuals.cursor_ypos = (Y)
 
 /*!
- * \brief appliation configuration.
+ * \brief application configuration.
  *
  * This contains configuration information for an application; not for an
  * individual game.
@@ -559,7 +559,7 @@ typedef struct _appConfig_01 {
 	PlatformAppConfig   pc; /*!< platform specific configuration */
 } appConfig_01_t;
 
-/*! \brief currently used application conofiguration version */
+/*! \brief currently used application configuration version */
 typedef appConfig_01_t AppConfig_t;
 
 /*!

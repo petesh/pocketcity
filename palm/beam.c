@@ -40,7 +40,7 @@ BeamSend(UInt8 *map_ptr)
 
 	char beamName[50]; /* city name length + .cty + "?: " */
 
-	gMemSet((void *)&exs, (Int32)sizeof (exs), 0);
+	gmemset((void *)&exs, (Int32)sizeof (exs), 0);
 	StrPrintF(beamName, "?_beam;_send:%s.%s", gs->cityname,
 	    pcity_extension);
 	exs.target = GetCreatorID();
@@ -92,7 +92,7 @@ BeamReceive(ExgSocketType *ptr)
 	if (dbP == NULL)
 		return (-1);
 
-	gs = gMalloc(sizeof (GameStruct));
+	gs = gmalloc(sizeof (GameStruct));
 	if (gs == NULL)
 		return (-1);
 
@@ -110,7 +110,7 @@ BeamReceive(ExgSocketType *ptr)
 		bof += read;
 	}
 	left = saveGameSize(gs);
-	gs = gRealloc(gs, left);
+	gs = grealloc(gs, left);
 	if (gs == NULL)
 		goto recv_done;
 	bof = (UInt8 *)gs + sizeof (GameStruct);
@@ -166,7 +166,7 @@ BeamReceive(ExgSocketType *ptr)
 recv_done:
 	CloseMyDB();
 	err = ExgDisconnect(ptr, err);
-	if (gs) gFree(gs);
+	if (gs) gfree(gs);
 	return (err);
 }
 

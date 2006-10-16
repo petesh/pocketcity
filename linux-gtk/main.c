@@ -533,7 +533,7 @@ mainloop_callback(gpointer data __attribute__((unused)))
 {
 	/* this will be called 10 times every second */
 	unsigned int phase = 1;
-	
+
 	if (!getGamePlaying() || !getGameInProgress())
 		return (TRUE);
 
@@ -613,16 +613,33 @@ scrollbar(GtkAdjustment *adj __attribute__((unused)))
 void
 ResizeCheck(int width, int height)
 {
+	gdouble lower;
+	gdouble upper;
 	GtkAdjustment *adjh = GTK_ADJUSTMENT(mw.sc_hor);
 	GtkAdjustment *adjv = GTK_ADJUSTMENT(mw.sc_vert);
 	setVisibleX(width / gameTileSize());
 	setVisibleY(height / gameTileSize());
-	adjh->lower = getVisibleX() / 2;
-	adjh->upper = getMapWidth() + adjh->lower;
-	adjv->lower = getVisibleY() / 2;
-	adjv->upper = getMapHeight() + adjh->lower;
-	if (adjh->value > adjh->upper) adjh->value = adjh->upper;
-	if (adjv->value > adjv->upper) adjv->value = adjh->upper;
+
+	lower = getVisibleX() / 2;
+	g_object_set(adjh, "lower", lower, NULL);
+	if (getVisibleX() >= getMapWidth())
+		upper = lower;
+	else
+		upper = getMapWidth() + lower;
+	g_object_set(adjh, "upper", upper, NULL);
+
+	lower = getVisibleY() / 2;
+	g_object_set(adjv, "lower", lower, NULL);
+	if (getVisibleY() >= getMapHeight())
+		upper = adjh->lower;
+	else
+		upper = getMapHeight() + lower;
+	g_object_set(adjv, "upper", upper, NULL);
+
+	/*if (adjh->value > adjh->upper) adjh->value = adjh->upper;
+	if (adjh->value < adjh->lower) adjh->value = adjh->lower;
+	if (adjv->value > adjv->upper) adjv->value = adjv->upper;
+	if (adjv->value < adjv->lower) adjv->value = adjv->lower;*/
 
 	WriteLog("visx = %d, visy = %d\n", getVisibleX(), getVisibleY());
 	WriteLog("hor: lower = %d, upper = %d\n", (int)adjh->lower,
@@ -937,7 +954,7 @@ SetUpMainWindow(void)
 		if (stockitems[i].imagefile != NULL) {
 			GdkPixbuf *buf;
 			GtkIconSet *set;
-			
+
 			buf = load_pixbuf(stockitems[i].imagefile);
 			set = gtk_icon_set_new_from_pixbuf(buf);
 			gtk_icon_factory_add(icon_factory,
@@ -1558,6 +1575,8 @@ UIDrawPlayArea(void)
 {
 	Int16 x;
 	Int16 y;
+	Int16 minx = getMapXPos() < 0 ? 0 : getMapXPos();
+	Int16 miny = getMapYPos() < 0 ? 0 : getMapYPos();
 	Int16 maxx = getMapXPos() + getVisibleX() >= getMapWidth() ?
 	    getMapWidth() : getMapXPos() + getVisibleX();
 	Int16 maxy = getMapYPos() + getVisibleY() >= getMapHeight() ?
@@ -1565,8 +1584,8 @@ UIDrawPlayArea(void)
 
 	zone_lock(lz_world);
 	zone_lock(lz_flags);
-	for (x = getMapXPos(); x < maxx; x++) {
-		for (y = getMapYPos(); y < maxy; y++) {
+	for (x = minx; x < maxx; x++) {
+		for (y = miny; y < maxy; y++) {
 			if (!(getWorldFlags(WORLDPOS(x, y)) & PAINTEDBIT))
 				DrawFieldWithoutInit(x, y);
 		}

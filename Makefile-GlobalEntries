@@ -1,9 +1,12 @@
 
 OBJECTS_CARELESS=build.o disaster.o drawing.o globals.o handler.o pack.o \
-	simulation.o distribution.o locking.o stack.o
+	simulation.o distribution.o locking.o stack.o initial_paint.o
 
 $(OBJDIR)/build.o: build.c build.h globals.h ui.h logging.h locking.h \
 	drawing.h simulation.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJDIR)/initial_paint.o: initial_paint.c initial_paint.h build.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 build.h: zakdef.h sections.h compilerpragmas.h

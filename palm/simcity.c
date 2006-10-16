@@ -9,6 +9,7 @@
 #include <PalmOS.h>
 #include <StringMgr.h>
 #include <KeyMgr.h>
+#include <MemoryMgr.h>
 #include <StdIOPalm.h>
 #include <simcity.h>
 
@@ -329,6 +330,7 @@ static char *cstrings[] = {
 	"bc_crime" /*!< Criminal level */
 };
 #endif /* bcstrings */
+
 /*
  * Main event loop routine.
  * The standard one ... loop until the game terminates.
@@ -486,13 +488,17 @@ _PalmInit(void)
 	Int16		rv = 0;
 	Coord		width;
 	Coord		height;
+	AppConfig_t	appconfig;
 
 	timeStamp = TimGetSeconds();
 	timeStampDisaster = timeStamp;
 
 	prefSize = sizeof (AppConfig_t);
-	err = PrefGetAppPreferences(GetCreatorID(), 0, &gameConfig, &prefSize,
+	err = PrefGetAppPreferences(GetCreatorID(), 0, &appconfig, &prefSize,
 	    true);
+	if (err == CONFIG_VERSION) {
+		MemMove(&gameConfig, &appconfig, sizeof(AppConfig_t));
+	}
 
 	/* section (2) */
 
@@ -889,20 +895,42 @@ hPocketCity(EventPtr evp)
 		handled = DoPCityMenuProcessing(evp->data.menu.itemID);
 
 	case keyDownEvent:
+		if (!IsDrawWindowMostOfScreen())
+			break;
+
 #if defined(PALM_FIVE)
 		if (EvtKeydownIsVirtual(evp) && IsFiveWayNavEvent(evp)) {
 			if (NavDirectionPressed(evp, Left))
-				doKeyEvent(keLeft);
+				handled = doKeyEvent(keLeft);
 			else if (NavDirectionPressed(evp, Right))
-				doKeyEvent(keRight);
+				handled = doKeyEvent(keRight);
 			else if (NavDirectionPressed(evp, Up))
-				doKeyEvent(keUp);
+				handled = doKeyEvent(keUp);
 			else if (NavDirectionPressed(evp, Down))
-				doKeyEvent(keDown);
-			handled = true;
-		} else // Note the fallthrough
+				handled = doKeyEvent(keDown);
+		}
 #endif
-		handled = (Boolean)vkDoEvent(evp->data.keyDown.chr);
+		/* Deal with 5-way navigator rocker / cursor keys */
+		if (!handled) {
+			UInt16 chr = evp->data.keyDown.chr;
+			if ((chr >= vchrRockerUp) && (chr <= vchrRockerRight)) {
+				doKeyEvent((keyEvent)(keUp + (chr - vchrRockerUp)));
+				handled = true;
+			}
+			// Left, Right, Up, Down
+			if ((chr >= chrLeftArrow) && (chr <= chrDownArrow)) {
+				if ((chr == chrLeftArrow) || (chr == chrRightArrow)) {
+					handled = doKeyEvent((keyEvent)(keLeft + (chr - chrLeftArrow)));
+				} else {
+					handled = doKeyEvent((keyEvent)(keUp + (chr - chrUpArrow)));
+				}
+			}
+			if ((chr >= vchrPageUp) && (chr <= vchrPageDown)) {
+				handled = doKeyEvent((keyEvent)(keUp + (chr - vchrPageUp)));
+			}
+		}
+		if (!handled)
+			handled = (Boolean)vkDoEvent(evp->data.keyDown.chr);
 		break;
 	case keyUpEvent:
 		handled = true;
@@ -2529,25 +2557,16 @@ static struct _silkKeys {
 	UInt16 vChar;	/*!< the character that was received */
 	ButtonKey event; /*!< the button key event that was sent. */
 } silky[] = {
-	{ pageUpChr, BkHardUp },
-	{ pageDownChr, BkHardDown },
 	{ vchrHard1, BkCalendar },
 	{ vchrHard2, BkAddress },
 	{ vchrHard3, BkToDo },
 	{ vchrHard4, BkMemo },
 	{ vchrFind, BkFind },
 	{ 1, BkCalc },
-#if defined(HRSUPPORT)
-	{ vchrRockerUp, BkHardUp },
-	{ vchrRockerDown, BkHardDown },
-	{ vchrRockerLeft, BkHardLeft },
-	{ vchrRockerRight, BkHardRight },
-	{ vchrRockerCenter, BkRockerCenter },
 #if defined(SONY_CLIE)
 	{ vchrJogUp, BkJogUp },
 	{ vchrJogDown, BkJogDown },
 	{ vchrJogRelease, BkJogRelease },
-#endif
 #endif
 	{ 0, BkEnd }
 };
@@ -2568,6 +2587,8 @@ buildSilkList()
 	UInt16 atbtn = 0;
 
 	const PenBtnInfoType *silkinfo = EvtGetPenBtnList(&btncount);
+
+	WriteLog("I found %d silk buttons\n", btncount);
 	/* favorites / find */
 	while (silky[atsilk].vChar != 1) atsilk++;
 	/* Bail if we're not a Zire */

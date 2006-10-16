@@ -11,6 +11,7 @@
 
 #include <PalmOS.h>
 #include <zakdef.h>
+#include <sections.h>
 
 /* global vars from simcity.c */
 #define	MK4(A, B, C, D)	(((A) << 12) | ((B) << 8) | ((C) << 4) | (D))
@@ -22,21 +23,21 @@
 #define	TSTR	'tSTR'
 #define	SGNAME  "Pocket City Saves"
 
-UInt32 GetPositionClicked(void);
+UInt32 GetPositionClicked(void) SIMCITY_SECTION;
 
-void Clear35ROM(void);
-void Set35ROM(void);
-UInt16 Is35ROM(void);
+void Clear35ROM(void) SIMCITY_SECTION;
+void Set35ROM(void) SIMCITY_SECTION;
+UInt16 Is35ROM(void) SIMCITY_SECTION;
 
-void Clear40ROM(void);
-void Set40ROM(void);
-UInt16 Is40ROM(void);
+void Clear40ROM(void) SIMCITY_SECTION;
+void Set40ROM(void) SIMCITY_SECTION;
+UInt16 Is40ROM(void) SIMCITY_SECTION;
 
-void ClearScaleModes(void);
-void SetScaleModes(void);
-UInt16 IsScaleModes(void);
+void ClearScaleModes(void) SIMCITY_SECTION;
+void SetScaleModes(void) SIMCITY_SECTION;
+UInt16 IsScaleModes(void) SIMCITY_SECTION;
 
-void clearProblemFlags(void);
+void clearProblemFlags(void) SIMCITY_SECTION;
 
 /*!
  * \brief get a resource string
@@ -44,8 +45,8 @@ void clearProblemFlags(void);
  * \param string the destination buffer to fill
  * \param length the maximum length of string to fill
  */
-void ResGetString(UInt16 index, char *string, UInt16 length);
+void ResGetString(UInt16 index, char *string, UInt16 length) SIMCITY_SECTION;
 
-void GotoForm(Int16 n);
+void GotoForm(Int16 n) SIMCITY_SECTION;
 
 #endif

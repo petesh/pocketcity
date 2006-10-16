@@ -88,9 +88,11 @@ BEGIN
         ID listID_shifter AT (PrevLeft PrevTop 52 1) NONUSABLE VISIBLEITEMS 2
 
     POPUPLIST ID listID_shifter_popup listID_shifter
+
     LABEL "INCOME" AUTOID AT (CENTER 16) FONT 1
     LABEL "------------" labelID_budget_inc AT (81 PREVBOTTOM)
     LABEL "GATHERED" AUTOID AT (RIGHT@PREVLEFT-1 PREVTOP)
+
     LABEL "TAXRATE" AUTOID AT (RIGHT@PREVRIGHT PREVBOTTOM)
     REPEATBUTTON "\002" rbutton_taxdown AT (PREVRIGHT+1 PREVTOP 12 12)
 	NOFRAME FONT 5
@@ -101,7 +103,7 @@ BEGIN
 	NOFRAME FONT 5
 
     LABEL "EXPENSES" AUTOID AT (CENTER PrevBottom) FONT 1
-    
+
     LABEL "TRAFFIC_C" AUTOID AT (RIGHT@46 PrevBottom)
     REPEATBUTTON "\002" rbutton_trafdown AT (PREVRIGHT+1 PREVTOP 12 12)
 	NOFRAME FONT 5
@@ -110,7 +112,6 @@ BEGIN
     LABEL "%" AUTOID AT (prevright prevtop)
     REPEATBUTTON "\001" rbutton_trafup AT (PREVRIGHT+1 PREVTOP 12 12)
 	NOFRAME FONT 5
-
     LABEL "------------" labelID_budget_tra AT (110 PrevTop)
     
     LABEL "POWER_C" AUTOID AT (RIGHT@46 PrevBottom)
@@ -152,6 +153,33 @@ BEGIN
   END
 END
 
+#define	kFrmNavHeaderFlagsObjectFocusStartState  0x00000001
+#define	kFrmNavHeaderFlagsAppFocusStartState     0x00000002
+
+NAVIGATION ID formID_budget
+	INITIALSTATE kFrmNavHeaderFlagsObjectFocusStartState
+	INITIALOBJECTID listID_shifter_popup
+	BOTTOMLEFTOBJECTID	rbutton_defdown
+	BEGIN
+		ID listID_shifter_popup BELOW rbutton_taxdown ABOVE rbutton_defup
+
+		ID rbutton_taxdown BELOW rbutton_trafdown ABOVE listID_shifter_popup
+		ID fieldID_taxrate BELOW fieldID_budget_tra ABOVE listID_shifter_popup
+		ID rbutton_taxup BELOW rbutton_trafup ABOVE listID_shifter_popup
+
+		ID rbutton_trafdown BELOW rbutton_powdown ABOVE rbutton_taxdown
+		ID fieldID_budget_tra BELOW fieldID_budget_pow ABOVE fieldID_taxrate
+		ID rbutton_trafup BELOW rbutton_powup ABOVE rbutton_taxup
+
+		ID rbutton_powdown BELOW rbutton_defdown ABOVE rbutton_trafdown
+		ID fieldID_budget_pow BELOW fieldID_budget_def ABOVE fieldID_budget_tra
+		ID rbutton_powup BELOW rbutton_defup ABOVE rbutton_trafup
+
+		ID rbutton_defdown ABOVE rbutton_powdown BELOW listID_shifter_popup
+		ID fieldID_budget_def ABOVE fieldID_budget_pow BELOW listID_shifter_popup
+		ID rbutton_defup ABOVE rbutton_powup BELOW listID_shifter_popup
+	END
+
 FORM ID formID_map AT ( 0 0 160 160 )
 NOFRAME
 USABLE
@@ -180,6 +208,13 @@ BEGIN
 	MENUITEM "BACKTOGAME"                        menuitemID_MapBack
   END
 END
+
+NAVIGATION ID formID_map
+	INITIALSTATE kFrmNavHeaderFlagsObjectFocusStartState
+	INITIALOBJECTID listID_shifter_popup 
+	NAVIGATIONMAP
+		ROW listID_shifter_popup
+	END
 
 /* The options form */
 FORM ID formID_options AT ( 0 0 160 160 )
@@ -230,6 +265,17 @@ BEGIN
     BUTTON "CANCEL" ID buttonID_Cancel AT (PREVRIGHT+4 PREVTOP AUTO AUTO)
 END
 
+NAVIGATION ID formID_options
+	INITIALSTATE kFrmNavHeaderFlagsObjectFocusStartState
+	INITIALOBJECTID buttonID_dis_off
+	NAVIGATIONMAP
+		ROW buttonID_dis_off buttonID_dis_one buttonID_dis_two buttonID_dis_three
+		ROW buttonID_Easy buttonID_Medium buttonID_Hard
+		ROW checkboxID_autobulldoze
+		ROW checkboxID_minimapvisible
+		ROW checkboxID_minimapdetailed
+		ROW buttonID_OK buttonID_Cancel
+	END
 
 FORM ID formID_files AT ( 0 0 160 160 )
 USABLE
@@ -242,6 +288,14 @@ BEGIN
     BUTTON "LOAD" ID buttonID_FilesLoad AT (prevright+4 prevtop AUTO AUTO)
     BUTTON "DELETE" ID buttonID_FilesDelete AT (prevright+4 prevtop AUTO AUTO)
 END
+
+NAVIGATION ID formID_files
+	INITIALSTATE kFrmNavHeaderFlagsObjectFocusStartState
+	INITIALOBJECTID listID_FilesList
+	NAVIGATIONMAP
+		ROW listID_FilesList
+		ROW buttonID_FilesNew buttonID_FilesLoad buttonID_FilesDelete
+	END
 
 FORM ID formID_filesNew AT ( 0 0 160 160 )
 USABLE
@@ -296,11 +350,24 @@ BEGIN
     GRAFFITISTATEINDICATOR AT ( 142 PREVTOP )
 END
 
+NAVIGATION ID formID_filesNew
+	INITIALSTATE kFrmNavHeaderFlagsObjectFocusStartState
+	INITIALOBJECTID buttonID_FilesNewCancel
+	NAVIGATIONMAP
+		ROW fieldID_newGameName
+		ROW buttonID_Easy buttonID_Medium buttonID_Hard
+		ROW buttonID_dis_off buttonID_dis_one buttonID_dis_two buttonID_dis_three
+		ROW rbutton_widthdown fieldID_width rbutton_widthup
+		ROW rbutton_heightdown fieldID_height rbutton_heightup
+		ROW buttonID_FilesNewCreate buttonID_FilesNewCancel
+	END
+
 BITMAP ID bitmapID_iconPushed "graphic/icon_pushed.bmp" COMPRESS
 
 FORM ID formID_quickList AT ( 1 119 158 40 )
 USABLE
 SAVEBEHIND
+DEFAULTBUTTON gi_buildBulldoze
 MODAL
 BEGIN
     TITLE "T_QUICKLIST"
@@ -349,6 +416,8 @@ BEGIN
     BUTTON "" ID gi_buildWater AT (PREVRIGHT PREVTOP AUTO AUTO)
         NOFRAME GRAPHICAL LEFTANCHOR
         BITMAPID bitmapID_iconWater SELECTEDBITMAPID bitmapID_iconPushed
+
+    // Second row
 
     BUTTON "" ID gi_queryItem AT (3 PREVBOTTOM AUTO AUTO)
         NOFRAME GRAPHICAL LEFTANCHOR
@@ -400,6 +469,14 @@ BEGIN
     BUTTON "B_SINGLE_MILITARY" ID buttonID_extraBuildMilitary
         AT (prevright+4 prevtop 12 AUTO)
 END
+
+NAVIGATION ID formID_extraBuild
+	INITIALSTATE kFrmNavHeaderFlagsObjectFocusStartState
+	INITIALOBJECTID listID_extraBuildList
+	NAVIGATIONMAP
+		ROW listID_extraBuildList
+		ROW buttonID_extraBuildSelect buttonID_extraBuildCancel buttonID_extraBuildFireMen buttonID_extraBuildPolice buttonID_extraBuildMilitary
+	END
 
 STRINGTABLE ID strID_Items
     ""
@@ -577,22 +654,17 @@ BEGIN
 	POPUPTRIGGER "" ID List_Cal_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
 	LIST "" ID List_Cal AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
 	POPUPLIST ID List_Cal_Popup List_Cal
+
 	LABEL "ADDRESS" AUTOID AT ( 8 PREVTOP+11 )
 	POPUPTRIGGER "" ID List_Addr_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
 	LIST "" ID List_Addr AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
 	POPUPLIST ID List_Addr_Popup List_Addr
-	LABEL "SCROLL_UP" AUTOID AT ( 8 PREVTOP+11 )
-	POPUPTRIGGER "" ID List_HrUp_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
-	LIST "" ID List_HrUp AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
-	POPUPLIST ID List_HrUp_Popup List_HrUp
-	LABEL "SCROLL_DOWN" AUTOID AT ( 8 PREVTOP+11 )
-	POPUPTRIGGER "" ID List_HrDn_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
-	LIST "" ID List_HrDn AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
-	POPUPLIST ID List_HrDn_Popup List_HrDn
+
 	LABEL "TO_DO" AUTOID AT ( 8 PREVTOP+11 )
 	POPUPTRIGGER "" ID List_ToDo_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
 	LIST "" ID List_ToDo AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
 	POPUPLIST ID List_ToDo_Popup List_ToDo
+
 	LABEL "MEMO" AUTOID AT ( 8 PREVTOP+11 )
 	POPUPTRIGGER "" ID List_Memo_Popup AT ( 60 PREVTOP 80 AUTO ) LEFTANCHOR
 	LIST "" ID List_Memo AT ( 60 PREVTOP PREVWIDTH AUTO ) NONUSABLE VISIBLEITEMS 8
@@ -609,20 +681,6 @@ BEGIN
 	POPUPLIST ID List_Find_Popup List_Find
 
 /* HIRES>> */
-	LABEL "ROCKER_LEFT" AUTOID AT (8 PREVTOP+11)
-	POPUPTRIGGER "" ID List_RockerLeft_Popup AT (60 PREVTOP 80 AUTO)
-		LEFTANCHOR
-	LIST "" ID List_RockerLeft AT (60 PREVTOP PREVWIDTH AUTO) NONUSABLE
-		VISIBLEITEMS 8
-	POPUPLIST ID List_RockerLeft_Popup List_RockerLeft
-
-	LABEL "ROCKER_RIGHT" AUTOID AT (8 PREVTOP+11)
-	POPUPTRIGGER "" ID List_RockerRight_Popup AT (60 PREVTOP 80 AUTO)
-		LEFTANCHOR
-	LIST "" ID List_RockerRight AT (60 PREVTOP PREVWIDTH AUTO) NONUSABLE
-		VISIBLEITEMS 8
-	POPUPLIST ID List_RockerRight_Popup List_RockerRight
-
 	LABEL "ROCKER_CENTER" AUTOID AT (8 PREVTOP+11)
 	POPUPTRIGGER "" ID List_RockerCenter_Popup AT (60 PREVTOP 80 AUTO)
 		LEFTANCHOR
@@ -652,6 +710,27 @@ BEGIN
 	BUTTON "CANCEL" ID buttonID_Cancel AT ( PREVRIGHT+4 PREVTOP AUTO AUTO )
 END
 
+NAVIGATION ID formID_ButtonConfig
+	INITIALSTATE kFrmNavHeaderFlagsObjectFocusStartState
+	INITIALOBJECTID buttonID_Cancel
+	NAVIGATIONMAP
+		ROW List_Cal_Popup
+		ROW List_Addr_Popup
+		ROW List_ToDo_Popup
+		ROW List_Memo_Popup
+		ROW List_Calc_Popup
+		ROW List_Find_Popup
+/* HIRES>> */
+		ROW List_RockerCenter_Popup
+/* <<HIRES */
+/* SONY>> */
+		ROW List_JogUp_Popup
+		ROW List_JogDn_Popup
+		ROW List_JogOut_Popup
+/* <<SONY */
+		ROW buttonID_OK buttonID_Cancel
+	END
+	
 FORM ID formID_Query AT (0 0 160 160)
 USABLE
 NOSAVEBEHIND
@@ -678,6 +757,13 @@ BEGIN
 
 	BUTTON "OK" ID buttonID_OK AT ( RIGHT@154 146 AUTO AUTO )
 END
+
+NAVIGATION ID formID_Query
+	INITIALSTATE kFrmNavHeaderFlagsObjectFocusStartState
+	INITIALOBJECTID buttonID_OK
+	NAVIGATIONMAP
+		ROW buttonID_OK
+	END
 
 /* Wait until translated to change this */
 STRING ID StrID_tips FILE "../GAMEHINTS"

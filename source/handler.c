@@ -15,6 +15,7 @@
 #include <handler.h>
 #include <build.h>
 #include <simulation.h>
+#include <initial_paint.h>
 
 /* for the palm */
 #ifdef PALM
@@ -135,8 +136,7 @@ ConfigureNewGame(void)
 		setCredits(10000);
 		break;
 	}
-	CreateFullRiver();
-	CreateForests();
+	PaintTheWorld();
 	setGameInProgress(1);
 	ResumeGame();
 	DrawGame(1);

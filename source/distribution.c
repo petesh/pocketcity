@@ -106,7 +106,7 @@ const cdistrib_t cdist[] = {
  *  How to recreate:
  *	  call the distribution routine... it knows how to do each type
  */
-static void DoDistribute(Int16 grid);
+static void DoDistribute(Int16 grid) DISTRIBUTION_SECTION;
 
 /*!
  * \brief Do a grid distribution for the grid(s) specified
@@ -129,6 +129,9 @@ Sim_Distribute_Specific(Int16 gridonly)
 	addGraphicUpdate(gu_desires);
 }
 
+static Int16
+GetPowerPlantSupply(welem_t point, UInt32 coord,
+    selem_t flags) DISTRIBUTION_SECTION;
 /*!
  * \brief Check if the node is a power plant (Nuclear/Coal)
  * \param point the value at the point
@@ -148,6 +151,7 @@ GetPowerPlantSupply(welem_t point, UInt32 coord __attribute__((unused)),
 		return (0);
 }
 
+static Int16 GetWaterPumpSupply(welem_t point, UInt32 coord, selem_t flags) DISTRIBUTION_SECTION;
 /*!
  * \brief Check if the node is a Water Pump.
  *
@@ -167,6 +171,7 @@ GetWaterPumpSupply(welem_t point, UInt32 coord, selem_t flags)
 	return (0);
 }
 
+static Int16 SupplyIfPlant(distrib_t *distrib, UInt32 pos, welem_t point, selem_t status) DISTRIBUTION_SECTION;
 /*!
  * \brief Add source to the grid.
  * \param distrib the distribution structure
@@ -202,6 +207,7 @@ SupplyIfPlant(distrib_t *distrib, UInt32 pos, welem_t point, selem_t status)
 	return (pt);
 }
 
+static void DoDistribute(Int16 grid) DISTRIBUTION_SECTION;
 /*!
  * \brief Do Distribution of the grid (water/power)
  * \param grid grid to perform distribution on
@@ -296,6 +302,7 @@ DoDistribute(Int16 grid)
 	gfree(distrib);
 }
 
+static void DistributeUnvisited(distrib_t *distrib) DISTRIBUTION_SECTION;
 /*!
  * \brief Distribute power to the unvisited list.
  */
@@ -341,6 +348,7 @@ nextneighbor:
 	}
 }
 
+static Int16 Carries(Int16 (*doescarry)(welem_t), UInt32 pos, selem_t statusbit) DISTRIBUTION_SECTION;
 /*
  * \brief check that the node carries something.
  *
@@ -360,6 +368,8 @@ Carries(Int16 (*doescarry)(welem_t), UInt32 pos, selem_t statusbit)
 		return (0);
 	return (doescarry(world));
 }
+
+static void AddCarryNeighbors(distrib_t *distrib, UInt32 pos) DISTRIBUTION_SECTION;
 
 /*!
  * \brief Add all the neighbors to this node to the unvisited list.
@@ -399,6 +409,8 @@ AddCarryNeighbors(distrib_t *distrib, UInt32 pos)
 	distrib->NodesTotal += number;
 }
 
+static UInt32 DistributeMoveOn(UInt32 pos, dirType direction) DISTRIBUTION_SECTION;
+
 /*!
  * \brief Distribute supply to locations around this node.
  *
@@ -436,6 +448,8 @@ DistributeMoveOn(UInt32 pos, dirType direction)
 	}
 	return (pos);
 }
+
+static UInt8 ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what) DISTRIBUTION_SECTION;
 
 /*!
  * \brief check if a node exists next to other types of nodes
