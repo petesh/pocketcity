@@ -36,6 +36,8 @@ static void cnCreateButtonPressed(void) SAVE_SECTION;
 static FormPtr cityNewSetup(FormPtr form) SAVE_SECTION;
 static void cnFieldContentChanged(UInt16 fieldID) SAVE_SECTION;
 static void cnRepeatPressed(EventPtr event) SAVE_SECTION;
+static Char *GetCurrentCityOnList(void) SAVE_SECTION;
+
 
 #if defined(HRSUPPORT)
 static Boolean resizeSavegameForm(FormPtr form, Int16 hOff,
@@ -323,6 +325,7 @@ Boolean
 hFiles(EventPtr event)
 {
 	Boolean handled = false;
+	char	*currentcity;
 	FormPtr form;
 #if defined(HRSUPPORT)
 	Int16 hOff = 0, vOff = 0;
@@ -356,9 +359,14 @@ hFiles(EventPtr event)
 			handled = true;
 			break;
 		case buttonID_FilesDelete:
-			DeleteFromList();
-			CleanSaveGameList();
-			UpdateSaveGameList();
+			currentcity = GetCurrentCityOnList();
+			if ((currentcity != NULL) &&
+			  (FrmCustomAlert(alertID_deleteCityConfirm,
+				currentcity, NULL, NULL) == 0)) {
+				DeleteFromList();
+				CleanSaveGameList();
+				UpdateSaveGameList();
+			}
 			handled = true;
 			break;
 		}
@@ -381,6 +389,25 @@ hFiles(EventPtr event)
 	}
 
 	return (handled);
+}
+
+/*!
+ * \brief get the current city that is selected on the list
+ * \return the string containing the city or NULL if no city is selected
+ */
+static char *
+GetCurrentCityOnList(void)
+{
+	FormPtr form = FrmGetFormPtr(formID_files);
+	ListPtr listp;
+	Int16 index;
+
+	listp = (ListPtr)GetObjectPtr(form, listID_FilesList);
+	index = LstGetSelection(listp);
+	if (index != noListSelection)
+		return (LstGetSelectionText(listp, index));
+	else
+		return (NULL);
 }
 
 /*!
@@ -499,18 +526,11 @@ CleanSaveGameList(void)
 static int
 LoadFromList(void)
 {
-	FormPtr form = FrmGetFormPtr(formID_files);
-	ListPtr listp;
-	int index;
-
-	listp = (ListPtr)GetObjectPtr(form, listID_FilesList);
-	index = LstGetSelection(listp);
-	if (index >= 0) {
-		char *text = LstGetSelectionText(listp, index);
+	char *text = GetCurrentCityOnList();
+	if (text != NULL)
 		return (LoadGameByName(text));
-	} else {
+	else
 		return (-1);
-	}
 }
 
 /*!
@@ -522,15 +542,7 @@ LoadFromList(void)
 static void
 DeleteFromList(void)
 {
-	FormPtr form = FrmGetFormPtr(formID_files);
-	ListPtr listp;
-	Int16 index;
-
-	listp = (ListPtr)GetObjectPtr(form, listID_FilesList);
-	index = LstGetSelection(listp);
-	if (index != noListSelection) {
-		char *name;
-		name = LstGetSelectionText(listp, index);
+	char *name = GetCurrentCityOnList();
+	if (name != NULL)
 		DeleteGameByName(name);
-	}
 }

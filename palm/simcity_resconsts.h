@@ -141,6 +141,7 @@
 #define	alertID_lowWater	1015
 #define	alertID_outWater	1016
 #define	alertID_unknownBuildItem	1017
+#define	alertID_deleteCityConfirm	1018
 
 #define	st_disasters			2000
 

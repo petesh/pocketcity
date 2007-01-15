@@ -243,6 +243,8 @@ BEGIN
     "MSG_SAVEBEFORELOAD" = "Do you want to save your city before loading a new one?"
     "YES" = "Yes"
     "NO" = "No"
+    
+    "MSG_SAVE_DELETE_CONFIRM" = "Are you sure you want to delete the city ^1?"
 
     "MSG_SAVE_OVERWRITES" = "Saving this city will overwrite your last save. Are you sure you want to do this?"
 

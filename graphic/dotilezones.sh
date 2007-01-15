@@ -116,6 +116,9 @@ function sliceimage {
 		[ -n "$h" ] && print_define $def ${val}
 	done
 	eval `identify -format "iw=%w;ih=%h;" $file`
+	# mogrify will create the tiles as needed, the only problem is the
+	# file name - under windows it is names <name>.<ext>.<id>, under
+	# linux it is <name>-<id>.<ext>
 	while [ $ypos -lt $ih ]; do
 		typeset xpos=0
 		while [ $xpos -lt $iw ]; do

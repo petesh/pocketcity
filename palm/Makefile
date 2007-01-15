@@ -87,7 +87,7 @@ version.ro: ../CHANGELOG
 	$(RC.rcp) version.rcp 
 	@rm -f version.rcp
 
-touch.ro: FRC
+touch.ro: *.c *.h
 	@echo "#include \"simcity_resconsts.h\"" > touch.rcp
 	@printf "STRING ID StrID_build \"$(DSTAMP)\"" >> touch.rcp
 	$(RC.rcp) touch.rcp
