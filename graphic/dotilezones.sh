@@ -1,4 +1,4 @@
-#! /bin/bash -p
+#!/bin/bash -p
 
 typeset me=${0##*/}
 typeset infile=
@@ -7,8 +7,8 @@ typeset width=
 typeset height=
 typeset rwidth=
 typeset rheight=
-typeset sizx=24
-typeset sizy=12
+typeset -i sizx=24
+typeset -i sizy=12
 typeset id=0
 typeset remove=
 typeset cast_to=
@@ -96,7 +96,7 @@ function sliceimage {
 		shift
 	fi
 	typeset file=$1
-	typeset ext=${1##*.}
+	typeset ext=miff
 	typeset destdir=$2
 	typeset variable=$3
 	typeset iw=
@@ -123,10 +123,9 @@ function sliceimage {
 		typeset xpos=0
 		while [ $xpos -lt $iw ]; do
 			typeset newf="$destdir/`printf "%0.3d" $val`.$ext"
-			cp $file $newf
-			mogrify -crop "${width}x${height}+${xpos}+${ypos}" $newf
+			convert $file -crop "${width}x${height}+${xpos}+${ypos}" +repage $newf
 			if [[ -n "$rwidth" ]]; then
-				mogrify -resize "${rwidth}x${rheight}" $newf
+				convert -resize "${rwidth}x${rheight}" $file $newf
 			fi
 			if [ -n "$h" -a -n "${in_def[$index]}" ]; then
 				print_define ${in_def[$index]} $val
@@ -301,10 +300,7 @@ if [[ -z $rwidth ]]; then
 	rheight=$height
 fi
 readonly nx=$sizx
-readonly ny=$sizy
-readonly shape=$((nx * ny))
 readonly rx=$((rwidth * nx))
-readonly ry=$((rheight * ny))
 
 for col in ${types[@]}; do
 	typeset cols=
@@ -328,18 +324,23 @@ for col in ${types[@]}; do
 	eval "outfile=$outfile"
 	# create the file
 	typeset dfile=$outfile-$col
-	typeset -a ifiles=(`/bin/ls $dir/*.png 2>/dev/null`)
+	typeset -a ifiles=(`/bin/ls $dir/*.miff 2>/dev/null`)
 	typeset count=0
 	typeset printed=0
 	typeset xpos=0
 	typeset ypos=0
-	typeset compositesize=${rx}x${ry}
 	for i in ${ifiles[@]}; do
 		count=$((count + 1))
 	done
 	if [ $count -eq 0 ]; then
 		continue
 	fi
+	typeset ny=$((count / nx))
+	# Fractional line - add one
+	if (($((ny * nx)) != count)); then
+		ny=$((ny + 1))
+	fi
+	typeset ry=$((rheight * ny))
 	# initial force creation of blank
 	typeset bag=
 	typeset tap=
@@ -352,7 +353,7 @@ for col in ${types[@]}; do
 	fi
 	montage $bag -geometry ${rwidth}x${rheight}+0+0 \
 		-tile ${nx}x${ny} -adjoin ${ifiles[@]} $dfile.miff
-	convert -type Optimize $tap $dfile.miff \
+	convert -type Optimize $tap $dfile.miff -crop ${rx}x${ry}+0+0 \
 		-colors $cols $dfile.png
 	convert $dfile.miff +compress -type $typ -colors $cols $dfile.bmp
 	rm $dfile.miff

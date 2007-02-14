@@ -30,4 +30,4 @@ $(ICONFILE)-%: $(MAPFILE)
 	touch $@
 
 clean:
-	rm -f $(ALLFILES) *.png *.bmp $(HEADERFILE)
+	rm -f $(ALLFILES) *.png *.bmp *.miff $(HEADERFILE)
