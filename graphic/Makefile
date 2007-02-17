@@ -1,11 +1,11 @@
 
 ICONFILE=tile
-COLORS=bw grey color
+COLORS=color grey bw
 OSIZE=16
 DIM=$(OSIZE)x$(OSIZE)
 MSIZE=4
 MDIM=$(MSIZE)x$(MSIZE)
-SHAPE=32x32
+TILEWIDTH=32
 MAPFILE=tilemapping.txt
 HEADERFILE=tileheader.h
 DEPPNGS=`sed -ne '/^#/d' -e 's/:.*/.png/p' $(HEADERFILE)`
@@ -18,8 +18,8 @@ ALLFILES=$(COLORS:%=$(ICONFILE)-%)
 all: $(ALLFILES)
 
 $(ICONFILE)-%: $(MAPFILE)
-	./dotilezones.sh -t $* -d $(DIM) -s $(SHAPE) -c welem_t $(MAPFILE) \
-		$(ICONFILE)-$(DIM) tileheader.h
+	./dotilezones.sh -t $* -d $(DIM) -s $(TILEWIDTH) -c welem_t \
+		$(MAPFILE) $(ICONFILE)-$(DIM) tileheader.h
 	eval `identify -format "w=%w;h=%h" $(ICONFILE)-$(DIM)-$*.bmp`; \
 	w=`expr $$w / $(MSIZE)`; \
 	h=`expr $$h / $(MSIZE)`; \

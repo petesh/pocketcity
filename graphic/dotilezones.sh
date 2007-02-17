@@ -8,7 +8,6 @@ typeset height=
 typeset rwidth=
 typeset rheight=
 typeset -i sizx=24
-typeset -i sizy=12
 typeset id=0
 typeset remove=
 typeset cast_to=
@@ -123,7 +122,8 @@ function sliceimage {
 		typeset xpos=0
 		while [ $xpos -lt $iw ]; do
 			typeset newf="$destdir/`printf "%0.3d" $val`.$ext"
-			convert $file -crop "${width}x${height}+${xpos}+${ypos}" +repage $newf
+			echo $file \-\> $newf
+			convert $file -crop "${width}x${height}+${xpos}+${ypos}" -page 0x0 $newf
 			if [[ -n "$rwidth" ]]; then
 				convert -resize "${rwidth}x${rheight}" $file $newf
 			fi
@@ -167,11 +167,12 @@ Input files are expected to be of the .png file type, with transparency
 fully supported on the output file where possible.
 
 Options are:
-	-s <width>x<height> - shape the tile format to this
+	-s <width> - shape the tile format to this width, the number of
+	    tiles determines the height.
 	-d <width>x<height> - make the tiles of this x and y dimension
 	-r <width>x<height> - resize tiles to this size (after the fact)
 	-t <type> - types to do (color, bw, grey)
-	-c <type> - cast all thed efines to this type
+	-c <type> - cast all the defines to this type
 	<input file> - the input file for reading the information
 	<output file> - the output file for writing the information
 	<headerfile> - the name of the header file to receive the output,
@@ -207,9 +208,9 @@ while getopts "c:d:r:s:t:h?" o; do
 		fi
 		;;
 		s)
-		checkwh "$OPTARG" sizx sizy
-		if [ $? -ne 0 ]; then
-			echo "malformed: '$OPTARG' isn't a <width>x<height>"
+		sizx="$OPTARG"
+		if ((sizx == 0)); then
+			echo "malformed: '$OPTARG' isn't a Number!"
 			bad=1
 		fi
 		;;
@@ -329,6 +330,7 @@ for col in ${types[@]}; do
 	typeset printed=0
 	typeset xpos=0
 	typeset ypos=0
+
 	for i in ${ifiles[@]}; do
 		count=$((count + 1))
 	done
@@ -337,9 +339,10 @@ for col in ${types[@]}; do
 	fi
 	typeset ny=$((count / nx))
 	# Fractional line - add one
-	if (($((ny * nx)) != count)); then
+	if (($((ny * nx)) != $count)); then
 		ny=$((ny + 1))
 	fi
+	
 	typeset ry=$((rheight * ny))
 	# initial force creation of blank
 	typeset bag=
@@ -356,5 +359,5 @@ for col in ${types[@]}; do
 	convert -type Optimize $tap $dfile.miff -crop ${rx}x${ry}+0+0 \
 		-colors $cols $dfile.png
 	convert $dfile.miff +compress -type $typ -colors $cols $dfile.bmp
-	rm $dfile.miff
+	#rm $dfile.miff
 done
