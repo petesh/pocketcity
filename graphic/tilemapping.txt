@@ -5,6 +5,7 @@
 # the following lines are meta instructions.
 # destination:zones_${width}x${height}
 # header:tileinformation.h
+# $Id$
 dirt:Z_DIRT:::Dirt Zone
 tree:Z_REALTREE:::Real Tree Zone
 rwater:Z_REALWATER:::Real Water Zone

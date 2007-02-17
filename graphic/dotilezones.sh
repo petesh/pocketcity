@@ -1,5 +1,7 @@
 #!/bin/bash -p
 
+# $Id$
+
 typeset me=${0##*/}
 typeset infile=
 typeset outfile=
@@ -11,7 +13,8 @@ typeset -i sizx=24
 typeset id=0
 typeset remove=
 typeset cast_to=
-typeset -a types=(bw grey color)
+typeset -a types=(color grey bw)
+typeset ext=png
 
 trap cleanup 0 1
 
@@ -95,7 +98,6 @@ function sliceimage {
 		shift
 	fi
 	typeset file=$1
-	typeset ext=miff
 	typeset destdir=$2
 	typeset variable=$3
 	typeset iw=
@@ -122,8 +124,8 @@ function sliceimage {
 		typeset xpos=0
 		while [ $xpos -lt $iw ]; do
 			typeset newf="$destdir/`printf "%0.3d" $val`.$ext"
-			echo $file \-\> $newf
-			convert $file -crop "${width}x${height}+${xpos}+${ypos}" -page 0x0 $newf
+			#echo $file \-\> $newf
+			convert $file -crop "${width}x${height}+${xpos}+${ypos}" +repage $newf
 			if [[ -n "$rwidth" ]]; then
 				convert -resize "${rwidth}x${rheight}" $file $newf
 			fi
@@ -246,9 +248,9 @@ if [ -n "$bad" ]; then
 fi
 
 # redirect output of fd 4
-if [ ! -z "$3" ]; then
+if [[ -n $3 ]]; then
 	exec 4>$3
-	if [ $? -ne 0 ]; then
+	if (( $? != 0 )); then
 		echo "Could not write to $3"
 	fi
 else
@@ -286,7 +288,7 @@ sed -e '/^#/d' -e '/^$/d' $infile | while read inputline; do
 		eval "dir=\$$dir"
 		eval "counter=slice${col}"
 		h=
-		[[ $col = "color" ]] && h=h
+		[[ $col = "bw" ]] && h=h
 		if [ ! -f "$col/$file.png" ]; then
 			echo "could not open $col/$file.png"
 			continue
@@ -325,7 +327,7 @@ for col in ${types[@]}; do
 	eval "outfile=$outfile"
 	# create the file
 	typeset dfile=$outfile-$col
-	typeset -a ifiles=(`/bin/ls $dir/*.miff 2>/dev/null`)
+	typeset -a ifiles=(`/bin/ls $dir/*.$ext 2>/dev/null`)
 	typeset count=0
 	typeset printed=0
 	typeset xpos=0
@@ -359,5 +361,5 @@ for col in ${types[@]}; do
 	convert -type Optimize $tap $dfile.miff -crop ${rx}x${ry}+0+0 \
 		-colors $cols $dfile.png
 	convert $dfile.miff +compress -type $typ -colors $cols $dfile.bmp
-	#rm $dfile.miff
+	rm $dfile.miff
 done

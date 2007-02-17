@@ -1,0 +1,4 @@
+# $Id$
+
+Regenerating the files should only be done using the linux version of
+imagemagick as the cygwin version munges the tiles making them unusable.
