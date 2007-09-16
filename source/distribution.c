@@ -53,14 +53,18 @@ typedef struct _distrib {
 	Int16 ShortOrOut; /*!< was short or out of the chosen item */
 } distrib_t;
 
-static UInt32 DistributeMoveOn(UInt32 pos, dirType direction);
-static void DistributeUnvisited(distrib_t *distrib);
-
-static void AddCarryNeighbors(distrib_t *distrib, UInt32 pos);
-static UInt8 ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what);
-
-static Int16 GetPowerPlantSupply(welem_t point, UInt32 coord, selem_t flags);
-static Int16 GetWaterPumpSupply(welem_t point, UInt32 coord, selem_t flags);
+/* prototypes to keep them in the correct code section for the palm platform */
+static UInt32 DistributeMoveOn(UInt32 pos, dirType direction) DISTRIBUTION_SECTION;
+static void DistributeUnvisited(distrib_t *distrib) DISTRIBUTION_SECTION;
+static void AddCarryNeighbors(distrib_t *distrib, UInt32 pos) DISTRIBUTION_SECTION;
+static UInt8 ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what) DISTRIBUTION_SECTION;
+static Int16 GetPowerPlantSupply(welem_t point, UInt32 coord, selem_t flags) DISTRIBUTION_SECTION;
+static Int16 GetWaterPumpSupply(welem_t point, UInt32 coord, selem_t flags) DISTRIBUTION_SECTION;
+static Int16 SupplyIfPlant(distrib_t *distrib, UInt32 pos, welem_t point, selem_t status) DISTRIBUTION_SECTION;
+static Int16 Carries(Int16 (*doescarry)(welem_t), UInt32 pos, selem_t statusbit) DISTRIBUTION_SECTION;
+static void AddCarryNeighbors(distrib_t *distrib, UInt32 pos) DISTRIBUTION_SECTION;
+static void DistributeUnvisited(distrib_t *distrib) DISTRIBUTION_SECTION;
+static void DoDistribute(Int16 grid) DISTRIBUTION_SECTION;
 
 const cdistrib_t cdist[] = {
 	{ GetPowerPlantSupply,
@@ -78,14 +82,14 @@ const cdistrib_t cdist[] = {
 /*
  * The power/water grid is updated using the following mechanism:
  * 1: While there are more plants to consume do:
- * a: While you can visit more points do:
- * i: If it's a source then add it's donation to the supply
- *	  - if the 'to be powered' list has members then supply them
- *	  - go to step (1.a.iii)
- * ii: if you've power then mark the point as visited, supplied & decrement
- *	  - otherwise put it on the 'to be powered' list
- * iii: Find all the possible connections to visit and put them on the trip list
- * b: Purge the 'to be powered list'; they can't be b/c of no connections
+ *   a: While you can visit more points do:
+ *     1:  If it's a source then add it's donation to the supply
+ *          - if the 'to be powered' list has members then supply them
+ *          - go to step (1.a.1)
+ *     2: if you've power then mark the point as visited, supplied & decrement
+ *          - otherwise put it on the 'to be powered' list
+ *     3: Find all the possible connections to visit and put them on the trip list
+ *   b: Purge the 'to be powered list'; they can't be b/c of no connections
  *
  * The WorldFlag are used as a bitfield for this, every tile has a byte:
  *  8765 4321
@@ -106,7 +110,6 @@ const cdistrib_t cdist[] = {
  *  How to recreate:
  *	  call the distribution routine... it knows how to do each type
  */
-static void DoDistribute(Int16 grid) DISTRIBUTION_SECTION;
 
 /*!
  * \brief Do a grid distribution for the grid(s) specified
@@ -129,9 +132,6 @@ Sim_Distribute_Specific(Int16 gridonly)
 	addGraphicUpdate(gu_desires);
 }
 
-static Int16
-GetPowerPlantSupply(welem_t point, UInt32 coord,
-    selem_t flags) DISTRIBUTION_SECTION;
 /*!
  * \brief Check if the node is a power plant (Nuclear/Coal)
  * \param point the value at the point
@@ -151,7 +151,6 @@ GetPowerPlantSupply(welem_t point, UInt32 coord __attribute__((unused)),
 		return (0);
 }
 
-static Int16 GetWaterPumpSupply(welem_t point, UInt32 coord, selem_t flags) DISTRIBUTION_SECTION;
 /*!
  * \brief Check if the node is a Water Pump.
  *
@@ -171,7 +170,6 @@ GetWaterPumpSupply(welem_t point, UInt32 coord, selem_t flags)
 	return (0);
 }
 
-static Int16 SupplyIfPlant(distrib_t *distrib, UInt32 pos, welem_t point, selem_t status) DISTRIBUTION_SECTION;
 /*!
  * \brief Add source to the grid.
  * \param distrib the distribution structure
@@ -207,7 +205,6 @@ SupplyIfPlant(distrib_t *distrib, UInt32 pos, welem_t point, selem_t status)
 	return (pt);
 }
 
-static void DoDistribute(Int16 grid) DISTRIBUTION_SECTION;
 /*!
  * \brief Do Distribution of the grid (water/power)
  * \param grid grid to perform distribution on
@@ -302,7 +299,6 @@ DoDistribute(Int16 grid)
 	gfree(distrib);
 }
 
-static void DistributeUnvisited(distrib_t *distrib) DISTRIBUTION_SECTION;
 /*!
  * \brief Distribute power to the unvisited list.
  */
@@ -348,7 +344,6 @@ nextneighbor:
 	}
 }
 
-static Int16 Carries(Int16 (*doescarry)(welem_t), UInt32 pos, selem_t statusbit) DISTRIBUTION_SECTION;
 /*
  * \brief check that the node carries something.
  *
@@ -368,8 +363,6 @@ Carries(Int16 (*doescarry)(welem_t), UInt32 pos, selem_t statusbit)
 		return (0);
 	return (doescarry(world));
 }
-
-static void AddCarryNeighbors(distrib_t *distrib, UInt32 pos) DISTRIBUTION_SECTION;
 
 /*!
  * \brief Add all the neighbors to this node to the unvisited list.
@@ -409,8 +402,6 @@ AddCarryNeighbors(distrib_t *distrib, UInt32 pos)
 	distrib->NodesTotal += number;
 }
 
-static UInt32 DistributeMoveOn(UInt32 pos, dirType direction) DISTRIBUTION_SECTION;
-
 /*!
  * \brief Distribute supply to locations around this node.
  *
@@ -448,8 +439,6 @@ DistributeMoveOn(UInt32 pos, dirType direction)
 	}
 	return (pos);
 }
-
-static UInt8 ExistsNextto(UInt32 pos, UInt8 dirs, welem_t what) DISTRIBUTION_SECTION;
 
 /*!
  * \brief check if a node exists next to other types of nodes

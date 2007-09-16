@@ -187,12 +187,6 @@ setDifficultyLevel(UInt8 value)
 	GG.diff_disaster |= (UInt8)((value & 0x0f) << 4);
 }
 
-#define	nullcheck(X) \
-	if ((X) == NULL) { \
-		UISystemErrorNotify(seOutOfMemory); \
-		WriteLog("realloc failed - " #X "\n"); \
-		return (0); \
-	}
 /*!
  * \brief make the world of a certain size
  *

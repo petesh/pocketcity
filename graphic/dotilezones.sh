@@ -360,6 +360,6 @@ for col in ${types[@]}; do
 		-tile ${nx}x${ny} -adjoin ${ifiles[@]} $dfile.miff
 	convert -type Optimize $tap $dfile.miff -crop ${rx}x${ry}+0+0 \
 		-colors $cols $dfile.png
-	convert $dfile.miff +compress -type $typ -colors $cols $dfile.bmp
+	convert $dfile.miff -compress None -type $typ -colors $cols $dfile.bmp
 	rm $dfile.miff
 done
