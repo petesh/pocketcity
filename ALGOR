@@ -1,0 +1,72 @@
+
+Demand indicators:
+
+Firstly:
+
+Residential is +500, Industrial +250, Commercial is +0,
+	Pollution is +0, Crime is +0
+
+A Power plant:
+	Changes desire for residential areas (+3).
+
+Coal Plant:
+	Donates 20 pollution units per zone occupied (4 zones).
+ 
+A Water pump:
+	Changes the desire for residential areas (+3).
+
+Industrial zone:
+	The desire for residential areas (+3)
+	changes the pollution by (+1)
+	changes the crime by (+1)
+
+Industrial Zone:
+Value	Density	Des Ind	Des Res	Des Com	Pollut	Crime
+Occupied
+Low	Low	-1	+1	+0	+1	+1
+Med	Low	-2	+1	+0	+1	+2
+High	Low	-3	+2	+0	+1	+3
+Low	Med	-4	+2	+1	+3	+2
+Med	Med	-5	+3	+1	+3	+3
+High	Med	-6	+3	+1	+3	+4
+Low	High	-7	+4	+2	+6	+3
+Med	High	-8	+4	+2	+6	+4
+High	High	-9	+5	+2	+6	+5
+
+Residential zone:
+	The desire for industrial areas (+1)
+	The desire for commercial areas (+1)
+	The desire for residential areas (-1)
+
+Residential Zone:
+Value	Density	Des Ind	Des Res	Des Com	Pollut	Crime
+Occupied
+Low	Low	+1	-1	+0	+0	+0
+Med	Low	+1	-2	+2	+0	+0
+High	Low	+1	-3	+4	+0	+1
+Low	Med	+3	-4	+1	+0	+1
+Med	Med	+3	-5	+3	+0	+1
+High	Med	+3	-6	+5	+0	+4
+Low	High	+5	-7	+2	+0	+2
+Med	High	+5	-8	+4	+0	+2
+High	High	+5	-9	+6	+0	+5
+
+Commercial Zones:
+	The desire for industrial areas (+1)
+	The desire for residential areas (+1)
+	The desire for commercial areas (-1)
+
+Commercial Zones:
+Value	Density	Des Ind	Des Res	Des Com	Pollut	Crime
+Occupied
+Low	Low	+1	+1	-1	+0	+0
+Med	Low	+1	+1	-2	+0	+1
+High	Low	+1	+1	-3	+0	+2
+Low	Med	+2	+2	-4	+0	+0
+Med	Med	+2	+2	-5	+0	+1
+High	Med	+2	+2	-6	+0	+2
+Low	High	+3	+3	-7	+0	+0
+Med	High	+3	+3	-8	+0	+1
+High	High	+3	+3	-9	+0	+2
+
+

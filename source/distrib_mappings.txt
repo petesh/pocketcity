@@ -1,0 +1,8 @@
+# Firstly, if there is no entry on this map the effect
+# is 0.
+# Type|Des Ind|Des Res|Des Com|Pollution|Crime|Transport
+Z_REALTREE|0|0|0|-5|-1|0
+Z_REALWATER|0|0|0|-3|-1|-5
+Z_FAKETREE|0|0|0|-3|-1|0
+Z_FAKEWATER|0|0|0|-2|-1|-5
+
