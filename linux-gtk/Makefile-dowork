@@ -25,7 +25,7 @@ OPTFLAGS_debug=
 CFLAGS_release=
 OPTFLAGS_release=$(XOPTFLAGS)
 
-CFLAGS_profile=-pg
+CFLAGS_profile=-g -pg -ftest-coverage -fprofile-arcs
 OPTFLAGS_profile=
 
 OPTFLAGS=$(OPTFLAGS_$(BUILD_MODE))
