@@ -1,6 +1,6 @@
 VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
 GCPPFLAGS := $(shell pkg-config --cflags gtk+-2.0) \
-	-DGTK_DISABLE_COMPAT_H -DGDK_DISABLE_DEPRECATED
+	-DGTK_DISABLE_COMPAT_H
 
 ifeq ($(CC),suncc)
 GCCFLAGS = -v -erroff=%none -errwarn=%all
