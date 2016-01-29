@@ -19,15 +19,17 @@ ALLFILES=$(COLORS:%=$(ICONFILE)-$(DIM)-%.png)
 
 all: $(ALLFILES)
 
+GM :=$(shell which gm)
+
 $(ICONFILE)-$(DIM)-%.png: $(MAPFILE)
 	./dotilezones.sh -t $* -d $(DIM) -s $(TILEWIDTH) -c welem_t \
 		$(MAPFILE) $(ICONFILE)-$(DIM) $(HEADERFILE)
-	eval `identify -format "w=%w;h=%h" $(ICONFILE)-$(DIM)-$*.bmp`; \
+	eval `$(GM) identify -format "w=%w;h=%h" $(ICONFILE)-$(DIM)-$*.bmp`; \
 	w=`expr $$w / $(MSIZE)`; \
 	h=`expr $$h / $(MSIZE)`; \
-	convert $(ICONFILE)-$(DIM)-$*.bmp -resize $${w}x$${h} \
+	$(GM) convert $(ICONFILE)-$(DIM)-$*.bmp -resize $${w}x$${h} \
 	    $(ICONFILE)-$(MDIM)-$*.bmp; \
-	convert $(ICONFILE)-$(DIM)-$*.png -resize $${w}x$${h} \
+	$(GM) convert $(ICONFILE)-$(DIM)-$*.png -resize $${w}x$${h} \
 	    $(ICONFILE)-$(MDIM)-$*.png
 
 clean:

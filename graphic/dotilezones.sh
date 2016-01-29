@@ -16,6 +16,11 @@ typeset cast_to=
 typeset -a types=(color grey bw)
 typeset ext=png
 
+# are we using graphicsmagick or imagemagick?
+if type -p gm >/dev/null; then
+    gm=gm
+fi
+
 trap cleanup 0 1
 
 PATH=/usr/local/bin:$PATH
@@ -116,7 +121,8 @@ function sliceimage {
 	for def in ${st_def[@]}; do
 		[ -n "$h" ] && print_define $def ${val}
 	done
-	eval `identify -format "iw=%w;ih=%h;" $file`
+	narf=$($gm identify -format "iw=%w;ih=%h;" $file)
+    eval $narf
 	# mogrify will create the tiles as needed, the only problem is the
 	# file name - under windows it is names <name>.<ext>.<id>, under
 	# linux it is <name>-<id>.<ext>
@@ -125,9 +131,9 @@ function sliceimage {
 		while [ $xpos -lt $iw ]; do
 			typeset newf="$destdir/`printf "%0.3d" $val`.$ext"
 			#echo $file \-\> $newf
-			convert $file -crop "${width}x${height}+${xpos}+${ypos}" +repage $newf
+			$gm convert $file -crop "${width}x${height}+${xpos}+${ypos}" +repage $newf
 			if [[ -n "$rwidth" ]]; then
-				convert -resize "${rwidth}x${rheight}" $file $newf
+				$gm convert -resize "${rwidth}x${rheight}" $file $newf
 			fi
 			if [ -n "$h" -a -n "${in_def[$index]}" ]; then
 				print_define ${in_def[$index]} $val
@@ -356,10 +362,10 @@ for col in ${types[@]}; do
 		bag=""
 		tap=""
 	fi
-	montage $bag -geometry ${rwidth}x${rheight}+0+0 \
+	$gm montage $bag -geometry ${rwidth}x${rheight}+0+0 \
 		-tile ${nx}x${ny} -adjoin ${ifiles[@]} $dfile.miff
-	convert -type Optimize $tap $dfile.miff -crop ${rx}x${ry}+0+0 \
+	$gm convert -type Optimize $tap $dfile.miff -crop ${rx}x${ry}+0+0 \
 		-colors $cols $dfile.png
-	convert $dfile.miff -compress None -type $typ -colors $cols $dfile.bmp
+	$gm convert $dfile.miff -compress None -type $typ -colors $cols $dfile.bmp
 	rm $dfile.miff
 done
