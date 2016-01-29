@@ -18,7 +18,7 @@ debug: debug-linux-gtk debug-palm
 debug-%:
 	cd $(@:debug-%=%) && $(MAKE) debug
 
-linux: all-linux
+linux: all-linux-gtk
 
 palm: all-palm
 
