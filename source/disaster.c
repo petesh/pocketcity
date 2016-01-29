@@ -91,7 +91,8 @@ void
 DoRandomDisaster(void)
 {
 	UInt32 randomTile;
-	Int16 i, x, y, type, random;
+	Int16 i, type, random;
+	UInt16 x, y;
 	UInt8 disaster_level;
 
 	disaster_level = getDisasterLevel();
@@ -108,21 +109,21 @@ DoRandomDisaster(void)
 		if (type != Z_DIRT &&
 			type != Z_REALWATER &&
 			type != Z_CRATER) {
-			x = (Int16)(randomTile % getMapWidth());
-			y = (Int16)(randomTile / getMapHeight());
+			x = (UInt16)(randomTile % getMapWidth());
+			y = (UInt16)(randomTile / getMapHeight());
 			/* TODO: should depend on difficulty */
 			random = (Int16)GetRandomNumber(1000 / disaster_level);
 			WriteLog("Random Disaster: %d\n", (int)random);
 			if (random < 10 && vgame.BuildCount[bc_fire] == 0) {
-				DoSpecificDisaster(diFireOutbreak);
+				DoSpecificDisaster(diFireOutbreak, x, y);
 			} else if (random < 15 &&
 			    game.objects[obj_monster].active == 0) {
-				DoSpecificDisaster(diMonster);
+				DoSpecificDisaster(diMonster, x, y);
 			} else if (random < 17 &&
 			    game.objects[obj_dragon].active == 0) {
-				DoSpecificDisaster(diDragon);
+				DoSpecificDisaster(diDragon, x, y);
 			} else if (random < 19) {
-				DoSpecificDisaster(diMeteor);
+				DoSpecificDisaster(diMeteor, x, y);
 			}
 			/* only one chance for disaster per turn */
 			break;
@@ -133,18 +134,12 @@ DoRandomDisaster(void)
 }
 
 void
-DoSpecificDisaster(disaster_t disaster)
+DoSpecificDisaster(disaster_t disaster, UInt16 x, UInt16 y)
 {
-	UInt32 randomTile;
-	UInt16 x, y;
 	Int16 ce = 0;
 	Int16 i = 0;
 
 	do {
-		randomTile = GetRandomNumber(MapMul());
-		x = (UInt16)(randomTile % getMapWidth());
-		y = (UInt16)(randomTile / getMapHeight());
-
 		switch (disaster) {
 		case diFireOutbreak:
 			ce = BurnField(x, y, (UInt16)0);

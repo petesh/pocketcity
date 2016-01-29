@@ -34,7 +34,7 @@ EXPORT void DoRandomDisaster(void) DISASTER_SECTION;
  * \brief Deliberately cause a disaster.
  * \param disaster the type of the disaster to cause.
  */
-EXPORT void DoSpecificDisaster(disaster_t disaster) DISASTER_SECTION;
+EXPORT void DoSpecificDisaster(disaster_t disaster, UInt16 x, UInt16 y) DISASTER_SECTION;
 
 /*!
  * \brief Make sure the disasters are still happening.
