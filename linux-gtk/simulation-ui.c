@@ -373,7 +373,7 @@ map_show(void)
 	    GTK_EXPAND, 2, 2);
 	gtk_container_add(GTK_CONTAINER(pw_win), table);
 
-	gtk_window_set_policy(GTK_WINDOW(pw_win), FALSE, FALSE, TRUE);
+	gtk_window_set_resizable(GTK_WINDOW(pw_win), TRUE);
 
 	g_signal_connect(G_OBJECT(dw_area), "expose_event",
 	    G_CALLBACK(expose_pw), NULL);

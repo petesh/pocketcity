@@ -1070,9 +1070,9 @@ SetUpMainWindow(void)
 	    G_CALLBACK(hoveringDrawing), NULL);
 
 	/* set up some mouse events */
-	gtk_signal_connect(GTK_OBJECT(mw.drawing), "motion_notify_event",
+	g_signal_connect(mw.drawing, "motion_notify_event",
 	    G_CALLBACK(motion_notify_event), NULL);
-	gtk_signal_connect(GTK_OBJECT(mw.drawing), "button_press_event",
+	g_signal_connect(mw.drawing, "button_press_event",
 	    G_CALLBACK(button_press_event), NULL);
 
 	gtk_widget_set_events(mw.drawing, GDK_EXPOSURE_MASK |
@@ -1701,7 +1701,7 @@ WriteLog(char *s, ...)
 
 	va_start(args, s);
 	vsprintf(mbuf, s, args);
-	g_print(mbuf);
+	g_print("%s", mbuf);
 	va_end(args);
 }
 

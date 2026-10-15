@@ -280,10 +280,11 @@ GetSpecialGraphicNumber(UInt32 pos)
 			a = IsRoad(elt) || IsRoadBridge(elt) ||
 			    IsRoadPower(elt) || IsRoadPipe(elt);
 		}
-		if (pos < (unsigned long)(MapMul() - getMapWidth()))
+		if (pos < (unsigned long)(MapMul() - getMapWidth())) {
 			elt = getWorld(pos + getMapWidth());
 			c = IsRoad(elt) || IsRoadBridge(elt) ||
 			    IsRoadPower(elt) || IsRoadPipe(elt);
+		}
 		if ((unsigned long)(pos % getMapWidth()) <
 		    (unsigned long)(getMapWidth() - 1)) {
 			elt = getWorld(pos + 1);
@@ -320,10 +321,11 @@ GetSpecialGraphicNumber(UInt32 pos)
 			a = IsRail(elt) || IsRailTunnel(elt) ||
 			    IsRailPower(elt) || IsRailPipe(elt);
 		}
-		if (pos < (unsigned long)(MapMul() - getMapWidth()))
+		if (pos < (unsigned long)(MapMul() - getMapWidth())) {
 			elt = getWorld(pos + getMapWidth());
 			c = IsRail(elt) || IsRailTunnel(elt) ||
 			    IsRailPower(elt) || IsRailPipe(elt);
+		}
 		if ((unsigned long)(pos % getMapWidth()) <
 		    (unsigned long)(getMapWidth() - 1)) {
 			elt = getWorld(pos + 1);

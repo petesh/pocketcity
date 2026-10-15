@@ -94,7 +94,7 @@ int
 getFieldValue(welem_t world, char *dest, int destlen)
 {
 	strncpy(dest, gettext(values[ZoneValue(world) % 4]), destlen - 1);
-	values[destlen - 1] = '\0';
+	values[destlen - 1] = 0;
 
 	return (0);
 }
@@ -103,7 +103,7 @@ int
 getFieldDensity(welem_t world, char *dest, int destlen)
 {
 	strncpy(dest, gettext(values[(ZoneValue(world) / 4) % 4]), destlen - 1);
-	values[destlen - 1] = '\0';
+	values[destlen - 1] = 0;
 
 	return (0);
 }

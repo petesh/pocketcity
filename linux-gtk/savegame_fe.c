@@ -267,43 +267,29 @@ newgame_handler(void)
 	gtk_widget_show_all(ng.form);
 }
 
-/*!
- * \brief set the save game name
- * \param sel unused
- * \param data the file selection dialog that caused this
- */
-void
-store_filename(GtkWidget *sel __attribute__((unused)), gpointer data)
-{
-	gchar *name = (gchar*)gtk_file_selection_get_filename(data);
-
-	if (name != NULL) {
-		if (-1 == setCityFileName(name)) {
-			return;
-		}
-	} else
-		return;
-	WriteLog("This game will be saved as %s from now on\n", name);
-	save_defaultfilename();
-}
-
 void
 savegameas_handler(void)
 {
-	GtkWidget *fileSel;
+	GtkWidget *dialog;
 
-	fileSel = gtk_file_selection_new(_("Save game as..."));
-	g_signal_connect(GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
-	    "clicked", G_CALLBACK(store_filename), (gpointer)fileSel);
-
-	g_signal_connect_swapped(
-	    GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->ok_button),
-	    "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
-	g_signal_connect_swapped(
-	    GTK_OBJECT(GTK_FILE_SELECTION(fileSel)->cancel_button),
-	    "clicked", G_CALLBACK(gtk_widget_destroy), (gpointer)fileSel);
-
-	gtk_widget_show(GTK_WIDGET(fileSel));
+	dialog = gtk_file_chooser_dialog_new(
+		_("Save game as..."),
+		NULL, // no parent
+		GTK_FILE_CHOOSER_ACTION_SAVE,
+		"_Cancel", GTK_RESPONSE_CANCEL,
+		"_Save", GTK_RESPONSE_ACCEPT,
+		NULL
+	);
+	if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
+		GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+		gchar *filename = gtk_file_chooser_get_filename(chooser);
+		if (filename != NULL) {
+			setCityFileName(filename);
+			WriteLog("This game will be saved as %s from now on\n", filename);
+			save_defaultfilename();
+		}
+	}
+	gtk_widget_destroy(dialog);
 }
 
 void

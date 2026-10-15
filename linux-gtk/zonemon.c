@@ -176,7 +176,7 @@ hover_show(void)
 
 	gtk_container_add(GTK_CONTAINER(ttg.win), GTK_WIDGET(table));
 
-	gtk_window_set_policy(GTK_WINDOW(ttg.win), FALSE, TRUE, FALSE);
+	gtk_window_set_resizable(GTK_WINDOW(ttg.win), FALSE);
 	gtk_widget_show_all(GTK_WIDGET(table));
 	gtk_widget_show(ttg.win);
 }

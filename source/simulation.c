@@ -144,8 +144,8 @@ FindScoreForZones(void)
  * \param b pointer to second element
  * \param other other value
  */
-static Int16
-zoneCmpFn(void *a, void *b, Int32 other __attribute__((unused)))
+static Int32
+zoneCmpFn(void *a, void *b)
 {
 	ZoneScore *zs1 = (ZoneScore *)a;
 	ZoneScore *zs2 = (ZoneScore *)b;
