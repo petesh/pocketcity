@@ -54,7 +54,7 @@ mem_resize(lockmem_t *mem, UInt32 size)
 		if (mem->handle) {
 			mem->handle = realloc(mem->handle, size);
 			if (mem->handle) {
-				memset(mem->handle, size, 0);
+				memset(mem->handle, 0, size);
 				mem->size = size;
 			}
 		} else {

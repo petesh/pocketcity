@@ -247,7 +247,7 @@ extern "C" {
 #define	getStatistics(K)	(&(GG.statistics[K]))
 #define	setTimeElapsed(X)	GG.TimeElapsed = (X)
 #define	incrementTimeElapsed(X)	GG.TimeElapsed += (X)
-#define	setGameVersion(V)	strncpy((char *)GG.version, (char *)V, 4)
+#define	setGameVersion(V)	memcpy((char *)GG.version, (char *)V, 4)
 #define	setTax(T)	GG.tax = (T)
 #define	getTax()	(GG.tax)
 

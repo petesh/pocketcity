@@ -38,7 +38,7 @@ StackResize(lsObj_t *sp, Int32 newSize)
 lsObj_t *
 StackNew(void)
 {
-	lsObj_t *rv = gcalloc(sizeof (lsObj_t), 1);
+	lsObj_t *rv = gcalloc(1, sizeof (lsObj_t));
 	return (rv);
 }
 
