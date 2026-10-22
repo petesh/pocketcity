@@ -22,7 +22,7 @@ extern "C" {
  * \param drawable the drawable surface to paint on
  */
 void UIDrawMapZone(Int16 xpos, Int16 ypos, welem_t nGraphic,
-    GdkDrawable *drawable);
+    GdkWindow *drawable);
 
 /*!
  * \brief draw a special object for the map
@@ -32,7 +32,7 @@ void UIDrawMapZone(Int16 xpos, Int16 ypos, welem_t nGraphic,
  * \param drawable the drawable to paint on
  */
 void UIDrawMapSpecialObject(Int16 xpos, Int16 ypos, Int16 i,
-    GdkDrawable *drawable);
+    GdkWindow *drawable);
 
 /*!
  * \brief draw a special unit on the map
@@ -42,14 +42,14 @@ void UIDrawMapSpecialObject(Int16 xpos, Int16 ypos, Int16 i,
  * \param drawable the drawable to paint on
  */
 void UIDrawMapSpecialUnit(Int16 xpos, Int16 ypos, Int16 i,
-    GdkDrawable *drawable);
+    GdkWindow *drawable);
 
 /*
  * \brief get the widget corresponding to the main window
  * \return the widget (could be null)
  */
 GtkWidget *window_main_get(void);
-GdkDrawable *drawable_main_get(void);
+GdkWindow *drawable_main_get(void);
 
 #if defined(__cplusplus)
 }

@@ -49,5 +49,5 @@ cscope:
 	  find source -name \*.\[ch\] -type f -print; \
 	  find palm -name \*.\[ch\] -type f -print) > cscope.files
 	cscope -I nix-common -I linux-gtk -I source \
-	  $(pkg-config --cflags gtk+-2.0) -bq
+	  $(pkg-config --cflags gtk+-3.0) -bq
 

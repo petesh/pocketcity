@@ -6,6 +6,7 @@
  * in the GTK environment.
  */
 #include <gtk/gtk.h>
+#include <gdk/gdk.h>
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
@@ -52,25 +53,18 @@ static struct main_window {
 	GtkWidget *l_pop; /*!< \brief population label */
 	GtkWidget *l_time; /*!< \brief simulation date label */
 
-	GtkObject *sc_hor; /*!< \brief horizontal scroll adjustment */
-	GtkObject *sc_vert; /*!< \brief vertical scroll adjustment */
+	GtkAdjustment *sc_hor; /*!< \brief horizontal scroll adjustment */
+	GtkAdjustment *sc_vert; /*!< \brief vertical scroll adjustment */
 
-	GtkWidget *hscroll; /*!< \brief horizontal scroll bar */
-	GtkWidget *vscroll; /*!< \brief vertical scroll bar */
+	GdkPixbuf *p_zones; /*!< \brief zone pixmap */
+	GdkPixbuf *p_monsters; /*!< \brief monsters pixmap */
+	GdkPixbuf *p_units; /*!< \brief units pixmap */
 
-	GdkPixmap *p_zones; /*!< \brief zone pixmap */
-	GdkPixmap *p_monsters; /*!< \brief monsters pixmap */
-	GdkPixmap *p_units; /*!< \brief units pixmap */
+	GdkPixbuf *p_mapzones; /*!< \brief pixmap of the map zones */
+	GdkPixbuf *p_mapspecials; /*!< \brief pixmap of specials for map */
+	GdkPixbuf *p_mapunits; /*!< \brief pixmap for the units on map */
 
-	GdkPixmap *p_zones_m; /*!< \brief mask for units */
-	GdkPixmap *p_monsters_m; /*!< \brief mask for the monsters */
-	GdkPixmap *p_units_m; /*!< \brief mask for the units */
-
-	GdkPixmap *p_mapzones; /*!< \brief pixmap of the map zones */
-	GdkPixmap *p_mapspecials; /*!< \brief pixmap of specials for map */
-	GdkPixmap *p_mapunits; /*!< \brief pixmap for the units on map */
-
-	GdkPixmap *p_play; /*!< \brief the play area (full) */
+	GdkPixbuf *p_play; /*!< \brief the play area (full) */
 } mw;
 
 /*! \brief the execution directory of the program */
@@ -80,8 +74,8 @@ static void SetUpMainWindow(void);
 static gint mainloop_callback(gpointer data);
 static void QuitGame(void);
 
-static void set_speed_handler(GtkAction *action, gpointer data);
-static void toolbox_callback(GtkAction *action, gpointer data);
+static void set_speed_handler(GAction *action, gpointer data);
+static void toolbox_callback(GAction *action, gpointer data);
 
 static void ResetViewable(void);
 static void ShowMainWindow(void);
@@ -149,17 +143,17 @@ struct _actionhooks {
 
 static const struct _actionhooks normalhooks[] = {
 	{ "file-action", N_("_File"), NULL, NULL, s_nothing, 0 },
-	{ "game-new", N_("_New"), N_("Create a new game"), GTK_STOCK_NEW,
+	{ "game-new", N_("_New"), N_("Create a new game"), "document-new",
 	  newgame_handler, 0 },
-	{ "game-open", N_("_Open"), N_("Open a save game"), GTK_STOCK_OPEN,
+	{ "game-open", N_("_Open"), N_("Open a save game"), "document-open",
 	  opengame_handler, 0 },
 	{ "game-save", N_("_Save"), N_("Save a game in progress"),
-	  GTK_STOCK_SAVE, savegame_handler, 0 },
+	  "document-save", savegame_handler, 0 },
 	{ "game-save-as", N_("Save _As"),
-	  N_("Save a city into a new file"), GTK_STOCK_SAVE_AS,
+	  N_("Save a city into a new file"), "document-save-as",
 	  savegameas_handler, 0 },
 	{ "game-exit", N_("E_xit"), N_("Leave the game"),
-	  GTK_STOCK_QUIT, QuitGame, 0 },
+	  "application-exit", QuitGame, 0 },
 	{ "view-action", N_("_View"), NULL, NULL, s_nothing, 0 },
 	{ BUDGET_SHOW, N_("_Budget"), N_("Show the budget information"),
 	  NULL, budget_show, 0 },
@@ -416,10 +410,10 @@ window_main_get(void)
 /*!
  * \brief get the drawable for the main window
  */
-GdkDrawable *
+GdkWindow *
 drawable_main_get(void)
 {
-	return (mw.window->window);
+	return gtk_widget_get_window(mw.window);
 }
 
 /* \brief the ticker */
@@ -444,7 +438,7 @@ set_speed(int speed)
  * \param data converted to the parameter type
  */
 static void
-set_speed_handler(GtkAction *action __attribute__((unused)),
+set_speed_handler(GAction *action __attribute__((unused)),
   gpointer data)
 {
 	set_speed(GPOINTER_TO_INT(data));
@@ -503,26 +497,6 @@ load_pixbuf(const char *name)
 	}
 }
 
-static GdkPixmap *
-load_pixmap(const char *name, GdkBitmap **mask)
-{
-	char *buffer;
-
-	buffer = alloca(max_path + 1);
-	assert(buffer != NULL);
-	strncpy(buffer, name, max_path);
-	if (searchFile(buffer)) {
-		return (gdk_pixmap_create_from_xpm(mw.window->window,
-		  mask, NULL, buffer));
-	} else {
-		/* XXX: Show dialog */
-		WriteLog("Could not create pixmap from file %s\n",
-		  buffer);
-		exit(1);
-	}
-}
-
-
 /*!
  * \brief time ticker that loops every second
  * \param data unused in this context
@@ -574,7 +548,7 @@ static UInt8 selectedBuildItem = 0;
  * \param data the identifier of the toolbar item
  */
 static void
-toolbox_callback(GtkAction *action __attribute__((unused)), gpointer data)
+toolbox_callback(GAction *action __attribute__((unused)), gpointer data)
 {
 	selectedBuildItem = GPOINTER_TO_INT(data);
 }
@@ -597,8 +571,9 @@ ResetViewable(void)
 void
 scrollbar(GtkAdjustment *adj __attribute__((unused)))
 {
-	Goto(GTK_ADJUSTMENT(mw.sc_hor)->value,
-	    GTK_ADJUSTMENT(mw.sc_vert)->value, goto_center);
+	Goto(gtk_adjustment_get_value(GTK_ADJUSTMENT(mw.sc_hor)),
+	     gtk_adjustment_get_value(GTK_ADJUSTMENT(mw.sc_vert)),
+		 goto_center);
 }
 
 /*!
@@ -631,7 +606,7 @@ ResizeCheck(int width, int height)
 	lower = getVisibleY() / 2;
 	g_object_set(adjv, "lower", lower, NULL);
 	if (getVisibleY() >= getMapHeight())
-		upper = adjh->lower;
+		upper = gtk_adjustment_get_lower(adjh);
 	else
 		upper = getMapHeight() + lower;
 	g_object_set(adjv, "upper", upper, NULL);
@@ -642,10 +617,11 @@ ResizeCheck(int width, int height)
 	if (adjv->value < adjv->lower) adjv->value = adjv->lower;*/
 
 	WriteLog("visx = %d, visy = %d\n", getVisibleX(), getVisibleY());
-	WriteLog("hor: lower = %d, upper = %d\n", (int)adjh->lower,
-	    (int)adjh->upper);
-	WriteLog("ver: lower = %d, upper = %d\n", (int)adjv->lower,
-	    (int)adjv->upper);
+	WriteLog("hor: lower = %d, upper = %d\n", gtk_adjustment_get_lower(adjh),
+	    	 gtk_adjustment_get_upper(adjh));
+	WriteLog("ver: lower = %d, upper = %d\n", 
+			 gtk_adjustment_get_lower(adjv),
+	    	 gtk_adjustment_get_upper(adjv));
 	gtk_adjustment_changed(adjh);
 	gtk_adjustment_changed(adjv);
 	gtk_adjustment_value_changed(adjh);
@@ -693,8 +669,8 @@ delete_event(GtkWidget *widget __attribute__((unused)),
  *
  * This is an expose event for the drawing area to cause the screen to
  * be repainted. Redraws all the fields that are on the screen.
- * \param widget unused
- * \param event unused
+ * \param widget widget to draw upon
+ * \param event what part of the object is exposed
  * \param data unused
  * \return FALSE, to make sure nothing else tries to handle the signal
  */
@@ -703,19 +679,13 @@ drawing_exposed_callback(GtkWidget *widget,
     GdkEventExpose *event,
     gpointer data __attribute__((unused)))
 {
-	GdkGC *gc = gdk_gc_new(widget->window);
+	cairo_t *cr = gtk_cairo_create(gtk_widget_get_window(widget));
 
-	gdk_draw_drawable(
-	    widget->window,
-	    gc,
-	    mw.p_play,
-	    event->area.x + (getMapXPos() * gameTileSize()),
-	    event->area.y + (getMapYPos() * gameTileSize()),
-	    event->area.x,
-	    event->area.y,
-	    event->area.width,
-	    event->area.height);
-	g_object_unref(gc);
+	gdk_cairo_set_source_pixbuf(cr, mw.p_play,
+		event->area.x + (getMapXPos() * gameTileSize()),
+		event->area.y + (getMapYPos() * gameTileSize()));
+	cairo_paint(cr);
+	cairo_destroy(cr);
 	return (FALSE);
 }
 
@@ -925,6 +895,7 @@ SetUpMainWindow(void)
 	GtkWidget *footerbox, *headerbox;
 	GtkWidget *toolbox;
 	GtkWidget *playingbox, *main_box;
+	GtkWidget *scrolling_window;
 	//GtkAccelGroup *accel_group;
 	GtkActionGroup *act_group;
 	GtkStockItem stock_item;
@@ -1016,9 +987,12 @@ SetUpMainWindow(void)
 		exit(0);
 	}
 
-	headerbox = gtk_hbox_new(FALSE, 0);
-	playingbox = gtk_table_new(2, 2, FALSE);
-	footerbox = gtk_hbox_new(FALSE, 0);
+	headerbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	playingbox = gtk_grid_new();
+	mw.sc_hor = gtk_adjustment_new(50, 0, 100, 1, 10, 20);
+	mw.sc_vert = gtk_adjustment_new(50, 0, 100, 1, 10, 15);
+	scrolling_window = gtk_scrolled_window_new(mw.sc_hor, mw.sc_vert);
+	footerbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
 	gtk_container_add(GTK_CONTAINER(mw.window), main_box);
 
@@ -1030,28 +1004,21 @@ SetUpMainWindow(void)
 	mw.l_location = gtk_label_new("Location");
 	mw.l_pop = gtk_label_new("Population");
 	gtk_box_pack_start(GTK_BOX(footerbox), mw.l_location, TRUE, TRUE, 0);
-	gtk_misc_set_alignment(GTK_MISC(mw.l_location), 0, 0);
+	gtk_widget_set_valign(mw.l_location, GTK_ALIGN_START);
+	gtk_widget_set_halign(mw.l_location, GTK_ALIGN_START);
 	gtk_box_pack_end(GTK_BOX(footerbox), mw.l_pop, TRUE, TRUE, 0);
 
 	/* the actual playfield is a Gtkmw.drawing */
 	mw.drawing = gtk_drawing_area_new();
 	gtk_widget_set_size_request(mw.drawing, 320, 320);
 	/* and some scrollbars for the mw.drawing */
-	mw.sc_hor = gtk_adjustment_new(50, 0, 100, 1, 10, 20);
-	mw.sc_vert = gtk_adjustment_new(50, 0, 100, 1, 10, 15);
-	mw.hscroll = gtk_hscrollbar_new(GTK_ADJUSTMENT(mw.sc_hor));
-	mw.vscroll = gtk_vscrollbar_new(GTK_ADJUSTMENT(mw.sc_vert));
+	gtk_container_add(GTK_CONTAINER(scrolling_window), mw.drawing);
+	
 	g_signal_connect(G_OBJECT(mw.sc_hor), "value_changed",
 	    G_CALLBACK(scrollbar), NULL);
 	g_signal_connect(G_OBJECT(mw.sc_vert), "value_changed",
 	    G_CALLBACK(scrollbar), NULL);
 
-	gtk_table_attach(GTK_TABLE(playingbox), mw.drawing,
-	    0, 1, 0, 1, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 0, 0);
-	gtk_table_attach(GTK_TABLE(playingbox), mw.hscroll, 0, 1, 1, 2,
-	    GTK_FILL, 0, 0, 0);
-	gtk_table_attach(GTK_TABLE(playingbox), mw.vscroll, 1, 2, 0, 1,
-	    0, GTK_FILL, 0, 0);
 	g_signal_connect(G_OBJECT(mw.drawing), "configure_event",
 	    G_CALLBACK(check_configure), NULL);
 
@@ -1099,16 +1066,15 @@ ShowMainWindow(void)
 /*! \brief image pixmaps */
 static struct image_pms {
 	char *filename; /*!< Filename of the image file */
-	GdkPixmap **pm; /*!< Pixmap to place the image into */
-	GdkPixmap **mask; /*!< Mask for transparency of the image */
-} image_pixmaps[] = {
-	{ "tile-16x16-color.png", &mw.p_zones, &mw.p_zones_m },
-	{ "monsters_16x16-color.png", &mw.p_monsters, &mw.p_monsters_m },
-	{ "units_16x16-color.png", &mw.p_units, &mw.p_units_m },
-	{ "tile-4x4-color.png", &mw.p_mapzones, NULL },
-	{ "monsters_16x16-color.png", &mw.p_mapspecials, NULL },
-	{ "units_16x16-color.png", &mw.p_mapunits, NULL },
-	{ NULL, NULL, NULL }
+	GdkPixbuf **pb; /*!< Pixmap to place the image into */
+} image_pixbufs[] = {
+	{ "tile-16x16-color.png", &mw.p_zones },
+	{ "monsters_16x16-color.png", &mw.p_monsters },
+	{ "units_16x16-color.png", &mw.p_units },
+	{ "tile-4x4-color.png", &mw.p_mapzones },
+	{ "monsters_16x16-color.png", &mw.p_mapspecials },
+	{ "units_16x16-color.png", &mw.p_mapunits },
+	{ NULL, NULL }
 };
 
 /*!
@@ -1121,10 +1087,10 @@ UIInitializeGraphics(void)
 	struct image_pms *ipm;
 	char *image_path;
 
-	for (i = 0; image_pixmaps[i].filename != NULL; i++) {
-		ipm = image_pixmaps + i;
-		*ipm->pm = load_pixmap(ipm->filename, ipm->mask);
-		if (NULL == *ipm->pm)
+	for (i = 0; image_pixbufs[i].filename != NULL; i++) {
+		ipm = image_pixbufs + i;
+		*ipm->pb = load_pixbuf(ipm->filename);
+		if (NULL == *ipm->pb)
 			return (1);
 	}
 	/* load the icon */
@@ -1143,14 +1109,10 @@ UICleanupGraphics(void)
 	int elt;
 
 	if (mw.p_play != NULL) g_object_unref(G_OBJECT(mw.p_play));
-	for (elt = 0; image_pixmaps[elt].filename != NULL; elt++) {
-		if (image_pixmaps[elt].pm != NULL &&
-			*image_pixmaps[elt].pm != NULL)
-			g_object_unref(G_OBJECT(*image_pixmaps[elt].pm));
-		if (image_pixmaps[elt].mask != NULL &&
-			*image_pixmaps[elt].mask != NULL)
-			g_object_unref(G_OBJECT(*image_pixmaps[elt].mask));
-
+	for (elt = 0; image_pixbufs[elt].filename != NULL; elt++) {
+		if (image_pixbufs[elt].pb != NULL &&
+			*image_pixbufs[elt].pb != NULL)
+			g_object_unref(G_OBJECT(*image_pixbufs[elt].pb));
 	}
 }
 
@@ -1354,8 +1316,7 @@ UIDrawSpeed(void)
 
 /*!
  * \brief Draw the build icon on the display
- * \todo Impement this for this platform
- */
+ * \todo Impement this for this platform */
 void
 UIDrawBuildIcon(void)
 {
@@ -1388,28 +1349,33 @@ UIScrollDisplay(dirType direction __attribute__((unused)))
 	gtk_widget_queue_draw(mw.drawing);
 }
 
+/*!
+ * \brief render the numbered graphic into the play area
+ *
+ * \param xpos the integer position on the map
+ * \param ypos the integer position on the map
+ * \param nGraphic the numbered graphic to render
+*/
 void
 UIPaintField(UInt16 xpos, UInt16 ypos, welem_t nGraphic)
 {
-	GdkGC *gc = gdk_gc_new(mw.p_play);
+	cairo_surface_t *surf = gdk_cairo_surface_create_from_pixbuf(mw.p_play, 1, GDK_WINDOW(mw.window));
+	cairo_t *cr = cairo_create(surf);
 
-	gdk_draw_drawable(
-	    GDK_DRAWABLE(mw.p_play),
-	    gc,
-	    mw.p_zones,
-	    (nGraphic % HORIZONTAL_TILESIZE) * gameTileSize(),
-	    (nGraphic / HORIZONTAL_TILESIZE) * gameTileSize(),
-	    xpos * gameTileSize(),
-	    ypos * gameTileSize(),
-	    gameTileSize(),
-	    gameTileSize());
-	g_object_unref(gc);
+	gdk_cairo_set_source_pixbuf(cr, mw.p_zones,
+		(nGraphic % HORIZONTAL_TILESIZE) * gameTileSize(),
+		(nGraphic / HORIZONTAL_TILESIZE) * gameTileSize());
+	cairo_rectangle(cr, xpos * gameTileSize(), ypos * gameTileSize(), gameTileSize(), gameTileSize());
+	cairo_paint(cr);
+	cairo_destroy(cr);
+	cairo_surface_destroy(surf);
 	gtk_widget_queue_draw(mw.drawing);
 }
 
 void
 UIPaintSpecialObject(UInt16 xpos, UInt16 ypos, Int8 i)
 {
+	/*
 	GdkGC *gc;
 
 	gc = gdk_gc_new(mw.p_play);
@@ -1430,11 +1396,13 @@ UIPaintSpecialObject(UInt16 xpos, UInt16 ypos, Int8 i)
 	    gameTileSize());
 	g_object_unref(gc);
 	gtk_widget_queue_draw(mw.drawing);
+	*/
 }
 
 void
 UIPaintSpecialUnit(UInt16 xpos, UInt16 ypos, Int8 i)
 {
+	/*
 	GdkGC *gc;
 
 	gc = gdk_gc_new(mw.p_play);
@@ -1455,11 +1423,13 @@ UIPaintSpecialUnit(UInt16 xpos, UInt16 ypos, Int8 i)
 	    gameTileSize());
 	g_object_unref(gc);
 	gtk_widget_queue_draw(mw.drawing);
+	*/
 }
 
 void
-UIDrawMapZone(Int16 xpos, Int16 ypos, welem_t nGraphic, GdkDrawable *drawable)
+UIDrawMapZone(Int16 xpos, Int16 ypos, welem_t nGraphic, GdkWindow *drawable)
 {
+	/*
 	GdkGC *gc = gdk_gc_new(drawable);
 	gdk_draw_drawable(
 	    drawable,
@@ -1472,11 +1442,13 @@ UIDrawMapZone(Int16 xpos, Int16 ypos, welem_t nGraphic, GdkDrawable *drawable)
 	    mapTileSize(),
 	    mapTileSize());
 	g_object_unref(gc);
+	*/
 }
 
 void
-UIDrawMapSpecialObject(Int16 xpos, Int16 ypos, Int16 i, GdkDrawable *drawable)
+UIDrawMapSpecialObject(Int16 xpos, Int16 ypos, Int16 i, GdkWindow *drawable)
 {
+	/*
 	GdkGC *gc = gdk_gc_new(drawable);
 
 	gdk_draw_drawable(
@@ -1490,11 +1462,13 @@ UIDrawMapSpecialObject(Int16 xpos, Int16 ypos, Int16 i, GdkDrawable *drawable)
 	    mapTileSize(),
 	    mapTileSize());
 	g_object_unref(gc);
+	*/
 }
 
 void
-UIDrawMapSpecialUnit(Int16 xpos, Int16 ypos, Int16 i, GdkDrawable *drawable)
+UIDrawMapSpecialUnit(Int16 xpos, Int16 ypos, Int16 i, GdkWindow *drawable)
 {
+	/*
 	GdkGC *gc = gdk_gc_new(drawable);
 
 	gdk_draw_drawable(
@@ -1508,6 +1482,7 @@ UIDrawMapSpecialUnit(Int16 xpos, Int16 ypos, Int16 i, GdkDrawable *drawable)
 	    mapTileSize(),
 	    mapTileSize());
 	g_object_unref(gc);
+	*/
 }
 
 void
@@ -1526,6 +1501,7 @@ UIPaintCursor(UInt16 xpos __attribute__((unused)),
 static void
 DrawOverlay(UInt16 xpos, UInt16 ypos, welem_t offset)
 {
+	/*
 	GdkGC *gc;
 
 	gc = gdk_gc_new(mw.p_play);
@@ -1545,6 +1521,7 @@ DrawOverlay(UInt16 xpos, UInt16 ypos, welem_t offset)
 	    gameTileSize(),
 	    gameTileSize());
 	g_object_unref(gc);
+	*/
 }
 
 void
@@ -1604,9 +1581,9 @@ void
 UIMapResize(void)
 {
 	if (mw.p_play != NULL) g_object_unref(G_OBJECT(mw.p_play));
-	mw.p_play = gdk_pixmap_new(drawable_main_get(),
+	mw.p_play = gdk_pixbuf_new(GDK_COLORSPACE_RGB, 0, 8,
 	    getMapWidth() * gameTileSize(),
-	    getMapHeight() * gameTileSize(), -1);
+	    getMapHeight() * gameTileSize());
 	UnpaintWorld();
 	resizeMap();
 }
@@ -1631,10 +1608,8 @@ GetRandomNumber(UInt32 max)
 void
 MapHasJumped(void)
 {
-	GTK_ADJUSTMENT(mw.sc_hor)->value = getMapXPos();
-	GTK_ADJUSTMENT(mw.sc_vert)->value = getMapYPos();
-	gtk_adjustment_value_changed(GTK_ADJUSTMENT(mw.sc_hor));
-	gtk_adjustment_value_changed(GTK_ADJUSTMENT(mw.sc_vert));
+	gtk_adjustment_set_value(GTK_ADJUSTMENT(mw.sc_hor), getMapXPos());
+	gtk_adjustment_set_value(GTK_ADJUSTMENT(mw.sc_vert), getMapYPos());
 	gtk_widget_queue_draw(mw.drawing);
 }
 

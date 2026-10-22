@@ -1,11 +1,12 @@
 VERSION := $(shell grep Version ../CHANGELOG | head -1 | awk '{print $$2}')
-GCPPFLAGS := $(shell pkg-config --cflags gtk+-2.0) -DG_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED
+GCPPFLAGS := $(shell pkg-config --cflags gtk+-3.0) \
+	-DG_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED -DGSEAL_ENABLE
 
 ifeq ($(CC),suncc)
 GCCFLAGS = -v -erroff=%none -errwarn=%all
 XOPTFLAGS = -xO2
 else
-GCCFLAGS = -W -Wall -Werror
+GCCFLAGS = -W -Wall -Werror -Wno-unused
 XOPTFLAGS = -O2
 endif
 INCLUDEDIRS = -I . -I ../source -I ../nix-common -I ../graphic
